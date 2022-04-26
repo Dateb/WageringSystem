@@ -2,6 +2,7 @@ from typing import List
 
 from DataCollection.RawRaceCard import RawRaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
 
 
@@ -19,17 +20,16 @@ class RaceCard:
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
 
-    def get_horses(self, feature_extractors: List[FeatureExtractor]) -> List[Horse]:
-        horses = [self.__create_horse(horse_id, feature_extractors) for horse_id in self.__horse_data]
+    def get_horses(self, feature_manager: FeatureManager) -> List[Horse]:
+        horses = [self.__create_horse(horse_id, feature_manager) for horse_id in self.__horse_data]
         started_horses = [horse for horse in horses if horse.place != -1]
         return started_horses
 
-    def __create_horse(self, horse_id: str, feature_extractors: List[FeatureExtractor]) -> Horse:
+    def __create_horse(self, horse_id: str, feature_manager: FeatureManager) -> Horse:
         starting_odds = self.get_starting_odds_of_horse(horse_id)
         place = self.get_place_of_horse(horse_id)
-        features = {}
-        for feature_extractor in feature_extractors:
-            features[feature_extractor.get_name()] = feature_extractor.get_value(horse_id, self.__horse_data)
+
+        features = feature_manager.get_features_of_horse(horse_id, self.__horse_data)
 
         return Horse(horse_id, self.__race_id, self.track_id, starting_odds, place, features)
 

@@ -3,6 +3,8 @@ from abc import abstractmethod, ABC
 
 class FeatureExtractor(ABC):
 
+    PLACEHOLDER_VALUE: str = "0"
+
     def __init__(self):
         pass
 

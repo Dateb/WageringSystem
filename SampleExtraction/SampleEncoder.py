@@ -13,8 +13,8 @@ from SampleExtraction.Horse import Horse
 
 class SampleEncoder:
 
-    def __init__(self):
-        self.__feature_extractors = FeatureManager.ENABLED_FEATURE_EXTRACTORS
+    def __init__(self, feature_manager: FeatureManager):
+        self.__feature_manager = feature_manager
 
     def fit(self, race_cards: List[RaceCard]):
         pass
@@ -22,7 +22,7 @@ class SampleEncoder:
     def transform(self, race_cards: List[RaceCard]) -> DataFrame:
         runners = []
         for race_card in race_cards:
-            runners += race_card.get_horses(self.__feature_extractors)
+            runners += race_card.get_horses(self.__feature_manager)
 
         runners_data = np.array([runner.values for runner in runners])
         runners_df = pd.DataFrame(data=runners_data, columns=Horse.ATTRIBUTE_NAMES)
@@ -36,7 +36,7 @@ def main():
     print(len(race_cards))
     #race_cards = RaceCardsFilter(race_cards).filtered_race_cards
 
-    sample_encoder = SampleEncoder()
+    sample_encoder = SampleEncoder(FeatureManager())
     sample_encoder.fit(race_cards)
     samples_df = sample_encoder.transform(race_cards)
 

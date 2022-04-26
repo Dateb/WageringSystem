@@ -24,7 +24,6 @@ class BoostedTreesRanker:
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
         X = samples_test[FeatureManager.FEATURE_NAMES].apply(pd.to_numeric, errors='coerce')
-        print(X)
         scores = self.__ranker.predict(X)
 
         samples_test["score"] = scores

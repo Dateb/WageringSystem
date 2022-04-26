@@ -9,6 +9,7 @@ from Betting.WinBettor import WinBettor
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.NeuralNetworkRanker import NeuralNetworkRanker
+from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCard import RaceCard
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -20,7 +21,7 @@ class ProductionBettor:
 
     def __init__(self):
         self.__bettor = WinBettor()
-        self.__encoder = SampleEncoder()
+        self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
 
         with open(self.__ESTIMATOR_PATH, "rb") as f:
             self.__estimator = pickle.load(f)
@@ -40,7 +41,7 @@ class ProductionBettor:
 
 def main():
     production_bettor = ProductionBettor()
-    predicted_winner_names = production_bettor.bet("4988180")
+    predicted_winner_names = production_bettor.bet("4990493")
     print(f"Bet on runners: {predicted_winner_names}.")
 
 

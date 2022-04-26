@@ -25,6 +25,9 @@ from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtrac
 
 class FeatureManager:
 
+    def __init__(self, report_missing_features: bool = False):
+        self.__report_missing_features = report_missing_features
+
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         AgeExtractor(),
         RatingExtractor(),
@@ -54,4 +57,19 @@ class FeatureManager:
         PastPlacesExtractor(5),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
+
+    def get_features_of_horse(self, horse_id: str, horse_data: dict):
+        features = {}
+        for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS:
+            feature_value = feature_extractor.get_value(horse_id, horse_data)
+            if self.__report_missing_features:
+                self.__report_if_feature_missing(feature_extractor, feature_value)
+            features[feature_extractor.get_name()] = feature_value
+        return features
+
+    def __report_if_feature_missing(self, feature_extractor: FeatureExtractor, feature_value):
+        if feature_value == feature_extractor.PLACEHOLDER_VALUE:
+            print(f"WARNING: Missing feature {feature_extractor.get_name()}, "
+                  f"used value: {feature_extractor.PLACEHOLDER_VALUE}")
+
 
