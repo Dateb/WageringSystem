@@ -30,7 +30,7 @@ class Bettor(ABC):
             else:
                 bet_horses_lookup[race_id] = [bet_horse_id]
 
-        bets = [Bet(race_id, bet_type, 10.0, bet_horses_lookup[race_id]) for race_id in bet_horses_lookup]
+        bets = [Bet(race_id, bet_type, 1.0, bet_horses_lookup[race_id]) for race_id in bet_horses_lookup]
 
         return bets
 

@@ -72,7 +72,7 @@ def main():
     bettor = WinBettor()
 
     validator = Validator(sample_set, bettor)
-    validator.train_validate_model(n_rounds=2)
+    validator.train_validate_model(n_rounds=5)
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

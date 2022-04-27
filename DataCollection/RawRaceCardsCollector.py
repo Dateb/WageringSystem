@@ -7,7 +7,7 @@ from DataCollection.RaceHistory import RaceHistory
 from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from DataCollection.Scraper import get_scraper
-from Persistence.RaceHistoryPersistence import RaceHistoryPersistence
+from Persistence.PastRacesPersistence import PastRacesPersistence
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 
 
@@ -96,7 +96,7 @@ class RawRaceCardsCollector:
 
 def main():
     persistence = RawRaceCardsPersistence()
-    race_histories = RaceHistoryPersistence().load()
+    race_histories = PastRacesPersistence().load()
 
     while True:
         initial_raw_race_cards = persistence.load()

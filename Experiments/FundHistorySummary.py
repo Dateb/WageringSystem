@@ -6,7 +6,7 @@ from Experiments.FundHistorySnapshot import FundHistorySnapshot
 
 class FundHistorySummary:
 
-    def __init__(self, name: str, bet_results: List[BetResult], start_wealth=1000):
+    def __init__(self, name: str, bet_results: List[BetResult], start_wealth=0):
         self.__name = name
         self.__payouts = [bet_result.payout for bet_result in bet_results]
         self.__winnings = [bet_result.win for bet_result in bet_results]

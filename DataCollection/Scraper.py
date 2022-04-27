@@ -55,7 +55,6 @@ class Scraper:
             self.__wait_random_amount_of_seconds(1.0)
             if response.status_code == 200:
                 result = response.json()
-                print(result)
                 return result
 
         return result
