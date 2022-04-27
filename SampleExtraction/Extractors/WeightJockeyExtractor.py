@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class WeightJockeyExtractor(FeatureExtractor):
@@ -9,8 +10,8 @@ class WeightJockeyExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Weight_Jockey"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> str:
-        jockey = horse_data[horse_id]["jockey"]
+    def get_value(self, horse: Horse) -> str:
+        jockey = horse.raw_data["jockey"]
         if "weight" in jockey:
             return jockey["weight"]["weight"]
 

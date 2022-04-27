@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class PostPositionExtractor(FeatureExtractor):
@@ -9,7 +10,7 @@ class PostPositionExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Post_Position"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> str:
-        if "postPosition" in horse_data[horse_id]:
-            return horse_data[horse_id]["postPosition"]
+    def get_value(self, horse: Horse) -> str:
+        if "postPosition" in horse.raw_data:
+            return horse.raw_data["postPosition"]
         return "0"

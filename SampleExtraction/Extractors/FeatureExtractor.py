@@ -1,5 +1,7 @@
 from abc import abstractmethod, ABC
 
+from SampleExtraction.Horse import Horse
+
 
 class FeatureExtractor(ABC):
 
@@ -13,5 +15,5 @@ class FeatureExtractor(ABC):
         pass
 
     @abstractmethod
-    def get_value(self, horse_id: str, horse_data: dict) -> int:
+    def get_value(self, horse: Horse) -> int:
         pass

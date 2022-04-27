@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class InitialOddsExtractor(FeatureExtractor):
@@ -9,7 +10,7 @@ class InitialOddsExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Initial_Odds"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> float:
-        if "fixedOddsHistory" in horse_data[horse_id]:
-            return horse_data[horse_id]["fixedOddsHistory"][-1]
+    def get_value(self, horse: Horse) -> float:
+        if "fixedOddsHistory" in horse.raw_data:
+            return horse.raw_data["fixedOddsHistory"][-1]
         return 0

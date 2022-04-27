@@ -24,7 +24,7 @@ class Bettor(ABC):
         bet_horses_lookup = {}
         for index, row in bets_df.iterrows():
             race_id = str(int(row[Horse.RACE_ID_KEY]))
-            bet_horse_id = str(int(row[Horse.RUNNER_ID_KEY]))
+            bet_horse_id = str(int(row[Horse.HORSE_ID_KEY]))
             if race_id in bet_horses_lookup:
                 bet_horses_lookup[race_id] += [bet_horse_id]
             else:

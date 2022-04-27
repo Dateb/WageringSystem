@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class BlinkerExtractor(FeatureExtractor):
@@ -9,7 +10,7 @@ class BlinkerExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Has_Blinker"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> int:
-        blinker_indicator = horse_data[horse_id]["blinkers"]
+    def get_value(self, horse: Horse) -> int:
+        blinker_indicator = horse.raw_data["blinkers"]
 
         return int(blinker_indicator)

@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class PurseExtractor(FeatureExtractor):
@@ -9,5 +10,5 @@ class PurseExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Purse"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> int:
-        return horse_data[horse_id]['pp']['purse']
+    def get_value(self, horse: Horse) -> int:
+        return horse.raw_data['pp']['purse']

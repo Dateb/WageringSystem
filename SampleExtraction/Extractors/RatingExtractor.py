@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class RatingExtractor(FeatureExtractor):
@@ -9,8 +10,8 @@ class RatingExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Rating"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> float:
-        rating = horse_data[horse_id]['rating']
+    def get_value(self, horse: Horse) -> float:
+        rating = horse.raw_data['rating']
         if rating == '':
             return 0
         return rating

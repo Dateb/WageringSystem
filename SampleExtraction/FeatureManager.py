@@ -21,6 +21,7 @@ from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtractor
+from SampleExtraction.Horse import Horse
 
 
 class FeatureManager:
@@ -58,14 +59,12 @@ class FeatureManager:
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 
-    def get_features_of_horse(self, horse_id: str, horse_data: dict):
-        features = {}
+    def set_features_of_horse(self, horse: Horse) -> None:
         for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS:
-            feature_value = feature_extractor.get_value(horse_id, horse_data)
+            feature_value = feature_extractor.get_value(horse)
             if self.__report_missing_features:
                 self.__report_if_feature_missing(feature_extractor, feature_value)
-            features[feature_extractor.get_name()] = feature_value
-        return features
+            horse.set_feature(feature_extractor.get_name(), feature_value)
 
     def __report_if_feature_missing(self, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

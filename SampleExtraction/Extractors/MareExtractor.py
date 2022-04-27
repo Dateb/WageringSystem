@@ -1,4 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Horse import Horse
 
 
 class MareExtractor(FeatureExtractor):
@@ -9,7 +10,7 @@ class MareExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Is_Mare"
 
-    def get_value(self, horse_id: str, horse_data: dict) -> int:
-        gelding_indicator = horse_data[horse_id]["gender"] == "M"
+    def get_value(self, horse: Horse) -> int:
+        gelding_indicator = horse.raw_data["gender"] == "M"
 
         return int(gelding_indicator)

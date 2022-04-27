@@ -28,10 +28,13 @@ class RaceCard:
     def __create_horse(self, horse_id: str, feature_manager: FeatureManager) -> Horse:
         starting_odds = self.get_starting_odds_of_horse(horse_id)
         place = self.get_place_of_horse(horse_id)
+        raw_horse_data = self.__horse_data[horse_id]
 
-        features = feature_manager.get_features_of_horse(horse_id, self.__horse_data)
+        new_horse = Horse(raw_horse_data, horse_id, self.__race_id, self.track_id, starting_odds, place)
 
-        return Horse(horse_id, self.__race_id, self.track_id, starting_odds, place, features)
+        feature_manager.set_features_of_horse(new_horse)
+
+        return new_horse
 
     def get_starting_odds_of_horse(self, horse_id: str) -> float:
         return self.__horse_data[horse_id]["odds"]["PRC"]
