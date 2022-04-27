@@ -15,3 +15,11 @@ class PastRacesContainer:
         raw_race_card = RawRaceCard(past_race_id, raw_race_data)
         return RaceCard(raw_race_card)
 
+    def is_past_race_available(self, race_id: str, horse_id: str, n_races_ago: int):
+        past_race_key = f"(\'{race_id}\', \'{horse_id}\', {n_races_ago})"
+        return past_race_key in self.__raw_past_races
+
+    @property
+    def raw_past_races(self):
+        return self.__raw_past_races
+

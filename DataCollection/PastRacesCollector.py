@@ -66,7 +66,7 @@ class PastRacesCollector:
 
 def scrape_race_histories(raw_race_cards):
     persistence = PastRacesPersistence()
-    initial_past_races = persistence.load()
+    initial_past_races = persistence.load().raw_past_races
     race_histories_collector = PastRacesCollector(raw_race_cards, initial_past_races)
     race_histories_collector.collect()
     persistence.save(race_histories_collector.past_races)

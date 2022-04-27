@@ -1,8 +1,6 @@
 from typing import List
 
 from DataCollection.RawRaceCard import RawRaceCard
-from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
 
 
@@ -20,21 +18,11 @@ class RaceCard:
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
 
-    def get_horses(self, feature_manager: FeatureManager) -> List[Horse]:
-        horses = [self.__create_horse(horse_id, feature_manager) for horse_id in self.__horse_data]
-        started_horses = [horse for horse in horses if horse.place != -1]
-        return started_horses
+    def get_name_of_horse(self, horse_id: str) -> str:
+        return self.__horse_data[horse_id]["name"]
 
-    def __create_horse(self, horse_id: str, feature_manager: FeatureManager) -> Horse:
-        starting_odds = self.get_starting_odds_of_horse(horse_id)
-        place = self.get_place_of_horse(horse_id)
-        raw_horse_data = self.__horse_data[horse_id]
-
-        new_horse = Horse(raw_horse_data, horse_id, self.__race_id, self.track_id, starting_odds, place)
-
-        feature_manager.set_features_of_horse(new_horse)
-
-        return new_horse
+    def is_horse_scratched(self, horse_id: str) -> bool:
+        return self.__horse_data[horse_id]["scratched"]
 
     def get_starting_odds_of_horse(self, horse_id: str) -> float:
         return self.__horse_data[horse_id]["odds"]["PRC"]
@@ -47,10 +35,7 @@ class RaceCard:
         if 'finalPosition' in horse_data:
             return int(horse_data["finalPosition"])
 
-        return len(self.runner_ids)
-
-    def get_name_of_horse(self, horse_id: str) -> str:
-        return self.__horse_data[horse_id]["name"]
+        return 100
 
     @property
     def race_id(self) -> str:
