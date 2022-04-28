@@ -18,10 +18,12 @@ from SampleExtraction.Extractors.NumWinsJockeyExtractor import NumWinsJockeyExtr
 from SampleExtraction.Extractors.NumWinsTrainerExtractor import NumWinsTrainerExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
+from SampleExtraction.Extractors.PreviousAveragePurseExtractor import PreviousAveragePurseExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
+from SampleExtraction.Extractors.WeightDifferenceExtractor import WeightDifferenceExtractor
 from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtractor
 from SampleExtraction.Horse import Horse
 
@@ -34,12 +36,6 @@ class FeatureManager:
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         AgeExtractor(),
         RatingExtractor(),
-        WeightAllowanceExtractor(),
-        BlinkerExtractor(),
-
-        ColtExtractor(),
-        GeldingExtractor(),
-        MareExtractor(),
 
         InitialOddsExtractor(),
         NumRacesJockeyExtractor(),
@@ -62,6 +58,8 @@ class FeatureManager:
         # ---Past performance features---
         LayoffExtractor(),
         PreviousOddsExtractor(),
+        WeightDifferenceExtractor(),
+        PreviousAveragePurseExtractor(),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 
