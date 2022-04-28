@@ -15,9 +15,8 @@ class HorseFactory:
     def create(self, race_card: RaceCard) -> List[Horse]:
         horse_data = race_card.horses
         horses = [self.__create_horse(race_card, horse_id, horse_data) for horse_id in horse_data]
-        started_horses = [horse for horse in horses if horse.place != -1]
 
-        return started_horses
+        return horses
 
     def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict) -> Horse:
         race_id = race_card.race_id
@@ -26,7 +25,13 @@ class HorseFactory:
         place = self.get_place_of_horse(horse_id, horse_data)
         raw_horse_data = horse_data[horse_id]
 
-        new_horse = Horse(raw_horse_data, horse_id, race_id, track_id, starting_odds, place)
+        subject_id = race_card.get_subject_id_of_horse(horse_id)
+
+        races = [race_card]
+        if self.__past_races_container.is_past_race_available(race_id, subject_id, n_races_ago=1):
+            races.append(self.__past_races_container.get_past_race(race_id, subject_id, 1))
+
+        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, starting_odds, place, races)
 
         self.__feature_manager.set_features_of_horse(new_horse)
 

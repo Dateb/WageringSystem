@@ -1,7 +1,6 @@
 from typing import List
 
 from DataCollection.RawRaceCard import RawRaceCard
-from SampleExtraction.Horse import Horse
 
 
 class RaceCard:
@@ -11,12 +10,18 @@ class RaceCard:
         self.__raw_race_data = raw_race_card.raw_race_data
 
         self.__extract_data()
+        self.__remove_non_starters()
 
     def __extract_data(self):
         self.__event = self.__raw_race_data['event']
         self.__race = self.__raw_race_data['race']
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
+
+    def __remove_non_starters(self):
+        non_starters = [horse_id for horse_id in self.__horse_data if self.is_horse_scratched(horse_id)]
+        for non_starter in non_starters:
+            del self.__horse_data[non_starter]
 
     def get_name_of_horse(self, horse_id: str) -> str:
         return self.__horse_data[horse_id]["name"]
@@ -37,9 +42,22 @@ class RaceCard:
 
         return 100
 
+    def get_subject_id_of_horse(self, horse_id: str) -> str:
+        return self.__horse_data[horse_id]["idSubject"]
+
+    def get_data_of_subject(self, subject_id: str) -> dict:
+        for horse_id in self.horses:
+            horse_data = self.__horse_data[horse_id]
+            if horse_data["idSubject"] == subject_id:
+                return horse_data
+
     @property
     def race_id(self) -> str:
         return self.__race_id
+
+    @property
+    def start_time(self) -> int:
+        return self.__event["firstStart"]
 
     @property
     def track_id(self) -> str:

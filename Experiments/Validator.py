@@ -65,14 +65,11 @@ class Validator:
 def main():
     samples = pd.read_csv(SAMPLES_PATH)
 
-    #most_often_track_id = samples.groupby(["track_id"]).size().sort_values(ascending=False).head(1).index.values[0]
-    #samples = samples[samples["track_id"] == most_often_track_id]
-
     sample_set = SampleSet(samples)
     bettor = WinBettor()
 
     validator = Validator(sample_set, bettor)
-    validator.train_validate_model(n_rounds=2)
+    validator.train_validate_model(n_rounds=10)
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

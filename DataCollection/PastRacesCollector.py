@@ -5,6 +5,7 @@ from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from Persistence.PastRacesPersistence import PastRacesPersistence
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
+from SampleExtraction.RaceCard import RaceCard
 
 
 class PastRacesCollector:
@@ -15,15 +16,15 @@ class PastRacesCollector:
         self.__form_guide_factory = FormGuideFactory()
         self.__is_done = False
 
-    def collect(self, n_past_races: int = 30):
+    def collect(self, n_past_races: int = 100):
         n_new_past_races = 0
         for i, raw_race_card in enumerate(self.__raw_race_cards):
             race_id = raw_race_card.race_id
             for horse_id in raw_race_card.horses:
                 if not raw_race_card.is_horse_scratched(horse_id):
-                    past_race_key = str((race_id, horse_id, 1))
+                    subject_id = raw_race_card.get_subject_id_of_horse(horse_id)
+                    past_race_key = str((race_id, subject_id, 1))
                     if past_race_key not in self.__past_races:
-                        subject_id = raw_race_card.get_subject_id_of_horse(horse_id)
                         self.__past_races[past_race_key] = self.__create_past_race(race_id, subject_id)
                         n_new_past_races += 1
 

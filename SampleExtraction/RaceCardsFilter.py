@@ -19,7 +19,8 @@ class RaceCardsFilter:
 
         for horse_id in horses:
             if not race_card.is_horse_scratched(horse_id):
-                if not self.__past_races_container.is_past_race_available(race_id, horse_id, 1):
+                subject_id = race_card.get_subject_id_of_horse(horse_id)
+                if not self.__past_races_container.is_past_race_computed(race_id, subject_id, 1):
                     return False
 
         return True

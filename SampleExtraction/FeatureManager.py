@@ -8,6 +8,7 @@ from SampleExtraction.Extractors.EarningsTrainerExtractor import EarningsTrainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.InitialOddsExtractor import InitialOddsExtractor
+from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.NumPlaceJockeyExtractor import NumPlaceJockeyExtractor
 from SampleExtraction.Extractors.NumPlaceTrainerExtractor import NumPlaceTrainerExtractor
@@ -17,6 +18,7 @@ from SampleExtraction.Extractors.NumWinsJockeyExtractor import NumWinsJockeyExtr
 from SampleExtraction.Extractors.NumWinsTrainerExtractor import NumWinsTrainerExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
+from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
@@ -56,6 +58,10 @@ class FeatureManager:
         PastPlacesExtractor(3),
         PastPlacesExtractor(4),
         PastPlacesExtractor(5),
+
+        # ---Past performance features---
+        LayoffExtractor(),
+        PreviousOddsExtractor(),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 
