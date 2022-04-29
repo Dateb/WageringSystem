@@ -4,8 +4,6 @@ from SampleExtraction.RaceCard import RaceCard
 
 class PastRacesContainer:
 
-#{'ERROR': 'no_past_race'}
-
     def __init__(self, raw_past_races: dict):
         self.__raw_past_races = raw_past_races
 

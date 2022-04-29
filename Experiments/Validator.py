@@ -27,16 +27,16 @@ class Validator:
         self.__random_state = 0
 
         self.__fund_history_summaries = []
-        self.__best_win_percentage = 0
+        self.__best_win_loss_ratio = 0
         self.__best_estimator = None
 
     def train_validate_model(self, n_rounds=2):
         for _ in trange(n_rounds):
             estimator = BoostedTreesRanker()
             fund_history_summary = self.__create_random_fund_history(estimator)
-            if fund_history_summary.win_percentage > self.__best_win_percentage:
-                print(f"Best win percentage thus far: {fund_history_summary.win_percentage * 100}%")
-                self.__best_win_percentage = fund_history_summary.win_percentage
+            if fund_history_summary.win_loss_ratio > self.__best_win_loss_ratio:
+                print(f"Best win/loss ratio thus far: {fund_history_summary.win_loss_ratio}")
+                self.__best_win_loss_ratio = fund_history_summary.win_loss_ratio
                 self.__best_estimator = estimator
             self.__fund_history_summaries.append(fund_history_summary)
 
@@ -69,7 +69,7 @@ def main():
     bettor = WinBettor()
 
     validator = Validator(sample_set, bettor)
-    validator.train_validate_model(n_rounds=30)
+    validator.train_validate_model(n_rounds=100)
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

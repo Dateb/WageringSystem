@@ -5,7 +5,6 @@ from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from Persistence.PastRacesPersistence import PastRacesPersistence
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
-from SampleExtraction.RaceCard import RaceCard
 
 
 class PastRacesCollector:
@@ -44,9 +43,15 @@ class PastRacesCollector:
         form_guide = self.__form_guide_factory.run(subject_id)
         past_race_ids = form_guide.past_race_ids
 
+        if len(past_race_ids) == 0:
+            return {"ERROR": "no_past_race"}
+
         print(past_race_ids)
 
-        idx_current_race = past_race_ids.index(int(race_id))
+        if int(race_id) in past_race_ids:
+            idx_current_race = past_race_ids.index(int(race_id))
+        else:
+            idx_current_race = -1
         idx_past_race = idx_current_race + 1
 
         if idx_past_race >= len(past_race_ids):

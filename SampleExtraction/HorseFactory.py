@@ -3,22 +3,22 @@ from typing import List
 from Persistence.PastRacesPersistence import PastRacesPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
+from SampleExtraction.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 
 
 class HorseFactory:
 
     def __init__(self, feature_manager: FeatureManager):
-        self.__past_races_container = PastRacesPersistence().load()
         self.__feature_manager = feature_manager
 
-    def create(self, race_card: RaceCard) -> List[Horse]:
+    def create(self, race_card: RaceCard, past_races_container: PastRacesContainer) -> List[Horse]:
         horse_data = race_card.horses
-        horses = [self.__create_horse(race_card, horse_id, horse_data) for horse_id in horse_data]
+        horses = [self.__create_horse(race_card, horse_id, horse_data, past_races_container) for horse_id in horse_data]
 
         return horses
 
-    def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict) -> Horse:
+    def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict, past_races_container: PastRacesContainer) -> Horse:
         race_id = race_card.race_id
         track_id = race_card.track_id
         starting_odds = self.get_starting_odds_of_horse(horse_id, horse_data)
@@ -28,8 +28,8 @@ class HorseFactory:
         subject_id = race_card.get_subject_id_of_horse(horse_id)
 
         races = [race_card]
-        if self.__past_races_container.is_past_race_available(race_id, subject_id, n_races_ago=1):
-            races.append(self.__past_races_container.get_past_race(race_id, subject_id, 1))
+        if past_races_container.is_past_race_available(race_id, subject_id, n_races_ago=1):
+            races.append(past_races_container.get_past_race(race_id, subject_id, 1))
 
         new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, starting_odds, place, races)
 
