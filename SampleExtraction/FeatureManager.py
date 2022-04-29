@@ -37,6 +37,12 @@ class FeatureManager:
         AgeExtractor(),
         RatingExtractor(),
 
+        BlinkerExtractor(),
+        ColtExtractor(),
+        GeldingExtractor(),
+        MareExtractor(),
+        WeightAllowanceExtractor(),
+
         InitialOddsExtractor(),
         NumRacesJockeyExtractor(),
         NumWinsJockeyExtractor(),

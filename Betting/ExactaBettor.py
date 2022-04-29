@@ -9,7 +9,7 @@ from Betting.Bettor import Bettor
 class ExactaBettor(Bettor):
 
     def bet(self, samples: pd.DataFrame) -> List[Bet]:
-        bets_df = self._get_lowest_n_samples(samples, 2)
+        bets_df = self._get_highest_n_scores(samples, 2)
 
         return self._dataframe_to_bets(bets_df, bet_type=BetType.EXACTA)
 

@@ -9,6 +9,6 @@ from Betting.Bettor import Bettor
 class WinBettor(Bettor):
 
     def bet(self, samples: pd.DataFrame) -> List[Bet]:
-        bets_df = self._get_lowest_n_samples(samples, 1)
+        bets_df = self._get_highest_n_expected_values(samples, 1)
 
         return self._dataframe_to_bets(bets_df, bet_type=BetType.WIN)
