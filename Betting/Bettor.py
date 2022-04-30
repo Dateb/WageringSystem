@@ -14,21 +14,14 @@ class Bettor(ABC):
     def bet(self, samples: pd.DataFrame) -> List[Bet]:
         pass
 
-    def _get_highest_n_scores(self, samples: pd.DataFrame, n: int):
+    def _get_lowest_n_odds(self, samples: pd.DataFrame, n: int):
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values(["score"], ascending=False)
+            lambda x: x.sort_values([Horse.CURRENT_ODDS_KEY], ascending=True)
         ).reset_index(drop=True)
 
         return race_groups.groupby(Horse.RACE_ID_KEY).head(n)
 
     def _get_highest_n_expected_values(self, samples: pd.DataFrame, n: int):
-        samples["exp_score"] = np.exp(samples["score"])
-        score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
-        samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
-        samples["win_probability"] = samples["exp_score"] / samples["sum_exp_scores"]
-        samples["expected_value"] = samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float) * samples["win_probability"]
-        samples["kelly_fraction"] = (samples["expected_value"] - 1) / (samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float) - 1)
-
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
             lambda x: x.sort_values(["expected_value"], ascending=False)
         ).reset_index(drop=True)
@@ -37,13 +30,28 @@ class Bettor(ABC):
         positive_expected_values = best_expected_values[best_expected_values["expected_value"] > 1]
         return positive_expected_values
 
+    def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
+        samples[Horse.CURRENT_ODDS_KEY] = samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float)
+
+        samples["exp_score"] = np.exp(samples["score"])
+        score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
+        samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
+        samples["win_probability"] = samples["exp_score"] / samples["sum_exp_scores"]
+        samples["expected_value"] = samples[Horse.CURRENT_ODDS_KEY] * samples["win_probability"]
+
+        kelly_numerator = samples["expected_value"] - 1
+        kelly_denominator = samples[Horse.CURRENT_ODDS_KEY] - 1
+        samples["stakes"] = kelly_numerator / kelly_denominator
+
+        return samples
+
     def _dataframe_to_bets(self, bets_df: pd.DataFrame, bet_type: BetType) -> List[Bet]:
         print(bets_df)
         bets = []
         for index, row in bets_df.iterrows():
             race_id = str(int(row[Horse.RACE_ID_KEY]))
             bet_horse_id = str(int(row[Horse.HORSE_ID_KEY]))
-            stakes = float(row["kelly_fraction"])
+            stakes = float(row["stakes"])
             new_bet = Bet(race_id, bet_type, stakes, [bet_horse_id])
             bets.append(new_bet)
 

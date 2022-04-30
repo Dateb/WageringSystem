@@ -11,6 +11,7 @@ class RaceCard:
 
         self.__extract_data()
         self.__remove_non_starters()
+        self.__set_head_to_head_horses()
 
     def __extract_data(self):
         self.__event = self.__raw_race_data['event']
@@ -40,7 +41,10 @@ class RaceCard:
         return 100
 
     def get_current_odds_of_horse(self, horse_id: str) -> float:
-        return self.__horse_data[horse_id]["odds"]["FXW"]
+        odds_of_horse = self.__horse_data[horse_id]["odds"]
+        if odds_of_horse["FXW"] == 0:
+            return odds_of_horse["PRC"]
+        return odds_of_horse["FXW"]
 
     def get_subject_id_of_horse(self, horse_id: str) -> str:
         return self.__horse_data[horse_id]["idSubject"]
@@ -50,6 +54,14 @@ class RaceCard:
             horse_data = self.__horse_data[horse_id]
             if horse_data["idSubject"] == subject_id:
                 return horse_data
+
+    def __set_head_to_head_horses(self):
+        self.__head_to_head_horses = []
+
+        if "head2head" in self.__race:
+            head_to_head_races = self.__race["head2head"]
+            for head_to_head_race in head_to_head_races:
+                self.__head_to_head_horses += head_to_head_race["runners"]
 
     @property
     def race_id(self) -> str:
@@ -90,6 +102,14 @@ class RaceCard:
     @property
     def horse_names(self) -> List[str]:
         return [self.__horse_data[horse_id]['name'] for horse_id in self.__horse_data]
+
+    @property
+    def head_to_head_horses(self) -> List[str]:
+        return self.__head_to_head_horses
+
+    @property
+    def track_going(self) -> float:
+        return self.__race["trackGoing"]
 
     @property
     def jockey_names(self) -> List[str]:

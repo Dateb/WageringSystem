@@ -18,10 +18,10 @@ from SampleExtraction.SampleEncoder import SampleEncoder
 
 class ProductionBettor:
 
-    __ESTIMATOR_PATH = "data/estimator_v1-01.dat"
+    __ESTIMATOR_PATH = "data/estimator_v1-02.dat"
     __estimator: BoostedTreesRanker
 
-    def __init__(self, kelly_wealth: float = 100.0):
+    def __init__(self, kelly_wealth: float = 20.0):
         self.__kelly_wealth = kelly_wealth
         self.__bettor = WinBettor()
 
@@ -52,7 +52,7 @@ class ProductionBettor:
 
 def main():
     production_bettor = ProductionBettor()
-    name, stakes = production_bettor.bet("5000653")
+    name, stakes = production_bettor.bet("5000793")
     print(f"Bet on horse: {name} this amount: {stakes}")
 
 

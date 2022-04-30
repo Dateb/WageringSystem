@@ -8,6 +8,7 @@ from SampleExtraction.Extractors.EarningsTrainerExtractor import EarningsTrainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
+from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.NumPlaceJockeyExtractor import NumPlaceJockeyExtractor
@@ -24,6 +25,7 @@ from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import Previo
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
+from SampleExtraction.Extractors.TrackGoingDifferenceExtractor import TrackGoingDifferenceExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WeightDifferenceExtractor import WeightDifferenceExtractor
 from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtractor
@@ -62,6 +64,7 @@ class FeatureManager:
         PastPlacesExtractor(3),
         PastPlacesExtractor(4),
         PastPlacesExtractor(5),
+        HeadToHeadExtractor(),
 
         # ---Past performance features---
         LayoffExtractor(),
@@ -70,6 +73,7 @@ class FeatureManager:
         PreviousAveragePurseExtractor(),
         PreviousRaceStarterCountExtractor(),
         DistanceDifferenceExtractor(),
+        TrackGoingDifferenceExtractor(),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 
