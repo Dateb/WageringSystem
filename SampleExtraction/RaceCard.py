@@ -29,9 +29,6 @@ class RaceCard:
     def is_horse_scratched(self, horse_id: str) -> bool:
         return self.__horse_data[horse_id]["scratched"]
 
-    def get_starting_odds_of_horse(self, horse_id: str) -> float:
-        return self.__horse_data[horse_id]["odds"]["PRC"]
-
     def get_place_of_horse(self, horse_id: str) -> int:
         horse_data = self.__horse_data[horse_id]
         if horse_data["scratched"]:
@@ -41,6 +38,9 @@ class RaceCard:
             return int(horse_data["finalPosition"])
 
         return 100
+
+    def get_current_odds_of_horse(self, horse_id: str) -> float:
+        return self.__horse_data[horse_id]["odds"]["FXW"]
 
     def get_subject_id_of_horse(self, horse_id: str) -> str:
         return self.__horse_data[horse_id]["idSubject"]
@@ -70,6 +70,14 @@ class RaceCard:
     @property
     def horses(self) -> dict:
         return self.__horse_data
+
+    @property
+    def surface(self) -> str:
+        return self.__race["trackSurface"]
+
+    @property
+    def distance(self) -> int:
+        return self.__race["distance"]
 
     @property
     def n_runners(self) -> int:

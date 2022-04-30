@@ -26,10 +26,8 @@ class Bettor(ABC):
         score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
         samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
         samples["win_probability"] = samples["exp_score"] / samples["sum_exp_scores"]
-        print(samples["Initial_Odds"])
-        print(samples["win_probability"])
-        samples["expected_value"] = samples["Initial_Odds"].astype(dtype=float) * samples["win_probability"]
-        samples["kelly_fraction"] = (samples["expected_value"] - 1) / (samples["Initial_Odds"].astype(dtype=float) - 1)
+        samples["expected_value"] = samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float) * samples["win_probability"]
+        samples["kelly_fraction"] = (samples["expected_value"] - 1) / (samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float) - 1)
 
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
             lambda x: x.sort_values(["expected_value"], ascending=False)

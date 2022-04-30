@@ -39,7 +39,7 @@ class BetEvaluator:
 
     def __get_odds(self, race_card: RaceCard, bet: Bet):
         if bet.type == BetType.WIN:
-            return race_card.get_starting_odds_of_horse(bet.runner_ids[0])
+            return race_card.get_current_odds_of_horse(bet.runner_ids[0])
         if bet.type == BetType.EXACTA:
             return race_card.exacta_odds
         if bet.type == BetType.TRIFECTA:

@@ -7,7 +7,7 @@ from SampleExtraction.Extractors.EarningsJockeyExtractor import EarningsJockeyEx
 from SampleExtraction.Extractors.EarningsTrainerExtractor import EarningsTrainerExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
-from SampleExtraction.Extractors.InitialOddsExtractor import InitialOddsExtractor
+from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.NumPlaceJockeyExtractor import NumPlaceJockeyExtractor
@@ -20,6 +20,8 @@ from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
 from SampleExtraction.Extractors.PreviousAveragePurseExtractor import PreviousAveragePurseExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
+from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
+from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
@@ -43,7 +45,7 @@ class FeatureManager:
         MareExtractor(),
         WeightAllowanceExtractor(),
 
-        InitialOddsExtractor(),
+        CurrentOddsExtractor(),
         NumRacesJockeyExtractor(),
         NumWinsJockeyExtractor(),
         NumPlaceJockeyExtractor(),
@@ -66,6 +68,8 @@ class FeatureManager:
         PreviousOddsExtractor(),
         WeightDifferenceExtractor(),
         PreviousAveragePurseExtractor(),
+        PreviousRaceStarterCountExtractor(),
+        DistanceDifferenceExtractor(),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 

@@ -7,9 +7,11 @@ class Horse:
 
     HORSE_ID_KEY: str = "horse_id"
     RACE_ID_KEY: str = "race_id"
+    TRACK_ID_KEY: str = "track_id"
     PLACE_KEY: str = "place"
     RELEVANCE_KEY: str = "relevance"
-    BASE_ATTRIBUTE_NAMES: List[str] = ["horse_id", "race_id", "track_id", "starting_odds", "place", "relevance"]
+    CURRENT_ODDS_KEY: str = "current_odds"
+    BASE_ATTRIBUTE_NAMES: List[str] = [HORSE_ID_KEY, RACE_ID_KEY, TRACK_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY]
 
     def __init__(self,
                  raw_data: dict,
@@ -17,7 +19,7 @@ class Horse:
                  subject_id: str,
                  race_id: str,
                  track_id: str,
-                 starting_odds: float,
+                 current_odds: float,
                  place: int,
                  races: List[RaceCard],
                  ):
@@ -29,7 +31,7 @@ class Horse:
             "horse_id": horse_id,
             "race_id": race_id,
             "track_id": track_id,
-            "starting_odds": starting_odds,
+            "current_odds": current_odds,
             "place": place,
             "relevance": self.__relevance,
         }
@@ -63,7 +65,7 @@ class Horse:
 
     @property
     def horse_id(self):
-        return self.__data["runner_id"]
+        return self.__data[self.HORSE_ID_KEY]
 
     @property
     def subject_id(self):
@@ -71,13 +73,13 @@ class Horse:
 
     @property
     def race_id(self):
-        return self.__data["race_id"]
+        return self.__data[self.RACE_ID_KEY]
 
     @property
     def place(self):
         return self.__place
 
     @property
-    def starting_odds(self):
-        return self.__data["starting_odds"]
+    def current_odds(self):
+        return self.__data[self.CURRENT_ODDS_KEY]
 

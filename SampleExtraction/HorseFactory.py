@@ -21,7 +21,7 @@ class HorseFactory:
     def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict, past_races_container: PastRacesContainer) -> Horse:
         race_id = race_card.race_id
         track_id = race_card.track_id
-        starting_odds = self.get_starting_odds_of_horse(horse_id, horse_data)
+        current_odds = race_card.get_current_odds_of_horse(horse_id)
         place = self.get_place_of_horse(horse_id, horse_data)
         raw_horse_data = horse_data[horse_id]
 
@@ -31,14 +31,11 @@ class HorseFactory:
         if past_races_container.is_past_race_available(race_id, subject_id, n_races_ago=1):
             races.append(past_races_container.get_past_race(race_id, subject_id, 1))
 
-        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, starting_odds, place, races)
+        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, current_odds, place, races)
 
         self.__feature_manager.set_features_of_horse(new_horse)
 
         return new_horse
-
-    def get_starting_odds_of_horse(self, horse_id: str, horse_data: dict) -> float:
-        return horse_data[horse_id]["odds"]["PRC"]
 
     def get_place_of_horse(self, horse_id: str, horse_data: dict) -> int:
         horse_data = horse_data[horse_id]
