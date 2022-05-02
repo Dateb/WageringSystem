@@ -1,4 +1,5 @@
 import pickle
+from datetime import date
 from typing import List
 
 import pandas as pd
@@ -10,12 +11,13 @@ from Persistence.PastRacesContainerPersistence import PastRacesContainerPersiste
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCard import RaceCard
+from SampleExtraction.RaceCardsFilter import RaceCardsFilter
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 TEST_RAW_RACE_CARDS_FILE_NAME: str = "test_raw_race_cards"
 TEST_PAST_RACES_FILE_NAME: str = "test_past_races"
 
-TEST_ESTIMATOR_PATH: str = "../data/estimator_v1-02.dat"
+TEST_ESTIMATOR_PATH: str = "../data/estimator.dat"
 
 TEST_FUND_HISTORY_SUMMARIES_PATH: str = "../data/fund_history_summaries.dat"
 
@@ -42,6 +44,9 @@ def main():
     race_cards = [RaceCard(raw_race_card) for raw_race_card in raw_race_cards]
 
     past_races_container = PastRacesContainerPersistence(TEST_PAST_RACES_FILE_NAME).load()
+
+    race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 4, 24))
+    print(race_cards)
 
     sample_encoder = SampleEncoder(FeatureManager())
     test_samples = sample_encoder.transform(race_cards, past_races_container)

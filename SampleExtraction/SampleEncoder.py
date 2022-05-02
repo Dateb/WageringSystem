@@ -32,12 +32,12 @@ class SampleEncoder:
 
 
 def main():
-    raw_race_cards = RawRaceCardsPersistence().load()
+    raw_race_cards = RawRaceCardsPersistence("raw_race_cards").load()
     race_cards = [RaceCard(raw_race_card) for raw_race_card in raw_race_cards]
-    race_cards = RaceCardsFilter(race_cards).filtered_race_cards
+    past_races_container = PastRacesContainerPersistence("past_races").load()
+    race_cards = RaceCardsFilter(race_cards, past_races_container).get_filtered_race_cards()
     print(len(race_cards))
 
-    past_races_container = PastRacesContainerPersistence().load()
     sample_encoder = SampleEncoder(FeatureManager())
     samples_df = sample_encoder.transform(race_cards, past_races_container)
 

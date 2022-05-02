@@ -3,6 +3,8 @@ from typing import List
 
 from DataCollection.DayCollector import DayCollector
 from DataCollection.FormGuideFactory import FormGuideFactory
+from DataCollection.PastRacesContainer import PastRacesContainer
+from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from DataCollection.Scraper import get_scraper
 from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
@@ -11,12 +13,9 @@ from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 
 class RawRaceCardsCollector:
 
-    def __init__(self, raw_race_card_persistence: RawRaceCardsPersistence, past_races_container_persistence: PastRacesContainerPersistence):
-        self.__raw_race_cards_persistence = raw_race_card_persistence
-        self.__past_races_container_persistence = past_races_container_persistence
-
-        self.__raw_race_cards = self.__raw_race_cards_persistence.load()
-        self.__past_races_container = self.__past_races_container_persistence.load()
+    def __init__(self, initial_raw_race_cards: List[RawRaceCard], initial_past_races_container: PastRacesContainer):
+        self.__raw_race_cards = initial_raw_race_cards
+        self.__past_races_container = initial_past_races_container
 
         self.__raw_race_card_factory = RawRaceCardFactory()
         self.__formguide_factory = FormGuideFactory()
@@ -33,11 +32,11 @@ class RawRaceCardsCollector:
             race_ids = self.__day_collector.get_race_ids_of_day(current_date)
             print(len(race_ids))
             current_date += time_of_a_day
-            self.__collect_from_race_ids(race_ids)
+            self.collect_from_race_ids(race_ids)
 
         self.__scraper.stop()
 
-    def __collect_from_race_ids(self, race_ids: List[str]):
+    def collect_from_race_ids(self, race_ids: List[str]):
         counter = 0
         n_race_cards = len(race_ids)
         for race_id in race_ids:
@@ -46,9 +45,6 @@ class RawRaceCardsCollector:
             self.__raw_race_cards.append(raw_race_card)
             self.__past_races_container.load_past_races(raw_race_card)
             counter += 1
-
-        self.__raw_race_cards_persistence.save(self.raw_race_cards)
-        self.__past_races_container_persistence.save(self.__past_races_container.raw_past_races)
 
     @property
     def raw_race_cards(self):
@@ -60,16 +56,22 @@ class RawRaceCardsCollector:
 
 
 def main():
-    race_card_persistence = RawRaceCardsPersistence(file_name="train_raw_race_cards")
-    past_race_container_persistence = PastRacesContainerPersistence(file_name="train_past_races")
+    raw_race_cards_persistence = RawRaceCardsPersistence(file_name="train_raw_race_cards")
+    past_races_container_persistence = PastRacesContainerPersistence(file_name="train_past_races")
 
-    raw_race_cards_collector = RawRaceCardsCollector(race_card_persistence, past_race_container_persistence)
+    initial_raw_race_cards = raw_race_cards_persistence.load()
+    initial_past_races_container = past_races_container_persistence.load()
 
-    start_date = date(2022, 4, 24)
-    end_date = date(2022, 4, 28)
+    raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
+
+    start_date = date(2022, 4, 14)
+    end_date = date(2022, 4, 24)
     raw_race_cards_collector.collect_from_date_interval(start_date, end_date)
 
     print(len(raw_race_cards_collector.raw_race_cards))
+
+    raw_race_cards_persistence.save(raw_race_cards_collector.raw_race_cards)
+    past_races_container_persistence.save(raw_race_cards_collector.raw_past_races)
 
 
 if __name__ == '__main__':

@@ -1,17 +1,21 @@
+from datetime import date
 from typing import List
 
-from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
+from DataCollection.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 
 
 class RaceCardsFilter:
 
-    def __init__(self, race_cards: List[RaceCard]):
-        self.__past_races_container = PastRacesContainerPersistence().load()
-        self.__filtered_race_cards = self.__get_filtered_race_cards(race_cards)
+    def __init__(self, race_cards: List[RaceCard], past_races_container: PastRacesContainer):
+        self.__race_cards = race_cards
+        self.__past_races_container = past_races_container
 
-    def __get_filtered_race_cards(self, race_cards: List[RaceCard]) -> List[RaceCard]:
-        return [race_card for race_card in race_cards if self.__is_accepted(race_card)]
+    def get_race_cards_of_day(self, day: date):
+        return [race_card for race_card in self.__race_cards if race_card.date == day]
+
+    def get_filtered_race_cards(self) -> List[RaceCard]:
+        return [race_card for race_card in self.__race_cards if self.__is_accepted(race_card)]
 
     def __is_accepted(self, race_card: RaceCard) -> bool:
         race_id = race_card.race_id

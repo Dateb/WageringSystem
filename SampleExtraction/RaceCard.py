@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from DataCollection.RawRaceCard import RawRaceCard
@@ -18,6 +19,9 @@ class RaceCard:
         self.__race = self.__raw_race_data['race']
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
+
+        self.__date = datetime.fromtimestamp(self.__event["firstStart"])
+
 
     def __remove_non_starters(self):
         non_starters = [horse_id for horse_id in self.__horse_data if self.is_horse_scratched(horse_id)]
@@ -64,12 +68,28 @@ class RaceCard:
                 self.__head_to_head_horses += head_to_head_race["runners"]
 
     @property
-    def race_id(self) -> str:
-        return self.__race_id
+    def name(self) -> str:
+        return f"{self.title} {self.number}"
 
     @property
-    def start_time(self) -> int:
+    def title(self) -> str:
+        return self.__event["title"]
+
+    @property
+    def number(self) -> str:
+        return self.__race["raceNumber"]
+
+    @property
+    def date(self):
+        return self.__date.date()
+
+    @property
+    def start_time(self):
         return self.__event["firstStart"]
+
+    @property
+    def race_id(self) -> str:
+        return self.__race_id
 
     @property
     def track_id(self) -> str:

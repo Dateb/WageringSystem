@@ -43,7 +43,7 @@ class Validator:
         samples_test_estimated = estimator.transform(samples_test)
 
         bets = bettor.bet(samples_test_estimated)
-        bet_results = BetEvaluator().evaluate(bets)
+        bet_results = BetEvaluator("raw_race_cards").evaluate(bets)
         fund_history_summary = FundHistorySummary(name, bet_results)
 
         return fund_history_summary
@@ -64,7 +64,7 @@ def main():
 
     validator = Validator(sample_set)
     #validator.train_validate_model(FavoriteBettor(), n_rounds=1, name="Favorite")
-    validator.train_validate_model(WinBettor(kelly_wealth=20), n_rounds=30, name="Gradient Boosted Trees Ranker")
+    validator.train_validate_model(WinBettor(kelly_wealth=20), n_rounds=5, name="Gradient Boosted Trees Ranker")
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
