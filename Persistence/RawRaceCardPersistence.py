@@ -1,12 +1,13 @@
 import json
+import os
 from typing import List
 
 from DataCollection.RawRaceCard import RawRaceCard
 
 
 class RawRaceCardsPersistence:
-    def __init__(self):
-        self.__FILE_NAME = "../data/raw_race_cards.json"
+    def __init__(self, file_name: str):
+        self.__FILE_NAME = f"../data/{file_name}.json"
 
     def save(self, raw_race_cards: List[RawRaceCard]):
         raw_race_cards_json = {}
@@ -19,6 +20,10 @@ class RawRaceCardsPersistence:
         print("writing done")
 
     def load(self) -> List[RawRaceCard]:
+        if not os.path.isfile(self.__FILE_NAME):
+            print("File not found. Returning empty list.")
+            return []
+
         with open(self.__FILE_NAME, "r") as f:
             raw_race_cards_json = json.load(f)
 

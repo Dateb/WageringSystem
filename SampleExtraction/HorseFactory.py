@@ -1,9 +1,8 @@
 from typing import List
 
-from Persistence.PastRacesPersistence import PastRacesPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
-from SampleExtraction.PastRacesContainer import PastRacesContainer
+from DataCollection.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 
 

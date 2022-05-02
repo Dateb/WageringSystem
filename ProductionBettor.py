@@ -1,17 +1,12 @@
 import pickle
-from typing import List, Tuple
+from typing import Tuple
 
-import pandas as pd
-
-from Betting.Bet import Bet
-from Betting.TrifectaBettor import TrifectaBettor
 from Betting.WinBettor import WinBettor
 from DataCollection.PastRacesCollector import PastRacesCollector
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
-from Estimation.NeuralNetworkRanker import NeuralNetworkRanker
 from SampleExtraction.FeatureManager import FeatureManager
-from SampleExtraction.PastRacesContainer import PastRacesContainer
+from DataCollection.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -50,7 +45,7 @@ class ProductionBettor:
 
 def main():
     production_bettor = ProductionBettor()
-    name, stakes = production_bettor.bet("5003330")
+    name, stakes = production_bettor.bet("5003320")
     print(f"Bet on horse: {name} this amount: {stakes}")
 
 

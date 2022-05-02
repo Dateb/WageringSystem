@@ -4,12 +4,12 @@ from typing import List
 
 from pandas import DataFrame
 
-from Persistence.PastRacesPersistence import PastRacesPersistence
+from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from Persistence.Paths import SAMPLES_PATH
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.HorseFactory import HorseFactory
-from SampleExtraction.PastRacesContainer import PastRacesContainer
+from DataCollection.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 from SampleExtraction.RaceCardsFilter import RaceCardsFilter
 
@@ -37,7 +37,7 @@ def main():
     race_cards = RaceCardsFilter(race_cards).filtered_race_cards
     print(len(race_cards))
 
-    past_races_container = PastRacesPersistence().load()
+    past_races_container = PastRacesContainerPersistence().load()
     sample_encoder = SampleEncoder(FeatureManager())
     samples_df = sample_encoder.transform(race_cards, past_races_container)
 

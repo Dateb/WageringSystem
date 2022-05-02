@@ -3,7 +3,7 @@ from typing import List
 from DataCollection.FormGuideFactory import FormGuideFactory
 from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
-from Persistence.PastRacesPersistence import PastRacesPersistence
+from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 
 
@@ -71,7 +71,7 @@ class PastRacesCollector:
 
 
 def scrape_race_histories(raw_race_cards):
-    persistence = PastRacesPersistence()
+    persistence = PastRacesContainerPersistence()
     initial_past_races = persistence.load().raw_past_races
     race_histories_collector = PastRacesCollector(raw_race_cards, initial_past_races)
     race_histories_collector.collect()
@@ -81,7 +81,7 @@ def scrape_race_histories(raw_race_cards):
 
 
 def main():
-    raw_race_cards = RawRaceCardsPersistence().load()
+    raw_race_cards = RawRaceCardsPersistence("raw_race_cards").load()
 
     while scrape_race_histories(raw_race_cards):
         pass

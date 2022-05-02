@@ -1,89 +1,44 @@
+from datetime import date
 from random import randrange
 from typing import List
 
+from DataCollection.DayCollector import DayCollector
 from DataCollection.FormGuide import FormGuide
 from DataCollection.FormGuideFactory import FormGuideFactory
+from DataCollection.PastRacesContainer import PastRacesContainer
 from DataCollection.RaceHistory import RaceHistory
 from DataCollection.RawRaceCard import RawRaceCard
 from DataCollection.RawRaceCardFactory import RawRaceCardFactory
 from DataCollection.Scraper import get_scraper
-from Persistence.PastRacesPersistence import PastRacesPersistence
+from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
 
 
 class RawRaceCardsCollector:
 
-    def __init__(self, initial_raw_race_cards: List[RawRaceCard] = None, n_races=10):
+    def __init__(self, initial_raw_race_cards: List[RawRaceCard], past_races_container: PastRacesContainer):
         self.__n_collected_races = 0
 
-        self.__raw_race_cards = [] if initial_raw_race_cards is None else initial_raw_race_cards
-        self.__discovered_race_ids = [raw_race_card.race_id for raw_race_card in self.__raw_race_cards]
+        self.__raw_race_cards = initial_raw_race_cards
+        self.__past_races_container = past_races_container
 
-        self.__n_races = n_races
+        self.__discovered_race_ids = [raw_race_card.race_id for raw_race_card in self.__raw_race_cards]
 
         self.__raw_race_card_factory = RawRaceCardFactory()
         self.__formguide_factory = FormGuideFactory()
         self.__scraper = get_scraper()
+        self.__day_collector = DayCollector()
 
-    def collect_from_race_histories(self, race_histories: List[RaceHistory]):
-        for race_history in race_histories:
-            for race_id in race_history.race_ids:
-                if race_id not in self.__discovered_race_ids:
-                    self.__discovered_race_ids.append(race_id)
+    def collect_from_day(self, day: date):
+        race_ids = self.__day_collector.get_race_ids_of_day(day)
+        print(len(race_ids))
+        self.__collect_from_race_ids(race_ids)
 
-                    raw_race_card = self.__raw_race_card_factory.run(race_id)
-                    self.__raw_race_cards.append(raw_race_card)
-
-                    self.__n_collected_races += 1
-
-                    if self.__n_collected_races == self.__n_races:
-                        self.__n_collected_races = 0
-                        return 0
-
-
-    def collect_by_random_navigation(self, next_race_id: str):
-        print(f"race id:{next_race_id}")
-        raw_race_card = self.__raw_race_card_factory.run(next_race_id)
-
-        self.__raw_race_cards.append(raw_race_card)
-        self.__n_collected_races += 1
-
-        if self.__n_collected_races == self.__n_races:
-            self.__n_collected_races = 0
-            return 0
-
-        next_race_id = self.__get_next_race_id(raw_race_card)
-
-        self.collect_by_random_navigation(next_race_id)
-
-    def __get_next_race_id(self, raw_race_card: RawRaceCard):
-        subject_id = self.__select_subject_id(raw_race_card)
-        print(f"subject id:{subject_id}")
-
-        form_guide = self.__formguide_factory.run(subject_id)
-        return self.__select_race_id(form_guide)
-
-    def __select_subject_id(self, raw_race_card: RawRaceCard):
-        subject_ids = raw_race_card.subject_ids
-        random_id = randrange(len(subject_ids))
-        return subject_ids[random_id]
-
-    def __select_race_id(self, form_guide: FormGuide):
-        new_race_ids = [race_id for race_id in form_guide.gb_past_race_ids
-                        if race_id not in self.__discovered_race_ids]
-        if not new_race_ids:
-            print("Every listed race already discovered! Resorting to random race...")
-            return self.__select_random_discovered_race_id()
-
-        random_idx = randrange(len(new_race_ids))
-        new_race_id = new_race_ids[random_idx]
-
-        self.__discovered_race_ids.append(new_race_id)
-        return new_race_id
-
-    def __select_random_discovered_race_id(self):
-        random_idx = randrange(len(self.__discovered_race_ids))
-        return self.__discovered_race_ids[random_idx]
+    def __collect_from_race_ids(self, race_ids: List[str]):
+        for race_id in race_ids:
+            raw_race_card = self.__raw_race_card_factory.run(race_id)
+            self.__raw_race_cards.append(raw_race_card)
+            self.__past_races_container.load_past_races(raw_race_card)
 
     @property
     def race_ids(self):
@@ -93,21 +48,25 @@ class RawRaceCardsCollector:
     def raw_race_cards(self):
         return self.__raw_race_cards
 
+    @property
+    def raw_past_races(self) -> dict:
+        return self.__past_races_container.raw_past_races
+
 
 def main():
-    persistence = RawRaceCardsPersistence()
-    race_histories = PastRacesPersistence().load()
+    race_card_persistence = RawRaceCardsPersistence(file_name="test_raw_race_cards")
+    past_race_container_persistence = PastRacesContainerPersistence(file_name="test_past_races")
+    initial_raw_race_cards = race_card_persistence.load()
+    past_race_container = past_race_container_persistence.load()
 
-    while True:
-        initial_raw_race_cards = persistence.load()
-        raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, n_races=10)
+    raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, past_race_container)
 
-        #raw_race_cards_collector.collect_by_random_navigation(next_race_id="4632086")
+    day_of_race = date(2022, 5, 1)
+    raw_race_cards_collector.collect_from_day(day_of_race)
 
-        raw_race_cards_collector.collect_from_race_histories(race_histories)
-
-        print(len(raw_race_cards_collector.raw_race_cards))
-        persistence.save(raw_race_cards_collector.raw_race_cards)
+    print(len(raw_race_cards_collector.raw_race_cards))
+    race_card_persistence.save(raw_race_cards_collector.raw_race_cards)
+    past_race_container_persistence.save(raw_race_cards_collector.raw_past_races)
 
 
 if __name__ == '__main__':

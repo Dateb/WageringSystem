@@ -1,13 +1,13 @@
 from typing import List
 
-from Persistence.PastRacesPersistence import PastRacesPersistence
+from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from SampleExtraction.RaceCard import RaceCard
 
 
 class RaceCardsFilter:
 
     def __init__(self, race_cards: List[RaceCard]):
-        self.__past_races_container = PastRacesPersistence().load()
+        self.__past_races_container = PastRacesContainerPersistence().load()
         self.__filtered_race_cards = self.__get_filtered_race_cards(race_cards)
 
     def __get_filtered_race_cards(self, race_cards: List[RaceCard]) -> List[RaceCard]:
