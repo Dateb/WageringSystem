@@ -5,8 +5,8 @@ from SampleExtraction.RaceCard import RaceCard
 
 
 class RaceCardsPersistence:
-    def __init__(self):
-        self.__FILE_NAME = "../data/raw_race_cards.json"
+    def __init__(self, file_name: str):
+        self.__FILE_NAME = f"../data/{file_name}.json"
 
     def load(self) -> dict:
         with open(self.__FILE_NAME, "r") as f:

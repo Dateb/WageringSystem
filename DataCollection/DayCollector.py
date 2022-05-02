@@ -10,17 +10,6 @@ class DayCollector:
     def __init__(self):
         self.__scraper = get_scraper()
 
-    def get_race_ids_from_date_interval(self, start_date: date, end_date: date):
-        race_ids = []
-        time_of_a_day = timedelta(days=1)
-        current_date = start_date
-        while current_date != end_date:
-            race_ids += self.get_race_ids_of_day(current_date)
-            current_date += time_of_a_day
-
-        return race_ids
-
-
     def get_race_ids_of_day(self, day: date) -> List[str]:
         race_ids = []
         api_url = f"https://www.racebets.de/ajax/events/calendar/date/{str(day)}?_=1651490197128"

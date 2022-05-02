@@ -9,8 +9,8 @@ from SampleExtraction.RaceCard import RaceCard
 class BetEvaluator:
     __TAX = 0.05
 
-    def __init__(self):
-        self.__race_cards = RaceCardsPersistence().load()
+    def __init__(self, file_name: str):
+        self.__race_cards = RaceCardsPersistence(file_name).load()
 
     def evaluate(self, bets: List[Bet]) -> List[BetResult]:
         bet_results = [self.__create_bet_result(bet) for bet in bets]

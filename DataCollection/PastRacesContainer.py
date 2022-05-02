@@ -18,9 +18,6 @@ class PastRacesContainer:
             self.__raw_past_races[past_race_key] = self.__get_past_race(race_id, subject_id)
 
     def __get_past_race(self, race_id: str, subject_id: str) -> dict:
-        print(race_id)
-        print(subject_id)
-
         if subject_id == 0:
             return {"ERROR": "no_past_race"}
 
@@ -29,8 +26,6 @@ class PastRacesContainer:
 
         if len(past_race_ids) == 0:
             return {"ERROR": "no_past_race"}
-
-        print(past_race_ids)
 
         if int(race_id) in past_race_ids:
             idx_current_race = past_race_ids.index(int(race_id))

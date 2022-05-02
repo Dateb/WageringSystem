@@ -8,11 +8,11 @@ from Betting.Bettor import Bettor
 from Betting.WinBettor import WinBettor
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.SampleSet import SampleSet
-from Experiments.Validation.FundHistorySummary import FundHistorySummary
+from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.Paths import SAMPLES_PATH
 
-__FUND_HISTORY_SUMMARIES_PATH = "../../data/fund_history_summaries.dat"
-__ESTIMATOR_PATH = "../../data/estimator.dat"
+__FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
+__ESTIMATOR_PATH = "../data/estimator.dat"
 
 
 class Validator:

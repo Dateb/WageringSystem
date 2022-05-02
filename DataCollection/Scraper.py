@@ -51,7 +51,6 @@ class Scraper:
         result = {}
         for _ in range(self.__n_request_tries):
             response = self.__session.get(url=url, headers=self.__headers)
-            print(response)
             self.__wait_random_amount_of_seconds(1.0)
             if response.status_code == 200:
                 result = response.json()
@@ -64,6 +63,9 @@ class Scraper:
         highest_waiting_time = average_seconds_to_wait * 1.1
         waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
         time.sleep(waiting_time)
+
+    def start(self):
+        self.__gateway.start()
 
     def stop(self):
         self.__gateway.shutdown()
