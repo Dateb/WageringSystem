@@ -1,7 +1,7 @@
 from typing import List
 
 from Betting.BetResult import BetResult
-from Experiments.FundHistorySnapshot import FundHistorySnapshot
+from Experiments.Validation.FundHistorySnapshot import FundHistorySnapshot
 
 
 class FundHistorySummary:

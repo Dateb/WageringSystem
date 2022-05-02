@@ -41,7 +41,7 @@ class Bettor(ABC):
 
         kelly_numerator = samples["expected_value"] - 1
         kelly_denominator = samples[Horse.CURRENT_ODDS_KEY] - 1
-        samples["stakes"] = kelly_numerator / kelly_denominator
+        samples["kelly_fraction"] = kelly_numerator / kelly_denominator
 
         return samples
 

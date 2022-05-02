@@ -1,0 +1,45 @@
+from datetime import date
+
+from typing import List
+
+from DataCollection.Scraper import get_scraper
+
+
+class DayCollector:
+
+    def __init__(self):
+        self.__scraper = get_scraper()
+
+    def get_race_ids_of_day(self, day: date) -> List[str]:
+        race_ids = []
+        api_url = f"https://www.racebets.de/ajax/events/calendar/date/{str(day)}?_=1651490197128"
+        calendar_data = self.__scraper.request_data(api_url)
+
+        race_series_list = self.__get_race_series_from_calendar_data(calendar_data)
+        for race_series in race_series_list:
+            race_ids += self.__get_race_ids_from_race_series(race_series)
+
+        return race_ids
+
+    def __get_race_series_from_calendar_data(self, calendar_data: dict) -> List[dict]:
+        race_series_list = []
+        del calendar_data["calendarDates"]
+        for race_series_key in calendar_data:
+            race_series = calendar_data[race_series_key]
+            if race_series["country"] == "GB" or race_series["raceType"] == "G":
+                race_series_list.append(race_series)
+
+        return race_series_list
+
+    def __get_race_ids_from_race_series(self, race_series: dict) -> List[str]:
+        return [race["idRace"] for race in race_series["relatedRaces"]]
+
+
+def main():
+    day_collector = DayCollector()
+    date_of_races = date(2019, 4, 13)
+    print(day_collector.get_race_ids_of_day(date_of_races))
+
+
+if __name__ == '__main__':
+    main()

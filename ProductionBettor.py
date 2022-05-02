@@ -22,8 +22,7 @@ class ProductionBettor:
     __estimator: BoostedTreesRanker
 
     def __init__(self, kelly_wealth: float = 20.0):
-        self.__kelly_wealth = kelly_wealth
-        self.__bettor = WinBettor()
+        self.__bettor = WinBettor(kelly_wealth)
 
         self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
 
@@ -46,13 +45,12 @@ class ProductionBettor:
         samples = self.__estimator.transform(raw_samples)
         bet = self.__bettor.bet(samples)[0]
         name = race_card.get_name_of_horse(bet.runner_ids[0])
-        stakes = bet.stakes * self.__kelly_wealth
-        return name, stakes
+        return name, bet.stakes
 
 
 def main():
     production_bettor = ProductionBettor()
-    name, stakes = production_bettor.bet("5000793")
+    name, stakes = production_bettor.bet("5003330")
     print(f"Bet on horse: {name} this amount: {stakes}")
 
 

@@ -5,18 +5,14 @@ from tqdm import trange
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
-from Betting.ExactaBettor import ExactaBettor
-from Betting.FavoriteBettor import FavoriteBettor
-from Betting.TrifectaBettor import TrifectaBettor
 from Betting.WinBettor import WinBettor
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
-from Estimation.NeuralNetworkRanker import NeuralNetworkRanker
 from Estimation.SampleSet import SampleSet
-from Experiments.FundHistorySummary import FundHistorySummary
+from Experiments.Validation.FundHistorySummary import FundHistorySummary
 from Persistence.Paths import SAMPLES_PATH
 
-__FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
-__ESTIMATOR_PATH = "../data/estimator.dat"
+__FUND_HISTORY_SUMMARIES_PATH = "../../data/fund_history_summaries.dat"
+__ESTIMATOR_PATH = "../../data/estimator.dat"
 
 
 class Validator:
@@ -67,8 +63,8 @@ def main():
     sample_set = SampleSet(samples)
 
     validator = Validator(sample_set)
-    validator.train_validate_model(FavoriteBettor(), n_rounds=1, name="Favorite")
-    validator.train_validate_model(WinBettor(), n_rounds=5, name="Gradient Boosted Trees")
+    #validator.train_validate_model(FavoriteBettor(), n_rounds=1, name="Favorite")
+    validator.train_validate_model(WinBettor(kelly_wealth=20), n_rounds=30, name="Gradient Boosted Trees Ranker")
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
