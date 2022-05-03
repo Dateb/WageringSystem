@@ -36,15 +36,19 @@ class RawRaceCardsCollector:
 
         self.__scraper.stop()
 
-    def collect_from_race_ids(self, race_ids: List[str]):
+    def collect_from_race_ids(self, race_ids: List[str]) -> List[RawRaceCard]:
         counter = 0
         n_race_cards = len(race_ids)
+        new_raw_race_cards = []
         for race_id in race_ids:
             print(f"Race card: {counter}/{n_race_cards}...")
             raw_race_card = self.__raw_race_card_factory.run(race_id)
-            self.__raw_race_cards.append(raw_race_card)
+            new_raw_race_cards.append(raw_race_card)
             self.__past_races_container.load_past_races(raw_race_card)
             counter += 1
+
+        self.__raw_race_cards += new_raw_race_cards
+        return new_raw_race_cards
 
     @property
     def raw_race_cards(self):

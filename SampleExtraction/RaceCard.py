@@ -20,7 +20,7 @@ class RaceCard:
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
 
-        self.__date = datetime.fromtimestamp(self.__event["firstStart"])
+        self.__datetime = datetime.fromtimestamp(self.__event["firstStart"])
 
 
     def __remove_non_starters(self):
@@ -80,8 +80,12 @@ class RaceCard:
         return self.__race["raceNumber"]
 
     @property
+    def datetime(self):
+        return self.__datetime
+
+    @property
     def date(self):
-        return self.__date.date()
+        return self.__datetime.date()
 
     @property
     def start_time(self):
