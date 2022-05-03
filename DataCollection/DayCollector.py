@@ -26,7 +26,7 @@ class DayCollector:
         del calendar_data["calendarDates"]
         for race_series_key in calendar_data:
             race_series = calendar_data[race_series_key]
-            if race_series["country"] == "GB" and race_series["raceType"] == "G":
+            if race_series["country"] == "GB" and race_series["raceType"] in ["G", "J"]:
                 race_series_list.append(race_series)
 
         return race_series_list

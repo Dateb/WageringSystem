@@ -38,6 +38,7 @@ class ProductionBettor:
 
         today = datetime.today().date()
         race_ids_today = self.__day_collector.get_race_ids_of_day(today)
+        #race_ids_today = ["5008731"]
         self.__init_races(race_ids_today)
         self.__driver = webdriver.Firefox()
 
@@ -49,10 +50,15 @@ class ProductionBettor:
             sleep(1)
             time_until_race_start = next_race_card.datetime - datetime.now()
             print(f"Seconds until next race: {time_until_race_start.seconds}")
-            if time_until_race_start.seconds < 10:
+
+            if time_until_race_start.seconds % 12 == 0:
+                self.__driver.get(f"https://www.racebets.de/de/pferdewetten/race/details/id/{next_race_card.race_id}/")
+
+            if time_until_race_start.seconds < 2:
+                sleep(15)
                 next_race_card = self.__get_updated_race_card(next_race_card)
                 bet = self.__compute_bet(next_race_card)
-                self.__execute_bet(next_race_card.race_id, bet)
+                self.__execute_bet(bet)
 
                 if not self.__race_cards:
                     return 0
@@ -92,11 +98,10 @@ class ProductionBettor:
         login_button.click()
         sleep(10)
 
-    def __execute_bet(self, race_id: str, bet: Bet):
+    def __execute_bet(self, bet: Bet):
         if bet.stakes < 0.5:
             return 0
 
-        self.__driver.get(f"https://www.racebets.de/de/pferdewetten/race/details/id/{race_id}/")
         self.__driver.implicitly_wait(5)
         win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner={bet.runner_ids[0]}]')
         win_button.click()
@@ -113,6 +118,8 @@ class ProductionBettor:
 
         finish_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@class="btn btn-primary"]')
         finish_button.click()
+
+        sleep(5)
 
 def main():
     bettor = ProductionBettor()

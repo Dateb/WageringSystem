@@ -45,13 +45,12 @@ def main():
 
     past_races_container = PastRacesContainerPersistence(TEST_PAST_RACES_FILE_NAME).load()
 
-    race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 4, 24))
-    print(race_cards)
+    race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 5, 3))
 
     sample_encoder = SampleEncoder(FeatureManager())
     test_samples = sample_encoder.transform(race_cards, past_races_container)
 
-    tester = Tester(test_samples, kelly_wealth=20)
+    tester = Tester(test_samples, kelly_wealth=10)
     fund_history_summaries = tester.run("Test run")
 
     with open(TEST_FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

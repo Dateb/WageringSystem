@@ -28,6 +28,7 @@ class BetEvaluator:
         print("--------------------------------")
         print(f"race card: {race_card.name}")
         print(f"Bet on: {race_card.get_name_of_horse(bet.runner_ids[0])}")
+        print(f"Stakes:{bet.stakes}")
         print(f"Odds:{odds}")
         print(f"won:{win_indicator}")
         print(f"win:{win}")

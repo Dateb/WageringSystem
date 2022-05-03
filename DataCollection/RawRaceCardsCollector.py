@@ -29,12 +29,14 @@ class RawRaceCardsCollector:
         current_date = start_date
         while current_date != end_date:
             print(f"Currently at day:{current_date} (end: {end_date})...")
-            race_ids = self.__day_collector.get_race_ids_of_day(current_date)
-            print(len(race_ids))
+            self.collect_from_day(current_date)
             current_date += time_of_a_day
-            self.collect_from_race_ids(race_ids)
 
         self.__scraper.stop()
+
+    def collect_from_day(self, day: date):
+        race_ids = self.__day_collector.get_race_ids_of_day(day)
+        self.collect_from_race_ids(race_ids)
 
     def collect_from_race_ids(self, race_ids: List[str]) -> List[RawRaceCard]:
         counter = 0
@@ -60,22 +62,27 @@ class RawRaceCardsCollector:
 
 
 def main():
-    raw_race_cards_persistence = RawRaceCardsPersistence(file_name="train_raw_race_cards")
-    past_races_container_persistence = PastRacesContainerPersistence(file_name="train_past_races")
+    raw_race_cards_persistence = RawRaceCardsPersistence(file_name="test_raw_race_cards")
+    past_races_container_persistence = PastRacesContainerPersistence(file_name="test_past_races")
 
-    initial_raw_race_cards = raw_race_cards_persistence.load()
-    initial_past_races_container = past_races_container_persistence.load()
+    start_date = date(2022, 5, 3)
+    end_date = date(2022, 5, 4)
 
-    raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
+    time_of_a_day = timedelta(days=1)
+    current_date = start_date
+    while current_date != end_date:
+        initial_raw_race_cards = raw_race_cards_persistence.load()
+        initial_past_races_container = past_races_container_persistence.load()
 
-    start_date = date(2022, 4, 14)
-    end_date = date(2022, 4, 24)
-    raw_race_cards_collector.collect_from_date_interval(start_date, end_date)
+        raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
+        raw_race_cards_collector.collect_from_day(current_date)
 
-    print(len(raw_race_cards_collector.raw_race_cards))
+        print(len(raw_race_cards_collector.raw_race_cards))
 
-    raw_race_cards_persistence.save(raw_race_cards_collector.raw_race_cards)
-    past_races_container_persistence.save(raw_race_cards_collector.raw_past_races)
+        raw_race_cards_persistence.save(raw_race_cards_collector.raw_race_cards)
+        past_races_container_persistence.save(raw_race_cards_collector.raw_past_races)
+
+        current_date += time_of_a_day
 
 
 if __name__ == '__main__':

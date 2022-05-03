@@ -20,7 +20,7 @@ class RaceCard:
         self.__horse_data = self.__raw_race_data['runners']['data']
         self.__result = self.__raw_race_data['result']
 
-        self.__datetime = datetime.fromtimestamp(self.__event["firstStart"])
+        self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
 
 
     def __remove_non_starters(self):
