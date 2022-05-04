@@ -26,13 +26,13 @@ class DayCollector:
         del calendar_data["calendarDates"]
         for race_series_key in calendar_data:
             race_series = calendar_data[race_series_key]
-            if race_series["country"] == "GB" and race_series["raceType"] in ["G", "J"]:
+            if race_series["country"] == "GB" and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"]:
                 race_series_list.append(race_series)
 
         return race_series_list
 
     def __get_race_ids_from_race_series(self, race_series: dict) -> List[str]:
-        return [race["idRace"] for race in race_series["relatedRaces"]]
+        return [race["idRace"] for race in race_series["relatedRaces"] if race["raceStatus"] == "OPN"]
 
 
 def main():
