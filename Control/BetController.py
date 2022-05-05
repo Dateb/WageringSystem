@@ -17,9 +17,12 @@ class BetController:
         self.__password = password
         self.__post_race_start_wait = post_race_start_wait
 
-    def login_from_race_card(self, race_card: RaceCard):
-        self.open_race_card(race_card)
+        self.__driver.get("https://www.racebets.de")
+        sleep(1)
+        self.accept_cookies()
         self.__driver.implicitly_wait(5)
+
+    def login(self):
         login_name_field = self.__driver.find_element(by=By.ID, value="m-accWidget--rightBar__inputUsername")
         login_password_field = self.__driver.find_element(by=By.ID, value="m-accWidget--rightBar__inputPassword")
         login_button = self.__driver.find_element(by=By.ID, value="m-accWidget--rightBar__btnLogin")
@@ -36,8 +39,8 @@ class BetController:
         print(f"Now waiting for race: ---{race_card.name}--- for {time_until_race_start}")
         sleep(1)
 
-        self.__driver.get(f"https://www.racebets.de/de/pferdewetten/race/details/id/{race_card.race_id}/")
-        self.login_from_race_card(race_card)
+        if self.is_logged_out():
+            self.login()
 
         sleep(self.__post_race_start_wait)
 
@@ -74,8 +77,12 @@ class BetController:
         print("----------------------------")
 
     def accept_cookies(self):
-        sleep(2)
         cookies_accept_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@id="onetrust-accept-btn-handler"]')
         cookies_accept_button.click()
+
+    def is_logged_out(self) -> bool:
+        self.__driver.refresh()
+        return len(self.__driver.find_elements(by=By.ID, value="m-accWidget--rightBar__inputUsername")) > 0
+
 
 

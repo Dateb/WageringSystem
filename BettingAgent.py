@@ -44,12 +44,10 @@ class BettingAgent:
         self.__past_races_container = PastRacesContainer(self.__collector.raw_past_races)
 
     def run(self):
-        self.__controller.open_race_card(self.__race_cards[0])
-        self.__controller.accept_cookies()
-
         while self.__race_cards:
             next_race_card = self.__race_cards.pop(0)
 
+            self.__controller.open_race_card(next_race_card)
             self.__controller.wait_for_race_start(next_race_card)
 
             next_race_card = self.__get_updated_race_card(next_race_card)
