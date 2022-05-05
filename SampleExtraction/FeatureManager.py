@@ -58,7 +58,6 @@ class FeatureManager:
         EarningsTrainerExtractor(),
         WeightJockeyExtractor(),
         PurseExtractor(),
-        PostPositionExtractor(),
         PastPlacesExtractor(1),
         PastPlacesExtractor(2),
         PastPlacesExtractor(3),

@@ -15,13 +15,12 @@ class RaceCard:
         self.__set_head_to_head_horses()
 
     def __extract_data(self):
-        self.__event = self.__raw_race_data['event']
-        self.__race = self.__raw_race_data['race']
-        self.__horse_data = self.__raw_race_data['runners']['data']
-        self.__result = self.__raw_race_data['result']
+        self.__event = self.__raw_race_data["event"]
+        self.__race = self.__raw_race_data["race"]
+        self.__horse_data = self.__raw_race_data["runners"]["data"]
+        self.__result = self.__raw_race_data["result"]
 
         self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
-
 
     def __remove_non_starters(self):
         non_starters = [horse_id for horse_id in self.__horse_data if self.is_horse_scratched(horse_id)]

@@ -18,7 +18,7 @@ CONTROLLER_SUBMISSION_MODE_ON = True
 
 class BettingAgent:
 
-    __ESTIMATOR_PATH = "data/estimator_v1-02.dat"
+    __ESTIMATOR_PATH = "data/estimator_v1-03.dat"
 
     def __init__(self, kelly_wealth: float):
         self.__race_cards: List[RaceCard] = []
@@ -37,8 +37,8 @@ class BettingAgent:
             self.__estimator = pickle.load(f)
 
         today = datetime.today().date()
-        #race_ids_today = self.__day_collector.get_race_ids_of_day(today)
-        race_ids_today = ["5013700"]
+        race_ids_today = self.__day_collector.get_open_race_ids_of_day(today)
+        #race_ids_today = ["5013700"]
         print("Initialising races:")
         self.__init_races(race_ids_today)
 
@@ -77,9 +77,6 @@ class BettingAgent:
 def main():
     bettor = BettingAgent(kelly_wealth=13)
     bettor.run()
-    #production_bettor = ProductionBettor()
-    #name, stakes = production_bettor.bet("5003320")
-    #print(f"Bet on horse: {name} this amount: {stakes}")
 
 
 if __name__ == '__main__':

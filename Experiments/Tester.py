@@ -45,7 +45,7 @@ def main():
 
     past_races_container = PastRacesContainerPersistence(TEST_PAST_RACES_FILE_NAME).load()
 
-    #race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 5, 3))
+    #race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 4, 23))
 
     sample_encoder = SampleEncoder(FeatureManager())
     test_samples = sample_encoder.transform(race_cards, past_races_container)

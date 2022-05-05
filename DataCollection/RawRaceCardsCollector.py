@@ -17,12 +17,10 @@ class RawRaceCardsCollector:
     def __init__(self, initial_raw_race_cards: List[RawRaceCard], initial_past_races_container: PastRacesContainer):
         self.__raw_race_cards = initial_raw_race_cards
         self.__past_races_container = initial_past_races_container
-        self.__collected_days = self.__get_collected_days()
 
         self.__raw_race_card_factory = RawRaceCardFactory()
         self.__formguide_factory = FormGuideFactory()
         self.__scraper = get_scraper()
-        self.__day_collector = DayCollector()
 
     def collect_from_date_interval(self, start_date: date, end_date: date):
         self.__scraper.start()
@@ -35,11 +33,6 @@ class RawRaceCardsCollector:
             current_date += time_of_a_day
 
         self.__scraper.stop()
-
-    def collect_from_day(self, day: date):
-        race_ids = self.__day_collector.get_race_ids_of_day(day)
-        self.collect_from_race_ids(race_ids)
-        self.__collected_days.add(day)
 
     def collect_from_race_ids(self, race_ids: List[str]) -> List[RawRaceCard]:
         counter = 0
@@ -54,13 +47,6 @@ class RawRaceCardsCollector:
 
         self.__raw_race_cards += new_raw_race_cards
         return new_raw_race_cards
-
-    def __get_collected_days(self) -> Set[date]:
-        return {race_card.date for race_card in self.race_cards}
-
-    @property
-    def latest_date(self) -> date:
-        return max(self.__collected_days)
 
     @property
     def raw_race_cards(self):

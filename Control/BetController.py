@@ -11,7 +11,7 @@ from SampleExtraction.RaceCard import RaceCard
 
 class BetController:
 
-    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 13, submission_mode_on: bool = False):
+    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 12, submission_mode_on: bool = False):
         self.__driver = webdriver.Firefox()
         self.__user_name = user_name
         self.__password = password

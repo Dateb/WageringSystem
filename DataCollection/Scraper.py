@@ -1,3 +1,5 @@
+import os
+
 import requests
 import time
 import random
@@ -6,16 +8,19 @@ from requests_ip_rotator import ApiGateway
 
 
 class Scraper:
+    __HOMEPAGE_URL: str = "https://www.racebets.de"
+
     __session: Session
     cookie_token_key: str = 'XSRF-TOKEN'
     header_token_key: str = 'X-XSRF-TOKEN'
 
     def __init__(self, n_request_tries=5):
         self.__n_request_tries = n_request_tries
+
         self.__gateway = ApiGateway(
-            "https://www.racebets.de",
-            access_key_id="AKIAQYYVWP3QQYTJIDWN",
-            access_key_secret="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"
+            self.__HOMEPAGE_URL,
+            access_key_id="AKIAQYYVWP3QQYTJIDWN",#os.environ.get("AWS_ACCESS_KEY_ID"),
+            access_key_secret="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",#os.environ.get("AWS_ACCESS_KEY_SECRET"),
         )
         self.__session = requests.Session()
 

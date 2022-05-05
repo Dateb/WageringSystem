@@ -32,9 +32,9 @@ class SampleEncoder:
 
 
 def main():
-    raw_race_cards = RawRaceCardsPersistence("raw_race_cards").load()
+    raw_race_cards = RawRaceCardsPersistence("train_raw_race_cards").load()
     race_cards = [RaceCard(raw_race_card) for raw_race_card in raw_race_cards]
-    past_races_container = PastRacesContainerPersistence("past_races").load()
+    past_races_container = PastRacesContainerPersistence("train_past_races").load()
     race_cards = RaceCardsFilter(race_cards, past_races_container).get_filtered_race_cards()
     print(len(race_cards))
 
