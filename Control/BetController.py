@@ -11,14 +11,15 @@ from SampleExtraction.RaceCard import RaceCard
 
 class BetController:
 
-    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 15):
+    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 15, submission_mode_on: bool = False):
         self.__driver = webdriver.Firefox()
         self.__user_name = user_name
         self.__password = password
         self.__post_race_start_wait = post_race_start_wait
+        self.__submission_mode_on = submission_mode_on
 
         self.__driver.get("https://www.racebets.de")
-        sleep(1)
+        sleep(2)
         self.accept_cookies()
         self.__driver.implicitly_wait(5)
 
@@ -42,6 +43,7 @@ class BetController:
         if self.is_logged_out():
             self.login()
 
+        print(f"Race starting every moment, delaying bet for {self.__post_race_start_wait} seconds...")
         sleep(self.__post_race_start_wait)
 
     def execute_bet(self, race_card: RaceCard, bet: Bet):
@@ -60,11 +62,12 @@ class BetController:
         stakes_input_field.send_keys(str(bet.stakes))
         stakes_input_field.send_keys(Keys.RETURN)
 
-        #submit_bet_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@type="submit"]')
-        #submit_bet_button.click()
+        if self.__submission_mode_on:
+            submit_bet_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@type="submit"]')
+            submit_bet_button.click()
 
-        #finish_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@class="btn btn-primary"]')
-        #finish_button.click()
+            finish_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@class="btn btn-primary"]')
+            finish_button.click()
 
         sleep(1)
 

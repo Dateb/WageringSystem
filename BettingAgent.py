@@ -25,7 +25,7 @@ class BettingAgent:
         self.__collector = RawRaceCardsCollector(initial_raw_race_cards=[], initial_past_races_container=PastRacesContainer({}))
         self.__bettor = WinBettor(kelly_wealth)
         self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
-        self.__controller = BetController(user_name="Malfen", password="Titctsat49_")
+        self.__controller = BetController(user_name="Malfen", password="Titctsat49_", submission_mode_on=False)
 
         with open(self.__ESTIMATOR_PATH, "rb") as f:
             self.__estimator = pickle.load(f)
