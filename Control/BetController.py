@@ -2,7 +2,7 @@ from datetime import datetime
 from time import sleep
 
 from selenium import webdriver
-from selenium.webdriver import Keys
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 from Betting.Bet import Bet
@@ -11,7 +11,7 @@ from SampleExtraction.RaceCard import RaceCard
 
 class BetController:
 
-    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 15, submission_mode_on: bool = False):
+    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 13, submission_mode_on: bool = False):
         self.__driver = webdriver.Firefox()
         self.__user_name = user_name
         self.__password = password
@@ -37,8 +37,8 @@ class BetController:
 
     def wait_for_race_start(self, race_card: RaceCard):
         time_until_race_start = race_card.datetime - datetime.now()
-        print(f"Now waiting for race: ---{race_card.name}--- for {time_until_race_start}")
-        sleep(1)
+        print(f"Now waiting for race: ---{race_card.name}--- which starts at: {race_card.datetime}")
+        sleep(time_until_race_start.seconds)
 
         if self.is_logged_out():
             self.login()
@@ -51,9 +51,12 @@ class BetController:
             print("No value found here. Skipping to next race.")
             return 0
 
-        self.__driver.implicitly_wait(5)
         win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner={bet.runner_ids[0]}]')
         win_button.click()
+
+        if self.__is_bet_closed():
+            print("Bet is already closed. Skipping to next race.")
+            return 0
 
         stakes_change_button = self.__driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Betrag ändern')]")
         stakes_change_button.click()
@@ -86,6 +89,11 @@ class BetController:
     def is_logged_out(self) -> bool:
         self.__driver.refresh()
         return len(self.__driver.find_elements(by=By.ID, value="m-accWidget--rightBar__inputUsername")) > 0
+
+    def __is_bet_closed(self) -> bool:
+        stakes_change_buttons = self.__driver.find_elements(by=By.XPATH, value="//*[contains(text(), 'Betrag ändern')]")
+
+        return len(stakes_change_buttons) == 0
 
 
 

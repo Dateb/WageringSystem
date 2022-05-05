@@ -13,6 +13,8 @@ from DataCollection.PastRacesContainer import PastRacesContainer
 from SampleExtraction.RaceCard import RaceCard
 from SampleExtraction.SampleEncoder import SampleEncoder
 
+CONTROLLER_SUBMISSION_MODE_ON = True
+
 
 class BettingAgent:
 
@@ -25,14 +27,18 @@ class BettingAgent:
         self.__collector = RawRaceCardsCollector(initial_raw_race_cards=[], initial_past_races_container=PastRacesContainer({}))
         self.__bettor = WinBettor(kelly_wealth)
         self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
-        self.__controller = BetController(user_name="Malfen", password="Titctsat49_", submission_mode_on=False)
+        self.__controller = BetController(
+            user_name="Malfen",
+            password="Titctsat49_",
+            submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON,
+        )
 
         with open(self.__ESTIMATOR_PATH, "rb") as f:
             self.__estimator = pickle.load(f)
 
         today = datetime.today().date()
         #race_ids_today = self.__day_collector.get_race_ids_of_day(today)
-        race_ids_today = ["5013700", "5013701"]
+        race_ids_today = ["5013700"]
         print("Initialising races:")
         self.__init_races(race_ids_today)
 
