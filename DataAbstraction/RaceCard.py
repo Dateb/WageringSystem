@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List
 
+from DataAbstraction.FormGuideFactory import FormGuideFactory
+
 
 class RaceCard:
 
@@ -13,6 +15,7 @@ class RaceCard:
         self.__extract_data()
         self.__remove_non_starters()
         self.__set_head_to_head_horses()
+        self.__set_form_guides()
 
     def __check_raw_data(self):
         if 'race' not in self.__raw_race:
@@ -36,6 +39,10 @@ class RaceCard:
         non_starters = [horse_id for horse_id in self.__horse_data if self.is_horse_scratched(horse_id)]
         for non_starter in non_starters:
             del self.__horse_data[non_starter]
+
+    def __set_form_guides(self):
+        form_guide_factory = FormGuideFactory()
+        self.__form_guides = {subject_id: form_guide_factory.run(subject_id) for subject_id in self.subject_ids}
 
     def get_name_of_horse(self, horse_id: str) -> str:
         return self.__horse_data[horse_id]["name"]

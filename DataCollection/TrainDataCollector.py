@@ -66,7 +66,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2022, 5, 5)
+    query_date = date(2022, 5, 6)
 
     train_data_collector.collect(query_date)
 

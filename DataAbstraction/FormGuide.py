@@ -2,14 +2,14 @@ from typing import List
 
 
 class FormGuide:
-    def __init__(self, subject_id, raw_formguide_data):
+    def __init__(self, subject_id, raw_formguide):
         self.__subject_id = subject_id
 
-        self.__raw_formguide_data = raw_formguide_data
+        self.__raw_formguide_data = raw_formguide
 
         self.__past_races = {}
 
-        form_table = raw_formguide_data["formTable"]
+        form_table = raw_formguide["formTable"]
         self.__n_past_races = len(form_table)
 
         for i, past_race in enumerate(form_table):

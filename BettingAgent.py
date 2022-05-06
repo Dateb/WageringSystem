@@ -6,7 +6,7 @@ from Betting.Bet import Bet
 from Betting.WinBettor import WinBettor
 from Control.BetController import BetController
 from DataCollection.DayCollector import DayCollector
-from DataCollection.RaceCardFactory import RaceCardFactory
+from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataCollection.RaceCardsCollector import RaceCardsCollector
 from SampleExtraction.FeatureManager import FeatureManager
 from DataCollection.PastRacesContainer import PastRacesContainer
@@ -38,7 +38,7 @@ class BettingAgent:
 
         today = datetime.today().date()
         race_ids_today = self.__day_collector.get_open_race_ids_of_day(today)
-        #race_ids_today = ["5013700"]
+        #race_ids_today = ["5013919"]
         print("Initialising races:")
         self.__init_races(race_ids_today)
 

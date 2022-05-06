@@ -19,7 +19,7 @@ class BetController:
         self.__submission_mode_on = submission_mode_on
 
         self.__driver.get("https://www.racebets.de")
-        sleep(2)
+        sleep(3)
         self.accept_cookies()
         self.__driver.implicitly_wait(5)
 
@@ -38,7 +38,8 @@ class BetController:
     def wait_for_race_start(self, race_card: RaceCard):
         time_until_race_start = race_card.datetime - datetime.now()
         print(f"Now waiting for race: ---{race_card.name}--- which starts at: {race_card.datetime}")
-        sleep(time_until_race_start.seconds)
+        if race_card.datetime > datetime.now():
+            sleep(time_until_race_start.seconds)
 
         if self.is_logged_out():
             self.login()

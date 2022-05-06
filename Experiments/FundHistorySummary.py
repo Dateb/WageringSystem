@@ -32,11 +32,12 @@ class FundHistorySummary:
         self.__total_win = sum(self.__winnings)
         self.__total_loss = sum(self.__loss)
         self.__win_loss_ratio = self.__total_win / self.__total_loss
+        self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
 
     @property
     def summary(self):
         return (self.__name, self.__total_win, self.__total_loss, self.__win_loss_ratio,
-                self.__won_bets_percentage, self.__n_train_test_samples)
+                self.__won_bets_percentage, self.__n_train_test_samples, self.__roi_per_bet)
 
     @property
     def win_percentage(self):

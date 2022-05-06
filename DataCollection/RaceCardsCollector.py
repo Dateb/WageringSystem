@@ -1,8 +1,7 @@
 from typing import List
 
-from DataCollection.FormGuideFactory import FormGuideFactory
 from DataCollection.PastRacesContainer import PastRacesContainer
-from DataCollection.RaceCardFactory import RaceCardFactory
+from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataCollection.Scraper import get_scraper
 from DataAbstraction.RaceCard import RaceCard
 
@@ -13,9 +12,7 @@ class RaceCardsCollector:
         self.__race_cards = initial_race_cards
         self.__past_races_container = initial_past_races_container
 
-        self.__raw_race_card_factory = RaceCardFactory()
-        self.__formguide_factory = FormGuideFactory()
-        self.__scraper = get_scraper()
+        self.__race_card_factory = RaceCardFactory()
 
     def collect_from_race_ids(self, race_ids: List[str]) -> List[RaceCard]:
         counter = 0
@@ -23,9 +20,9 @@ class RaceCardsCollector:
         new_raw_race_cards = []
         for race_id in race_ids:
             print(f"Race card: {counter}/{n_race_cards}...")
-            raw_race_card = self.__raw_race_card_factory.run(race_id)
-            new_raw_race_cards.append(raw_race_card)
-            self.__past_races_container.load_past_races(raw_race_card)
+            race_card = self.__race_card_factory.run(race_id, n_past_races=1)
+            new_raw_race_cards.append(race_card)
+            self.__past_races_container.load_past_races(race_card)
             counter += 1
 
         self.__race_cards += new_raw_race_cards

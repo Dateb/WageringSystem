@@ -1,5 +1,5 @@
-from DataCollection.FormGuideFactory import FormGuideFactory
-from DataCollection.RaceCardFactory import RaceCardFactory
+from DataAbstraction.FormGuideFactory import FormGuideFactory
+from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataAbstraction.RaceCard import RaceCard
 
 

@@ -64,7 +64,7 @@ def main():
 
     validator = Validator(sample_set)
     #validator.train_validate_model(FavoriteBettor(), n_rounds=1, name="Favorite")
-    validator.train_validate_model(WinBettor(kelly_wealth=200), n_rounds=5, name="Gradient Boosted Trees Ranker")
+    validator.train_validate_model(WinBettor(kelly_wealth=13), n_rounds=5, name="Gradient Boosted Trees Ranker")
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
