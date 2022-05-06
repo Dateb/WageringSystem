@@ -1,20 +1,34 @@
 import json
+import os
+from typing import List
 
-from DataCollection.RawRaceCard import RawRaceCard
-from SampleExtraction.RaceCard import RaceCard
+from DataAbstraction.RaceCard import RaceCard
 
 
 class RaceCardsPersistence:
     def __init__(self, file_name: str):
         self.__FILE_NAME = f"../data/{file_name}.json"
 
-    def load(self) -> dict:
+    def save(self, race_cards: List[RaceCard]):
+        raw_races = {}
+        for race_card in race_cards:
+            raw_races[race_card.race_id] = race_card.raw_race
+
+        print("writing...")
+        with open(self.__FILE_NAME, "w") as f:
+            json.dump(raw_races, f)
+        print("writing done")
+
+    def load(self) -> List[RaceCard]:
+        raw_races = self.load_raw()
+        return [RaceCard(race_id, raw_races[race_id]) for race_id in raw_races]
+
+    def load_raw(self) -> dict:
+        if not os.path.isfile(self.__FILE_NAME):
+            print("File not found. Returning empty dict.")
+            return {}
+
         with open(self.__FILE_NAME, "r") as f:
-            raw_race_cards_json = json.load(f)
+            raw_races = json.load(f)
 
-        raw_race_cards = [RawRaceCard(race_id, raw_race_cards_json[race_id]) for race_id in raw_race_cards_json]
-        race_cards = {}
-        for raw_race_card in raw_race_cards:
-            race_cards[raw_race_card.race_id] = RaceCard(raw_race_card)
-
-        return race_cards
+        return raw_races

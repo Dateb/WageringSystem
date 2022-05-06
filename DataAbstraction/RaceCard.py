@@ -1,24 +1,34 @@
 from datetime import datetime
 from typing import List
 
-from DataCollection.RawRaceCard import RawRaceCard
-
 
 class RaceCard:
 
-    def __init__(self, raw_race_card: RawRaceCard):
-        self.__race_id = raw_race_card.race_id
-        self.__raw_race_data = raw_race_card.raw_race_data
+    def __init__(self, race_id: str, raw_race: dict):
+        self.__race_id = race_id
+        self.__raw_race = raw_race
+
+        self.__check_raw_data()
 
         self.__extract_data()
         self.__remove_non_starters()
         self.__set_head_to_head_horses()
 
+    def __check_raw_data(self):
+        if 'race' not in self.__raw_race:
+            raise KeyError('Race with id {race_id} does not exist'.format(race_id=self.__race_id))
+
+        if 'runners' not in self.__raw_race:
+            raise KeyError('Runners for race with id {race_id} does not exist'.format(race_id=self.__race_id))
+
+        if 'data' not in self.__raw_race['runners']:
+            raise KeyError('Runners dict exists but does not have \'data\' key')
+
     def __extract_data(self):
-        self.__event = self.__raw_race_data["event"]
-        self.__race = self.__raw_race_data["race"]
-        self.__horse_data = self.__raw_race_data["runners"]["data"]
-        self.__result = self.__raw_race_data["result"]
+        self.__event = self.__raw_race["event"]
+        self.__race = self.__raw_race["race"]
+        self.__horse_data = self.__raw_race["runners"]["data"]
+        self.__result = self.__raw_race["result"]
 
         self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
 
@@ -135,6 +145,10 @@ class RaceCard:
         return self.__race["trackGoing"]
 
     @property
+    def subject_ids(self):
+        return [self.__horse_data[horse_id]["idSubject"] for horse_id in self.__horse_data]
+
+    @property
     def jockey_names(self) -> List[str]:
         first_names = [self.__horse_data[horse_id]['jockey']['firstName'] for horse_id in self.__horse_data]
         last_names = [self.__horse_data[horse_id]['jockey']['lastName'] for horse_id in self.__horse_data]
@@ -161,4 +175,8 @@ class RaceCard:
                     return float(list(self.__result["odds"]["other"][1]["TRI"].keys())[0])
 
         return 0.0
+
+    @property
+    def raw_race(self) -> dict:
+        return self.__raw_race
 

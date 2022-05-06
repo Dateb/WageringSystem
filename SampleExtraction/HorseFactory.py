@@ -3,7 +3,7 @@ from typing import List
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
 from DataCollection.PastRacesContainer import PastRacesContainer
-from SampleExtraction.RaceCard import RaceCard
+from DataAbstraction.RaceCard import RaceCard
 
 
 class HorseFactory:

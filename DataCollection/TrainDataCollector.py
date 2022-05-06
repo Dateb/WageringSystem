@@ -2,9 +2,9 @@ from datetime import date, timedelta
 from typing import Set
 
 from DataCollection.DayCollector import DayCollector
-from DataCollection.RawRaceCardsCollector import RawRaceCardsCollector
+from DataCollection.RaceCardsCollector import RaceCardsCollector
 from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
-from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
 class TrainDataCollector:
@@ -12,13 +12,13 @@ class TrainDataCollector:
     __TIME_OF_A_DAY = timedelta(days=1)
 
     def __init__(self):
-        self.__raw_race_cards_persistence = RawRaceCardsPersistence(file_name="train_raw_race_cards")
+        self.__raw_race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
         self.__past_races_container_persistence = PastRacesContainerPersistence(file_name="train_past_races")
 
         initial_raw_race_cards = self.__raw_race_cards_persistence.load()
         initial_past_races_container = self.__past_races_container_persistence.load()
 
-        self.__raw_race_cards_collector = RawRaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
+        self.__race_cards_collector = RaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
         self.__day_collector = DayCollector()
         self.__collected_days = self.__get_collected_days()
 
@@ -40,7 +40,7 @@ class TrainDataCollector:
 
     def __collect_backwards_from_query_date(self, query_date):
         print(f"Backward collecting from date: {query_date}")
-        scraping_date = query_date - self.__TIME_OF_A_DAY
+        scraping_date = query_date
         while True:
             if scraping_date not in self.__collected_days:
                 self.__collect_day(scraping_date)
@@ -49,14 +49,14 @@ class TrainDataCollector:
     def __collect_day(self, day):
         print(f"Currently collecting:{day}")
         race_ids = self.__day_collector.get_closed_race_ids_of_day(day)
-        self.__raw_race_cards_collector.collect_from_race_ids(race_ids)
+        self.__race_cards_collector.collect_from_race_ids(race_ids)
         self.__collected_days.add(day)
 
-        self.__raw_race_cards_persistence.save(self.__raw_race_cards_collector.raw_race_cards)
-        self.__past_races_container_persistence.save(self.__raw_race_cards_collector.raw_past_races)
+        self.__raw_race_cards_persistence.save(self.__race_cards_collector.race_cards)
+        self.__past_races_container_persistence.save(self.__race_cards_collector.past_races)
 
     def __get_collected_days(self) -> Set[date]:
-        return {race_card.date for race_card in self.__raw_race_cards_collector.race_cards}
+        return {race_card.date for race_card in self.__race_cards_collector.race_cards}
 
     @property
     def latest_date(self) -> date:
@@ -66,7 +66,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2022, 3, 20)
+    query_date = date(2022, 5, 5)
 
     train_data_collector.collect(query_date)
 

@@ -1,19 +1,18 @@
 from DataCollection.FormGuideFactory import FormGuideFactory
-from DataCollection.RawRaceCard import RawRaceCard
-from DataCollection.RawRaceCardFactory import RawRaceCardFactory
-from SampleExtraction.RaceCard import RaceCard
+from DataCollection.RaceCardFactory import RaceCardFactory
+from DataAbstraction.RaceCard import RaceCard
 
 
 class PastRacesContainer:
 
     def __init__(self, raw_past_races: dict):
         self.__raw_past_races = raw_past_races
-        self.__raw_race_card_factory = RawRaceCardFactory()
+        self.__race_card_factory = RaceCardFactory()
         self.__form_guide_factory = FormGuideFactory()
 
-    def load_past_races(self, raw_race_card: RawRaceCard):
-        race_id = raw_race_card.race_id
-        for subject_id in raw_race_card.subject_ids:
+    def load_past_races(self, race_card: RaceCard):
+        race_id = race_card.race_id
+        for subject_id in race_card.subject_ids:
             past_race_key = self.__get_past_race_key(race_id, subject_id, 1)
             self.__raw_past_races[past_race_key] = self.__get_past_race(race_id, subject_id)
 
@@ -38,14 +37,13 @@ class PastRacesContainer:
 
         past_race_id = past_race_ids[idx_past_race]
 
-        return self.__raw_race_card_factory.run(past_race_id).raw_race_data
+        return self.__race_card_factory.run(past_race_id).raw_race
 
     def get_past_race(self, race_id: str, subject_id: str, n_races_ago: int) -> RaceCard:
         past_race_key = self.__get_past_race_key(race_id, subject_id, n_races_ago)
         raw_race_data = self.__raw_past_races[past_race_key]
-        raw_race_card = RawRaceCard(race_id, raw_race_data)
 
-        return RaceCard(raw_race_card)
+        return RaceCard(race_id, raw_race_data)
 
     def is_past_race_computed(self, race_id: str, subject_id: str, n_races_ago: int) -> bool:
         past_race_key = self.__get_past_race_key(race_id, subject_id, n_races_ago)

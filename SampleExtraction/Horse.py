@@ -1,6 +1,6 @@
 from typing import List
 
-from SampleExtraction.RaceCard import RaceCard
+from DataAbstraction.RaceCard import RaceCard
 
 
 class Horse:

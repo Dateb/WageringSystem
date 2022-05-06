@@ -2,23 +2,22 @@ from typing import List
 
 from Betting.Bet import Bet, BetType
 from Betting.BetResult import BetResult
-from Persistence.RawRaceCardPersistence import RawRaceCardsPersistence
-from SampleExtraction.RaceCard import RaceCard
+from Persistence.RaceCardPersistence import RaceCardsPersistence
+from DataAbstraction.RaceCard import RaceCard
 
 
 class BetEvaluator:
     __TAX = 0.05
 
     def __init__(self, file_name: str):
-        raw_race_cards = RawRaceCardsPersistence(file_name).load()
-        self.__race_cards = {raw_race_card.race_id: RaceCard(raw_race_card) for raw_race_card in raw_race_cards}
+        self.__raw_races = RaceCardsPersistence(file_name).load_raw()
 
     def evaluate(self, bets: List[Bet]) -> List[BetResult]:
         bet_results = [self.__create_bet_result(bet) for bet in bets]
         return bet_results
 
     def __create_bet_result(self, bet: Bet) -> BetResult:
-        race_card = self.__race_cards[bet.race_id]
+        race_card = RaceCard(bet.race_id, self.__raw_races[bet.race_id])
         win_indicator = self.__get_win_indicator(race_card, bet)
         odds = self.__get_odds(race_card, bet)
         win = win_indicator * bet.stakes * odds

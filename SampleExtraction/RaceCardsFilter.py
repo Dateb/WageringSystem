@@ -2,7 +2,7 @@ from datetime import date
 from typing import List
 
 from DataCollection.PastRacesContainer import PastRacesContainer
-from SampleExtraction.RaceCard import RaceCard
+from DataAbstraction.RaceCard import RaceCard
 
 
 class RaceCardsFilter:
