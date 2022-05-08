@@ -8,9 +8,8 @@ from DataAbstraction.RaceCard import RaceCard
 
 class RaceCardsCollector:
 
-    def __init__(self, initial_race_cards: List[RaceCard], initial_past_races_container: PastRacesContainer):
+    def __init__(self, initial_race_cards: List[RaceCard]):
         self.__race_cards = initial_race_cards
-        self.__past_races_container = initial_past_races_container
 
         self.__race_card_factory = RaceCardFactory()
 
@@ -20,9 +19,8 @@ class RaceCardsCollector:
         new_raw_race_cards = []
         for race_id in race_ids:
             print(f"Race card: {counter}/{n_race_cards}...")
-            race_card = self.__race_card_factory.run(race_id, n_past_races=1)
+            race_card = self.__race_card_factory.run(race_id)
             new_raw_race_cards.append(race_card)
-            self.__past_races_container.load_past_races(race_card)
             counter += 1
 
         self.__race_cards += new_raw_race_cards
@@ -31,7 +29,3 @@ class RaceCardsCollector:
     @property
     def race_cards(self) -> List[RaceCard]:
         return self.__race_cards
-
-    @property
-    def past_races(self) -> dict:
-        return self.__past_races_container.raw_past_races

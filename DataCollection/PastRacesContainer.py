@@ -37,7 +37,7 @@ class PastRacesContainer:
 
         past_race_id = past_race_ids[idx_past_race]
 
-        return self.__race_card_factory.run(past_race_id).raw_race
+        return self.__race_card_factory.run(past_race_id).raw_race_card
 
     def get_past_race(self, race_id: str, subject_id: str, n_races_ago: int) -> RaceCard:
         past_race_key = self.__get_past_race_key(race_id, subject_id, n_races_ago)

@@ -1,37 +1,34 @@
 from datetime import datetime
 from typing import List
 
-from DataAbstraction.FormGuideFactory import FormGuideFactory
-
 
 class RaceCard:
 
-    def __init__(self, race_id: str, raw_race: dict):
+    def __init__(self, race_id: str, raw_race_card: dict):
         self.__race_id = race_id
-        self.__raw_race = raw_race
+        self.__raw_race_card = raw_race_card
 
         self.__check_raw_data()
 
         self.__extract_data()
         self.__remove_non_starters()
         self.__set_head_to_head_horses()
-        self.__set_form_guides()
 
     def __check_raw_data(self):
-        if 'race' not in self.__raw_race:
+        if 'race' not in self.__raw_race_card:
             raise KeyError('Race with id {race_id} does not exist'.format(race_id=self.__race_id))
 
-        if 'runners' not in self.__raw_race:
+        if 'runners' not in self.__raw_race_card:
             raise KeyError('Runners for race with id {race_id} does not exist'.format(race_id=self.__race_id))
 
-        if 'data' not in self.__raw_race['runners']:
+        if 'data' not in self.__raw_race_card['runners']:
             raise KeyError('Runners dict exists but does not have \'data\' key')
 
     def __extract_data(self):
-        self.__event = self.__raw_race["event"]
-        self.__race = self.__raw_race["race"]
-        self.__horse_data = self.__raw_race["runners"]["data"]
-        self.__result = self.__raw_race["result"]
+        self.__event = self.__raw_race_card["event"]
+        self.__race = self.__raw_race_card["race"]
+        self.__horse_data = self.__raw_race_card["runners"]["data"]
+        self.__result = self.__raw_race_card["result"]
 
         self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
 
@@ -39,10 +36,6 @@ class RaceCard:
         non_starters = [horse_id for horse_id in self.__horse_data if self.is_horse_scratched(horse_id)]
         for non_starter in non_starters:
             del self.__horse_data[non_starter]
-
-    def __set_form_guides(self):
-        form_guide_factory = FormGuideFactory()
-        self.__form_guides = {subject_id: form_guide_factory.run(subject_id) for subject_id in self.subject_ids}
 
     def get_name_of_horse(self, horse_id: str) -> str:
         return self.__horse_data[horse_id]["name"]
@@ -184,6 +177,6 @@ class RaceCard:
         return 0.0
 
     @property
-    def raw_race(self) -> dict:
-        return self.__raw_race
+    def raw_race_card(self) -> dict:
+        return self.__raw_race_card
 

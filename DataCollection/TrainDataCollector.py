@@ -3,7 +3,6 @@ from typing import Set
 
 from DataCollection.DayCollector import DayCollector
 from DataCollection.RaceCardsCollector import RaceCardsCollector
-from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
@@ -12,18 +11,18 @@ class TrainDataCollector:
     __TIME_OF_A_DAY = timedelta(days=1)
 
     def __init__(self):
-        self.__raw_race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
-        self.__past_races_container_persistence = PastRacesContainerPersistence(file_name="train_past_races")
+        self.__raw_race_cards_persistence = RaceCardsPersistence(file_name="train_2_race_cards")
 
         initial_raw_race_cards = self.__raw_race_cards_persistence.load()
-        initial_past_races_container = self.__past_races_container_persistence.load()
 
-        self.__race_cards_collector = RaceCardsCollector(initial_raw_race_cards, initial_past_races_container)
+        self.__race_cards_collector = RaceCardsCollector(initial_raw_race_cards)
         self.__day_collector = DayCollector()
         self.__collected_days = self.__get_collected_days()
 
     def collect(self, query_date: date):
-        newest_train_date = self.latest_date
+        newest_train_date = query_date
+        if len(self.__collected_days) > 0:
+            newest_train_date = self.latest_date
 
         if newest_train_date > query_date:
             self.__collect_forward_until_newest_train_date(query_date, newest_train_date)
@@ -53,7 +52,6 @@ class TrainDataCollector:
         self.__collected_days.add(day)
 
         self.__raw_race_cards_persistence.save(self.__race_cards_collector.race_cards)
-        self.__past_races_container_persistence.save(self.__race_cards_collector.past_races)
 
     def __get_collected_days(self) -> Set[date]:
         return {race_card.date for race_card in self.__race_cards_collector.race_cards}
@@ -66,7 +64,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2022, 5, 6)
+    query_date = date(2022, 5, 1)
 
     train_data_collector.collect(query_date)
 

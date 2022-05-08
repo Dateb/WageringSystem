@@ -2,10 +2,10 @@ from typing import List
 
 
 class FormGuide:
-    def __init__(self, subject_id, raw_formguide):
+    def __init__(self, race_id: str, subject_id: str, raw_formguide: dict):
         self.__subject_id = subject_id
 
-        self.__raw_formguide_data = raw_formguide
+        self.__raw_formguide = raw_formguide
 
         self.__past_races = {}
 
@@ -17,8 +17,12 @@ class FormGuide:
             self.__past_races[race_id] = {"country": past_race["country"]}
 
     @property
-    def raw_formguide_data(self) -> dict:
-        return self.__raw_formguide_data
+    def subject_id(self):
+        return self.__subject_id
+
+    @property
+    def raw_formguide(self) -> dict:
+        return self.__raw_formguide
 
     @property
     def past_race_ids(self) -> List[str]:

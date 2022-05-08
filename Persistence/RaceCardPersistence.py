@@ -12,7 +12,7 @@ class RaceCardsPersistence:
     def save(self, race_cards: List[RaceCard]):
         raw_races = {}
         for race_card in race_cards:
-            raw_races[race_card.race_id] = race_card.raw_race
+            raw_races[race_card.race_id] = race_card.raw_race_card
 
         print("writing...")
         with open(self.__FILE_NAME, "w") as f:
