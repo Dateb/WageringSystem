@@ -16,4 +16,4 @@ class EarningsTrainerExtractor(FeatureExtractor):
         if trainer_stats is not False:
             return trainer_stats["earnings"]
 
-        return "0"
+        return self.PLACEHOLDER_VALUE

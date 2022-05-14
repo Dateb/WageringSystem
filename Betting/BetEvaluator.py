@@ -17,7 +17,7 @@ class BetEvaluator:
         return bet_results
 
     def __create_bet_result(self, bet: Bet) -> BetResult:
-        race_card = RaceCard(bet.race_id, self.__raw_races[bet.race_id])
+        race_card = RaceCard(bet.race_id, self.__raw_races[bet.race_id], remove_non_starters=True)
         win_indicator = self.__get_win_indicator(race_card, bet)
         odds = self.__get_odds(race_card, bet)
         win = win_indicator * bet.stakes * odds

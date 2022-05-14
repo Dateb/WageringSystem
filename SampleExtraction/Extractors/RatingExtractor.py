@@ -4,6 +4,8 @@ from SampleExtraction.Horse import Horse
 
 class RatingExtractor(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0.0
+
     def __init__(self):
         super().__init__()
 
@@ -13,5 +15,5 @@ class RatingExtractor(FeatureExtractor):
     def get_value(self, horse: Horse) -> float:
         rating = horse.raw_data['rating']
         if rating == '':
-            return 0
+            return self.PLACEHOLDER_VALUE
         return rating

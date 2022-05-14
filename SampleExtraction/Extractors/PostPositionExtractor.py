@@ -13,4 +13,4 @@ class PostPositionExtractor(FeatureExtractor):
     def get_value(self, horse: Horse) -> str:
         if "postPosition" in horse.raw_data:
             return horse.raw_data["postPosition"]
-        return "0"
+        return self.PLACEHOLDER_VALUE

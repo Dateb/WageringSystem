@@ -6,22 +6,37 @@ from DataCollection.Scraper import get_scraper
 
 class RaceCardFactory:
 
-    def __init__(self):
+    __N_MAX_PAST_RACES_TO_INJECT: int = 2
+
+    def __init__(self, remove_non_starters: bool = True):
         self.__scraper = get_scraper()
         self.__base_api_url = 'https://www.racebets.de/ajax/races/details/id/'
+        self.__remove_non_starters = remove_non_starters
 
-    def run(self, race_id: str) -> RaceCard:
+    def run(self, base_race_id: str) -> RaceCard:
+        base_race_card = self.get_race_card(base_race_id)
+
+        form_guide_factory = FormGuideFactory(base_race_id)
+
+        form_guides = [form_guide_factory.run(subject_id) for subject_id in base_race_card.subject_ids]
+
+        raw_race_card_injector = RawRaceCardInjector(base_race_card)
+        raw_race_card_injector.inject_form_tables(form_guides)
+
+        for form_guide in form_guides:
+            past_race_ids = form_guide.past_race_ids
+            n_past_races_to_inject = min(len(past_race_ids), self.__N_MAX_PAST_RACES_TO_INJECT)
+            for i in range(n_past_races_to_inject):
+                past_race_card = self.get_race_card(past_race_ids[i])
+
+                raw_race_card_injector.inject_past_race_card(form_guide.subject_id, past_race_card)
+
+        race_card = RaceCard(base_race_id, raw_race_card_injector.raw_race_card, self.__remove_non_starters)
+
+        return race_card
+
+    def get_race_card(self, race_id: str) -> RaceCard:
         api_url = f"{self.__base_api_url}{str(race_id)}"
         raw_race_card = self.__scraper.request_data(api_url)
 
-        race_card = RaceCard(race_id, raw_race_card)
-        form_guide_factory = FormGuideFactory(race_id)
-
-        form_guides = [form_guide_factory.run(subject_id) for subject_id in race_card.subject_ids]
-
-        raw_race_card_injector = RawRaceCardInjector(race_card)
-        raw_race_card_injector.inject_form_tables(form_guides)
-
-        race_card = RaceCard(race_id, raw_race_card_injector.raw_race_card)
-
-        return race_card
+        return RaceCard(race_id, raw_race_card, self.__remove_non_starters)

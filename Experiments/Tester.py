@@ -7,16 +7,13 @@ import pandas as pd
 from Betting.BetEvaluator import BetEvaluator
 from Betting.WinBettor import WinBettor
 from Experiments.FundHistorySummary import FundHistorySummary
-from Persistence.PastRacesContainerPersistence import PastRacesContainerPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
-from SampleExtraction.RaceCardsFilter import RaceCardsFilter
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-TEST_RAW_RACE_CARDS_FILE_NAME: str = "test_race_cards"
-TEST_PAST_RACES_FILE_NAME: str = "test_past_races"
+TEST_RACE_CARDS_FILE_NAME: str = "test_race_cards"
 
-TEST_ESTIMATOR_PATH: str = "../data/estimator_v1-03.dat"
+TEST_ESTIMATOR_PATH: str = "../data/estimator_v2-01.dat"
 
 TEST_FUND_HISTORY_SUMMARIES_PATH: str = "../data/fund_history_summaries.dat"
 
@@ -34,19 +31,17 @@ class Tester:
         samples_test_estimated = self.__estimator.transform(self.__samples)
 
         bets = self.__bettor.bet(samples_test_estimated)
-        bet_results = BetEvaluator(TEST_RAW_RACE_CARDS_FILE_NAME).evaluate(bets)
+        bet_results = BetEvaluator(TEST_RACE_CARDS_FILE_NAME).evaluate(bets)
         return [FundHistorySummary(name, bet_results)]
 
 
 def main():
-    race_cards = RaceCardsPersistence(TEST_RAW_RACE_CARDS_FILE_NAME).load()
-
-    past_races_container = PastRacesContainerPersistence(TEST_PAST_RACES_FILE_NAME).load()
+    race_cards = RaceCardsPersistence(TEST_RACE_CARDS_FILE_NAME).load()
 
     #race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 5, 6))
 
     sample_encoder = SampleEncoder(FeatureManager())
-    test_samples = sample_encoder.transform(race_cards, past_races_container)
+    test_samples = sample_encoder.transform(race_cards)
 
     tester = Tester(test_samples, kelly_wealth=13)
     fund_history_summaries = tester.run("Test run")

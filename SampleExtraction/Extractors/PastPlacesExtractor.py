@@ -20,11 +20,11 @@ class PastPlacesExtractor(FeatureExtractor):
         past_places = horse.raw_data["ppString"].split(' - ')
 
         if past_places[0] == '':
-            return "0"
+            return self.PLACEHOLDER_VALUE
 
         if len(past_places) >= self.__n_races_ago:
             past_place = past_places[self.__n_races_ago - 1]
             if past_place.isdigit():
                 return past_place
 
-        return "0"
+        return self.PLACEHOLDER_VALUE

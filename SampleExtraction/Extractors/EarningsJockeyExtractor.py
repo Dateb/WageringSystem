@@ -16,4 +16,4 @@ class EarningsJockeyExtractor(FeatureExtractor):
         if jockey_stats is not False:
             return jockey_stats["earnings"]
 
-        return "0"
+        return self.PLACEHOLDER_VALUE

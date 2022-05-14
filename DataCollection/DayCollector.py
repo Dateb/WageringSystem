@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from typing import List
 
@@ -24,6 +24,12 @@ class DayCollector:
         race_ids = [race["idRace"] for race in races if race["raceStatus"] == "OPN"]
 
         return race_ids
+
+    def get_race_ids_of_tomorrow(self) -> List[str]:
+        tomorrow = date.today() + timedelta(days=1)
+        races = self.__get_races_of_day(tomorrow)
+
+        return [race["idRace"] for race in races]
 
     def __get_races_of_day(self, day: date) -> List[dict]:
         race_series_list = self.__get_race_series_of_day(day)

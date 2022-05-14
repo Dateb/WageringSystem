@@ -4,6 +4,8 @@ from SampleExtraction.Horse import Horse
 
 class TrackGoingDifferenceExtractor(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0.0
+
     def __init__(self):
         super().__init__()
 
@@ -12,7 +14,7 @@ class TrackGoingDifferenceExtractor(FeatureExtractor):
 
     def get_value(self, horse: Horse) -> float:
         if not horse.has_past_races:
-            return 0.0
+            return self.PLACEHOLDER_VALUE
 
         previous_race = horse.get_race(1)
         current_race = horse.get_race(0)

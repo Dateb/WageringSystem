@@ -16,4 +16,4 @@ class NumRacesTrainerExtractor(FeatureExtractor):
         if trainer_stats is not False:
             return trainer_stats["numRaces"]
 
-        return "0"
+        return self.PLACEHOLDER_VALUE

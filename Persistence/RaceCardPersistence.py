@@ -21,7 +21,7 @@ class RaceCardsPersistence:
 
     def load(self) -> List[RaceCard]:
         raw_races = self.load_raw()
-        return [RaceCard(race_id, raw_races[race_id]) for race_id in raw_races]
+        return [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
 
     def load_raw(self) -> dict:
         if not os.path.isfile(self.__FILE_NAME):

@@ -2,7 +2,6 @@ from typing import List
 
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
-from DataCollection.PastRacesContainer import PastRacesContainer
 from DataAbstraction.RaceCard import RaceCard
 
 
@@ -11,13 +10,13 @@ class HorseFactory:
     def __init__(self, feature_manager: FeatureManager):
         self.__feature_manager = feature_manager
 
-    def create(self, race_card: RaceCard, past_races_container: PastRacesContainer) -> List[Horse]:
+    def create(self, race_card: RaceCard) -> List[Horse]:
         horse_data = race_card.horses
-        horses = [self.__create_horse(race_card, horse_id, horse_data, past_races_container) for horse_id in horse_data]
+        horses = [self.__create_horse(race_card, horse_id, horse_data) for horse_id in horse_data]
 
         return horses
 
-    def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict, past_races_container: PastRacesContainer) -> Horse:
+    def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict) -> Horse:
         race_id = race_card.race_id
         track_id = race_card.track_id
         current_odds = race_card.get_current_odds_of_horse(horse_id)
@@ -26,11 +25,13 @@ class HorseFactory:
 
         subject_id = race_card.get_subject_id_of_horse(horse_id)
 
-        races = [race_card]
-        if past_races_container.is_past_race_available(race_id, subject_id, n_races_ago=1):
-            races.append(past_races_container.get_past_race(race_id, subject_id, 1))
+        past_race_cards = [
+            RaceCard(race_id, raw_past_race_card, remove_non_starters=True) for raw_past_race_card in race_card.get_past_races_of_horse(horse_id)
+        ]
 
-        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, current_odds, place, races)
+        race_cards = [race_card] + past_race_cards
+
+        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, current_odds, place, race_cards)
 
         self.__feature_manager.set_features_of_horse(new_horse)
 

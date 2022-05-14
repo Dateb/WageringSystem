@@ -11,11 +11,11 @@ class TrainDataCollector:
     __TIME_OF_A_DAY = timedelta(days=1)
 
     def __init__(self):
-        self.__raw_race_cards_persistence = RaceCardsPersistence(file_name="train_2_race_cards")
+        self.__race_cards_persistence = RaceCardsPersistence(file_name="may_14_today_snapshot")
 
-        initial_raw_race_cards = self.__raw_race_cards_persistence.load()
+        initial_race_cards = self.__race_cards_persistence.load()
 
-        self.__race_cards_collector = RaceCardsCollector(initial_raw_race_cards)
+        self.__race_cards_collector = RaceCardsCollector(initial_race_cards)
         self.__day_collector = DayCollector()
         self.__collected_days = self.__get_collected_days()
 
@@ -48,10 +48,10 @@ class TrainDataCollector:
     def __collect_day(self, day):
         print(f"Currently collecting:{day}")
         race_ids = self.__day_collector.get_closed_race_ids_of_day(day)
-        self.__race_cards_collector.collect_from_race_ids(race_ids)
+        self.__race_cards_collector.collect_full_race_cards_from_race_ids(race_ids)
         self.__collected_days.add(day)
 
-        self.__raw_race_cards_persistence.save(self.__race_cards_collector.race_cards)
+        self.__race_cards_persistence.save(self.__race_cards_collector.race_cards)
 
     def __get_collected_days(self) -> Set[date]:
         return {race_card.date for race_card in self.__race_cards_collector.race_cards}
@@ -64,7 +64,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2021, 10, 10)
+    query_date = date(2022, 5, 14)
 
     train_data_collector.collect(query_date)
 

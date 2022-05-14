@@ -16,4 +16,4 @@ class NumWinsTrainerExtractor(FeatureExtractor):
         if trainer_stats is not False:
             return trainer_stats["numWin"]
 
-        return "0"
+        return self.PLACEHOLDER_VALUE

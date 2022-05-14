@@ -5,6 +5,7 @@ from tqdm import trange
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
+from Betting.FavoriteBettor import FavoriteBettor
 from Betting.WinBettor import WinBettor
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.SampleSet import SampleSet
@@ -63,8 +64,8 @@ def main():
     sample_set = SampleSet(samples)
 
     validator = Validator(sample_set)
-    #validator.train_validate_model(FavoriteBettor(), n_rounds=1, name="Favorite")
-    validator.train_validate_model(WinBettor(kelly_wealth=13), n_rounds=5, name="Gradient Boosted Trees Ranker")
+    #validator.train_validate_model(FavoriteBettor(), n_rounds=3, name="Favorite")
+    validator.train_validate_model(WinBettor(kelly_wealth=13), n_rounds=100, name="Gradient Boosted Trees Ranker")
 
     fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

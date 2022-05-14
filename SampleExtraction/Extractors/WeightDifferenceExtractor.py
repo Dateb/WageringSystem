@@ -4,6 +4,8 @@ from SampleExtraction.Horse import Horse
 
 class WeightDifferenceExtractor(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0.0
+
     def __init__(self):
         super().__init__()
 
@@ -12,7 +14,7 @@ class WeightDifferenceExtractor(FeatureExtractor):
 
     def get_value(self, horse: Horse) -> float:
         if not horse.has_past_races:
-            return 0.0
+            return self.PLACEHOLDER_VALUE
 
         current_jockey = horse.raw_data["jockey"]
         if "weight" in current_jockey:
@@ -23,4 +25,4 @@ class WeightDifferenceExtractor(FeatureExtractor):
                 previous_weight = previous_jockey["weight"]["weight"]
                 return current_weight - previous_weight
 
-        return 0.0
+        return self.PLACEHOLDER_VALUE

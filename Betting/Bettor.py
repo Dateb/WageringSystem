@@ -21,14 +21,14 @@ class Bettor(ABC):
 
         return race_groups.groupby(Horse.RACE_ID_KEY).head(n)
 
-    def _get_highest_n_expected_values(self, samples: pd.DataFrame, n: int) -> pd.DataFrame:
+    def _get_highest_n_betting_samples_per_race(self, samples: pd.DataFrame, n: int) -> pd.DataFrame:
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values(["expected_value"], ascending=False)
+            lambda x: x.sort_values(["win_probability"], ascending=False)
         ).reset_index(drop=True)
 
-        best_expected_values = race_groups.groupby(Horse.RACE_ID_KEY).head(n)
-        positive_expected_values = best_expected_values[best_expected_values["expected_value"] > 1]
-        return positive_expected_values
+        race_groups = race_groups[race_groups["expected_value"] > 1]
+        top_betting_samples = race_groups.groupby(Horse.RACE_ID_KEY).head(n)
+        return top_betting_samples
 
     def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples[Horse.CURRENT_ODDS_KEY] = samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float)

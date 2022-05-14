@@ -11,7 +11,7 @@ from DataAbstraction.RaceCard import RaceCard
 
 class BetController:
 
-    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 12, submission_mode_on: bool = False):
+    def __init__(self, user_name: str, password: str, post_race_start_wait: int = 13, submission_mode_on: bool = False):
         self.__driver = webdriver.Firefox()
         self.__user_name = user_name
         self.__password = password
@@ -38,14 +38,14 @@ class BetController:
     def wait_for_race_start(self, race_card: RaceCard):
         time_until_race_start = race_card.datetime - datetime.now()
         print(f"Now waiting for race: ---{race_card.name}--- which starts at: {race_card.datetime}")
-        if race_card.datetime > datetime.now():
-            sleep(time_until_race_start.seconds)
+        #if race_card.datetime > datetime.now():
+        #    sleep(time_until_race_start.seconds)
 
         if self.is_logged_out():
             self.login()
 
         print(f"Race starting every moment, delaying bet for {self.__post_race_start_wait} seconds...")
-        sleep(self.__post_race_start_wait)
+        #sleep(self.__post_race_start_wait)
 
     def execute_bet(self, race_card: RaceCard, bet: Bet):
         if bet.stakes < 0.5:

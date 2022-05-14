@@ -16,4 +16,4 @@ class NumPlaceJockeyExtractor(FeatureExtractor):
         if jockey_stats is not False:
             return jockey_stats["numPlace"]
 
-        return "0"
+        return self.PLACEHOLDER_VALUE
