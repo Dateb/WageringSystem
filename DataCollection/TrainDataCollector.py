@@ -11,7 +11,7 @@ class TrainDataCollector:
     __TIME_OF_A_DAY = timedelta(days=1)
 
     def __init__(self):
-        self.__race_cards_persistence = RaceCardsPersistence(file_name="may_14_today_snapshot")
+        self.__race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
 
         initial_race_cards = self.__race_cards_persistence.load()
 
@@ -64,7 +64,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2022, 5, 14)
+    query_date = date(2022, 3, 20)
 
     train_data_collector.collect(query_date)
 

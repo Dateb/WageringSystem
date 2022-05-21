@@ -11,9 +11,9 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-TEST_RACE_CARDS_FILE_NAME: str = "test_race_cards"
+TEST_RACE_CARDS_FILE_NAME: str = "may_18_race_cards"
 
-TEST_ESTIMATOR_PATH: str = "../data/estimator_v2-01.dat"
+TEST_ESTIMATOR_PATH: str = "../data/estimator_v2-03.dat"
 
 TEST_FUND_HISTORY_SUMMARIES_PATH: str = "../data/fund_history_summaries.dat"
 
@@ -38,12 +38,10 @@ class Tester:
 def main():
     race_cards = RaceCardsPersistence(TEST_RACE_CARDS_FILE_NAME).load()
 
-    #race_cards = RaceCardsFilter(race_cards, past_races_container).get_race_cards_of_day(date(2022, 5, 6))
-
-    sample_encoder = SampleEncoder(FeatureManager())
+    sample_encoder = SampleEncoder(FeatureManager(report_missing_features=True))
     test_samples = sample_encoder.transform(race_cards)
 
-    tester = Tester(test_samples, kelly_wealth=13)
+    tester = Tester(test_samples, kelly_wealth=10)
     fund_history_summaries = tester.run("Test run")
 
     with open(TEST_FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

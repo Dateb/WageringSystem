@@ -23,6 +23,6 @@ class WeightDifferenceExtractor(FeatureExtractor):
             previous_jockey = horse.get_race(1).get_data_of_subject(horse.subject_id)["jockey"]
             if "weight" in previous_jockey:
                 previous_weight = previous_jockey["weight"]["weight"]
-                return current_weight - previous_weight
+                return 1 / (current_weight - previous_weight + 0.001)
 
         return self.PLACEHOLDER_VALUE

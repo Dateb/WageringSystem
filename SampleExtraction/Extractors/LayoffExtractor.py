@@ -4,7 +4,7 @@ from SampleExtraction.Horse import Horse
 
 class LayoffExtractor(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0.0
+    PLACEHOLDER_VALUE = -1.0
 
     def __init__(self):
         super().__init__()

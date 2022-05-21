@@ -17,11 +17,15 @@ class BetEvaluator:
         return bet_results
 
     def __create_bet_result(self, bet: Bet) -> BetResult:
-        race_card = RaceCard(bet.race_id, self.__raw_races[bet.race_id], remove_non_starters=True)
+        race_card = RaceCard(bet.race_id, self.__raw_races[bet.race_id], remove_non_starters=False)
         win_indicator = self.__get_win_indicator(race_card, bet)
         odds = self.__get_odds(race_card, bet)
         win = win_indicator * bet.stakes * odds
-        loss = bet.stakes * (1 + self.__TAX) if odds > 0.0 else 0
+
+        if race_card.is_horse_scratched(bet.runner_ids[0]):
+            loss = 0
+        else:
+            loss = bet.stakes * (1 + self.__TAX) if odds > 0.0 else 0
         payout = win - loss
 
         print("--------------------------------")

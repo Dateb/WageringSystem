@@ -2,6 +2,8 @@ from typing import List
 
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
+from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
+from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
 from SampleExtraction.Extractors.EarningsJockeyExtractor import EarningsJockeyExtractor
@@ -25,6 +27,8 @@ from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
 from SampleExtraction.Extractors.PreviousAveragePurseExtractor import PreviousAveragePurseExtractor
+from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
+from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
@@ -45,44 +49,22 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
-        AgeExtractor(),
-        RatingExtractor(),
 
-        #BlinkerExtractor(),
-        #ColtExtractor(),
-        #GeldingExtractor(),
-        #MareExtractor(),
-        #WeightAllowanceExtractor(),
-        #HeadToHeadExtractor(),
-
-        #CurrentOddsExtractor(),
-        NumRacesJockeyExtractor(),
-        NumWinsJockeyExtractor(),
-        NumPlaceJockeyExtractor(),
-        EarningsJockeyExtractor(),
-        NumRacesTrainerExtractor(),
-        NumPlaceTrainerExtractor(),
-        NumWinsTrainerExtractor(),
-        EarningsTrainerExtractor(),
-        WeightJockeyExtractor(),
-        PurseExtractor(),
-
-        # ---Past performance features---
-        LayoffExtractor(),
-        PreviousOddsExtractor(),
-        WeightDifferenceExtractor(),
-        PreviousAveragePurseExtractor(),
-        PreviousRaceStarterCountExtractor(),
-        DistanceDifferenceExtractor(),
-        TrackGoingDifferenceExtractor(),
-
-        PastRaceCountExtractor(),
+        CurrentOddsExtractor(),
         PastAverageHorseDistanceExtractor(),
-        JockeyCurrentHorsePurseExtractor(),
-        MaxPastRatingExtractor(),
-        TrackPurseExtractor(),
-        AveragePlaceCategoryExtractor(),
+        LayoffExtractor(),
+
         AveragePlaceSimilarDistanceExtractor(),
+        AveragePlaceSurfaceExtractor(),
+
+        DistanceDifferenceExtractor(),
+        WeightDifferenceExtractor(),
+
+        PastPlacesExtractor(1),
+        PastPlacesExtractor(2),
+
+        AgeExtractor(),
+        PurseExtractor(),
     ]
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 

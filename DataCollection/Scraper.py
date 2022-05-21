@@ -19,8 +19,8 @@ class Scraper:
 
         self.__gateway = ApiGateway(
             self.__HOMEPAGE_URL,
-            access_key_id="AKIAQYYVWP3QQYTJIDWN",#os.environ.get("AWS_ACCESS_KEY_ID"),
-            access_key_secret="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",#os.environ.get("AWS_ACCESS_KEY_SECRET"),
+            access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+            access_key_secret=os.environ["AWS_ACCESS_KEY_SECRET"],
         )
         self.__session = requests.Session()
 

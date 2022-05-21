@@ -18,4 +18,4 @@ class TrackGoingDifferenceExtractor(FeatureExtractor):
 
         previous_race = horse.get_race(1)
         current_race = horse.get_race(0)
-        return current_race.track_going - previous_race.track_going
+        return 1 / (current_race.track_going - previous_race.track_going + 0.001)

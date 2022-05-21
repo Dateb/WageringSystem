@@ -33,8 +33,6 @@ def main():
     race_cards = RaceCardsPersistence("train_race_cards").load()
 
     print(len(race_cards))
-    #race_cards = RaceCardsFilter().filter(race_cards)
-    print(len(race_cards))
     sample_encoder = SampleEncoder(FeatureManager())
     samples_df = sample_encoder.transform(race_cards)
 

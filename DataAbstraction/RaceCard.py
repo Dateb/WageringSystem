@@ -104,8 +104,8 @@ class RaceCard:
         form_table = self.form_table_of_horse(horse_id)
         horse_distances = []
         for past_race in form_table:
-            if "horseDistance" in past_race:
-                horse_distances.append(past_race["horseDistance"])
+            if "horseDistance" in past_race and past_race["raceDistance"] != 0:
+                horse_distances.append(past_race["horseDistance"] / past_race["raceDistance"])
 
         return horse_distances
 
@@ -144,6 +144,10 @@ class RaceCard:
                 purse_history.append(self.purse_to_value(past_race["purse"]))
 
         return purse_history
+
+    def purse_history_of_horse(self, horse: str) -> List[float]:
+        return [self.purse_to_value(past_race["purse"]) for past_race in self.form_table_of_horse(horse)]
+
 
     def purse_to_value(self, purse: str):
         purse_suffix = purse[-1]
@@ -224,6 +228,10 @@ class RaceCard:
         return self.__race["trackGoing"]
 
     @property
+    def race_class(self) -> str:
+        return self.__race["categoryLetter"]
+
+    @property
     def subject_ids(self):
         return [self.horses[horse_id]["idSubject"] for horse_id in self.horses]
 
@@ -262,3 +270,11 @@ class RaceCard:
     @property
     def raw_race_card(self) -> dict:
         return self.__raw_race_card
+
+    @property
+    def rule_4_deductions(self) -> float:
+        deductions = self.__race["rule4Deductions"]
+        if len(deductions) == 0:
+            return 0.0
+
+        return int(deductions[0]["deduction"]) / 100

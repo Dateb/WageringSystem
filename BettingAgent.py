@@ -1,5 +1,5 @@
 import pickle
-from datetime import datetime, date
+from datetime import datetime
 from typing import List
 
 from Betting.Bet import Bet
@@ -12,23 +12,21 @@ from SampleExtraction.FeatureManager import FeatureManager
 from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-CONTROLLER_SUBMISSION_MODE_ON = False
+CONTROLLER_SUBMISSION_MODE_ON = True
 
 
 class BettingAgent:
 
-    __ESTIMATOR_PATH = "data/estimator_v2-01.dat"
+    __ESTIMATOR_PATH = "data/estimator_v2-03.dat"
 
     def __init__(self, kelly_wealth: float):
-        self.__race_cards: List[RaceCard] = []
+        self.__base_race_cards: List[RaceCard] = []
         self.__race_card_factory = RaceCardFactory()
         self.__day_collector = DayCollector()
         self.__collector = RaceCardsCollector(initial_race_cards=[])
         self.__bettor = WinBettor(kelly_wealth)
         self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
         self.__controller = BetController(
-            user_name="Malfen",
-            password="Titctsat49_",
             submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON,
         )
 
@@ -36,20 +34,18 @@ class BettingAgent:
             self.__estimator = pickle.load(f)
 
         today = datetime.today().date()
-        #race_ids_today = self.__day_collector.get_open_race_ids_of_day(today)
-        race_ids_today = self.__day_collector.get_closed_race_ids_of_day(date(2022, 5, 12))
-        #race_ids_today = ["5029583"]
+        race_ids_today = self.__day_collector.get_open_race_ids_of_day(today)
         print("Initialising races:")
         self.__init_races(race_ids_today)
 
     def __init_races(self, race_ids: List[str]):
-        self.__race_cards = self.__collector.collect_full_race_cards_from_race_ids(race_ids)
+        self.__base_race_cards = self.__collector.collect_base_race_cards_from_race_ids(race_ids)
 
-        self.__race_cards.sort(key=lambda x: x.datetime)
+        self.__base_race_cards.sort(key=lambda x: x.datetime)
 
     def run(self):
-        while self.__race_cards:
-            next_race_card = self.__race_cards.pop(0)
+        while self.__base_race_cards:
+            next_race_card = self.__collector.collect_full_race_cards_from_race_ids([self.__base_race_cards.pop(0).race_id])[0]
 
             self.__controller.open_race_card(next_race_card)
             self.__controller.wait_for_race_start(next_race_card)
@@ -57,6 +53,7 @@ class BettingAgent:
             next_race_card = self.__get_race_card_with_latest_odds(next_race_card)
 
             bet = self.__compute_bet(next_race_card)
+            next_race_card = self.__get_race_card_with_latest_odds(next_race_card)
             self.__controller.execute_bet(next_race_card, bet)
 
     def __get_race_card_with_latest_odds(self, race_card: RaceCard) -> RaceCard:
@@ -79,7 +76,7 @@ class BettingAgent:
 
 
 def main():
-    bettor = BettingAgent(kelly_wealth=13)
+    bettor = BettingAgent(kelly_wealth=10)
     bettor.run()
 
 

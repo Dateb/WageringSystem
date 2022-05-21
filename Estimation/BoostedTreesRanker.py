@@ -13,6 +13,7 @@ class BoostedTreesRanker:
             objective="lambdarank",
             metric="ndcg",
             n_estimators=1000,
+            max_depth=15,
         )
 
     def fit(self, samples_train: pd.DataFrame):
