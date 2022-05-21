@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List
+import time
 
 from pandas import DataFrame
 from SampleExtraction.FeatureManager import FeatureManager
@@ -27,5 +28,6 @@ class SampleEncoder:
         horses_df = pd.DataFrame(data=runners_data, columns=horse_attributes)
         horses_df[self.__feature_names] = horses_df[self.__feature_names].apply(pd.to_numeric, errors="coerce")
         horses_df[Horse.RELEVANCE_KEY] = horses_df[Horse.RELEVANCE_KEY].apply(pd.to_numeric, errors="coerce")
+        horses_df[Horse.CURRENT_ODDS_KEY] = horses_df[Horse.CURRENT_ODDS_KEY].apply(pd.to_numeric, errors="coerce")
 
         return horses_df

@@ -2,15 +2,14 @@ from typing import List
 
 from Betting.Bet import Bet, BetType
 from Betting.BetResult import BetResult
-from Persistence.RaceCardPersistence import RaceCardsPersistence
 from DataAbstraction.RaceCard import RaceCard
 
 
 class BetEvaluator:
     __TAX = 0.05
 
-    def __init__(self, file_name: str):
-        self.__raw_races = RaceCardsPersistence(file_name).load_raw()
+    def __init__(self, raw_races: dict):
+        self.__raw_races = raw_races
 
     def evaluate(self, bets: List[Bet]) -> List[BetResult]:
         bet_results = [self.__create_bet_result(bet) for bet in bets]
@@ -28,15 +27,15 @@ class BetEvaluator:
             loss = bet.stakes * (1 + self.__TAX) if odds > 0.0 else 0
         payout = win - loss
 
-        print("--------------------------------")
-        print(f"race card: {race_card.name}")
-        print(f"Bet on: {race_card.get_name_of_horse(bet.runner_ids[0])}")
-        print(f"Stakes:{bet.stakes}")
-        print(f"Odds:{odds}")
-        print(f"won:{win_indicator}")
-        print(f"win:{win}")
-        print(f"loss:{loss}")
-        print("---------------------------------")
+        #print("--------------------------------")
+        #print(f"race card: {race_card.name}")
+        #print(f"Bet on: {race_card.get_name_of_horse(bet.runner_ids[0])}")
+        #print(f"Stakes:{bet.stakes}")
+        #print(f"Odds:{odds}")
+        #print(f"won:{win_indicator}")
+        #print(f"win:{win}")
+        #print(f"loss:{loss}")
+        #print("---------------------------------")
 
         return BetResult(win, loss, payout)
 

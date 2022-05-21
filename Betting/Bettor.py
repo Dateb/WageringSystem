@@ -31,16 +31,14 @@ class Bettor(ABC):
         return top_betting_samples
 
     def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
-        samples[Horse.CURRENT_ODDS_KEY] = samples[Horse.CURRENT_ODDS_KEY].astype(dtype=float)
-
-        samples["exp_score"] = np.exp(samples["score"])
+        samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
         score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
         samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
-        samples["win_probability"] = samples["exp_score"] / samples["sum_exp_scores"]
-        samples["expected_value"] = samples[Horse.CURRENT_ODDS_KEY] * samples["win_probability"]
+        samples.loc[:, "win_probability"] = samples.loc[:, "exp_score"] / samples.loc[:, "sum_exp_scores"]
+        samples.loc[:, "expected_value"] = samples.loc[:, Horse.CURRENT_ODDS_KEY] * samples.loc[:, "win_probability"]
 
-        kelly_numerator = samples["expected_value"] - 1
-        kelly_denominator = samples[Horse.CURRENT_ODDS_KEY] - 1
+        kelly_numerator = samples.loc[:, "expected_value"] - 1
+        kelly_denominator = samples.loc[:, Horse.CURRENT_ODDS_KEY] - 1
         samples["kelly_fraction"] = kelly_numerator / kelly_denominator
 
         return samples
