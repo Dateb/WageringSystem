@@ -18,13 +18,15 @@ class BoostedTreesRanker:
 
     def fit(self, samples_train: pd.DataFrame):
         X = samples_train[FeatureManager.FEATURE_NAMES]
+        print(X)
         y = samples_train[Horse.RELEVANCE_KEY]
+        print(y)
         qid = samples_train.groupby(Horse.RACE_ID_KEY)[Horse.RACE_ID_KEY].count()
 
         self.__ranker.fit(X=X, y=y, group=qid)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
-        X = samples_test[FeatureManager.FEATURE_NAMES].apply(pd.to_numeric, errors='coerce')
+        X = samples_test[FeatureManager.FEATURE_NAMES]
         scores = self.__ranker.predict(X)
 
         samples_test["score"] = scores

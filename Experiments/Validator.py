@@ -11,6 +11,9 @@ from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.SampleSet import SampleSet
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.Paths import SAMPLES_PATH
+from Persistence.RaceCardPersistence import RaceCardsPersistence
+from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.SampleEncoder import SampleEncoder
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __ESTIMATOR_PATH = "../data/estimator.dat"
@@ -59,7 +62,11 @@ class Validator:
 
 
 def main():
-    samples = pd.read_csv(SAMPLES_PATH)
+    race_cards = RaceCardsPersistence("train_race_cards").load()
+
+    print(len(race_cards))
+    sample_encoder = SampleEncoder(FeatureManager())
+    samples = sample_encoder.transform(race_cards)
 
     sample_set = SampleSet(samples)
 

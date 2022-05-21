@@ -3,18 +3,18 @@ import pandas as pd
 from typing import List
 
 from pandas import DataFrame
-
-from Persistence.Paths import SAMPLES_PATH
-from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.Horse import Horse
 from SampleExtraction.HorseFactory import HorseFactory
 from DataAbstraction.RaceCard import RaceCard
-from SampleExtraction.RaceCardsFilter import RaceCardsFilter
 
 
 class SampleEncoder:
 
     def __init__(self, feature_manager: FeatureManager):
+        self.__feature_names = [
+            feature_extractor.get_name() for feature_extractor in feature_manager.ENABLED_FEATURE_EXTRACTORS
+        ]
         self.__horse_factory = HorseFactory(feature_manager)
 
     def transform(self, race_cards: List[RaceCard]) -> DataFrame:
@@ -24,22 +24,8 @@ class SampleEncoder:
 
         horse_attributes = horses[0].attributes
         runners_data = np.array([horse.values for horse in horses])
-        runners_df = pd.DataFrame(data=runners_data, columns=horse_attributes)
+        horses_df = pd.DataFrame(data=runners_data, columns=horse_attributes)
+        horses_df[self.__feature_names] = horses_df[self.__feature_names].apply(pd.to_numeric, errors="coerce")
+        horses_df[Horse.RELEVANCE_KEY] = horses_df[Horse.RELEVANCE_KEY].apply(pd.to_numeric, errors="coerce")
 
-        return runners_df
-
-
-def main():
-    race_cards = RaceCardsPersistence("train_race_cards").load()
-
-    print(len(race_cards))
-    sample_encoder = SampleEncoder(FeatureManager())
-    samples_df = sample_encoder.transform(race_cards)
-
-    print(f"Samples: {samples_df}")
-
-    samples_df.to_csv(SAMPLES_PATH)
-
-
-if __name__ == '__main__':
-    main()
+        return horses_df

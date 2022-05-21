@@ -24,7 +24,7 @@ class NeuralNetworkRanker:
         self.__ranker.fit(X, y, qid, epochs=5)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
-        samples_test[FeatureManager.FEATURE_NAMES] = samples_test[FeatureManager.FEATURE_NAMES].apply(pd.to_numeric, errors='coerce')
+        samples_test[FeatureManager.FEATURE_NAMES] = samples_test[FeatureManager.FEATURE_NAMES]
         X = samples_test[FeatureManager.FEATURE_NAMES].to_numpy()
         scores = self.__ranker.predict(X)
 

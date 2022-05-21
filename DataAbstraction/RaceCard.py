@@ -69,8 +69,8 @@ class RaceCard:
     def get_current_odds_of_horse(self, horse_id: str) -> float:
         odds_of_horse = self.horses[horse_id]["odds"]
         if odds_of_horse["FXW"] == 0:
-            return odds_of_horse["PRC"]
-        return odds_of_horse["FXW"]
+            return float(odds_of_horse["PRC"])
+        return float(odds_of_horse["FXW"])
 
     def get_subject_id_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["idSubject"]
