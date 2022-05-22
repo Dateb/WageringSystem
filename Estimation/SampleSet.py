@@ -10,7 +10,8 @@ class SampleSet:
     def __init__(self, samples: pd.DataFrame, train_size: float = 0.75):
         self.__samples = samples
 
-        self.__race_ids = list(set(self.__samples[Horse.RACE_ID_KEY].tolist()))
+        self.__race_ids = list(self.__samples[Horse.RACE_ID_KEY].unique())
+        print(self.__race_ids)
 
         self.__n_races = len(self.__race_ids)
         self.__n_races_train = int(train_size * self.__n_races)
