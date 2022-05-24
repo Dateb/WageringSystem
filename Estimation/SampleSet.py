@@ -30,3 +30,7 @@ class SampleSet:
 
         return self.__samples_train, samples_test
 
+    @property
+    def samples_train(self) -> pd.DataFrame:
+        return self.__samples_train
+

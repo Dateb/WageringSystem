@@ -8,18 +8,24 @@ from SampleExtraction.Horse import Horse
 
 class BoostedTreesRanker:
 
-    def __init__(self, feature_names: List[str]):
+    __FIXED_PARAMS: dict = {
+        "boosting_type": "gbdt",
+        "objective": "lambdarank",
+        "metric": "ndcg",
+        "device": "gpu",
+        "n_estimators": 1000,
+        "verbose": -1,
+    }
+
+    def __init__(self, feature_names: List[str], search_params: dict):
+        search_params = {
+            "num_leaves": 20,
+            "min_child_samples": 100,
+        }
+        self.__params = {**self.__FIXED_PARAMS, **search_params}
         self.__feature_names = feature_names
-        self.__ranker = lightgbm.LGBMRanker(
-            boosting_type='gbdt',
-            objective="lambdarank",
-            metric="ndcg",
-            n_estimators=5000,
-            num_leaves=25,
-            min_child_samples=300,
-            device="gpu",
-            verbose=-1,
-        )
+        self.__ranker = lightgbm.LGBMRanker()
+        self.__ranker.set_params(**self.__params)
 
     def fit(self, samples_train: pd.DataFrame):
         X = samples_train[self.__feature_names]

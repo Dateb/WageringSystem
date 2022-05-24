@@ -13,8 +13,7 @@ class WinBettor(Bettor):
         self.__kelly_wealth = kelly_wealth
 
     def bet(self, samples: pd.DataFrame) -> List[Bet]:
-        samples = self._add_kelly_stakes(samples)
-        bets_df = self._get_highest_n_betting_samples_per_race(samples, 1)
+        bets_df = self._add_kelly_stakes(samples)
 
         if bets_df.empty:
             return [Bet(race_id="0", type=BetType.WIN, stakes=0, runner_ids=[])]
