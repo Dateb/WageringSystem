@@ -1,5 +1,6 @@
 import pickle
-from copy import copy
+from typing import List
+
 from tqdm import trange
 
 from Betting.BetEvaluator import BetEvaluator
@@ -20,41 +21,38 @@ __ESTIMATOR_PATH = "../data/estimator.dat"
 
 class Validator:
 
-    def __init__(self, sample_set: SampleSet, raw_races: dict):
+    def __init__(self, bettor: Bettor, sample_set: SampleSet, raw_races: dict):
         self.__sample_set = sample_set
         self.__random_state = 0
 
-        self.__fund_history_summaries = []
         self.__best_win_loss_ratio = 0
-        self.__estimator = BoostedTreesRanker()
+        self.__bettor = bettor
         self.__best_estimator = None
         self.__bet_evaluator = BetEvaluator(raw_races)
 
-    def train_validate_model(self, bettor: Bettor, n_rounds: int, name: str):
-        for _ in trange(n_rounds):
-            fund_history_summary = self.__create_random_fund_history(bettor, name)
+    def train_validate_model(self, estimator: BoostedTreesRanker, n_rounds: int, name: str) -> List[FundHistorySummary]:
+        fund_history_summaries = []
+        for i in trange(n_rounds):
+            fund_history_summary = self.create_random_fund_history(estimator, name, random_state=i+1)
             if fund_history_summary.win_loss_ratio > self.__best_win_loss_ratio:
                 print(f"Best win/loss ratio thus far: {fund_history_summary.win_loss_ratio}")
                 self.__best_win_loss_ratio = fund_history_summary.win_loss_ratio
-                self.__best_estimator = copy(self.__estimator)
-            self.__fund_history_summaries.append(fund_history_summary)
+                self.__best_estimator = estimator
+            fund_history_summaries.append(fund_history_summary)
 
-    def __create_random_fund_history(self, bettor: Bettor, name: str) -> FundHistorySummary:
-        samples_train, samples_test = self.__sample_set.create_split(random_state=self.__random_state)
-        self.__random_state += 1
+        return fund_history_summaries
 
-        self.__estimator.fit(samples_train)
-        samples_test_estimated = self.__estimator.transform(samples_test)
+    def create_random_fund_history(self, estimator: BoostedTreesRanker, name: str, random_state: int) -> FundHistorySummary:
+        samples_train, samples_test = self.__sample_set.create_split(random_state)
 
-        bets = bettor.bet(samples_test_estimated)
+        estimator.fit(samples_train)
+        samples_test_estimated = estimator.transform(samples_test)
+
+        bets = self.__bettor.bet(samples_test_estimated)
         bet_results = self.__bet_evaluator.evaluate(bets)
         fund_history_summary = FundHistorySummary(name, bet_results)
 
         return fund_history_summary
-
-    @property
-    def fund_history_summaries(self):
-        return self.__fund_history_summaries
 
     @property
     def best_estimator(self):
@@ -69,12 +67,12 @@ def main():
     sample_encoder = SampleEncoder(FeatureManager())
     samples = sample_encoder.transform(race_cards)
     sample_set = SampleSet(samples)
+    bettor = WinBettor(kelly_wealth=1000)
 
-    validator = Validator(sample_set, raw_races)
-    #validator.train_validate_model(FavoriteBettor(), n_rounds=3, name="Favorite")
-    validator.train_validate_model(WinBettor(kelly_wealth=10), n_rounds=3, name="Gradient Boosted Trees Ranker")
+    validator = Validator(bettor, sample_set, raw_races)
+    estimator = BoostedTreesRanker(feature_names=FeatureManager.FEATURE_NAMES)
+    fund_history_summaries = validator.train_validate_model(estimator, n_rounds=4, name="Gradient Boosted Trees Ranker")
 
-    fund_history_summaries = validator.fund_history_summaries
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
 

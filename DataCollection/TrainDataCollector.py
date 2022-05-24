@@ -51,7 +51,8 @@ class TrainDataCollector:
         self.__race_cards_collector.collect_full_race_cards_from_race_ids(race_ids)
         self.__collected_days.add(day)
 
-        self.__race_cards_persistence.save(self.__race_cards_collector.race_cards)
+        if len(race_ids) > 0:
+            self.__race_cards_persistence.save(self.__race_cards_collector.race_cards)
 
     def __get_collected_days(self) -> Set[date]:
         return {race_card.date for race_card in self.__race_cards_collector.race_cards}
@@ -64,7 +65,7 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(2022, 3, 20)
+    query_date = date(2022, 5, 20)
 
     train_data_collector.collect(query_date)
 

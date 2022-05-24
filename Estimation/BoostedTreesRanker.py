@@ -1,30 +1,35 @@
+from typing import List
+
 import pandas as pd
 import lightgbm
 
-from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
 
 
 class BoostedTreesRanker:
 
-    def __init__(self):
+    def __init__(self, feature_names: List[str]):
+        self.__feature_names = feature_names
         self.__ranker = lightgbm.LGBMRanker(
-            boosting_type='dart',
+            boosting_type='gbdt',
             objective="lambdarank",
             metric="ndcg",
-            n_estimators=1000,
-            max_depth=15,
+            n_estimators=5000,
+            num_leaves=25,
+            min_child_samples=300,
+            device="gpu",
+            verbose=-1,
         )
 
     def fit(self, samples_train: pd.DataFrame):
-        X = samples_train[FeatureManager.FEATURE_NAMES]
+        X = samples_train[self.__feature_names]
         y = samples_train[Horse.RELEVANCE_KEY]
         qid = samples_train.groupby(Horse.RACE_ID_KEY)[Horse.RACE_ID_KEY].count()
 
         self.__ranker.fit(X=X, y=y, group=qid)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
-        X = samples_test[FeatureManager.FEATURE_NAMES]
+        X = samples_test[self.__feature_names]
         scores = self.__ranker.predict(X)
 
         samples_test.loc[:, "score"] = scores

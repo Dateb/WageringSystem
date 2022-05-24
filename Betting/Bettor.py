@@ -23,12 +23,12 @@ class Bettor(ABC):
 
     def _get_highest_n_betting_samples_per_race(self, samples: pd.DataFrame, n: int) -> pd.DataFrame:
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values(["expected_value"], ascending=False)
+            lambda x: x.sort_values(["win_probability"], ascending=False)
         ).reset_index(drop=True)
 
         race_groups = race_groups[race_groups["expected_value"] > 1]
-        top_betting_samples = race_groups.groupby(Horse.RACE_ID_KEY).head(n)
-        return top_betting_samples
+        #top_betting_samples = race_groups.groupby(Horse.RACE_ID_KEY).head(n)
+        return race_groups
 
     def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
@@ -44,7 +44,6 @@ class Bettor(ABC):
         return samples
 
     def _dataframe_to_bets(self, bets_df: pd.DataFrame, bet_type: BetType) -> List[Bet]:
-        print(bets_df)
         bets = []
         for index, row in bets_df.iterrows():
             race_id = str(int(row[Horse.RACE_ID_KEY]))

@@ -11,18 +11,22 @@ class SampleSet:
         self.__samples = samples
 
         self.__race_ids = list(self.__samples[Horse.RACE_ID_KEY].unique())
-        print(self.__race_ids)
+        self.__race_ids.sort()
 
         self.__n_races = len(self.__race_ids)
         self.__n_races_train = int(train_size * self.__n_races)
+        self.__n_races_test = int((1 - train_size) * self.__n_races)
+
+        race_ids_train = self.__race_ids[:self.__n_races_train]
+        self.__samples_train = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_train)]
+
+        self.__race_ids_test = self.__race_ids[self.__n_races_train:]
 
     def create_split(self, random_state: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         random.seed(random_state)
-        race_ids_train = random.sample(self.__race_ids, self.__n_races_train)
-        race_ids_test = [race_id for race_id in self.__race_ids if race_id not in race_ids_train]
+        race_ids_test_sample = random.sample(self.__race_ids_test, int(self.__n_races_test * 0.5))
 
-        samples_train = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_train)]
-        samples_test = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_test)]
+        samples_test = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_test_sample)]
 
-        return samples_train, samples_test
+        return self.__samples_train, samples_test
 
