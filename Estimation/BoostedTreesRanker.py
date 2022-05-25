@@ -18,10 +18,12 @@ class BoostedTreesRanker:
     }
 
     def __init__(self, feature_names: List[str], search_params: dict):
-        search_params = {
-            "num_leaves": 20,
-            "min_child_samples": 100,
-        }
+        if not search_params:
+            search_params = {
+                "num_leaves": 80,
+                "min_child_samples": 150,
+            }
+
         self.__params = {**self.__FIXED_PARAMS, **search_params}
         self.__feature_names = feature_names
         self.__ranker = lightgbm.LGBMRanker()

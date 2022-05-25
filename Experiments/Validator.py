@@ -70,7 +70,7 @@ def main():
     estimator = BoostedTreesRanker(feature_names=FeatureManager.FEATURE_NAMES, search_params={})
     validator = Validator(estimator, bettor, sample_set, raw_races)
 
-    fund_history_summaries = validator.train_validate_model(n_rounds=200, name="Gradient Boosted Trees Ranker")
+    fund_history_summaries = validator.train_validate_model(n_rounds=2, name="Gradient Boosted Trees Ranker")
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)

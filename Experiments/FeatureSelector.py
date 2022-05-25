@@ -6,6 +6,7 @@ from Betting.WinBettor import WinBettor
 from DataAbstraction.RaceCard import RaceCard
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.SampleSet import SampleSet
+from Experiments.ValidationScorer import ValidationScorer
 from Experiments.Validator import Validator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
@@ -16,16 +17,17 @@ from SampleExtraction.SampleEncoder import SampleEncoder
 class FeatureSelector:
 
     def __init__(self, max_rounds: int = 100):
-        raw_races = RaceCardsPersistence("train_race_cards").load_raw()
-        race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
+        self.__raw_races = RaceCardsPersistence("train_race_cards").load_raw()
+        race_cards = [
+            RaceCard(race_id, self.__raw_races[race_id], remove_non_starters=False) for race_id in self.__raw_races
+        ]
 
         sample_encoder = SampleEncoder(FeatureManager())
         samples = sample_encoder.transform(race_cards)
-        sample_set = SampleSet(samples)
-        bettor = WinBettor(kelly_wealth=1000)
+        self.__sample_set = SampleSet(samples)
+        self.__bettor = WinBettor(kelly_wealth=1000)
 
         self.__max_rounds = max_rounds
-        self.__validator = Validator(bettor, sample_set, raw_races)
 
         self.__root_features = [CurrentOddsExtractor().get_name()]
         self.__tree = Tree()
@@ -47,29 +49,11 @@ class FeatureSelector:
         self.__update_best_node(node)
 
     def __get_feature_combination_performance(self, feature_names: List[str]) -> float:
-        total_performance = 0
-        n_rounds = 1
-        while n_rounds <= self.__max_rounds:
-            performance_of_round = self.__validate_feature_names_for_round(feature_names, n_rounds)
-            if performance_of_round <= 1.0:
-                total_performance += performance_of_round
-                return total_performance
+        estimator = BoostedTreesRanker(feature_names, search_params={})
+        validator = Validator(estimator, self.__bettor, self.__sample_set, self.__raw_races)
+        validation_scorer = ValidationScorer(validator, self.__max_rounds)
 
-            total_performance += 1.0
-            n_rounds += 1
-
-        return total_performance
-
-    def __validate_feature_names_for_round(self, feature_names: List[str], round_nr: int) -> float:
-        estimator = BoostedTreesRanker(feature_names)
-        fund_history_summary = self.__validator.create_random_fund_history(
-            estimator=estimator,
-            name="Feature_Selected_Ranker",
-            random_state=round_nr,
-        )
-
-        win_loss_ratio = fund_history_summary.win_loss_ratio
-        return win_loss_ratio
+        return validation_scorer.score()
 
     def __add_children_to_node(self, node):
         node_id = node.identifier
@@ -101,10 +85,8 @@ class FeatureSelector:
 
 
 def main():
-    #feature_selector = FeatureSelector()
-    #feature_selector.run()
-    FeatureManager.FEATURE_NAMES.sort()
-    print(FeatureManager.FEATURE_NAMES)
+    feature_selector = FeatureSelector()
+    feature_selector.run()
     print('finished')
 
 
