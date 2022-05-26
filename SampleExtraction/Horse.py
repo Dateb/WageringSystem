@@ -59,6 +59,10 @@ class Horse:
         return len(self.__races) > 1
 
     @property
+    def n_races(self) -> int:
+        return len(self.__races)
+
+    @property
     def values(self) -> List:
         self.__data.update(self.__features)
         return list(self.__data.values())

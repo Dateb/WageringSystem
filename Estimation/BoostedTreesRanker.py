@@ -13,14 +13,17 @@ class BoostedTreesRanker:
         "objective": "lambdarank",
         "metric": "ndcg",
         "device": "gpu",
-        "n_estimators": 1000,
+        "n_estimators": 2000,
         "verbose": -1,
+        "random_state": 0,
+        "deterministic": True,
+        "force_row_wise": True,
     }
 
     def __init__(self, feature_names: List[str], search_params: dict):
         if not search_params:
             search_params = {
-                "num_leaves": 80,
+                "num_leaves": 70,
                 "min_child_samples": 150,
             }
 

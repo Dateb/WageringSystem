@@ -1,16 +1,21 @@
-from typing import List
+from typing import List, Dict
 
-from Betting.BetResult import BetResult
+from Betting.BettingSlip import BettingSlip
 from Experiments.FundHistorySnapshot import FundHistorySnapshot
 
 
 class FundHistorySummary:
 
-    def __init__(self, name: str, bet_results: List[BetResult], start_wealth=0):
+    def __init__(self, name: str, betting_slips: Dict[str, BettingSlip], start_wealth=0):
         self.__name = name
-        self.__payouts = [bet_result.payout for bet_result in bet_results]
-        self.__winnings = [bet_result.win for bet_result in bet_results]
-        self.__loss = [bet_result.loss for bet_result in bet_results]
+        self.__payouts = []
+        self.__winnings = []
+        self.__loss = []
+        for race_id in betting_slips:
+            betting_slip = betting_slips[race_id]
+            self.__payouts.append(betting_slip.payout)
+            self.__winnings.append(betting_slip.win)
+            self.__loss.append(betting_slip.loss)
         self.__start_wealth = start_wealth
 
         self.__set_fund_snapshots()

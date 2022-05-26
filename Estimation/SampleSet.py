@@ -22,11 +22,8 @@ class SampleSet:
 
         self.__race_ids_test = self.__race_ids[self.__n_races_train:]
 
-    def create_split(self, random_state: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        random.seed(random_state)
-        race_ids_test_sample = random.sample(self.__race_ids_test, int(self.__n_races_test * 0.5))
-
-        samples_test = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_test_sample)]
+    def create_split(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        samples_test = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(self.__race_ids_test)]
 
         return self.__samples_train, samples_test
 

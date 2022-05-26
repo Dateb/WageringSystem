@@ -1,10 +1,11 @@
 from abc import abstractmethod, ABC
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
 
-from Betting.Bet import Bet, BetType
+from Betting.Bet import Bet
+from Betting.BettingSlip import BettingSlip, BetType
 from SampleExtraction.Horse import Horse
 
 pd.options.mode.chained_assignment = None
@@ -12,16 +13,12 @@ pd.options.mode.chained_assignment = None
 
 class Bettor(ABC):
 
+    def __init__(self, kelly_wealth: float):
+        self._kelly_wealth = kelly_wealth
+
     @abstractmethod
-    def bet(self, samples: pd.DataFrame) -> List[Bet]:
+    def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
         pass
-
-    def _get_lowest_n_odds(self, samples: pd.DataFrame, n: int):
-        race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values([Horse.CURRENT_ODDS_KEY], ascending=True)
-        ).reset_index(drop=True)
-
-        return race_groups.groupby(Horse.RACE_ID_KEY).head(n)
 
     def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
@@ -37,15 +34,21 @@ class Bettor(ABC):
 
         return samples
 
-    def _dataframe_to_bets(self, bets_df: pd.DataFrame, bet_type: BetType) -> List[Bet]:
-        bets = []
+    def _dataframe_to_betting_slips(self, bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
+        betting_slips: Dict[str, BettingSlip] = {}
         for index, row in bets_df.iterrows():
-            race_id = str(int(row[Horse.RACE_ID_KEY]))
-            bet_horse_id = str(int(row[Horse.HORSE_ID_KEY]))
+            horse_id = str(int(row[Horse.HORSE_ID_KEY]))
+            odds = float(row[Horse.CURRENT_ODDS_KEY])
             stakes = float(row["stakes"])
-            new_bet = Bet(race_id, bet_type, stakes, [bet_horse_id])
-            bets.append(new_bet)
+            new_bet = Bet(horse_id, odds, stakes)
 
-        return bets
+            race_id = str(int(row[Horse.RACE_ID_KEY]))
+
+            if race_id not in betting_slips:
+                betting_slips[race_id] = BettingSlip(race_id, bet_type)
+
+            betting_slips[race_id].add_bet(new_bet)
+
+        return betting_slips
 
 

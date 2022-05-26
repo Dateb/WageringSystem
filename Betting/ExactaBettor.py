@@ -11,6 +11,6 @@ class ExactaBettor(Bettor):
     def bet(self, samples: pd.DataFrame) -> List[Bet]:
         bets_df = self._get_highest_n_scores(samples, 2)
 
-        return self._dataframe_to_bets(bets_df, bet_type=BetType.EXACTA)
+        return self._dataframe_to_betting_slips(bets_df, bet_type=BetType.EXACTA)
 
     

@@ -109,6 +109,52 @@ class RaceCard:
 
         return horse_distances
 
+    def jockey_earnings_of_horse(self, subject_id: str) -> int:
+        jockey_stats = self.jockey_stats_of_horse(subject_id)
+        if jockey_stats is not False:
+            return jockey_stats["earnings"]
+        return -1
+
+    def jockey_wins_of_horse(self, subject_id: str) -> int:
+        jockey_stats = self.jockey_stats_of_horse(subject_id)
+        if jockey_stats is not False:
+            return jockey_stats["numWin"]
+        return -1
+
+    def jockey_num_races_of_horse(self, subject_id: str) -> int:
+        jockey_stats = self.jockey_stats_of_horse(subject_id)
+        if jockey_stats is not False:
+            return jockey_stats["numRaces"]
+        return -1
+
+    def jockey_stats_of_horse(self, subject_id: str) -> dict:
+        horse = self.get_data_of_subject(subject_id)
+        jockey = horse["jockey"]
+        return jockey["stats"]
+
+    def trainer_earnings_of_horse(self, subject_id: str) -> int:
+        trainer_stats = self.trainer_stats_of_horse(subject_id)
+        if trainer_stats is not False:
+            return trainer_stats["earnings"]
+        return -1
+
+    def trainer_wins_of_horse(self, subject_id: str) -> int:
+        trainer_stats = self.trainer_stats_of_horse(subject_id)
+        if trainer_stats is not False:
+            return trainer_stats["numWin"]
+        return -1
+
+    def trainer_num_races_of_horse(self, subject_id: str) -> int:
+        trainer_stats = self.trainer_stats_of_horse(subject_id)
+        if trainer_stats is not False:
+            return trainer_stats["numRaces"]
+        return -1
+
+    def trainer_stats_of_horse(self, subject_id: str) -> dict:
+        horse = self.get_data_of_subject(subject_id)
+        trainer = horse["trainer"]
+        return trainer["stats"]
+
     def rating_of_horse(self, horse_id: str) -> int:
         return self.horses[horse_id]["rating"]
 
@@ -148,7 +194,6 @@ class RaceCard:
     def purse_history_of_horse(self, horse: str) -> List[float]:
         return [self.purse_to_value(past_race["purse"]) for past_race in self.form_table_of_horse(horse)]
 
-
     def purse_to_value(self, purse: str):
         purse_suffix = purse[-1]
         purse_without_suffix = purse[:-1]
@@ -158,6 +203,10 @@ class RaceCard:
             return float(purse_without_suffix) * 1000000
         else:
             return 0.0
+
+    @property
+    def winner_id(self) -> str:
+        return str(self.__result["positions"][0]["idRunner"])
 
     @property
     def name(self) -> str:

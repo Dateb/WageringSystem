@@ -1,19 +1,14 @@
-from dataclasses import dataclass
-from enum import Enum
-from typing import List
 
 
-class BetType(Enum):
-
-    WIN = 1
-    EXACTA = 2
-    TRIFECTA = 3
-
-
-@dataclass
 class Bet:
 
-    race_id: str
-    type: BetType
-    stakes: float
-    runner_ids: List[str]
+    TAX: float = 0.05
+
+    def __init__(self, horse_id: str, odds: float, stakes: float):
+        self.horse_id = horse_id
+        self.odds = odds
+        self.stakes = stakes
+
+        self.loss = stakes * (1 + self.TAX)
+        self.potential_win = odds * stakes
+

@@ -28,13 +28,13 @@ class Validator:
         self.__random_state = 0
 
         self.__best_win_loss_ratio = 0
-        self.__bettor = bettor
+        self.bettor = bettor
         self.__bet_evaluator = BetEvaluator(raw_races)
 
     def train_validate_model(self, n_rounds: int, name: str) -> List[FundHistorySummary]:
         fund_history_summaries = []
-        for i in trange(n_rounds):
-            fund_history_summary = self.create_random_fund_history(name, random_state=i+1)
+        for _ in trange(n_rounds):
+            fund_history_summary = self.create_fund_history(name)
             if fund_history_summary.win_loss_ratio > self.__best_win_loss_ratio:
                 print(f"Best win/loss ratio thus far: {fund_history_summary.win_loss_ratio}")
                 self.__best_win_loss_ratio = fund_history_summary.win_loss_ratio
@@ -42,13 +42,13 @@ class Validator:
 
         return fund_history_summaries
 
-    def create_random_fund_history(self, name: str, random_state: int) -> FundHistorySummary:
-        samples_train, samples_test = self.__sample_set.create_split(random_state)
+    def create_fund_history(self, name: str) -> FundHistorySummary:
+        samples_train, samples_test = self.__sample_set.create_split()
         samples_test_estimated = self.__estimator.transform(samples_test)
 
-        bets = self.__bettor.bet(samples_test_estimated)
-        bet_results = self.__bet_evaluator.evaluate(bets)
-        fund_history_summary = FundHistorySummary(name, bet_results)
+        betting_slips = self.bettor.bet(samples_test_estimated)
+        betting_slips = self.__bet_evaluator.update_wins(betting_slips)
+        fund_history_summary = FundHistorySummary(name, betting_slips)
 
         return fund_history_summary
 
@@ -70,7 +70,11 @@ def main():
     estimator = BoostedTreesRanker(feature_names=FeatureManager.FEATURE_NAMES, search_params={})
     validator = Validator(estimator, bettor, sample_set, raw_races)
 
-    fund_history_summaries = validator.train_validate_model(n_rounds=2, name="Gradient Boosted Trees Ranker")
+    fund_history_summaries = validator.train_validate_model(n_rounds=1, name="Gradient Boosted Trees Ranker")
+
+    validator.bettor = FavoriteBettor(kelly_wealth=1000)
+
+    fund_history_summaries += validator.train_validate_model(n_rounds=1, name="Favorite Bettor")
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)

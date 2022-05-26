@@ -73,7 +73,7 @@ class HyperParameterTuner:
                 estimator.fit(self.__sample_set.samples_train)
 
                 validator = Validator(estimator, self.__bettor, self.__sample_set, self.__raw_races)
-                validation_scorer = ValidationScorer(validator, max_rounds=100)
+                validation_scorer = ValidationScorer(validator)
 
                 score = validation_scorer.score()
 
@@ -86,8 +86,8 @@ class HyperParameterTuner:
 
 def main():
     hyper_parameter_grid = HyperParameterGrid()
-    hyper_parameter_grid.add_parameter_values("num_leaves", list(np.arange(10, 110, 10)))
-    hyper_parameter_grid.add_parameter_values("min_child_samples", list(np.arange(50, 250, 50)))
+    hyper_parameter_grid.add_parameter_values("num_leaves", list(np.arange(90, 100, 10)))
+    hyper_parameter_grid.add_parameter_values("min_child_samples", list(np.arange(240, 260, 20)))
 
     hyper_parameter_tuner = HyperParameterTuner(hyper_parameter_grid)
     hyper_parameter_tuner.run()

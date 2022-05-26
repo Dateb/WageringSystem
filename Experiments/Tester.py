@@ -31,7 +31,7 @@ class Tester:
         samples_test_estimated = self.__estimator.transform(self.__samples)
 
         bets = self.__bettor.bet(samples_test_estimated)
-        bet_results = BetEvaluator(TEST_RACE_CARDS_FILE_NAME).evaluate(bets)
+        bet_results = BetEvaluator(TEST_RACE_CARDS_FILE_NAME).update_wins(bets)
         return [FundHistorySummary(name, bet_results)]
 
 
