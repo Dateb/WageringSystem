@@ -1,18 +1,21 @@
+from typing import List
+
 import pandas as pd
 from LambdaRankNN import LambdaRankNN
 
-from SampleExtraction.FeatureManager import FeatureManager
+from Estimation.Ranker import Ranker
 from SampleExtraction.Horse import Horse
 
 
-class NeuralNetworkRanker:
+class NeuralNetworkRanker(Ranker):
 
-    def __init__(self):
+    def __init__(self, feature_subset: List[str], search_params: dict):
+        super().__init__(feature_subset)
         self.__ranker = None
 
     def fit(self, samples_train: pd.DataFrame):
-        X = samples_train[FeatureManager.FEATURE_NAMES].to_numpy()
-        y = samples_train[Horse.PLACE_KEY].to_numpy()
+        X = samples_train[self.feature_subset].to_numpy()
+        y = samples_train[Horse.RELEVANCE_KEY].to_numpy()
         qid = samples_train[Horse.RACE_ID_KEY].to_numpy()
 
         self.__ranker = LambdaRankNN(
@@ -24,8 +27,7 @@ class NeuralNetworkRanker:
         self.__ranker.fit(X, y, qid, epochs=5)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
-        samples_test[FeatureManager.FEATURE_NAMES] = samples_test[FeatureManager.FEATURE_NAMES]
-        X = samples_test[FeatureManager.FEATURE_NAMES].to_numpy()
+        X = samples_test[self.feature_subset].to_numpy()
         scores = self.__ranker.predict(X)
 
         samples_test["score"] = scores

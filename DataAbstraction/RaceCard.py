@@ -158,6 +158,12 @@ class RaceCard:
     def rating_of_horse(self, horse_id: str) -> int:
         return self.horses[horse_id]["rating"]
 
+    def post_position_of_horse(self, subject_id: str) -> int:
+        horse = self.get_data_of_subject(subject_id)
+        if "postPosition" in horse:
+            return int(horse["postPosition"])
+        return -1
+
     def past_ratings_of_horse(self, horse_id: str) -> List[int]:
         form_table = self.form_table_of_horse(horse_id)
         ratings = []

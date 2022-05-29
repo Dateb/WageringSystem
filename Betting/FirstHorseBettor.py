@@ -7,20 +7,16 @@ from Betting.Bettor import Bettor
 from SampleExtraction.Horse import Horse
 
 
-class FavoriteBettor(Bettor):
+class FirstHorseBettor(Bettor):
 
     def __init__(self, kelly_wealth: float):
         super().__init__(kelly_wealth)
 
-    def _get_lowest_n_odds(self, samples: pd.DataFrame, n: int):
-        race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values([Horse.CURRENT_ODDS_KEY], ascending=True)
-        ).reset_index(drop=True)
-
-        return race_groups.groupby(Horse.RACE_ID_KEY).head(n)
+    def _get_bet_of_first_horse_per_race(self, samples: pd.DataFrame):
+        return samples.groupby(Horse.RACE_ID_KEY).head(1)
 
     def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
-        bets_df = self._get_lowest_n_odds(samples, 1)
+        bets_df = self._get_bet_of_first_horse_per_race(samples)
         bets_df["stakes"] = self._kelly_wealth * 0.5
 
         print(bets_df)

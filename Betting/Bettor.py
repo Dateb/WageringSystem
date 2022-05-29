@@ -26,7 +26,7 @@ class Bettor(ABC):
         samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
         samples.loc[:, "win_probability"] = samples.loc[:, "exp_score"] / samples.loc[:, "sum_exp_scores"]
         samples.loc[:, "expected_value"] = samples.loc[:, Horse.CURRENT_ODDS_KEY] * samples.loc[:, "win_probability"]
-        samples = samples[samples["expected_value"] > 1]
+        samples = samples[samples["expected_value"] > 1.0]
 
         kelly_numerator = samples.loc[:, "expected_value"] - 1
         kelly_denominator = samples.loc[:, Horse.CURRENT_ODDS_KEY] - 1

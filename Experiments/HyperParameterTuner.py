@@ -9,7 +9,7 @@ from DataAbstraction.RaceCard import RaceCard
 from Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Estimation.SampleSet import SampleSet
 from Experiments.ValidationScorer import ValidationScorer
-from Experiments.Validator import Validator
+from ModelTuning.Validator import Validator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder

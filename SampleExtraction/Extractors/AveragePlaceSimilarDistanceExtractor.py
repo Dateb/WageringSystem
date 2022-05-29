@@ -6,11 +6,12 @@ class AveragePlaceSimilarDistanceExtractor(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1.0
 
-    def __init__(self):
+    def __init__(self, similarity_distance: int):
+        self.__similarity_distance = similarity_distance
         super().__init__()
 
     def get_name(self) -> str:
-        return "Average_Place_Similar_Distance"
+        return f"Average_Place_Similar_Distance_{self.__similarity_distance}"
 
     def get_value(self, horse: Horse) -> float:
         base_race_card = horse.get_race(0)
@@ -21,8 +22,8 @@ class AveragePlaceSimilarDistanceExtractor(FeatureExtractor):
         form_table = base_race_card.form_table_of_horse(horse.horse_id)
         n_past_races_of_similar_distance = 0
 
-        distance_lower_bound = base_race_card.distance - 250
-        distance_upper_bound = base_race_card.distance + 250
+        distance_lower_bound = base_race_card.distance - self.__similarity_distance
+        distance_upper_bound = base_race_card.distance + self.__similarity_distance
 
         total_place = 0
         for past_race in form_table:

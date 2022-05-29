@@ -25,6 +25,7 @@ from SampleExtraction.Extractors.NumWinsTrainerExtractor import NumWinsTrainerEx
 from SampleExtraction.Extractors.PastAverageHorseDistance import PastAverageHorseDistanceExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
+from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
 from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
 from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
@@ -54,12 +55,17 @@ class FeatureManager:
     WIN_RATE_JOCKEY_EXTRACTORS = [WinRateJockeyExtractor(race_card_idx) for race_card_idx in range(3)]
     WIN_RATE_TRAINER_EXTRACTORS = [WinRateTrainerExtractor(race_card_idx) for race_card_idx in range(3)]
 
+    AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR = [
+        AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
+    ]
+
+    POST_POSITION_EXTRACTORS = [PostPositionExtractor(race_card_idx) for race_card_idx in range(3)]
+
     PAST_PLACES_EXTRACTORS = [PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)]
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         AgeExtractor(),
         AveragePlaceCategoryExtractor(),
-        AveragePlaceSimilarDistanceExtractor(),
         AveragePlaceSurfaceExtractor(),
         AveragePlaceTrackExtractor(),
         CurrentOddsExtractor(),
@@ -85,7 +91,7 @@ class FeatureManager:
         WeightAllowanceExtractor(),
         WeightDifferenceExtractor(),
         WeightJockeyExtractor(),
-    ] + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_JOCKEY_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
+    ] + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_JOCKEY_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR
 
     # ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
     #     CurrentOddsExtractor(),
