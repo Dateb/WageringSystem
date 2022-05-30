@@ -26,7 +26,7 @@ class Horse:
 
         self.__raw_data = raw_data
         self.__place = place
-        self.__relevance = max([31 - place, 0])
+        self.__relevance = 1 if place == 1 else 0
         self.__data = {
             "horse_id": horse_id,
             "race_id": race_id,

@@ -9,7 +9,7 @@ from SampleExtraction.Horse import Horse
 
 class BoostedTreesRanker(Ranker):
 
-    __FIXED_PARAMS: dict = {
+    _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
         "objective": "lambdarank",
         "metric": "ndcg",
@@ -28,21 +28,20 @@ class BoostedTreesRanker(Ranker):
         if not search_params:
             search_params = {}
 
-        self.__params = {**self.__FIXED_PARAMS, **search_params}
         self.feature_subset = feature_subset
-        self.__ranker = lightgbm.LGBMRanker()
-        self.__ranker.set_params(**self.__params)
+        self._ranker = lightgbm.LGBMRanker()
+        self.set_search_params(search_params)
 
     def fit(self, samples_train: pd.DataFrame):
         X = samples_train[self.feature_subset]
         y = samples_train[Horse.RELEVANCE_KEY]
         qid = samples_train.groupby(Horse.RACE_ID_KEY)[Horse.RACE_ID_KEY].count()
 
-        self.__ranker.fit(X=X, y=y, group=qid)
+        self._ranker.fit(X=X, y=y, group=qid)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
         X = samples_test[self.feature_subset]
-        scores = self.__ranker.predict(X)
+        scores = self._ranker.predict(X)
 
         samples_test.loc[:, "score"] = scores
 
@@ -50,5 +49,5 @@ class BoostedTreesRanker(Ranker):
 
     @property
     def ranker(self):
-        return self.__ranker
+        return self._ranker
 

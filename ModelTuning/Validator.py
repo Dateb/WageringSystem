@@ -2,8 +2,6 @@ import pickle
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
-from Betting.FavoriteBettor import FavoriteBettor
-from Betting.FirstHorseBettor import FirstHorseBettor
 from Betting.WinBettor import WinBettor
 from DataAbstraction.RaceCard import RaceCard
 from Estimation.Ranker import Ranker
@@ -13,6 +11,9 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
+BEST_RANKER_PATH = "../data/best_ranker.dat"
+FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
+
 
 class Validator:
 
@@ -21,8 +22,10 @@ class Validator:
         self.bettor = bettor
         self.__bet_evaluator = BetEvaluator(raw_races)
 
-    def fund_history_summary(self, estimator: Ranker, name: str) -> FundHistorySummary:
+    def fit_ranker(self, estimator: Ranker):
         estimator.fit(self.__sample_set.samples_train)
+
+    def fund_history_summary(self, estimator: Ranker, name: str) -> FundHistorySummary:
         samples_test_estimated = estimator.transform(self.__sample_set.samples_test)
 
         betting_slips = self.bettor.bet(samples_test_estimated)
@@ -32,33 +35,29 @@ class Validator:
         return fund_history_summary
 
 
-def main():
+def get_validator() -> Validator:
     raw_races = RaceCardsPersistence("train_race_cards").load_raw()
     race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
 
-    print(len(race_cards))
     sample_encoder = SampleEncoder(FeatureManager())
     samples = sample_encoder.transform(race_cards)
     sample_set = SampleSet(samples)
     bettor = WinBettor(kelly_wealth=1000)
 
-    estimator = BoostedTreesRanker(feature_names=FeatureManager.FEATURE_NAMES, search_params={})
-    validator = Validator(estimator, bettor, sample_set, raw_races)
+    return Validator(bettor, sample_set, raw_races)
 
-    fund_history_summaries = validator.train_validate_model(n_rounds=1, name="Gradient Boosted Trees Ranker")
 
-    validator.bettor = FavoriteBettor(kelly_wealth=1000)
-    fund_history_summaries += validator.train_validate_model(n_rounds=1, name="Favorite Bettor")
+def main():
+    validator = get_validator()
+    with open(BEST_RANKER_PATH, "rb") as f:
+        ranker = pickle.load(f)
 
-    validator.bettor = FirstHorseBettor(kelly_wealth=1000)
-    fund_history_summaries += validator.train_validate_model(n_rounds=1, name="First Horse Bettor")
+    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
 
-    with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
+    with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
-
-    with open(__ESTIMATOR_PATH, "wb") as f:
-        pickle.dump(validator.estimator, f)
 
 
 if __name__ == '__main__':
     main()
+    print("finished")
