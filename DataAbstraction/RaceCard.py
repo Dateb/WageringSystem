@@ -109,6 +109,17 @@ class RaceCard:
 
         return horse_distances
 
+    def horse_rating_n_races_ago(self, horse_id: str, n_races_ago: int) -> int:
+        if n_races_ago == 0:
+            horse = self.horses[horse_id]
+            return horse["rating"]
+
+        form_table = self.form_table_of_horse(horse_id)
+        if n_races_ago + 1 > len(form_table):
+            return -1
+
+        return form_table[n_races_ago - 1]["rating"]
+
     def jockey_earnings_of_horse(self, subject_id: str) -> int:
         jockey_stats = self.jockey_stats_of_horse(subject_id)
         if jockey_stats is not False:

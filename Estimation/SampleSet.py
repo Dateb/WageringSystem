@@ -14,10 +14,10 @@ class SampleSet:
         self.__n_races_train = int(train_size * self.__n_races)
         self.__n_races_test = int((1 - train_size) * self.__n_races)
 
-        race_ids_train = self.__race_ids[:self.__n_races_train]
-        self.__samples_train = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(race_ids_train)]
-
+        self.__race_ids_train = self.__race_ids[:self.__n_races_train]
         self.__race_ids_test = self.__race_ids[self.__n_races_train:]
+
+        self.__samples_train = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(self.__race_ids_train)]
         self.__samples_test = self.__samples[self.__samples[Horse.RACE_ID_KEY].isin(self.__race_ids_test)]
 
     @property
