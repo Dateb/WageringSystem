@@ -3,6 +3,7 @@ from typing import List
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
+from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
 from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
@@ -40,6 +41,7 @@ from SampleExtraction.Extractors.WeightDifferenceExtractor import WeightDifferen
 from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtractor
 from SampleExtraction.Extractors.AveragePlaceCategoryExtractor import AveragePlaceCategoryExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
+from SampleExtraction.Extractors.WinRateLifetimeExtractor import WinRateLifetimeExtractor
 from SampleExtraction.Extractors.WinRateTrainerExtractor import WinRateTrainerExtractor
 from SampleExtraction.Horse import Horse
 
@@ -64,6 +66,8 @@ class FeatureManager:
     PAST_PLACES_EXTRACTORS = [PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)]
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
+        AveragePlaceLifetimeExtractor(),
+        WinRateLifetimeExtractor(),
         AgeExtractor(),
         AveragePlaceCategoryExtractor(),
         AveragePlaceSurfaceExtractor(),

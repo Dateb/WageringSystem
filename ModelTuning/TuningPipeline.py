@@ -29,8 +29,8 @@ def main():
 
     fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
 
-    validator.bettor = FavoriteBettor(kelly_wealth=1000)
-    fund_history_summaries += [validator.fund_history_summary(ranker, name="Favorite Bettor")]
+    #validator.bettor = FavoriteBettor(kelly_wealth=1000)
+    #fund_history_summaries += [validator.fund_history_summary(ranker, name="Favorite Bettor")]
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)

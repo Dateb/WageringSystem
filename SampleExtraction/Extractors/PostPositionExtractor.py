@@ -4,8 +4,6 @@ from SampleExtraction.Horse import Horse
 
 class PostPositionExtractor(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self, race_card_idx: int = 0):
         self.__race_card_idx = race_card_idx
         super().__init__()

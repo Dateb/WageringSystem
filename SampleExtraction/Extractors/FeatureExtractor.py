@@ -5,7 +5,7 @@ from SampleExtraction.Horse import Horse
 
 class FeatureExtractor(ABC):
 
-    PLACEHOLDER_VALUE: str = "0"
+    PLACEHOLDER_VALUE = float('NaN')
 
     def __init__(self):
         pass

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
-from tqdm import trange, tqdm
+from tqdm import trange
 
 from Estimation.Ranker import Ranker
 from ModelTuning.RankerConfigMCTS.RankerConfig import RankerConfig
@@ -27,16 +27,16 @@ class RankerConfigurationTuner:
         return self.__best_ranker
 
     def __improve_ranker_config(self, max_iter_without_improvement: int) -> bool:
-        for i in trange(max_iter_without_improvement):
+        for _ in trange(max_iter_without_improvement):
             front_node = self.__select()
             ranker = self.__create_configured_ranker(front_node.ranker_config)
             score = self.__simulate(ranker)
             self.__backup(front_node, score)
 
             if score > self.__max_score:
-                print(f"Found new best ranker: {ranker} with score: {self.__max_score}")
+                print(f"Found new best ranker: {ranker} with score: {score}")
                 self.__max_score = score
-                self.__best_ranker = ranker
+                self.__best_ranker = deepcopy(ranker)
                 return True
 
         return False

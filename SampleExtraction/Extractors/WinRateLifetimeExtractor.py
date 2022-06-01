@@ -2,13 +2,13 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Horse import Horse
 
 
-class AveragePlaceSurfaceExtractor(FeatureExtractor):
+class WinRateLifetimeExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_name(self) -> str:
-        return "Average_Place_Surface"
+        return "Win_Rate_Lifetime"
 
     def get_value(self, horse: Horse) -> float:
         base_race_card = horse.get_race(0)
@@ -17,16 +17,16 @@ class AveragePlaceSurfaceExtractor(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         form_table = base_race_card.form_table_of_horse(horse.horse_id)
-        n_past_races_of_same_surface = 0
+        n_past_races = 0
 
-        total_place = 0
+        total_wins = 0
         for past_race in form_table:
-            if past_race["trackSurface"] == base_race_card.surface:
-                if "finalPosition" in past_race:
-                    n_past_races_of_same_surface += 1
-                    total_place += past_race["finalPosition"]
+            if "finalPosition" in past_race:
+                n_past_races += 1
+                if past_race["finalPosition"] == 1:
+                    total_wins += 1
 
-        if n_past_races_of_same_surface == 0:
+        if n_past_races == 0:
             return self.PLACEHOLDER_VALUE
 
-        return total_place / n_past_races_of_same_surface
+        return total_wins / n_past_races

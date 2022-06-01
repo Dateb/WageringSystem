@@ -4,8 +4,6 @@ from SampleExtraction.Horse import Horse
 
 class AveragePlaceTrackExtractor(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1.0
-
     def __init__(self):
         super().__init__()
 

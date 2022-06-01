@@ -4,8 +4,6 @@ from SampleExtraction.Horse import Horse
 
 class PreviousOddsExtractor(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0.0
-
     def __init__(self):
         super().__init__()
 

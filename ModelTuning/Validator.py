@@ -2,7 +2,8 @@ import pickle
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
-from Betting.WinBettor import WinBettor
+from Betting.DynamicKellyBettor import DynamicKellyBettor
+from Betting.StaticKellyBettor import StaticKellyBettor
 from DataAbstraction.RaceCard import RaceCard
 from Estimation.Ranker import Ranker
 from Estimation.SampleSet import SampleSet
@@ -17,10 +18,10 @@ FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 
 class Validator:
 
-    def __init__(self, bettor: Bettor, sample_set: SampleSet, raw_races: dict):
+    def __init__(self, bettor: Bettor, sample_set: SampleSet, bet_evaluator: BetEvaluator):
         self.__sample_set = sample_set
         self.bettor = bettor
-        self.__bet_evaluator = BetEvaluator(raw_races)
+        self.__bet_evaluator = bet_evaluator
 
     def fit_ranker(self, estimator: Ranker):
         estimator.fit(self.__sample_set.samples_train)
@@ -38,13 +39,16 @@ class Validator:
 def get_validator() -> Validator:
     raw_races = RaceCardsPersistence("train_race_cards").load_raw()
     race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
+    print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())
     samples = sample_encoder.transform(race_cards)
     sample_set = SampleSet(samples)
-    bettor = WinBettor(kelly_wealth=1000)
+    bet_evaluator = BetEvaluator(raw_races)
+    #bettor = DynamicKellyBettor(start_kelly_wealth=1000, kelly_fraction=0.33, bet_evaluator=bet_evaluator)
+    bettor = StaticKellyBettor(start_kelly_wealth=1000)
 
-    return Validator(bettor, sample_set, raw_races)
+    return Validator(bettor, sample_set, bet_evaluator)
 
 
 def main():

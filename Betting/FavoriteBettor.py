@@ -9,8 +9,8 @@ from SampleExtraction.Horse import Horse
 
 class FavoriteBettor(Bettor):
 
-    def __init__(self, kelly_wealth: float):
-        super().__init__(kelly_wealth)
+    def __init__(self, start_kelly_wealth: float):
+        super().__init__(start_kelly_wealth)
 
     def _get_lowest_n_odds(self, samples: pd.DataFrame, n: int):
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
@@ -21,7 +21,7 @@ class FavoriteBettor(Bettor):
 
     def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
         bets_df = self._get_lowest_n_odds(samples, 1)
-        bets_df["stakes"] = self._kelly_wealth * 0.5
+        bets_df["stakes"] = self._start_kelly_wealth * 0.5
 
         print(bets_df)
         return self._dataframe_to_betting_slips(bets_df, bet_type=BetType.WIN)

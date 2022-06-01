@@ -39,6 +39,7 @@ class FundHistorySummary:
             self.__won_bets_percentage = n_positive_payouts / (n_positive_payouts + n_negative_payouts)
         self.__total_win = sum(self.__winnings)
         self.__total_loss = sum(self.__loss)
+
         self.__win_loss_ratio = self.__total_win / self.__total_loss
         self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
 

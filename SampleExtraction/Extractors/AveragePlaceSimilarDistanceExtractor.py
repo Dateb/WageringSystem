@@ -4,8 +4,6 @@ from SampleExtraction.Horse import Horse
 
 class AveragePlaceSimilarDistanceExtractor(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1.0
-
     def __init__(self, similarity_distance: int):
         self.__similarity_distance = similarity_distance
         super().__init__()

@@ -13,14 +13,14 @@ pd.options.mode.chained_assignment = None
 
 class Bettor(ABC):
 
-    def __init__(self, kelly_wealth: float):
-        self._kelly_wealth = kelly_wealth
+    def __init__(self, start_kelly_wealth: float):
+        self._start_kelly_wealth = start_kelly_wealth
 
     @abstractmethod
     def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
         pass
 
-    def _add_kelly_stakes(self, samples: pd.DataFrame) -> pd.DataFrame:
+    def _add_stakes_fraction(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
         score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
         samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
@@ -30,7 +30,7 @@ class Bettor(ABC):
 
         kelly_numerator = samples.loc[:, "expected_value"] - 1
         kelly_denominator = samples.loc[:, Horse.CURRENT_ODDS_KEY] - 1
-        samples["kelly_fraction"] = kelly_numerator / kelly_denominator
+        samples["stakes_fraction"] = kelly_numerator / kelly_denominator
 
         return samples
 
@@ -40,7 +40,8 @@ class Bettor(ABC):
             horse_id = str(int(row[Horse.HORSE_ID_KEY]))
             odds = float(row[Horse.CURRENT_ODDS_KEY])
             stakes = float(row["stakes"])
-            new_bet = Bet(horse_id, odds, stakes)
+            stakes_fraction = float(row["stakes_fraction"])
+            new_bet = Bet(horse_id, odds, stakes, stakes_fraction)
 
             race_id = str(int(row[Horse.RACE_ID_KEY]))
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 from Betting.Bet import Bet
-from Betting.WinBettor import WinBettor
+from Betting.StaticKellyBettor import StaticKellyBettor
 from Control.BetController import BetController
 from DataCollection.DayCollector import DayCollector
 from DataAbstraction.RaceCardFactory import RaceCardFactory
@@ -24,7 +24,7 @@ class BettingAgent:
         self.__race_card_factory = RaceCardFactory()
         self.__day_collector = DayCollector()
         self.__collector = RaceCardsCollector(initial_race_cards=[])
-        self.__bettor = WinBettor(kelly_wealth)
+        self.__bettor = StaticKellyBettor(kelly_wealth)
         self.__encoder = SampleEncoder(FeatureManager(report_missing_features=True))
         self.__controller = BetController(
             submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON,

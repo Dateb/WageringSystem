@@ -24,6 +24,12 @@ class BettingSlip:
         self.__bets[bet.horse_id] = bet
         self.__loss += bet.loss
 
+    def set_stakes(self, bet: Bet, stakes: float):
+        if bet.horse_id in self.__bets:
+            self.__loss -= bet.loss
+        bet.set_stakes(stakes)
+        self.add_bet(bet)
+
     def get_bet(self, horse_id: str) -> Bet:
         if horse_id in self.__bets:
             return self.__bets[horse_id]

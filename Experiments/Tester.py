@@ -5,7 +5,7 @@ from typing import List
 import pandas as pd
 
 from Betting.BetEvaluator import BetEvaluator
-from Betting.WinBettor import WinBettor
+from Betting.StaticKellyBettor import StaticKellyBettor
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
@@ -21,7 +21,7 @@ TEST_FUND_HISTORY_SUMMARIES_PATH: str = "../data/fund_history_summaries.dat"
 class Tester:
 
     def __init__(self, samples: pd.DataFrame, kelly_wealth: float):
-        self.__bettor = WinBettor(kelly_wealth)
+        self.__bettor = StaticKellyBettor(kelly_wealth)
         self.__samples = samples
 
         with open(TEST_ESTIMATOR_PATH, "rb") as f:
