@@ -11,7 +11,8 @@ class Horse:
     PLACE_KEY: str = "place"
     RELEVANCE_KEY: str = "relevance"
     CURRENT_ODDS_KEY: str = "current_odds"
-    BASE_ATTRIBUTE_NAMES: List[str] = [HORSE_ID_KEY, RACE_ID_KEY, TRACK_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY]
+    HAS_WON_KEY: str = "has_won"
+    BASE_ATTRIBUTE_NAMES: List[str] = [HORSE_ID_KEY, RACE_ID_KEY, TRACK_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY, HAS_WON_KEY]
 
     def __init__(self,
                  raw_data: dict,
@@ -26,7 +27,8 @@ class Horse:
 
         self.__raw_data = raw_data
         self.__place = place
-        self.__relevance = 1 if place == 1 else 0
+        self.__relevance = max(31 - place, 0)
+        self.__has_won = 1 if place == 1 else 0
         self.__data = {
             "horse_id": horse_id,
             "race_id": race_id,
@@ -34,6 +36,7 @@ class Horse:
             "current_odds": current_odds,
             "place": place,
             "relevance": self.__relevance,
+            "has_won": self.__has_won,
         }
 
         self.__features = {}

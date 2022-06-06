@@ -5,10 +5,11 @@ from Betting.Bettor import Bettor
 from Betting.DynamicKellyBettor import DynamicKellyBettor
 from Betting.StaticKellyBettor import StaticKellyBettor
 from DataAbstraction.RaceCard import RaceCard
-from Estimation.Ranker import Ranker
-from Estimation.SampleSet import SampleSet
 from Experiments.FundHistorySummary import FundHistorySummary
+from Experiments.SampleSet import SampleSet
 from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Ranker.Ranker import Ranker
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -23,8 +24,8 @@ class Validator:
         self.bettor = bettor
         self.__bet_evaluator = bet_evaluator
 
-    def fit_ranker(self, estimator: Ranker):
-        estimator.fit(self.__sample_set.samples_train)
+    def fit_ranker(self, ranker: Ranker):
+        ranker.fit(self.__sample_set.samples_train)
 
     def fund_history_summary(self, estimator: Ranker, name: str) -> FundHistorySummary:
         samples_test_estimated = estimator.transform(self.__sample_set.samples_test)
@@ -53,9 +54,11 @@ def get_validator() -> Validator:
 
 def main():
     validator = get_validator()
-    with open(BEST_RANKER_PATH, "rb") as f:
-        ranker = pickle.load(f)
+    #with open(BEST_RANKER_PATH, "rb") as f:
+    #    ranker = pickle.load(f)
 
+    ranker = BoostedTreesRanker(FeatureManager.FEATURE_NAMES, {})
+    validator.fit_ranker(ranker)
     fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
 
     with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

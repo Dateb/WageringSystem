@@ -63,6 +63,13 @@ class Scraper:
 
         return result
 
+    def request_html(self, url: str) -> str:
+        for _ in range(self.__n_request_tries):
+            response = self.__session.get(url=url, headers=self.__headers)
+            self.__wait_random_amount_of_seconds(1.0)
+            if response.status_code == 200:
+                return response.text
+
     def __wait_random_amount_of_seconds(self, average_seconds_to_wait: float):
         lowest_waiting_time = average_seconds_to_wait * 0.9
         highest_waiting_time = average_seconds_to_wait * 1.1

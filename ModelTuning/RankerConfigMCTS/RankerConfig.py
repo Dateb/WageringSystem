@@ -4,12 +4,12 @@ from typing import List
 
 import numpy as np
 
-from Estimation.BoostedTreesRanker import BoostedTreesRanker
-from Estimation.Ranker import Ranker
+from Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-NUM_LEAVES_VALUES = list(np.arange(20, 100, 10))
+NUM_LEAVES_VALUES = list(np.arange(10, 22, 2))
 MIN_CHILD_SAMPLES_VALUES = list(np.arange(50, 350, 50))
 
 BASE_FEATURES = [CurrentOddsExtractor().get_name()]

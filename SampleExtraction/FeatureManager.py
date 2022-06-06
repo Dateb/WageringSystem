@@ -21,6 +21,7 @@ from SampleExtraction.Extractors.PastAverageHorseDistance import PastAverageHors
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
+from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
 from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
 from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
@@ -61,6 +62,9 @@ class FeatureManager:
     RATING_EXTRACTORS = [RatingExtractor(n_races_ago) for n_races_ago in range(0, 6)]
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
+        PredictedPlaceDeviationExtractor(n_races_ago=1),
+        PredictedPlaceDeviationExtractor(n_races_ago=2),
+
         AveragePlaceLifetimeExtractor(),
         WinRateLifetimeExtractor(),
         AgeExtractor(),

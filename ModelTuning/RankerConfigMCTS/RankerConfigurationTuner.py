@@ -3,11 +3,11 @@ from copy import deepcopy
 import numpy as np
 from tqdm import trange
 
-from Estimation.Ranker import Ranker
 from ModelTuning.RankerConfigMCTS.RankerConfig import RankerConfig
 from ModelTuning.Validator import Validator
 from ModelTuning.RankerConfigMCTS.RankerConfigNode import RankerConfigNode
 from ModelTuning.RankerConfigMCTS.RankerConfigurationTree import RankerConfigurationTree
+from Ranker.Ranker import Ranker
 
 
 class RankerConfigurationTuner:

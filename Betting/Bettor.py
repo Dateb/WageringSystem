@@ -21,10 +21,6 @@ class Bettor(ABC):
         pass
 
     def _add_stakes_fraction(self, samples: pd.DataFrame) -> pd.DataFrame:
-        samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
-        score_sums = samples.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
-        samples = samples.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
-        samples.loc[:, "win_probability"] = samples.loc[:, "exp_score"] / samples.loc[:, "sum_exp_scores"]
         samples.loc[:, "expected_value"] = samples.loc[:, Horse.CURRENT_ODDS_KEY] * samples.loc[:, "win_probability"]
         samples = samples[samples["expected_value"] > 1.0]
 

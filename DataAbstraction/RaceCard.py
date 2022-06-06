@@ -120,6 +120,15 @@ class RaceCard:
 
         return form_table[n_races_ago - 1]["rating"]
 
+    def horse_predicted_place(self, horse_id: str) -> int:
+        horse_odds = self.get_current_odds_of_horse(horse_id)
+        odds_of_race = self.get_current_odds()
+
+        lower_odds = [odds for odds in odds_of_race if odds < horse_odds]
+        predicted_place = 1 + len(lower_odds)
+
+        return predicted_place
+
     def jockey_earnings_of_horse(self, subject_id: str) -> int:
         jockey_stats = self.jockey_stats_of_horse(subject_id)
         if jockey_stats is not False:
@@ -220,6 +229,9 @@ class RaceCard:
             return float(purse_without_suffix) * 1000000
         else:
             return 0.0
+
+    def subject_to_horse_id(self, subject_id: str) -> str:
+        return str(self.get_data_of_subject(subject_id)["idRunner"])
 
     @property
     def winner_id(self) -> str:
