@@ -9,8 +9,8 @@ from Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-NUM_LEAVES_VALUES = list(np.arange(10, 22, 2))
-MIN_CHILD_SAMPLES_VALUES = list(np.arange(50, 350, 50))
+NUM_LEAVES_VALUES = list(np.arange(31, 56, 5))
+MIN_CHILD_SAMPLES_VALUES = list(np.arange(10, 32, 2))
 
 BASE_FEATURES = [CurrentOddsExtractor().get_name()]
 SEARCH_FEATURES = [feature for feature in FeatureManager.FEATURE_NAMES if feature not in BASE_FEATURES]

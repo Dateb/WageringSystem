@@ -66,7 +66,8 @@ class Scraper:
     def request_html(self, url: str) -> str:
         for _ in range(self.__n_request_tries):
             response = self.__session.get(url=url, headers=self.__headers)
-            self.__wait_random_amount_of_seconds(1.0)
+            print(response)
+            self.__wait_random_amount_of_seconds(10.0)
             if response.status_code == 200:
                 return response.text
 

@@ -1,8 +1,11 @@
-from DataAbstraction.RaceCard import RaceCard
+import re
+from datetime import datetime, timedelta
+from typing import List
+
 from DataCollection.Scraper import get_scraper
 from bs4 import BeautifulSoup
 
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.JSONPersistence import JSONPersistence
 
 
 class WinTimeFactory:
@@ -10,31 +13,60 @@ class WinTimeFactory:
     def __init__(self):
         self.__scraper = get_scraper()
         self.__base_results_url = "https://t.attheraces.com/results"
+        self.__soup = None
 
-    def get_win_time(self, race_card: RaceCard) -> float:
-        results_url = f"{self.__base_results_url}/{race_card.datetime.date()}"
-        result_doc = self.__scraper.request_html(results_url)
-        article = self.__find_article_of_race_card(result_doc, race_card)
-        win_time_text = self.__find_win_time_text(article)
+    def get_win_times_of_date(self, date: str):
+        self.__soup = self.__get_soup_from_date(date)
+        track_names = self.__get_track_names()
 
-        return self.__win_time_text_to_seconds(win_time_text)
+        return self.__get_win_times_of_tracks(track_names)
 
-    def __find_article_of_race_card(self, result_doc: str, race_card: RaceCard):
-        soup = BeautifulSoup(result_doc, 'html.parser')
+    def __get_soup_from_date(self, date: str) -> BeautifulSoup:
+        win_times_url = f"{self.__base_results_url}/{date}"
+        result_doc = self.__scraper.request_html(win_times_url)
 
-        for link in soup.find_all('a', href=True):
-            if self.__link_corresponds_to_race_card(link, race_card):
+        return BeautifulSoup(result_doc, 'html.parser')
+
+    def __get_track_names(self) -> List[str]:
+        track_titles = [header.text for header in self.__soup.find_all("h2") if "h6" in header["class"]]
+        track_names = [re.search('\r\n                (.+?) Results', track_title).group(1) for track_title in track_titles]
+        gb_track_names = [track_name for track_name in track_names if "(" not in track_name]
+
+        return gb_track_names
+
+    def __get_win_times_of_tracks(self, track_names: List[str]) -> dict:
+        win_times = {}
+        for track_name in track_names:
+            win_times[track_name] = {}
+            there_are_win_times_left = True
+            race_number = 1
+            while there_are_win_times_left:
+                article = self.__find_article_of_race(track_name, race_number)
+                if article is None:
+                    there_are_win_times_left = False
+                else:
+                    win_time_text = self.__find_win_time_text(article)
+                    win_times[track_name][race_number] = self.__win_time_text_to_seconds(win_time_text)
+                    race_number += 1
+
+        return win_times
+
+    def __find_article_of_race(self, track_name: str, race_number: int):
+        for link in self.__soup.find_all('a', href=True):
+            if self.__link_corresponds_to_race(link, track_name, race_number):
                 return link.findParent("article")
 
     def __find_win_time_text(self, article) -> str:
-        win_time_div = [div for div in article.find_all("div") if "Win Time" in div.next_element.text][0]
+        win_time_bold_elem = [bold_elem for bold_elem in article.find_all("b") if "Win Time" in bold_elem.text][0]
+        win_time_div = win_time_bold_elem.findParent("div")
         win_time_start_idx = self.__find_win_time_start_idx(win_time_div.text)
         win_time_end_idx = win_time_div.text.find("s") + 1
 
         return win_time_div.text[win_time_start_idx:win_time_end_idx]
 
-    def __link_corresponds_to_race_card(self, link, race_card: RaceCard) -> bool:
-        if f"/racecard/{race_card.title}" not in link['href']:
+    def __link_corresponds_to_race(self, link, track_name: str, race_number: int) -> bool:
+        track_name = track_name.replace(" ", "-")
+        if f"/racecard/{track_name}" not in link['href']:
             return False
 
         if "button" in link["class"]:
@@ -42,7 +74,7 @@ class WinTimeFactory:
 
         link_number = int(link.findPrevious().text)
 
-        return link_number == race_card.number
+        return link_number == race_number
 
     def __find_win_time_start_idx(self, div_text: str) -> int:
         for i, c in enumerate(div_text):
@@ -66,14 +98,18 @@ class WinTimeFactory:
 
 
 def main():
+    persistence = JSONPersistence("win_times")
     win_time_factory = WinTimeFactory()
 
-    raw_races = RaceCardsPersistence("test_race_cards").load_raw()
-    race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
-
-    win_time = win_time_factory.get_win_time(race_cards[1])
-    print(win_time)
+    win_times = persistence.load()
+    base = datetime.today()
+    dates = [base - timedelta(days=x+20) for x in range(2)]
+    for date in dates:
+        date = str(date.date())
+        win_times[date] = win_time_factory.get_win_times_of_date(date)
+        persistence.save(win_times)
 
 
 if __name__ == '__main__':
     main()
+    print("finished")

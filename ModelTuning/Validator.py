@@ -57,7 +57,7 @@ def main():
     #with open(BEST_RANKER_PATH, "rb") as f:
     #    ranker = pickle.load(f)
 
-    ranker = BoostedTreesRanker(FeatureManager.FEATURE_NAMES, {})
+    ranker = BoostedTreesRanker(["Current_Odds_Feature"], {})
     validator.fit_ranker(ranker)
     fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
 

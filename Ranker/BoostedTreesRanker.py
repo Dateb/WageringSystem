@@ -2,10 +2,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from keras import Sequential
-from keras.layers import Dense
 from lightgbm import LGBMRanker
-from tensorflow import keras
 
 from Ranker.Ranker import Ranker
 from SampleExtraction.Horse import Horse
@@ -35,17 +32,6 @@ class BoostedTreesRanker(Ranker):
         self.feature_subset = feature_subset
         self._ranker = LGBMRanker()
         self.set_search_params(search_params)
-
-        self.__score_to_win_prob_translator = Sequential()
-        self.__score_to_win_prob_translator.add(Dense(1024, input_dim=50, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(512, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(512, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(128, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(128, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(64, activation='relu'))
-        self.__score_to_win_prob_translator.add(Dense(50, activation='softmax'))
-        opt = keras.optimizers.Adam(learning_rate=0.000001)
-        self.__score_to_win_prob_translator.compile(loss="categorical_crossentropy", optimizer=opt, metrics=['accuracy'])
 
     def fit(self, samples_train: pd.DataFrame):
         x_ranker = samples_train[self.feature_subset]

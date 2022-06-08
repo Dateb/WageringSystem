@@ -7,7 +7,9 @@ from ModelTuning.RankerConfigMCTS.RankerConfig import RankerConfig
 from ModelTuning.Validator import Validator
 from ModelTuning.RankerConfigMCTS.RankerConfigNode import RankerConfigNode
 from ModelTuning.RankerConfigMCTS.RankerConfigurationTree import RankerConfigurationTree
+from Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Ranker.Ranker import Ranker
+from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 
 
 class RankerConfigurationTuner:
@@ -15,8 +17,10 @@ class RankerConfigurationTuner:
     def __init__(self, validator: Validator):
         self.__validator = validator
 
-        self.__best_ranker = None
-        self.__max_score = 0
+        baseline_ranker = BoostedTreesRanker([CurrentOddsExtractor().get_name()], {})
+        self.__validator.fit_ranker(baseline_ranker)
+        self.__best_ranker = baseline_ranker
+        self.__max_score = validator.fund_history_summary(baseline_ranker, "Ranker Tuner Baseline").win_loss_ratio
         self.__exploration_factor = 0.2
         self.__tree = RankerConfigurationTree()
 
