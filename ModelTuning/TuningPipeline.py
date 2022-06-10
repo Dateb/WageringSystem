@@ -27,7 +27,7 @@ def main():
     tuning_pipeline = TuningPipeline(validator)
     ranker = tuning_pipeline.tune_ranker()
 
-    fund_history_summaries = [validator.fund_history_summary(ranker, name="NN Ranker")]
+    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
 
     #validator.bettor = FavoriteBettor(kelly_wealth=1000)
     #fund_history_summaries += [validator.fund_history_summary(ranker, name="Favorite Bettor")]

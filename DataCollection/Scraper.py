@@ -64,7 +64,7 @@ class Scraper:
         return result
 
     def request_html(self, url: str) -> str:
-        for _ in range(self.__n_request_tries):
+        while True:
             response = self.__session.get(url=url, headers=self.__headers)
             print(response)
             self.__wait_random_amount_of_seconds(10.0)

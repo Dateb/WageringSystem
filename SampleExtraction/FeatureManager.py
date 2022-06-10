@@ -18,6 +18,9 @@ from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.PastAverageHorseDistance import PastAverageHorseDistanceExtractor
+from SampleExtraction.Extractors.PastMaxSpeedSameGoingExtractor import PastMaxSpeedSameGoingExtractor
+from SampleExtraction.Extractors.PastMaxSpeedSameTrackExtractor import PastMaxSpeedSameTrackExtractor
+from SampleExtraction.Extractors.PastMaxSpeedSimilarDistanceExtractor import PastMaxSpeedSimilarDistanceExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
@@ -27,6 +30,7 @@ from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousH
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
+from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.Extractors.TrackPurseExtractor import TrackPurseExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
@@ -62,6 +66,12 @@ class FeatureManager:
     RATING_EXTRACTORS = [RatingExtractor(n_races_ago) for n_races_ago in range(0, 6)]
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
+        CurrentOddsExtractor(),
+        PreviousSpeedExtractor(),
+        PastMaxSpeedSimilarDistanceExtractor(),
+        PastMaxSpeedSameTrackExtractor(),
+        PastMaxSpeedSameGoingExtractor(),
+
         PredictedPlaceDeviationExtractor(n_races_ago=1),
         PredictedPlaceDeviationExtractor(n_races_ago=2),
 
@@ -71,7 +81,6 @@ class FeatureManager:
         AveragePlaceCategoryExtractor(),
         AveragePlaceSurfaceExtractor(),
         AveragePlaceTrackExtractor(),
-        CurrentOddsExtractor(),
         DistanceDifferenceExtractor(),
         HeadToHeadExtractor(),
         BlinkerExtractor(),

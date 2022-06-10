@@ -17,10 +17,8 @@ class RankerConfigurationTuner:
     def __init__(self, validator: Validator):
         self.__validator = validator
 
-        baseline_ranker = BoostedTreesRanker([CurrentOddsExtractor().get_name()], {})
-        self.__validator.fit_ranker(baseline_ranker)
-        self.__best_ranker = baseline_ranker
-        self.__max_score = validator.fund_history_summary(baseline_ranker, "Ranker Tuner Baseline").win_loss_ratio
+        self.__best_ranker = None
+        self.__max_score = 0
         self.__exploration_factor = 0.2
         self.__tree = RankerConfigurationTree()
 
@@ -76,7 +74,7 @@ class RankerConfigurationTuner:
         return new_ranker
 
     def __simulate(self, ranker: Ranker) -> float:
-        return self.__validator.fund_history_summary(ranker, "RankerConfigurationTuner").win_loss_ratio
+        return self.__validator.fund_history_summary(ranker, "RankerConfigurationTuner").roi_per_bet
 
     def __backup(self, front_node: RankerConfigNode, score: float):
         node = front_node

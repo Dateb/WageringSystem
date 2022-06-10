@@ -14,7 +14,6 @@ class BoostedTreesRanker(Ranker):
         "boosting_type": "gbdt",
         "objective": "lambdarank",
         "metric": "ndcg",
-        "device": "gpu",
         "n_estimators": 1000,
         "learning_rate": 0.01,
         "verbose": -1,

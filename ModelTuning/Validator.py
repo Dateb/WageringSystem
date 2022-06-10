@@ -10,6 +10,8 @@ from Experiments.SampleSet import SampleSet
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Ranker.Ranker import Ranker
+from SampleExtraction.Extractors.PastMaxSpeedSimilarDistanceExtractor import PastMaxSpeedSimilarDistanceExtractor
+from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -39,11 +41,12 @@ class Validator:
 
 def get_validator() -> Validator:
     raw_races = RaceCardsPersistence("train_race_cards").load_raw()
-    race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=False) for race_id in raw_races]
+    race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=True) for race_id in raw_races]
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())
     samples = sample_encoder.transform(race_cards)
+    print(samples)
     sample_set = SampleSet(samples)
     bet_evaluator = BetEvaluator(raw_races)
     #bettor = DynamicKellyBettor(start_kelly_wealth=1000, kelly_fraction=0.33, bet_evaluator=bet_evaluator)
@@ -59,10 +62,19 @@ def main():
 
     ranker = BoostedTreesRanker(["Current_Odds_Feature"], {})
     validator.fit_ranker(ranker)
-    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker")]
+
+    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds")]
+
+    ranker = BoostedTreesRanker(FeatureManager.FEATURE_NAMES, {})
+    validator.fit_ranker(ranker)
+
+    fund_history_summaries += [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds + Speed features")]
 
     with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
+
+    with open(BEST_RANKER_PATH, "wb") as f:
+        pickle.dump(ranker, f)
 
 
 if __name__ == '__main__':

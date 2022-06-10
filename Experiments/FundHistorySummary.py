@@ -57,6 +57,10 @@ class FundHistorySummary:
         return self.__win_loss_ratio
 
     @property
+    def roi_per_bet(self):
+        return self.__roi_per_bet
+
+    @property
     def snapshots(self) -> List[FundHistorySnapshot]:
         return self.__snapshots
 

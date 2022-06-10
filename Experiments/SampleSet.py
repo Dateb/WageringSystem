@@ -1,7 +1,4 @@
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-
-from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.Horse import Horse
 
 

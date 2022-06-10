@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from typing import List
 
-from pytz import timezone
-
 from DataAbstraction.FormGuide import FormGuide
 from DataAbstraction.RaceCard import RaceCard
 from DataAbstraction.WinTimeFactory import WinTimeFactory
+from Persistence.JSONPersistence import JSONPersistence
+from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
 class RawRaceCardInjector:
@@ -18,19 +18,21 @@ class RawRaceCardInjector:
             horse_data = self.__race_card.get_data_of_subject(form_guide.subject_id)
             horse_data["formTable"] = form_guide.form_table
 
-    def inject_win_time(self):
+    def inject_win_time(self, win_times: dict):
         for horse in self.__race_card.horses:
             form_table = self.__race_card.form_table_of_horse(horse)
             for past_race in form_table:
+                past_race["winTimeSeconds"] = -1
                 if past_race["country"] == "GB":
-                    print(past_race["idRace"])
                     date = datetime.utcfromtimestamp(past_race["date"])
                     date += timedelta(hours=2)
                     date = date.strftime('%Y-%m-%d')
-                    win_time_factory = WinTimeFactory(date, past_race["trackName"], int(past_race["raceNumber"]))
-                    past_race["win_time"] = win_time_factory.__get_win_times_of_tracks()
-                else:
-                    past_race["win_time"] = -1
+                    if date in win_times:
+                        win_times_of_date = win_times[date]
+                        track_name = past_race["trackName"]
+                        if track_name in win_times_of_date:
+                            race_number = past_race["raceNumber"]
+                            past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]
 
     def inject_past_race_card(self, subject_id: str, past_race_card: RaceCard):
         horse_data = self.__race_card.get_data_of_subject(subject_id)
@@ -42,3 +44,21 @@ class RawRaceCardInjector:
     @property
     def raw_race_card(self):
         return self.__race_card.raw_race_card
+
+
+def main():
+    race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
+    race_cards = race_cards_persistence.load()
+
+    win_times = JSONPersistence("win_times").load()
+
+    for race_card in race_cards:
+        injector = RawRaceCardInjector(race_card)
+        injector.inject_win_time(win_times)
+
+    race_cards_persistence.save(race_cards)
+
+
+if __name__ == '__main__':
+    main()
+    print('finished')

@@ -57,8 +57,10 @@ class WinTimeFactory:
                 return link.findParent("article")
 
     def __find_win_time_text(self, article) -> str:
-        win_time_bold_elem = [bold_elem for bold_elem in article.find_all("b") if "Win Time" in bold_elem.text][0]
-        win_time_div = win_time_bold_elem.findParent("div")
+        win_time_bold_elem = [bold_elem for bold_elem in article.find_all("b") if "Win Time" in bold_elem.text]
+        if not win_time_bold_elem:
+            return "0m -1s"
+        win_time_div = win_time_bold_elem[0].findParent("div")
         win_time_start_idx = self.__find_win_time_start_idx(win_time_div.text)
         win_time_end_idx = win_time_div.text.find("s") + 1
 
@@ -102,12 +104,14 @@ def main():
     win_time_factory = WinTimeFactory()
 
     win_times = persistence.load()
-    base = datetime.today()
-    dates = [base - timedelta(days=x+20) for x in range(2)]
+    base = datetime.strptime('2022-06-07', "%Y-%m-%d").date()
+    dates = [base - timedelta(days=x) for x in range(4000)]
     for date in dates:
-        date = str(date.date())
-        win_times[date] = win_time_factory.get_win_times_of_date(date)
-        persistence.save(win_times)
+        date = str(date)
+        print(date)
+        if date not in win_times:
+            win_times[date] = win_time_factory.get_win_times_of_date(date)
+            persistence.save(win_times)
 
 
 if __name__ == '__main__':

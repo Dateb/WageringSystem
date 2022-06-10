@@ -100,6 +100,55 @@ class RaceCard:
     def form_table_of_horse(self, horse_id: str) -> List[dict]:
         return self.horses[horse_id]["formTable"]
 
+    def past_speeds_of_horse(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_speeds = []
+        for past_race in form_table:
+            if "horseDistance" in past_race and past_race["raceDistance"] != 0 and past_race["winTimeSeconds"] != -1:
+                if past_race["finalPosition"] == 1:
+                    distance_until_winner_finished = past_race["raceDistance"]
+                else:
+                    distance_until_winner_finished = past_race["raceDistance"] - (1.524 * past_race["horseDistance"])
+
+                speed = distance_until_winner_finished / past_race["winTimeSeconds"]
+                past_speeds.append(speed)
+            else:
+                past_speeds.append(-1)
+
+        return past_speeds
+
+    def past_speeds_of_horse_similar_distance(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_speeds = self.past_speeds_of_horse(horse_id)
+        past_speeds_similar_distance = []
+        for i, past_race in enumerate(form_table):
+            distance_lower_bound = self.distance - 250
+            distance_upper_bound = self.distance + 250
+            if distance_lower_bound < past_race["raceDistance"] < distance_upper_bound and past_speeds[i] != -1:
+                past_speeds_similar_distance.append(past_speeds[i])
+
+        return past_speeds_similar_distance
+
+    def past_speeds_of_horse_same_track(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_speeds = self.past_speeds_of_horse(horse_id)
+        past_speeds_same_track = []
+        for i, past_race in enumerate(form_table):
+            if past_race["trackName"] == self.title and past_speeds[i] != -1:
+                past_speeds_same_track.append(past_speeds[i])
+
+        return past_speeds_same_track
+
+    def past_speeds_of_horse_same_going(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_speeds = self.past_speeds_of_horse(horse_id)
+        past_speeds_same_going = []
+        for i, past_race in enumerate(form_table):
+            if past_race["trackGoing"] == self.track_going and past_speeds[i] != -1:
+                past_speeds_same_going.append(past_speeds[i])
+
+        return past_speeds_same_going
+
     def horse_distances_of_horse(self, horse_id: str) -> List[float]:
         form_table = self.form_table_of_horse(horse_id)
         horse_distances = []
