@@ -17,6 +17,7 @@ class HorseFactory:
         return horses
 
     def __create_horse(self, race_card: RaceCard, horse_id: str, horse_data: dict) -> Horse:
+        date = race_card.datetime
         race_id = race_card.race_id
         track_id = race_card.track_id
         current_odds = race_card.get_current_odds_of_horse(horse_id)
@@ -31,7 +32,7 @@ class HorseFactory:
 
         race_cards = [race_card] + past_race_cards
 
-        new_horse = Horse(raw_horse_data, horse_id, subject_id, race_id, track_id, current_odds, place, race_cards)
+        new_horse = Horse(raw_horse_data, horse_id, subject_id, date, race_id, track_id, current_odds, place, race_cards)
 
         self.__feature_manager.set_features_of_horse(new_horse)
 

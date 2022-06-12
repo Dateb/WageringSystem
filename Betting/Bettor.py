@@ -39,12 +39,13 @@ class Bettor(ABC):
             stakes_fraction = float(row["stakes_fraction"])
             new_bet = Bet(horse_id, odds, stakes, stakes_fraction)
 
+            date = str(row[Horse.DATE_ID_KEY])
             race_id = str(int(row[Horse.RACE_ID_KEY]))
 
-            if race_id not in betting_slips:
-                betting_slips[race_id] = BettingSlip(race_id, bet_type)
+            if date not in betting_slips:
+                betting_slips[date] = BettingSlip(date, race_id, bet_type)
 
-            betting_slips[race_id].add_bet(new_bet)
+            betting_slips[date].add_bet(new_bet)
 
         return betting_slips
 

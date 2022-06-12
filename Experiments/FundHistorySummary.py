@@ -11,11 +11,13 @@ class FundHistorySummary:
         self.__payouts = []
         self.__winnings = []
         self.__loss = []
-        for race_id in betting_slips:
-            betting_slip = betting_slips[race_id]
+        self.__dates = []
+        for date in sorted(betting_slips):
+            betting_slip = betting_slips[date]
             self.__payouts.append(betting_slip.payout)
             self.__winnings.append(betting_slip.win)
             self.__loss.append(betting_slip.loss)
+            self.__dates.append(betting_slip.date)
         self.__start_wealth = start_wealth
 
         self.__set_fund_snapshots()
@@ -23,10 +25,10 @@ class FundHistorySummary:
 
     def __set_fund_snapshots(self):
         current_wealth = self.__start_wealth
-        self.__snapshots = [FundHistorySnapshot(name=self.__name, time_step=0, wealth=current_wealth)]
+        self.__snapshots = []
         for i, payout in enumerate(self.__payouts):
             current_wealth += payout
-            self.__snapshots += [FundHistorySnapshot(name=self.__name, time_step=i + 1, wealth=current_wealth)]
+            self.__snapshots += [FundHistorySnapshot(name=self.__name, date=self.__dates[i], wealth=current_wealth)]
 
     def __set_summary(self):
         n_positive_payouts = len([payout for payout in self.__payouts if payout > 0])

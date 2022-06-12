@@ -6,18 +6,20 @@ from DataAbstraction.RaceCard import RaceCard
 class Horse:
 
     HORSE_ID_KEY: str = "horse_id"
+    DATE_ID_KEY: str = "date"
     RACE_ID_KEY: str = "race_id"
     TRACK_ID_KEY: str = "track_id"
     PLACE_KEY: str = "place"
     RELEVANCE_KEY: str = "relevance"
     CURRENT_ODDS_KEY: str = "current_odds"
     HAS_WON_KEY: str = "has_won"
-    BASE_ATTRIBUTE_NAMES: List[str] = [HORSE_ID_KEY, RACE_ID_KEY, TRACK_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY, HAS_WON_KEY]
+    BASE_ATTRIBUTE_NAMES: List[str] = [HORSE_ID_KEY, DATE_ID_KEY, RACE_ID_KEY, TRACK_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY, HAS_WON_KEY]
 
     def __init__(self,
                  raw_data: dict,
                  horse_id: str,
                  subject_id: str,
+                 date,
                  race_id: str,
                  track_id: str,
                  current_odds: float,
@@ -31,6 +33,7 @@ class Horse:
         self.__has_won = 1 if place == 1 else 0
         self.__data = {
             "horse_id": horse_id,
+            "date": date,
             "race_id": race_id,
             "track_id": track_id,
             "current_odds": current_odds,

@@ -34,19 +34,19 @@ class RaceCardsCollector:
     def collect_full_race_cards_from_race_ids(self, race_ids: List[str]) -> List[RaceCard]:
         counter = 0
         n_race_cards = len(race_ids)
-        new_raw_race_cards = []
+        new_race_cards = []
         for race_id in race_ids:
             try:
                 print(race_id)
                 print(f"Race card: {counter}/{n_race_cards}...")
                 race_card = self.__race_card_factory.run(race_id)
-                new_raw_race_cards.append(race_card)
+                new_race_cards.append(race_card)
                 counter += 1
             except KeyError:
                 print("Skipping race card")
 
-        self.__race_cards += new_raw_race_cards
-        return new_raw_race_cards
+        self.__race_cards += new_race_cards
+        return new_race_cards
 
     @property
     def race_cards(self) -> List[RaceCard]:

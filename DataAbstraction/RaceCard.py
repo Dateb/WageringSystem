@@ -105,12 +105,13 @@ class RaceCard:
         past_speeds = []
         for past_race in form_table:
             if "horseDistance" in past_race and past_race["raceDistance"] != 0 and past_race["winTimeSeconds"] != -1:
+                race_distance = past_race["raceDistance"]
                 if past_race["finalPosition"] == 1:
-                    distance_until_winner_finished = past_race["raceDistance"]
+                    time = past_race["winTimeSeconds"]
                 else:
-                    distance_until_winner_finished = past_race["raceDistance"] - (1.524 * past_race["horseDistance"])
+                    time = past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
 
-                speed = distance_until_winner_finished / past_race["winTimeSeconds"]
+                speed = race_distance / time
                 past_speeds.append(speed)
             else:
                 past_speeds.append(-1)

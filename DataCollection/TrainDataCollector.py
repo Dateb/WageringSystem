@@ -48,7 +48,7 @@ class TrainDataCollector:
     def __collect_day(self, day):
         print(f"Currently collecting:{day}")
         race_ids = self.__day_collector.get_closed_race_ids_of_day(day)
-        self.__race_cards_collector.collect_full_race_cards_from_race_ids(race_ids)
+        new_race_cards = self.__race_cards_collector.collect_full_race_cards_from_race_ids(race_ids)
         self.__collected_days.add(day)
 
         if len(race_ids) > 0:

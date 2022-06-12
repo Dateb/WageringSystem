@@ -3,7 +3,6 @@ from typing import List
 
 from DataAbstraction.FormGuide import FormGuide
 from DataAbstraction.RaceCard import RaceCard
-from DataAbstraction.WinTimeFactory import WinTimeFactory
 from Persistence.JSONPersistence import JSONPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
