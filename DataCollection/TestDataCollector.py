@@ -11,7 +11,7 @@ class TestDataCollector:
 
     def __init__(self):
         self.__race_cards_persistence = RaceCardsPersistence(file_name="test_race_cards")
-        self.__initial_race_cards = self.__race_cards_persistence.load()
+        self.__initial_race_cards = self.__race_cards_persistence.load_every_month()
 
         self.__race_cards_collector = RaceCardsCollector([], remove_non_starters=False)
 

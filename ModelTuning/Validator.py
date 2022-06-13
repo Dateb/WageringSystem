@@ -40,15 +40,15 @@ class Validator:
 
 
 def get_validator() -> Validator:
-    raw_races = RaceCardsPersistence("train_race_cards").load_raw()
-    race_cards = [RaceCard(race_id, raw_races[race_id], remove_non_starters=True) for race_id in raw_races]
+    persistence = RaceCardsPersistence("train_race_cards")
+    race_cards = persistence.load_first_month()
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())
     samples = sample_encoder.transform(race_cards)
     print(samples)
     sample_set = SampleSet(samples)
-    bet_evaluator = BetEvaluator(raw_races)
+    bet_evaluator = BetEvaluator()
     #bettor = DynamicKellyBettor(start_kelly_wealth=1000, kelly_fraction=0.33, bet_evaluator=bet_evaluator)
     bettor = StaticKellyBettor(start_kelly_wealth=1000)
 

@@ -1,25 +1,22 @@
 from typing import Dict
 
 from Betting.BettingSlip import BettingSlip
-from DataAbstraction.RaceCard import RaceCard
 
 
 class BetEvaluator:
 
-    def __init__(self, raw_races: dict):
-        self.__raw_races = raw_races
+    def __init__(self):
+        pass
 
     def update_wins(self, betting_slips: Dict[str, BettingSlip]) -> Dict[str, BettingSlip]:
-        for race_id in betting_slips:
-            betting_slips[race_id] = self.__update_betting_slip(betting_slips[race_id])
+        for date in betting_slips:
+            betting_slips[date] = self.__update_betting_slip(betting_slips[date])
 
         return betting_slips
 
     def __update_betting_slip(self, betting_slip: BettingSlip) -> BettingSlip:
-        race_card = RaceCard(betting_slip.race_id, self.__raw_races[betting_slip.race_id], remove_non_starters=False)
-
-        if race_card.winner_id in betting_slip.bets:
-            winning_bet = betting_slip.get_bet(race_card.winner_id)
+        if betting_slip.winner_id in betting_slip.bets:
+            winning_bet = betting_slip.get_bet(betting_slip.winner_id)
             betting_slip.update_won_bet(winning_bet)
 
         #print("--------------------------------")

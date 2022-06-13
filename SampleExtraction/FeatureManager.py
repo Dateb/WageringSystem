@@ -67,10 +67,10 @@ class FeatureManager:
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         CurrentOddsExtractor(),
-        PreviousSpeedExtractor(),
-        PastMaxSpeedSimilarDistanceExtractor(),
-        PastMaxSpeedSameTrackExtractor(),
-        PastMaxSpeedSameGoingExtractor(),
+        #PreviousSpeedExtractor(),
+        #PastMaxSpeedSimilarDistanceExtractor(),
+        #PastMaxSpeedSameTrackExtractor(),
+        #PastMaxSpeedSameGoingExtractor(),
 
         PredictedPlaceDeviationExtractor(n_races_ago=1),
         PredictedPlaceDeviationExtractor(n_races_ago=2),

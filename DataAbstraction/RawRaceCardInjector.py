@@ -47,7 +47,7 @@ class RawRaceCardInjector:
 
 def main():
     race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
-    race_cards = race_cards_persistence.load()
+    race_cards = race_cards_persistence.load_every_month()
 
     win_times = JSONPersistence("win_times").load()
 

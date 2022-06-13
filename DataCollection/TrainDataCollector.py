@@ -13,7 +13,7 @@ class TrainDataCollector:
     def __init__(self):
         self.__race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
 
-        initial_race_cards = self.__race_cards_persistence.load()
+        initial_race_cards = self.__race_cards_persistence.load_every_month()
 
         self.__race_cards_collector = RaceCardsCollector(initial_race_cards)
         self.__day_collector = DayCollector()
@@ -52,7 +52,7 @@ class TrainDataCollector:
         self.__collected_days.add(day)
 
         if len(race_ids) > 0:
-            self.__race_cards_persistence.save(self.__race_cards_collector.race_cards)
+            self.__race_cards_persistence.save(new_race_cards)
 
     def __get_collected_days(self) -> Set[date]:
         return {race_card.date for race_card in self.__race_cards_collector.race_cards}

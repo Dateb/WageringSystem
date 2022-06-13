@@ -13,9 +13,9 @@ class BetType(Enum):
 
 class BettingSlip:
 
-    def __init__(self, date: str, race_id: str, bet_type: BetType):
+    def __init__(self, date: str, winner_id: str, bet_type: BetType):
         self.__date = date
-        self.__race_id = race_id
+        self.__winner_id = winner_id
         self.__bet_type = bet_type
         self.__bets: Dict[str, Bet] = {}
         self.__loss = 0
@@ -43,8 +43,8 @@ class BettingSlip:
         return self.__date
 
     @property
-    def race_id(self):
-        return self.__race_id
+    def winner_id(self):
+        return self.__winner_id
 
     @property
     def bets(self):
