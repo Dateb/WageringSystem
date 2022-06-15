@@ -100,6 +100,32 @@ class RaceCard:
     def form_table_of_horse(self, horse_id: str) -> List[dict]:
         return self.horses[horse_id]["formTable"]
 
+    def past_times_of_horse(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_times = []
+        for past_race in form_table:
+            if "horseDistance" in past_race and past_race["winTimeSeconds"] != -1:
+                if past_race["finalPosition"] == 1:
+                    time = past_race["winTimeSeconds"]
+                else:
+                    time = past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
+            else:
+                time = -1
+            past_times.append(time)
+        return past_times
+
+    def past_times_of_horse_same_track(self, horse_id: str) -> List[float]:
+        form_table = self.form_table_of_horse(horse_id)
+        past_times = self.past_times_of_horse(horse_id)
+        past_times_same_track = []
+        for i, past_race in enumerate(form_table):
+            if past_race["trackName"] == self.title and past_times[i] != -1:
+                past_times_same_track.append(past_times[i])
+            else:
+                past_times_same_track.append(-1)
+
+        return past_times_same_track
+
     def past_speeds_of_horse(self, horse_id: str) -> List[float]:
         form_table = self.form_table_of_horse(horse_id)
         past_speeds = []

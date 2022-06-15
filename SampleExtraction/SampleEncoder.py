@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import List
-import time
+from typing import List, Tuple
 
 from pandas import DataFrame
 from SampleExtraction.FeatureManager import FeatureManager
@@ -12,13 +11,36 @@ from DataAbstraction.RaceCard import RaceCard
 
 class SampleEncoder:
 
-    def __init__(self, feature_manager: FeatureManager):
+    def __init__(self, feature_manager: FeatureManager, train_fraction: float = 0.8):
+        self.__feature_containers = [
+            feature_extractor.container for feature_extractor in feature_manager.ENABLED_FEATURE_EXTRACTORS
+        ]
         self.__feature_names = [
             feature_extractor.get_name() for feature_extractor in feature_manager.ENABLED_FEATURE_EXTRACTORS
         ]
         self.__horse_factory = HorseFactory(feature_manager)
+        self.__train_fraction = train_fraction
 
-    def transform(self, race_cards: List[RaceCard]) -> DataFrame:
+    def transform(self, race_cards: List[RaceCard]) -> Tuple[DataFrame, DataFrame]:
+        #TODO: sort by date
+        #self.__race_ids = list(self.__samples[Horse.RACE_ID_KEY].unique())
+        #self.__race_ids.sort()
+
+        n_races = len(race_cards)
+        n_races_train = int(self.__train_fraction * n_races)
+
+        train_race_cards = race_cards[:n_races_train]
+        test_race_cards = race_cards[n_races_train:]
+
+        return self.__encode_train_race_cards(train_race_cards), self.__race_cards_to_dataframe(test_race_cards)
+
+    def __encode_train_race_cards(self, train_race_cards: List[RaceCard]) -> DataFrame:
+        for feature_container in self.__feature_containers:
+            feature_container.fit(train_race_cards)
+
+        return self.__race_cards_to_dataframe(train_race_cards)
+
+    def __race_cards_to_dataframe(self, race_cards: List[RaceCard]) -> DataFrame:
         horses = []
         for race_card in race_cards:
             horses += self.__horse_factory.create(race_card)

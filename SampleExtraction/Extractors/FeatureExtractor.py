@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 
+from SampleExtraction.Container import FeatureContainer
 from SampleExtraction.Horse import Horse
 
 
@@ -17,3 +18,7 @@ class FeatureExtractor(ABC):
     @abstractmethod
     def get_value(self, horse: Horse) -> int:
         pass
+
+    @property
+    def container(self) -> FeatureContainer:
+        return FeatureContainer.get_feature_container()

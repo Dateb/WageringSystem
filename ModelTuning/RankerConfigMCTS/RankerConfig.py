@@ -9,7 +9,7 @@ from Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-NUM_LEAVES_VALUES = list(np.arange(31, 56, 5))
+NUM_LEAVES_VALUES = list(np.arange(51, 86, 5))
 MIN_CHILD_SAMPLES_VALUES = list(np.arange(10, 32, 2))
 
 BASE_FEATURES = [CurrentOddsExtractor().get_name()]

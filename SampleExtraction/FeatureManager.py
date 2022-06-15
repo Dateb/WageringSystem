@@ -17,6 +17,7 @@ from SampleExtraction.Extractors.JockeyCurrentHorsePurseExtractor import JockeyC
 from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
+from SampleExtraction.Extractors.ParTimeDeviationSameTrack import ParTimeDeviationSameTrack
 from SampleExtraction.Extractors.PastAverageHorseDistance import PastAverageHorseDistanceExtractor
 from SampleExtraction.Extractors.PastMaxSpeedSameGoingExtractor import PastMaxSpeedSameGoingExtractor
 from SampleExtraction.Extractors.PastMaxSpeedSameTrackExtractor import PastMaxSpeedSameTrackExtractor
@@ -28,6 +29,7 @@ from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import Predict
 from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
 from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
+from SampleExtraction.Extractors.PastParTimeDeviationExtractor import PastParTimeDeviationExtractor
 from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
 from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
@@ -67,10 +69,17 @@ class FeatureManager:
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         CurrentOddsExtractor(),
-        #PreviousSpeedExtractor(),
-        #PastMaxSpeedSimilarDistanceExtractor(),
-        #PastMaxSpeedSameTrackExtractor(),
-        #PastMaxSpeedSameGoingExtractor(),
+
+        PastParTimeDeviationExtractor(n_races_ago=1),
+        ParTimeDeviationSameTrack(),
+        PastParTimeDeviationExtractor(n_races_ago=2),
+        PastParTimeDeviationExtractor(n_races_ago=3),
+        PastParTimeDeviationExtractor(n_races_ago=4),
+        PastParTimeDeviationExtractor(n_races_ago=5),
+        PreviousSpeedExtractor(),
+        PastMaxSpeedSimilarDistanceExtractor(),
+        PastMaxSpeedSameTrackExtractor(),
+        PastMaxSpeedSameGoingExtractor(),
 
         PredictedPlaceDeviationExtractor(n_races_ago=1),
         PredictedPlaceDeviationExtractor(n_races_ago=2),
