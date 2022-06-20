@@ -2,13 +2,12 @@ from typing import List
 
 from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.WritableRaceCard import WritableRaceCard
 
 
 class RaceCardsCollector:
 
-    def __init__(self, initial_race_cards: List[RaceCard], remove_non_starters: bool = True):
-        self.__race_cards = initial_race_cards
-
+    def __init__(self, remove_non_starters: bool = True):
         self.__race_card_factory = RaceCardFactory(remove_non_starters)
 
     def collect_final_full_race_cards_from_race_ids(self, race_ids: List[str]) -> List[RaceCard]:
@@ -28,10 +27,9 @@ class RaceCardsCollector:
             new_race_cards.append(race_card)
             counter += 1
 
-        self.__race_cards += new_race_cards
         return new_race_cards
 
-    def collect_full_race_cards_from_race_ids(self, race_ids: List[str]) -> List[RaceCard]:
+    def collect_full_race_cards_from_race_ids(self, race_ids: List[str]) -> List[WritableRaceCard]:
         counter = 0
         n_race_cards = len(race_ids)
         new_race_cards = []
@@ -45,9 +43,5 @@ class RaceCardsCollector:
             except KeyError:
                 print("Skipping race card")
 
-        self.__race_cards += new_race_cards
         return new_race_cards
 
-    @property
-    def race_cards(self) -> List[RaceCard]:
-        return self.__race_cards

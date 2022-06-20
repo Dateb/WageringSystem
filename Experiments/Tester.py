@@ -36,7 +36,7 @@ class Tester:
 
 
 def main():
-    race_cards = RaceCardsPersistence(TEST_RACE_CARDS_FILE_NAME).load_every_month()
+    race_cards = RaceCardsPersistence(TEST_RACE_CARDS_FILE_NAME).load_every_month_non_writable()
 
     sample_encoder = SampleEncoder(FeatureManager(report_missing_features=True))
     test_samples = sample_encoder.transform(race_cards)

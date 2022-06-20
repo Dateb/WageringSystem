@@ -2,14 +2,14 @@ from datetime import datetime, timedelta
 from typing import List
 
 from DataAbstraction.FormGuide import FormGuide
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.WritableRaceCard import WritableRaceCard
 from Persistence.JSONPersistence import JSONPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
 class RawRaceCardInjector:
 
-    def __init__(self, race_card: RaceCard):
+    def __init__(self, race_card: WritableRaceCard):
         self.__race_card = race_card
 
     def inject_form_tables(self, form_guides: List[FormGuide]):
@@ -33,7 +33,7 @@ class RawRaceCardInjector:
                             race_number = past_race["raceNumber"]
                             past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]
 
-    def inject_past_race_card(self, subject_id: str, past_race_card: RaceCard):
+    def inject_past_race_card(self, subject_id: str, past_race_card: WritableRaceCard):
         horse_data = self.__race_card.get_data_of_subject(subject_id)
         if "pastRaces" not in horse_data:
             horse_data["pastRaces"] = []
@@ -47,7 +47,7 @@ class RawRaceCardInjector:
 
 def main():
     race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
-    race_cards = race_cards_persistence.load_every_month()
+    race_cards = race_cards_persistence.load_every_month_writable()
 
     win_times = JSONPersistence("win_times").load()
 

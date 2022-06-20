@@ -22,9 +22,7 @@ class SampleEncoder:
         self.__train_fraction = train_fraction
 
     def transform(self, race_cards: List[RaceCard]) -> Tuple[DataFrame, DataFrame]:
-        #TODO: sort by date
-        #self.__race_ids = list(self.__samples[Horse.RACE_ID_KEY].unique())
-        #self.__race_ids.sort()
+        race_cards.sort(key=lambda race_card: race_card.datetime, reverse=True)
 
         n_races = len(race_cards)
         n_races_train = int(self.__train_fraction * n_races)

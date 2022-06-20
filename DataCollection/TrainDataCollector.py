@@ -1,6 +1,4 @@
 from datetime import date, timedelta
-from typing import Set
-
 from DataCollection.DayCollector import DayCollector
 from DataCollection.RaceCardsCollector import RaceCardsCollector
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -13,11 +11,11 @@ class TrainDataCollector:
     def __init__(self):
         self.__race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
 
-        initial_race_cards = self.__race_cards_persistence.load_every_month()
+        initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
+        self.__collected_days = {race_card.date for race_card in initial_race_cards}
 
-        self.__race_cards_collector = RaceCardsCollector(initial_race_cards)
+        self.__race_cards_collector = RaceCardsCollector()
         self.__day_collector = DayCollector()
-        self.__collected_days = self.__get_collected_days()
 
     def collect(self, query_date: date):
         newest_train_date = query_date
@@ -53,9 +51,6 @@ class TrainDataCollector:
 
         if len(race_ids) > 0:
             self.__race_cards_persistence.save(new_race_cards)
-
-    def __get_collected_days(self) -> Set[date]:
-        return {race_card.date for race_card in self.__race_cards_collector.race_cards}
 
     @property
     def latest_date(self) -> date:

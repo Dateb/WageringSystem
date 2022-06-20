@@ -6,30 +6,17 @@ class RaceCard:
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.__race_id = race_id
-        self.__raw_race_card = raw_race_card
 
-        self.__check_raw_data()
-
-        self.__extract_data()
+        self.__extract_data(raw_race_card)
         if remove_non_starters:
             self.__remove_non_starters()
         self.__set_head_to_head_horses()
 
-    def __check_raw_data(self):
-        if 'race' not in self.__raw_race_card:
-            raise KeyError('Race with id {race_id} does not exist'.format(race_id=self.__race_id))
-
-        if 'runners' not in self.__raw_race_card:
-            raise KeyError('Runners for race with id {race_id} does not exist'.format(race_id=self.__race_id))
-
-        if 'data' not in self.__raw_race_card['runners']:
-            raise KeyError('Runners dict exists but does not have \'data\' key')
-
-    def __extract_data(self):
-        self.__event = self.__raw_race_card["event"]
-        self.__race = self.__raw_race_card["race"]
-        self.horses = self.__raw_race_card["runners"]["data"]
-        self.__result = self.__raw_race_card["result"]
+    def __extract_data(self, raw_race_card: dict):
+        self.__event = raw_race_card["event"]
+        self.__race = raw_race_card["race"]
+        self.horses = raw_race_card["runners"]["data"]
+        self.__result = raw_race_card["result"]
 
         self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
 
@@ -404,31 +391,3 @@ class RaceCard:
         first_names = [self.horses[horse_id]['trainer']['firstName'] for horse_id in self.horses]
         last_names = [self.horses[horse_id]['trainer']['lastName'] for horse_id in self.horses]
         return [f"{first_names[i]} {last_names[i]}" for i in range(len(first_names))]
-
-    @property
-    def exacta_odds(self) -> float:
-        if "other" in self.__result["odds"]:
-            return float(list(self.__result["odds"]["other"][0]["EXA"].keys())[0])
-
-        return 0.0
-
-    @property
-    def trifecta_odds(self) -> float:
-        if "other" in self.__result["odds"]:
-            if len(self.__result["odds"]["other"]) > 1:
-                if "TRI" in self.__result["odds"]["other"][1]:
-                    return float(list(self.__result["odds"]["other"][1]["TRI"].keys())[0])
-
-        return 0.0
-
-    @property
-    def raw_race_card(self) -> dict:
-        return self.__raw_race_card
-
-    @property
-    def rule_4_deductions(self) -> float:
-        deductions = self.__race["rule4Deductions"]
-        if len(deductions) == 0:
-            return 0.0
-
-        return int(deductions[0]["deduction"]) / 100

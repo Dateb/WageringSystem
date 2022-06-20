@@ -1,15 +1,14 @@
 import json
 import os
 from typing import List
-
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.WritableRaceCard import RaceCard, WritableRaceCard
 
 
 class RaceCardsPersistence:
     def __init__(self, file_name: str):
         self.__base_file_name = file_name
 
-    def save(self, race_cards: List[RaceCard]):
+    def save(self, race_cards: List[WritableRaceCard]):
         raw_races = {str(race_card.date): {} for race_card in race_cards}
         for race_card in race_cards:
             raw_races[str(race_card.date)][race_card.title] = {}
@@ -34,17 +33,33 @@ class RaceCardsPersistence:
             with open(file_name, "w") as f:
                 json.dump(raw_races_of_month, f)
 
-    def load_first_month(self) -> List[RaceCard]:
+    def load_first_month_non_writable(self) -> List[RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
-        return self.__load_race_cards_of_file(race_cards_files[0])
+        return self.__load_race_cards_of_file(race_cards_files[0], self.__create_race_card)
 
-    def load_every_month(self) -> List[RaceCard]:
+    def load_every_month_non_writable(self) -> List[RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
-        race_cards = [self.__load_race_cards_of_file(race_cards_file) for race_cards_file in race_cards_files]
+        race_cards = [
+            self.__load_race_cards_of_file(race_cards_file, self.__create_race_card)
+            for race_cards_file in race_cards_files
+        ]
 
         return self.__flatten(race_cards)
 
-    def __load_race_cards_of_file(self, file_name: str) -> List[RaceCard]:
+    def load_first_month_writable(self) -> List[WritableRaceCard]:
+        race_cards_files = os.listdir("../data/train_test_race_cards")
+        return self.__load_race_cards_of_file(race_cards_files[0], self.__create_writable_race_card)
+
+    def load_every_month_writable(self) -> List[WritableRaceCard]:
+        race_cards_files = os.listdir("../data/train_test_race_cards")
+        race_cards = [
+            self.__load_race_cards_of_file(race_cards_file, self.__create_writable_race_card)
+            for race_cards_file in race_cards_files
+        ]
+
+        return self.__flatten(race_cards)
+
+    def __load_race_cards_of_file(self, file_name: str, race_card_creation):
         file_path = f"../data/train_test_race_cards/{file_name}"
         with open(file_path, "r") as f:
             raw_races = json.load(f)
@@ -56,9 +71,15 @@ class RaceCardsPersistence:
                 raw_races_of_date_track = raw_races_of_date[track]
                 for race_number in raw_races_of_date_track:
                     raw_race = raw_races_of_date_track[race_number]
-                    race_cards.append(RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=False))
+                    race_cards.append(race_card_creation(raw_race))
 
         return race_cards
+
+    def __create_race_card(self, raw_race: dict) -> RaceCard:
+        return RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=False)
+
+    def __create_writable_race_card(self, raw_race: dict) -> RaceCard:
+        return WritableRaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=False)
 
     def __flatten(self, xss):
         return [x for xs in xss for x in xs]
@@ -66,10 +87,10 @@ class RaceCardsPersistence:
 
 def main():
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month()
+    race_cards = persistence.load_first_month_non_writable()
     print(race_cards)
     print(race_cards[0].title)
-    persistence.save(race_cards)
+    #persistence.save(race_cards)
 
 
 if __name__ == '__main__':
