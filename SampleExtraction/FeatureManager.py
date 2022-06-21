@@ -29,13 +29,13 @@ from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import Predict
 from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
 from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
-from SampleExtraction.Extractors.PastParTimeDeviationExtractor import PastParTimeDeviationExtractor
+from SampleExtraction.Extractors.AverageParTimeDeviationExtractor import AverageParTimeDeviationExtractor
 from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
 from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.Extractors.TrackPurseExtractor import TrackPurseExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
-from SampleExtraction.Extractors.RatingExtractor import RatingExtractor
+from SampleExtraction.Extractors.AverageRatingExtractor import AverageRatingExtractor
 from SampleExtraction.Extractors.TrackGoingDifferenceExtractor import TrackGoingDifferenceExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WeightDifferenceExtractor import WeightDifferenceExtractor
@@ -65,53 +65,48 @@ class FeatureManager:
     POST_POSITION_EXTRACTORS = [PostPositionExtractor(race_card_idx) for race_card_idx in range(3)]
 
     PAST_PLACES_EXTRACTORS = [PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)]
-    RATING_EXTRACTORS = [RatingExtractor(n_races_ago) for n_races_ago in range(0, 6)]
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         CurrentOddsExtractor(),
-
-        PastParTimeDeviationExtractor(n_races_ago=1),
+        AverageRatingExtractor(n_races_ago=5),
+        AverageParTimeDeviationExtractor(n_races_ago=5),
         ParTimeDeviationSameTrack(),
-        PastParTimeDeviationExtractor(n_races_ago=2),
-        PastParTimeDeviationExtractor(n_races_ago=3),
-        PastParTimeDeviationExtractor(n_races_ago=4),
-        PastParTimeDeviationExtractor(n_races_ago=5),
         PreviousSpeedExtractor(),
         PastMaxSpeedSimilarDistanceExtractor(),
         PastMaxSpeedSameTrackExtractor(),
         PastMaxSpeedSameGoingExtractor(),
-
-        PredictedPlaceDeviationExtractor(n_races_ago=1),
-        PredictedPlaceDeviationExtractor(n_races_ago=2),
-
-        AveragePlaceLifetimeExtractor(),
-        WinRateLifetimeExtractor(),
-        AgeExtractor(),
-        AveragePlaceCategoryExtractor(),
-        AveragePlaceSurfaceExtractor(),
-        AveragePlaceTrackExtractor(),
-        DistanceDifferenceExtractor(),
-        HeadToHeadExtractor(),
-        BlinkerExtractor(),
-        ColtExtractor(),
-        GeldingExtractor(),
-        MareExtractor(),
-        JockeyCurrentHorsePurseExtractor(),
         LayoffExtractor(),
-        MaxPastRatingExtractor(),
-        PastAverageHorseDistanceExtractor(),
-        PastRaceCountExtractor(),
-        PreviousClassExtractor(),
-        PreviousHorseDistanceExtractor(),
-        PreviousOddsExtractor(),
-        PreviousRaceStarterCountExtractor(),
-        PurseExtractor(),
-        TrackGoingDifferenceExtractor(),
-        TrackPurseExtractor(),
-        WeightAllowanceExtractor(),
-        WeightDifferenceExtractor(),
-        WeightJockeyExtractor(),
-    ] + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_JOCKEY_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + RATING_EXTRACTORS
+        #
+        # PredictedPlaceDeviationExtractor(n_races_ago=1),
+        # PredictedPlaceDeviationExtractor(n_races_ago=2),
+        #
+        # AveragePlaceLifetimeExtractor(),
+        # WinRateLifetimeExtractor(),
+        # AgeExtractor(),
+        # AveragePlaceCategoryExtractor(),
+        # AveragePlaceSurfaceExtractor(),
+        # AveragePlaceTrackExtractor(),
+        # DistanceDifferenceExtractor(),
+        # HeadToHeadExtractor(),
+        # BlinkerExtractor(),
+        # ColtExtractor(),
+        # GeldingExtractor(),
+        # MareExtractor(),
+        # JockeyCurrentHorsePurseExtractor(),
+        # MaxPastRatingExtractor(),
+        # PastAverageHorseDistanceExtractor(),
+        # PastRaceCountExtractor(),
+        # PreviousClassExtractor(),
+        # PreviousHorseDistanceExtractor(),
+        # PreviousOddsExtractor(),
+        # PreviousRaceStarterCountExtractor(),
+        # PurseExtractor(),
+        # TrackGoingDifferenceExtractor(),
+        # TrackPurseExtractor(),
+        # WeightAllowanceExtractor(),
+        # WeightDifferenceExtractor(),
+        # WeightJockeyExtractor(),
+    ] #+ AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_JOCKEY_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 

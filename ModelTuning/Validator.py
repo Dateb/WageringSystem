@@ -1,4 +1,5 @@
 import pickle
+from pathlib import Path
 
 from pandas import DataFrame
 
@@ -11,6 +12,7 @@ from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Ranker.Ranker import Ranker
+from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.Extractors.PastMaxSpeedSimilarDistanceExtractor import PastMaxSpeedSimilarDistanceExtractor
 from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.FeatureManager import FeatureManager
@@ -48,7 +50,11 @@ def get_validator() -> Validator:
 
     sample_encoder = SampleEncoder(FeatureManager())
     train_samples, test_samples = sample_encoder.transform(race_cards)
-    print(test_samples)
+
+    filepath = Path('data/out.csv')
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    test_samples.to_csv(filepath, index=False)
+
     bet_evaluator = BetEvaluator()
     #bettor = DynamicKellyBettor(start_kelly_wealth=1000, kelly_fraction=0.33, bet_evaluator=bet_evaluator)
     bettor = StaticKellyBettor(start_kelly_wealth=1000)
@@ -61,12 +67,14 @@ def main():
     #with open(BEST_RANKER_PATH, "rb") as f:
     #    ranker = pickle.load(f)
 
-    ranker = BoostedTreesRanker(["Current_Odds_Feature"], {})
+    ranker_features = ["Current_Odds_Feature"]
+    ranker = BoostedTreesRanker(ranker_features, {})
     validator.fit_ranker(ranker)
 
     fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds")]
 
-    ranker = BoostedTreesRanker(FeatureManager.FEATURE_NAMES, {})
+    ranker_features = FeatureManager.FEATURE_NAMES
+    ranker = BoostedTreesRanker(ranker_features, {})
     validator.fit_ranker(ranker)
 
     fund_history_summaries += [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds + Speed features")]

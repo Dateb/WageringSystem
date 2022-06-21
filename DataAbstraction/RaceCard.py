@@ -91,15 +91,17 @@ class RaceCard:
         form_table = self.form_table_of_horse(horse_id)
         past_times = []
         for past_race in form_table:
-            if "horseDistance" in past_race and past_race["winTimeSeconds"] != -1:
-                if past_race["finalPosition"] == 1:
-                    time = past_race["winTimeSeconds"]
-                else:
-                    time = past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
-            else:
-                time = -1
-            past_times.append(time)
+            past_times.append(self.time_of_past_race(past_race))
         return past_times
+
+    def time_of_past_race(self, past_race: dict) -> float:
+        if "horseDistance" in past_race and past_race["winTimeSeconds"] != -1:
+            if past_race["finalPosition"] == 1:
+                return past_race["winTimeSeconds"]
+            else:
+                return past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
+        else:
+            return -1
 
     def past_times_of_horse_same_track(self, horse_id: str) -> List[float]:
         form_table = self.form_table_of_horse(horse_id)
@@ -174,11 +176,10 @@ class RaceCard:
 
     def horse_rating_n_races_ago(self, horse_id: str, n_races_ago: int) -> int:
         if n_races_ago == 0:
-            horse = self.horses[horse_id]
-            return horse["rating"]
+            return self.rating_of_horse(horse_id)
 
         form_table = self.form_table_of_horse(horse_id)
-        if n_races_ago + 1 > len(form_table):
+        if n_races_ago + 1 > len(form_table) or "rating" not in form_table[n_races_ago - 1]:
             return -1
 
         return form_table[n_races_ago - 1]["rating"]
@@ -239,7 +240,10 @@ class RaceCard:
         return trainer["stats"]
 
     def rating_of_horse(self, horse_id: str) -> int:
-        return self.horses[horse_id]["rating"]
+        rating = int(float(self.horses[horse_id]["rating"]))
+        if rating == 0:
+            return -1
+        return rating
 
     def post_position_of_horse(self, subject_id: str) -> int:
         horse = self.get_data_of_subject(subject_id)

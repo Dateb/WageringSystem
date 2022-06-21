@@ -16,4 +16,4 @@ class DistanceDifferenceExtractor(FeatureExtractor):
 
         previous_race = horse.get_race(1)
         current_race = horse.get_race(0)
-        return 1 / (current_race.distance - previous_race.distance + 0.001)
+        return current_race.distance - previous_race.distance
