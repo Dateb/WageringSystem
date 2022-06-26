@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List
+from typing import List, Dict
 from DataAbstraction.WritableRaceCard import RaceCard, WritableRaceCard
 
 
@@ -33,45 +33,52 @@ class RaceCardsPersistence:
             with open(file_name, "w") as f:
                 json.dump(raw_races_of_month, f)
 
-    def load_first_month_non_writable(self) -> List[RaceCard]:
+    def load_first_month_non_writable(self) -> Dict[str, RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
         return self.__load_race_cards_of_file(race_cards_files[0], self.__create_race_card)
 
-    def load_every_month_non_writable(self) -> List[RaceCard]:
+    def load_every_month_non_writable(self) -> Dict[str, RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
-        race_cards = [
+        race_cards_per_file = [
             self.__load_race_cards_of_file(race_cards_file, self.__create_race_card)
             for race_cards_file in race_cards_files
         ]
+        total_race_cards = {}
+        for race_cards in race_cards_per_file:
+            total_race_cards = {**total_race_cards, **race_cards}
 
-        return self.__flatten(race_cards)
+        return total_race_cards
 
-    def load_first_month_writable(self) -> List[WritableRaceCard]:
+    def load_first_month_writable(self) -> Dict[str, WritableRaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
         return self.__load_race_cards_of_file(race_cards_files[0], self.__create_writable_race_card)
 
-    def load_every_month_writable(self) -> List[WritableRaceCard]:
+    def load_every_month_writable(self) -> Dict[str, WritableRaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
-        race_cards = [
+        race_cards_per_file = [
             self.__load_race_cards_of_file(race_cards_file, self.__create_writable_race_card)
             for race_cards_file in race_cards_files
         ]
+        total_race_cards = {}
+        for race_cards in race_cards_per_file:
+            total_race_cards = {**total_race_cards, **race_cards}
 
-        return self.__flatten(race_cards)
+        return total_race_cards
 
     def __load_race_cards_of_file(self, file_name: str, race_card_creation):
         file_path = f"../data/train_test_race_cards/{file_name}"
         with open(file_path, "r") as f:
             raw_races = json.load(f)
 
-        race_cards = []
+        race_cards = {}
         for date in raw_races:
             raw_races_of_date = raw_races[date]
             for track in raw_races_of_date:
                 raw_races_of_date_track = raw_races_of_date[track]
                 for race_number in raw_races_of_date_track:
                     raw_race = raw_races_of_date_track[race_number]
-                    race_cards.append(race_card_creation(raw_race))
+                    new_race_card = race_card_creation(raw_race)
+                    race_cards[str(new_race_card.datetime)] = new_race_card
 
         return race_cards
 

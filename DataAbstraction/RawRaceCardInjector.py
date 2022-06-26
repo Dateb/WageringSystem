@@ -22,6 +22,8 @@ class RawRaceCardInjector:
             form_table = self.__race_card.form_table_of_horse(horse)
             for past_race in form_table:
                 past_race["winTimeSeconds"] = -1
+                past_race["raceDistance"] = -1
+                past_race["categoryLetter"] = -1
                 if past_race["country"] == "GB":
                     date = datetime.utcfromtimestamp(past_race["date"])
                     date += timedelta(hours=2)
@@ -31,7 +33,9 @@ class RawRaceCardInjector:
                         track_name = past_race["trackName"]
                         if track_name in win_times_of_date:
                             race_number = past_race["raceNumber"]
-                            past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]
+                            past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]["win_time"]
+                            past_race["raceDistance"] = win_times_of_date[track_name][str(race_number)]["distance"]
+                            past_race["categoryLetter"] = win_times_of_date[track_name][str(race_number)]["class"]
 
     def inject_past_race_card(self, subject_id: str, past_race_card: WritableRaceCard):
         horse_data = self.__race_card.get_data_of_subject(subject_id)
@@ -49,13 +53,13 @@ def main():
     race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
     race_cards = race_cards_persistence.load_every_month_writable()
 
-    win_times = JSONPersistence("win_times").load()
+    win_times = JSONPersistence("win_times_contextualized").load()
 
-    for race_card in race_cards:
-        injector = RawRaceCardInjector(race_card)
+    for date_time in race_cards:
+        injector = RawRaceCardInjector(race_cards[date_time])
         injector.inject_win_time(win_times)
 
-    race_cards_persistence.save(race_cards)
+    race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':

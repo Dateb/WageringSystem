@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from pandas import DataFrame
 from SampleExtraction.FeatureManager import FeatureManager
@@ -20,17 +20,23 @@ class SampleEncoder:
         ]
         self.__horse_factory = HorseFactory(feature_manager)
         self.__train_fraction = train_fraction
+        self.train_race_cards = None
+        self.test_race_cards = None
 
-    def transform(self, race_cards: List[RaceCard]) -> Tuple[DataFrame, DataFrame]:
-        race_cards.sort(key=lambda race_card: race_card.datetime, reverse=True)
+    def transform(self, race_cards: Dict[str, RaceCard]) -> Tuple[DataFrame, DataFrame]:
+        race_keys = list(race_cards.keys())
+        race_keys.sort()
 
-        n_races = len(race_cards)
+        n_races = len(race_keys)
         n_races_train = int(self.__train_fraction * n_races)
 
-        train_race_cards = race_cards[:n_races_train]
-        test_race_cards = race_cards[n_races_train:]
+        train_race_keys = race_keys[:n_races_train]
+        test_race_keys = race_keys[n_races_train:]
 
-        return self.__encode_train_race_cards(train_race_cards), self.__race_cards_to_dataframe(test_race_cards)
+        self.train_race_cards = [race_cards[race_key] for race_key in train_race_keys]
+        self.test_race_cards = [race_cards[race_key] for race_key in test_race_keys]
+
+        return self.__encode_train_race_cards(self.train_race_cards), self.__race_cards_to_dataframe(self.test_race_cards)
 
     def __encode_train_race_cards(self, train_race_cards: List[RaceCard]) -> DataFrame:
         for feature_container in self.__feature_containers:

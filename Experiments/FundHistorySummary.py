@@ -8,6 +8,7 @@ class FundHistorySummary:
 
     def __init__(self, name: str, betting_slips: Dict[str, BettingSlip], start_wealth=0):
         self.__name = name
+        self.__betting_slips = betting_slips
         self.__payouts = []
         self.__winnings = []
         self.__loss = []
@@ -44,6 +45,10 @@ class FundHistorySummary:
 
         self.__win_loss_ratio = self.__total_win / self.__total_loss
         self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
+
+    @property
+    def betting_slips(self):
+        return self.__betting_slips
 
     @property
     def summary(self):

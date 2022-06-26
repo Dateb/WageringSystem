@@ -6,23 +6,26 @@ import numpy as np
 
 from Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Ranker.Ranker import Ranker
+from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
 NUM_LEAVES_VALUES = list(np.arange(51, 86, 5))
 MIN_CHILD_SAMPLES_VALUES = list(np.arange(10, 32, 2))
+COLSAMPLE_BYTREE_VALUES = list(np.arange(0.2, 1.2, 0.2))
 
-BASE_FEATURES = [CurrentOddsExtractor().get_name()]
+BASE_FEATURES = [CurrentOddsExtractor().get_name(), AverageSpeedFigureExtractor().get_name()]
 SEARCH_FEATURES = [feature for feature in FeatureManager.FEATURE_NAMES if feature not in BASE_FEATURES]
 
-N_DECISION_LIST = [len(NUM_LEAVES_VALUES), len(MIN_CHILD_SAMPLES_VALUES)] + [2 for _ in range(len(SEARCH_FEATURES))]
+N_DECISION_LIST = [len(NUM_LEAVES_VALUES), len(MIN_CHILD_SAMPLES_VALUES), len(COLSAMPLE_BYTREE_VALUES)]\
+                  + [2 for _ in range(len(SEARCH_FEATURES))]
 
 
 class RankerConfig:
 
     def __init__(self, decisions: List[int]):
         self.search_params = {}
-        self.feature_subset = [CurrentOddsExtractor().get_name()]
+        self.feature_subset = [CurrentOddsExtractor().get_name(), AverageSpeedFigureExtractor().get_name()]
         self.decisions = decisions
         self.is_terminal = False
         if len(decisions) == len(N_DECISION_LIST):
@@ -38,8 +41,10 @@ class RankerConfig:
             self.search_params["num_leaves"] = NUM_LEAVES_VALUES[decision_idx]
         if i == 1:
             self.search_params["min_child_samples"] = MIN_CHILD_SAMPLES_VALUES[decision_idx]
-        if i >= 2 and decision_idx == 1:
-            self.feature_subset.append(SEARCH_FEATURES[i - 2])
+        if i == 2:
+            self.search_params["colsample_bytree"] = COLSAMPLE_BYTREE_VALUES[decision_idx]
+        if i >= 3 and decision_idx == 1:
+            self.feature_subset.append(SEARCH_FEATURES[i - 3])
 
     def get_ranker(self) -> Ranker:
         return BoostedTreesRanker(self.feature_subset, self.search_params)

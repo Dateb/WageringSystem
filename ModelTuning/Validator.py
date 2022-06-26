@@ -56,8 +56,7 @@ def get_validator() -> Validator:
     test_samples.to_csv(filepath, index=False)
 
     bet_evaluator = BetEvaluator()
-    #bettor = DynamicKellyBettor(start_kelly_wealth=1000, kelly_fraction=0.33, bet_evaluator=bet_evaluator)
-    bettor = StaticKellyBettor(start_kelly_wealth=1000)
+    bettor = StaticKellyBettor(sample_encoder.test_race_cards, start_kelly_wealth=200)
 
     return Validator(bettor, train_samples, test_samples, bet_evaluator)
 

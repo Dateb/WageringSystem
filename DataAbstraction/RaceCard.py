@@ -87,12 +87,16 @@ class RaceCard:
     def form_table_of_horse(self, horse_id: str) -> List[dict]:
         return self.horses[horse_id]["formTable"]
 
+    def past_speed_ratings_of_horse(self, horse_id: str, base_time: float) -> List[float]:
+        past_times = self.past_times_of_horse(horse_id)
+        return [
+            self.__speed_rating_calculator.compute_speed_rating_from_time(self.distance, past_time)
+            for past_time in past_times
+        ]
+
     def past_times_of_horse(self, horse_id: str) -> List[float]:
         form_table = self.form_table_of_horse(horse_id)
-        past_times = []
-        for past_race in form_table:
-            past_times.append(self.time_of_past_race(past_race))
-        return past_times
+        return [self.time_of_past_race(past_race) for past_race in form_table]
 
     def time_of_past_race(self, past_race: dict) -> float:
         if "horseDistance" in past_race and past_race["winTimeSeconds"] != -1:

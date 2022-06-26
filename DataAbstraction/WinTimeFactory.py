@@ -1,3 +1,4 @@
+import math
 import re
 from datetime import datetime, timedelta
 from typing import List
@@ -45,8 +46,18 @@ class WinTimeFactory:
                 if article is None:
                     there_are_win_times_left = False
                 else:
+                    win_times[track_name][race_number] = {}
+
                     win_time_text = self.__find_win_time_text(article)
-                    win_times[track_name][race_number] = self.__win_time_text_to_seconds(win_time_text)
+                    win_times[track_name][race_number]["win_time"] = self.__win_time_text_to_seconds(win_time_text)
+
+                    distance_text = self.__find_distance_text(article)
+                    print(distance_text)
+                    win_times[track_name][race_number]["distance"] = self.__distance_text_to_meters(distance_text)
+
+                    class_text = self.__find_class_text(article)
+                    win_times[track_name][race_number]["class"] = class_text
+
                     race_number += 1
 
         return win_times
@@ -65,6 +76,38 @@ class WinTimeFactory:
         win_time_end_idx = win_time_div.text.find("s") + 1
 
         return win_time_div.text[win_time_start_idx:win_time_end_idx]
+
+    def __find_distance_text(self, article) -> str:
+        distance_span_elem = [span_elem for span_elem in article.find_all("span") if len(span_elem.text) > 1
+                              and (span_elem.text[-1] == "f" or span_elem.text[-1] == "m")
+                              and (span_elem.text[-2].isdigit() or span_elem.text[-2] == "½")]
+        if not distance_span_elem:
+            return "0f"
+        return distance_span_elem[0].text
+
+    def __find_class_text(self, article) -> str:
+        class_span_elem = [span_elem for span_elem in article.find_all("span") if "Class " in span_elem.text]
+        if not class_span_elem:
+            return "-1"
+        class_begin_idx = class_span_elem[0].text.rindex("Class")
+
+        return class_span_elem[0].text[class_begin_idx + len("Class") + 1]
+
+    def __distance_text_to_meters(self, distance_text: str) -> int:
+        distance_text = distance_text.replace("½", ".5")
+        distance_split = distance_text.split(sep=" ")
+        if len(distance_split) > 1:
+            miles = distance_split[0][:-1]
+            furlongs = distance_split[1][:-1]
+        else:
+            unit = distance_split[0][-1]
+            if unit == "m":
+                miles = distance_split[0][:-1]
+                furlongs = "0"
+            else:
+                miles = "0"
+                furlongs = distance_split[0][:-1]
+        return math.floor(float(miles) * 1609.34 + float(furlongs) * 201.168)
 
     def __link_corresponds_to_race(self, link, track_name: str, race_number: int) -> bool:
         track_name = track_name.replace(" ", "-")
@@ -100,7 +143,7 @@ class WinTimeFactory:
 
 
 def main():
-    persistence = JSONPersistence("win_times")
+    persistence = JSONPersistence("win_times_contextualized")
     win_time_factory = WinTimeFactory()
 
     win_times = persistence.load()

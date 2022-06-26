@@ -12,7 +12,7 @@ class TrainDataCollector:
         self.__race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
 
         initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
-        self.__collected_days = {race_card.date for race_card in initial_race_cards}
+        self.__collected_days = {initial_race_cards[datetime].date for datetime in initial_race_cards}
 
         self.__race_cards_collector = RaceCardsCollector()
         self.__day_collector = DayCollector()

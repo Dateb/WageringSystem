@@ -1,15 +1,16 @@
-from typing import Dict
+from typing import Dict, List
 
 import pandas as pd
 
 from Betting.BettingSlip import BettingSlip, BetType
 from Betting.Bettor import Bettor
+from DataAbstraction.RaceCard import RaceCard
 
 
 class StaticKellyBettor(Bettor):
 
-    def __init__(self, start_kelly_wealth: float):
-        super().__init__(start_kelly_wealth)
+    def __init__(self, race_cards: List[RaceCard], start_kelly_wealth: float):
+        super().__init__(race_cards, start_kelly_wealth)
 
     def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
         bets_df = self._add_stakes_fraction(samples)
