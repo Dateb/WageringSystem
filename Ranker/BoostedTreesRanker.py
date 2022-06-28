@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRanker
 
+from DataAbstraction.RaceCard import RaceCard
 from Ranker.Ranker import Ranker
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class BoostedTreesRanker(Ranker):
@@ -35,7 +36,7 @@ class BoostedTreesRanker(Ranker):
     def fit(self, samples_train: pd.DataFrame):
         x_ranker = samples_train[self.feature_subset]
         y_ranker = samples_train[Horse.RELEVANCE_KEY]
-        qid = samples_train.groupby(Horse.RACE_ID_KEY)[Horse.RACE_ID_KEY].count()
+        qid = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
         self._ranker.fit(X=x_ranker, y=y_ranker, group=qid)
 
@@ -46,8 +47,8 @@ class BoostedTreesRanker(Ranker):
         samples_test.loc[:, "score"] = scores
 
         samples_test.loc[:, "exp_score"] = np.exp(samples_test.loc[:, "score"])
-        score_sums = samples_test.groupby([Horse.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
-        samples_test = samples_test.join(other=score_sums, on=Horse.RACE_ID_KEY, how="inner")
+        score_sums = samples_test.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
+        samples_test = samples_test.join(other=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
         samples_test.loc[:, "win_probability"] = samples_test.loc[:, "exp_score"] / samples_test.loc[:, "sum_exp_scores"]
 
         return samples_test

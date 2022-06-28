@@ -22,10 +22,10 @@ class SpeedFiguresContainer(FeatureContainer):
     def __compute_base_times(self, train_race_cards: List[RaceCard]):
         for race_card in train_race_cards:
             for horse in race_card.horses:
-                for past_race in race_card.form_table_of_horse(horse):
-                    distance_key = str(past_race["raceDistance"])
+                for past_form in horse.form_table.past_forms:
+                    distance_key = str(past_form.distance)
 
-                    win_time = past_race["winTimeSeconds"]
+                    win_time = past_form.win_time
                     if win_time > 0:
                         if distance_key not in self.__base_times:
                             self.__base_times[distance_key] = {"base_time": win_time, "count": 1}
@@ -44,11 +44,11 @@ class SpeedFiguresContainer(FeatureContainer):
     def __compute_par_figures(self, train_race_cards: List[RaceCard]):
         for race_card in train_race_cards:
             for horse in race_card.horses:
-                for past_race in race_card.form_table_of_horse(horse):
-                    past_distance = str(past_race["raceDistance"])
-                    past_class = str(past_race["categoryLetter"])
+                for past_form in horse.form_table.past_forms:
+                    past_distance = str(past_form.distance)
+                    past_class = str(past_form.category)
 
-                    win_time = past_race["winTimeSeconds"]
+                    win_time = past_form.win_time
                     if win_time > 0:
                         base_time_of_distance = self.__base_times[past_distance]["base_time"]
                         points_per_second_of_distance = self.__base_times[past_distance]["points per second"]

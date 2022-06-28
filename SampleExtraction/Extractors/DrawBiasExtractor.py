@@ -1,7 +1,7 @@
 from SampleExtraction.Container import DrawBiasContainer
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class DrawBiasExtractor(FeatureExtractor):

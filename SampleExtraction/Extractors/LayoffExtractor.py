@@ -1,5 +1,5 @@
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class LayoffExtractor(FeatureExtractor):

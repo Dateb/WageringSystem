@@ -1,35 +1,74 @@
 from datetime import datetime
 from typing import List
 
+import numpy as np
+from numpy import ndarray
+
+from DataAbstraction.Horse import Horse
+
 
 class RaceCard:
 
-    def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
-        self.__race_id = race_id
+    DATETIME_KEY: str = "date_time"
+    RACE_ID_KEY: str = "race_id"
 
-        self.__extract_data(raw_race_card)
+    def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
+        self.race_id = race_id
+
+        self.__extract_attributes(raw_race_card)
         if remove_non_starters:
             self.__remove_non_starters()
-        self.__set_head_to_head_horses()
+        #self.__set_head_to_head_horses()
 
-    def __extract_data(self, raw_race_card: dict):
-        self.__event = raw_race_card["event"]
-        self.__race = raw_race_card["race"]
-        self.horses = raw_race_card["runners"]["data"]
-        self.__result = raw_race_card["result"]
+    def __extract_attributes(self, raw_race_card: dict):
+        self.__extract_horses(raw_race_card["runners"]["data"])
+        self.__extract_date(raw_race_card)
 
-        self.__datetime = datetime.fromtimestamp(self.__race["postTime"])
+        event = raw_race_card["event"]
+        race = raw_race_card["race"]
+        result = raw_race_card["result"]
+
+        self.title = event["title"]
+        self.winner_id = str(result["positions"][0]["idRunner"])
+
+        self.__base_attributes = {
+            self.DATETIME_KEY: self.datetime,
+            self.RACE_ID_KEY: self.race_id,
+        }
+
+    def __extract_horses(self, raw_horses: dict):
+        self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+
+    def __extract_date(self, raw_race_card: dict):
+        post_time = raw_race_card["race"]["postTime"]
+        self.datetime = datetime.fromtimestamp(post_time)
+        self.date = self.datetime.date()
 
     def __remove_non_starters(self):
         non_starters = [horse_id for horse_id in self.horses if self.is_horse_scratched(horse_id)]
         for non_starter in non_starters:
             del self.horses[non_starter]
 
+    def to_array(self) -> ndarray:
+        total_values = []
+        for horse in self.horses:
+            values = self.values + horse.values
+            total_values.append(values)
+        return np.asarray(total_values)
+
+    @property
+    def values(self) -> List:
+        return list(self.__base_attributes.values())
+
+    @property
+    def attributes(self) -> List[str]:
+        return list(self.__base_attributes.keys()) + self.horses[0].attributes
+
     def remove_horse(self, horse_id: str):
         del self.horses[horse_id]
 
     def set_odds_of_horse(self, horse_id: str, odds: float):
-        self.horses[horse_id]["odds"]["FXW"] = odds
+        self.horses[horse_id].current_odds = odds
 
     def get_name_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["name"]
@@ -37,27 +76,8 @@ class RaceCard:
     def is_horse_scratched(self, horse_id: str) -> bool:
         return self.horses[horse_id]["scratched"]
 
-    def get_place_of_horse(self, horse_id: str) -> int:
-        horse_data = self.horses[horse_id]
-        if horse_data["scratched"]:
-            return -1
-
-        if 'finalPosition' in horse_data:
-            return int(horse_data["finalPosition"])
-
-        return 100
-
     def jockey_last_name_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["jockey"]["lastName"]
-
-    def get_current_odds(self):
-        return [self.get_current_odds_of_horse(horse) for horse in self.horses]
-
-    def get_current_odds_of_horse(self, horse_id: str) -> float:
-        odds_of_horse = self.horses[horse_id]["odds"]
-        if odds_of_horse["FXW"] == 0:
-            return float(odds_of_horse["PRC"])
-        return float(odds_of_horse["FXW"])
 
     def get_subject_id_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["idSubject"]
@@ -68,13 +88,13 @@ class RaceCard:
             if horse_data["idSubject"] == subject_id:
                 return horse_data
 
-    def __set_head_to_head_horses(self):
-        self.__head_to_head_horses = []
-
-        if "head2head" in self.__race:
-            head_to_head_races = self.__race["head2head"]
-            for head_to_head_race in head_to_head_races:
-                self.__head_to_head_horses += head_to_head_race["runners"]
+    # def __set_head_to_head_horses(self):
+    #     self.__head_to_head_horses = []
+    #
+    #     if "head2head" in self.__race:
+    #         head_to_head_races = self.__race["head2head"]
+    #         for head_to_head_race in head_to_head_races:
+    #             self.__head_to_head_horses += head_to_head_race["runners"]
 
     def get_past_races_of_horse(self, horse_id: str):
         subject_id = self.get_subject_id_of_horse(horse_id)
@@ -83,9 +103,6 @@ class RaceCard:
             return horse_data["pastRaces"]
 
         return []
-
-    def form_table_of_horse(self, horse_id: str) -> List[dict]:
-        return self.horses[horse_id]["formTable"]
 
     def past_speed_ratings_of_horse(self, horse_id: str, base_time: float) -> List[float]:
         past_times = self.past_times_of_horse(horse_id)
@@ -305,36 +322,16 @@ class RaceCard:
         return str(self.get_data_of_subject(subject_id)["idRunner"])
 
     @property
-    def winner_id(self) -> str:
-        return str(self.__result["positions"][0]["idRunner"])
-
-    @property
     def name(self) -> str:
         return f"{self.title} {self.number}"
-
-    @property
-    def title(self) -> str:
-        return self.__event["title"]
 
     @property
     def number(self) -> str:
         return self.__race["raceNumber"]
 
     @property
-    def datetime(self):
-        return self.__datetime
-
-    @property
-    def date(self):
-        return self.__datetime.date()
-
-    @property
     def start_time(self):
         return self.__event["firstStart"]
-
-    @property
-    def race_id(self) -> str:
-        return self.__race_id
 
     @property
     def track_id(self) -> str:

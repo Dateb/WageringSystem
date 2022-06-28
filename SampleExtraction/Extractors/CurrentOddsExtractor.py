@@ -1,5 +1,6 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class CurrentOddsExtractor(FeatureExtractor):
@@ -10,6 +11,5 @@ class CurrentOddsExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Current_Odds_Feature"
 
-    def get_value(self, horse: Horse) -> float:
-        race_card = horse.get_race(0)
-        return race_card.get_current_odds_of_horse(horse.horse_id)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.current_odds

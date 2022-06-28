@@ -4,7 +4,7 @@ import pandas as pd
 
 from Betting.BettingSlip import BetType, BettingSlip
 from Betting.Bettor import Bettor
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class FirstHorseBettor(Bettor):

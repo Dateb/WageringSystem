@@ -5,7 +5,7 @@ import pandas as pd
 from Betting.Bet import Bet
 from Betting.BettingSlip import BettingSlip, BetType
 from DataAbstraction.RaceCard import RaceCard
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 pd.options.mode.chained_assignment = None
 
@@ -42,7 +42,7 @@ class Bettor(ABC):
             stakes_fraction = float(row["stakes_fraction"])
             new_bet = Bet(horse_id, odds, stakes, stakes_fraction)
 
-            date = row[Horse.DATE_KEY]
+            date = row[RaceCard.DATETIME_KEY]
             betting_slips[date].add_bet(new_bet)
 
         return betting_slips

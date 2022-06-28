@@ -1,52 +1,17 @@
 from typing import List
 
-from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
-from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
-from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
-from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
-from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
-from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
-from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
-from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
-from SampleExtraction.Extractors.JockeyCurrentHorsePurseExtractor import JockeyCurrentHorsePurseExtractor
-from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
-from SampleExtraction.Extractors.MareExtractor import MareExtractor
-from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
-from SampleExtraction.Extractors.ParTimeDeviationSameTrack import ParTimeDeviationSameTrack
-from SampleExtraction.Extractors.PastAverageHorseDistance import PastAverageHorseDistanceExtractor
-from SampleExtraction.Extractors.PastMaxSpeedSameGoingExtractor import PastMaxSpeedSameGoingExtractor
-from SampleExtraction.Extractors.PastMaxSpeedSameTrackExtractor import PastMaxSpeedSameTrackExtractor
-from SampleExtraction.Extractors.PastMaxSpeedSimilarDistanceExtractor import PastMaxSpeedSimilarDistanceExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
-from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
-from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
-from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
-from SampleExtraction.Extractors.PreviousHorseDistanceExtractor import PreviousHorseDistanceExtractor
-from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
-from SampleExtraction.Extractors.AverageParTimeDeviationExtractor import AverageParTimeDeviationExtractor
-from SampleExtraction.Extractors.PreviousRaceStarterCountExtractor import PreviousRaceStarterCountExtractor
-from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
-from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
-from SampleExtraction.Extractors.TrackPurseExtractor import TrackPurseExtractor
-from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
-from SampleExtraction.Extractors.AverageRatingExtractor import AverageRatingExtractor
-from SampleExtraction.Extractors.TrackGoingDifferenceExtractor import TrackGoingDifferenceExtractor
-from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
-from SampleExtraction.Extractors.WeightDifferenceExtractor import WeightDifferenceExtractor
-from SampleExtraction.Extractors.WeightJockeyExtractor import WeightJockeyExtractor
-from SampleExtraction.Extractors.AveragePlaceCategoryExtractor import AveragePlaceCategoryExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
-from SampleExtraction.Extractors.WinRateLifetimeExtractor import WinRateLifetimeExtractor
 from SampleExtraction.Extractors.WinRateTrainerExtractor import WinRateTrainerExtractor
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class FeatureManager:
@@ -113,12 +78,22 @@ class FeatureManager:
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 
-    def set_features_of_horse(self, horse: Horse) -> None:
-        for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS:
-            feature_value = feature_extractor.get_value(horse)
-            if self.__report_missing_features:
-                self.__report_if_feature_missing(horse, feature_extractor, feature_value)
-            horse.set_feature(feature_extractor.get_name(), feature_value)
+    def fit_enabled_container(self, race_cards: List[RaceCard]):
+        feature_containers = [feature_extractor.container for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS]
+        for feature_container in feature_containers:
+            feature_container.fit(race_cards)
+
+    def set_features(self, race_cards: List[RaceCard]):
+        for race_card in race_cards:
+            self.__set_features_of_race_card(race_card)
+
+    def __set_features_of_race_card(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS:
+                feature_value = feature_extractor.get_value(race_card, horse)
+                if self.__report_missing_features:
+                    self.__report_if_feature_missing(horse, feature_extractor, feature_value)
+                horse.set_feature_value(feature_extractor.get_name(), feature_value)
 
     def __report_if_feature_missing(self, horse: Horse, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

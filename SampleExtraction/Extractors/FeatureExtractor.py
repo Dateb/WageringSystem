@@ -1,7 +1,9 @@
 from abc import abstractmethod, ABC
+from typing import Any
 
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Container import FeatureContainer
-from SampleExtraction.Horse import Horse
+from DataAbstraction.Horse import Horse
 
 
 class FeatureExtractor(ABC):
@@ -16,7 +18,7 @@ class FeatureExtractor(ABC):
         pass
 
     @abstractmethod
-    def get_value(self, horse: Horse) -> int:
+    def get_value(self, race_card: RaceCard, horse: Horse) -> Any:
         pass
 
     @property
