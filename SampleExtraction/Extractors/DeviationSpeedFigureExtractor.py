@@ -7,14 +7,14 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
 
-class AverageSpeedFigureExtractor(FeatureExtractor):
+class DeviationSpeedFigureExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
         self.__speed_figures_container = SpeedFiguresContainer.get_feature_container()
 
     def get_name(self) -> str:
-        return "Average_Speed_Figure"
+        return "Deviation_Speed_Figure"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         form_table = horse.form_table
@@ -33,10 +33,10 @@ class AverageSpeedFigureExtractor(FeatureExtractor):
                 speed_figures.append(past_speed_figure)
             past_form_idx += 1
 
-        if not speed_figures:
+        if not speed_figures or len(speed_figures) < 2:
             return self.PLACEHOLDER_VALUE
 
-        return statistics.mean(speed_figures)
+        return statistics.stdev(speed_figures)
 
     @property
     def container(self) -> FeatureContainer:

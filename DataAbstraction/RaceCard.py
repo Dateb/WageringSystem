@@ -29,6 +29,7 @@ class RaceCard:
         result = raw_race_card["result"]
 
         self.title = event["title"]
+        self.number = race["raceNumber"]
         self.winner_id = str(result["positions"][0]["idRunner"])
 
         self.__base_attributes = {
@@ -324,10 +325,6 @@ class RaceCard:
     @property
     def name(self) -> str:
         return f"{self.title} {self.number}"
-
-    @property
-    def number(self) -> str:
-        return self.__race["raceNumber"]
 
     @property
     def start_time(self):

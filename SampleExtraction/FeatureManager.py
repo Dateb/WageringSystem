@@ -4,8 +4,10 @@ from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
+from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
+from SampleExtraction.Extractors.MaxSpeedFigureExtractor import MaxSpeedFigureExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
 from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
@@ -36,6 +38,8 @@ class FeatureManager:
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         CurrentOddsExtractor(),
         AverageSpeedFigureExtractor(),
+        DeviationSpeedFigureExtractor(),
+        MaxSpeedFigureExtractor(),
         #DrawBiasExtractor(),
 
         # AverageRatingExtractor(n_races_ago=5),

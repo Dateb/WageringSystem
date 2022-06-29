@@ -1,5 +1,6 @@
 from typing import List
 
+from DataAbstraction.PastForm import PastForm
 from DataAbstraction.RaceCard import RaceCard
 from Persistence.JSONPersistence import JSONPersistence
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
@@ -92,16 +93,50 @@ class SpeedFiguresContainer(FeatureContainer):
                 else:
                     self.__track_variants[date][track] = 0
 
-    def get_speed_figure(self, date: str, track: str, race_distance: int, win_time: float, lengths_behind_winner: float) -> float:
-        horse_time = win_time + (0.2 * lengths_behind_winner)
+    def get_speed_figure(self, past_form: PastForm) -> float:
+        # TODO: collect more past winning times (distance != 1 check is then not necessary anymore)
+        if past_form.country != "GB" or past_form.lengths_behind_winner is None or past_form.distance == -1:
+            return -1
 
-        base_time = self.__base_times[str(race_distance)]["base_time"]
-        points_per_second = self.__base_times[str(race_distance)]["points per second"]
+        seconds_behind_winner = ((1 / self.__get_lengths_per_second(past_form)) * past_form.lengths_behind_winner)
+        horse_time = past_form.win_time + seconds_behind_winner
+
+        base_time = self.__base_times[str(past_form.distance)]["base_time"]
+        points_per_second = self.__base_times[str(past_form.distance)]["points per second"]
 
         seconds_difference = base_time - horse_time
-        horse_speed_figure = 80 + seconds_difference * points_per_second + self.__track_variants[date][track]
+
+        track_variant = self.__track_variants[str(past_form.date)][past_form.track_name]
+        horse_speed_figure = 80 + seconds_difference * points_per_second + track_variant
         return horse_speed_figure
 
+    def __get_lengths_per_second(self, past_form: PastForm) -> float:
+        if past_form.type == "G":
+            if past_form.surface == "TRF":
+                if past_form.going <= 3:
+                    return 6
+                if past_form.going >= 4:
+                    return 5
+            if past_form.surface == "EQT":
+                if past_form.track_name in ["Kempton", "Lingfield", "Wolverhampton", "Chelmsford City", "Newcastle"]:
+                    return 6
+                if past_form.track_name in ["Southwell"]:
+                    return 5
+                print(past_form.track_name)
+        if past_form.type == "J":
+            if past_form.going <= 3:
+                return 5
+            if past_form.going >= 4:
+                return 4
+            return 4.5
+
+        return 5.0
+
+
+#gut-fest: 2.5
+#gut: 3
+#gut-weich: 3.5
+#weich: 4
 
 __feature_container: SpeedFiguresContainer = SpeedFiguresContainer()
 

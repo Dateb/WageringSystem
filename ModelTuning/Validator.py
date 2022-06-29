@@ -45,7 +45,7 @@ class Validator:
 
 def get_validator() -> Validator:
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month_non_writable()
+    race_cards = persistence.load_every_month_non_writable()
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())

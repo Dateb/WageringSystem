@@ -19,7 +19,7 @@ class RawRaceCardInjector:
 
     def inject_win_time(self, win_times: dict):
         for horse in self.__race_card.horses:
-            form_table = self.__race_card.form_table_of_horse(horse)
+            form_table = self.__race_card.raw_race_card["runners"]["data"][str(horse.horse_id)]["formTable"]
             for past_race in form_table:
                 past_race["winTimeSeconds"] = -1
                 past_race["raceDistance"] = -1
@@ -36,6 +36,9 @@ class RawRaceCardInjector:
                             past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]["win_time"]
                             past_race["raceDistance"] = win_times_of_date[track_name][str(race_number)]["distance"]
                             past_race["categoryLetter"] = win_times_of_date[track_name][str(race_number)]["class"]
+
+                    else:
+                        print(f"Date {date} has no recorded win times.")
 
     def inject_past_race_card(self, subject_id: str, past_race_card: WritableRaceCard):
         horse_data = self.__race_card.get_data_of_subject(subject_id)
