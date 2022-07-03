@@ -9,11 +9,18 @@ from Ranker.Ranker import Ranker
 from DataAbstraction.Horse import Horse
 
 
+def loglikelihood(y_true, y_pred):
+    y_pred = 1. / (1. + np.exp(-y_pred))
+    grad = y_pred - y_true
+    hess = y_pred * (1. - y_pred)
+    return grad, hess
+
+
 class BoostedTreesRanker(Ranker):
 
     _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "lambdarank",
+        "objective": loglikelihood,
         "metric": "ndcg",
         "n_estimators": 1000,
         "learning_rate": 0.01,
@@ -35,14 +42,21 @@ class BoostedTreesRanker(Ranker):
 
     def fit(self, samples_train: pd.DataFrame):
         x_ranker = samples_train[self.feature_subset]
+        print(x_ranker.shape)
         y_ranker = samples_train[Horse.RELEVANCE_KEY]
         qid = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
-        self._ranker.fit(X=x_ranker, y=y_ranker, group=qid)
+        self._ranker.fit(
+            X=x_ranker,
+            y=y_ranker,
+            group=qid,
+        )
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
         X = samples_test[self.feature_subset]
         scores = self._ranker.predict(X)
+
+        print(scores)
 
         samples_test.loc[:, "score"] = scores
 

@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -11,7 +12,7 @@ class AverageEarningsJockeyExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return f"Average_Earnings_Jockey_{self.__race_card_idx}"
 
-    def get_value(self, horse: Horse) -> float:
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if self.__race_card_idx >= horse.n_races:
             return self.PLACEHOLDER_VALUE
 

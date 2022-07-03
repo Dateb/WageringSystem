@@ -12,9 +12,6 @@ from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Ranker.Ranker import Ranker
-from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
-from SampleExtraction.Extractors.PastMaxSpeedSimilarDistanceExtractor import PastMaxSpeedSimilarDistanceExtractor
-from SampleExtraction.Extractors.PreviousSpeedExtractor import PreviousSpeedExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -45,7 +42,7 @@ class Validator:
 
 def get_validator() -> Validator:
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_every_month_non_writable()
+    race_cards = persistence.load_first_month_non_writable()
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())

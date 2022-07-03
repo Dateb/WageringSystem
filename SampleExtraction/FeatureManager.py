@@ -1,17 +1,25 @@
 from typing import List
 
 from DataAbstraction.RaceCard import RaceCard
+from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
 from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
+from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
+from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
+from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MaxSpeedFigureExtractor import MaxSpeedFigureExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
+from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PostPositionExtractor import PostPositionExtractor
 from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
+from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
+from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
+from SampleExtraction.Extractors.WinRateLifetimeExtractor import WinRateLifetimeExtractor
 from SampleExtraction.Extractors.WinRateTrainerExtractor import WinRateTrainerExtractor
 from DataAbstraction.Horse import Horse
 
@@ -40,21 +48,22 @@ class FeatureManager:
         AverageSpeedFigureExtractor(),
         DeviationSpeedFigureExtractor(),
         MaxSpeedFigureExtractor(),
-        #DrawBiasExtractor(),
+        LayoffExtractor(),
+        AgeExtractor(),
+        DrawBiasExtractor(),
+        PurseExtractor(),
+        PastRaceCountExtractor(),
+        WinRateJockeyExtractor(),
+        WinRateLifetimeExtractor(),
+        JockeyWeightExtractor(),
+        DistanceDifferenceExtractor(),
 
         # AverageRatingExtractor(n_races_ago=5),
-        # PreviousSpeedExtractor(),
-        # PastMaxSpeedSimilarDistanceExtractor(),
-        # PastMaxSpeedSameTrackExtractor(),
-        # PastMaxSpeedSameGoingExtractor(),
-        # LayoffExtractor(),
 
         # PredictedPlaceDeviationExtractor(n_races_ago=1),
         # PredictedPlaceDeviationExtractor(n_races_ago=2),
 
         # AveragePlaceLifetimeExtractor(),
-        # WinRateLifetimeExtractor(),
-        # AgeExtractor(),
         # AveragePlaceCategoryExtractor(),
         # AveragePlaceSurfaceExtractor(),
         # AveragePlaceTrackExtractor(),
@@ -66,19 +75,13 @@ class FeatureManager:
         # MareExtractor(),
         # JockeyCurrentHorsePurseExtractor(),
         # MaxPastRatingExtractor(),
-        # PastAverageHorseDistanceExtractor(),
-        # PastRaceCountExtractor(),
         # PreviousClassExtractor(),
-        # PreviousHorseDistanceExtractor(),
         # PreviousOddsExtractor(),
         # PreviousRaceStarterCountExtractor(),
-        # PurseExtractor(),
         # TrackGoingDifferenceExtractor(),
         # TrackPurseExtractor(),
         # WeightAllowanceExtractor(),
-        # WeightDifferenceExtractor(),
-        # WeightJockeyExtractor(),
-    ]# + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_JOCKEY_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR
+    ] #+ WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
 

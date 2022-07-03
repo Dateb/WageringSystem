@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Container import DrawBiasContainer
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -13,13 +14,11 @@ class DrawBiasExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Draw_Bias"
 
-    def get_value(self, horse: Horse) -> float:
-        base_race_card = horse.get_race(0)
-
-        return self.__draw_bias_container.draw_bias(
-            base_race_card.title,
-            base_race_card.post_position_of_horse(horse.subject_id)
-        )
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        draw_bias = self.__draw_bias_container.draw_bias(race_card.title, horse.post_position)
+        if draw_bias == -1:
+            return self.PLACEHOLDER_VALUE
+        return draw_bias
 
     @property
     def container(self) -> FeatureContainer:

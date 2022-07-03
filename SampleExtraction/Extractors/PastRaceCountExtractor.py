@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,6 +11,5 @@ class PastRaceCountExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Past_Race_Count"
 
-    def get_value(self, horse: Horse) -> int:
-        base_race_card = horse.get_race(0)
-        return len(base_race_card.form_table_of_horse(horse.horse_id))
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return len(horse.form_table.past_forms)

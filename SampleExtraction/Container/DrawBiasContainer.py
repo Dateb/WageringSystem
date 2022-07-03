@@ -17,11 +17,10 @@ class DrawBiasContainer(FeatureContainer):
 
             race_card_bias = self.__draw_bias[race_card.title]
             for horse in race_card.horses:
-                subject_id = race_card.get_subject_id_of_horse(horse)
-                post_position = str(race_card.post_position_of_horse(subject_id))
+                post_position = str(horse.post_position)
                 if post_position != "-1":
                     new_obs = 0
-                    if horse == race_card.winner_id:
+                    if horse.has_won:
                         new_obs = 1
 
                     if post_position not in race_card_bias:

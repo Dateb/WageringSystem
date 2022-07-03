@@ -3,20 +3,17 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
 
-class DistanceDifferenceExtractor(FeatureExtractor):
+class JockeyWeightExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_name(self) -> str:
-        return "Distance_Difference"
+        return "Jockey_Weight"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        current_distance = race_card.distance
-        form_table = horse.form_table
-        if not horse.form_table.past_forms:
+        jockey_weight = horse.jockey.weight
+        if jockey_weight == -1:
             return self.PLACEHOLDER_VALUE
 
-        previous_distance = form_table.past_forms[0].distance
-
-        return current_distance - previous_distance
+        return jockey_weight

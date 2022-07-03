@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,23 +11,13 @@ class WinRateLifetimeExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Win_Rate_Lifetime"
 
-    def get_value(self, horse: Horse) -> float:
-        base_race_card = horse.get_race(0)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        form_table = horse.form_table
 
-        if not horse.has_past_races:
+        n_past_forms = len(horse.form_table.past_forms)
+        if n_past_forms == 0:
             return self.PLACEHOLDER_VALUE
 
-        form_table = base_race_card.form_table_of_horse(horse.horse_id)
-        n_past_races = 0
+        n_past_wins = sum([past_form.has_won for past_form in form_table.past_forms])
 
-        total_wins = 0
-        for past_race in form_table:
-            if "finalPosition" in past_race:
-                n_past_races += 1
-                if past_race["finalPosition"] == 1:
-                    total_wins += 1
-
-        if n_past_races == 0:
-            return self.PLACEHOLDER_VALUE
-
-        return total_wins / n_past_races
+        return n_past_wins / n_past_forms

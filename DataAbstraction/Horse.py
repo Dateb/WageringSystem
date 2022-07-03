@@ -1,6 +1,7 @@
 from typing import List
 
 from DataAbstraction.FormTable import FormTable
+from DataAbstraction.Jockey import Jockey
 
 
 class Horse:
@@ -16,12 +17,15 @@ class Horse:
 
     def __init__(self, raw_data: dict):
         self.name = raw_data["name"]
+        self.age = raw_data["age"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.place = self.__extract_place(raw_data)
         self.current_odds = self.__extract_current_odds(raw_data)
-        self.relevance = max(31 - self.place, 0)
+        self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
+        self.relevance = self.has_won# max(31 - self.place, 0)
+        self.jockey = Jockey(raw_data["jockey"])
         self.form_table = FormTable(raw_data["formTable"])
 
         self.__base_attributes = {
@@ -48,6 +52,11 @@ class Horse:
         if odds_of_horse["FXW"] == 0:
             return float(odds_of_horse["PRC"])
         return float(odds_of_horse["FXW"])
+
+    def __extract_post_position(self, raw_data: dict) -> int:
+        if "postPosition" in raw_data:
+            return int(raw_data["postPosition"])
+        return -1
 
     def set_feature_value(self, name: str, value):
         self.__features[name] = value
