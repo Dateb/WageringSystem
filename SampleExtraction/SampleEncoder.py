@@ -46,7 +46,6 @@ class SampleEncoder:
         race_card_attributes = race_cards[0].attributes
         samples_df = pd.DataFrame(data=samples_array, columns=race_card_attributes)
         samples_df[self.__feature_names] = samples_df[self.__feature_names].apply(pd.to_numeric, errors="coerce")
-        samples_df[Horse.RELEVANCE_KEY] = samples_df[Horse.RELEVANCE_KEY].apply(pd.to_numeric, errors="coerce")
         samples_df[Horse.CURRENT_ODDS_KEY] = samples_df[Horse.CURRENT_ODDS_KEY].apply(pd.to_numeric, errors="coerce")
 
         return samples_df

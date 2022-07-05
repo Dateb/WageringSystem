@@ -5,8 +5,8 @@ from keras import Input, Model
 from keras.layers import Dense, Subtract, Activation, Dropout
 from sklearn.preprocessing import MinMaxScaler
 
-from Ranker.NN.LambdaRankNNCore import LambdaRankNN
-from Ranker.Ranker import Ranker
+from Estimators.NN.LambdaRankNNCore import LambdaRankNN
+from Estimators.Ranker import Ranker
 from DataAbstraction.Horse import Horse
 
 

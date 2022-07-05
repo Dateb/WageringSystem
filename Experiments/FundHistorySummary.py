@@ -1,5 +1,7 @@
 from typing import List, Dict
 
+import numpy as np
+
 from Betting.BettingSlip import BettingSlip
 from Experiments.FundHistorySnapshot import FundHistorySnapshot
 
@@ -43,7 +45,10 @@ class FundHistorySummary:
         self.__total_win = sum(self.__winnings)
         self.__total_loss = sum(self.__loss)
 
-        self.__win_loss_ratio = self.__total_win / self.__total_loss
+        if self.__total_loss > 0:
+            self.__win_loss_ratio = self.__total_win / self.__total_loss
+        else:
+            self.__win_loss_ratio = np.Inf
         self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
 
     @property

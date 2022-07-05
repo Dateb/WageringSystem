@@ -4,8 +4,8 @@ from typing import List
 
 import numpy as np
 
-from Ranker.BoostedTreesRanker import BoostedTreesRanker
-from Ranker.Ranker import Ranker
+from Estimators.NN.KellyFractionEstimator import KellyFractionEstimator
+from Estimators.Ranker import Ranker
 from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
@@ -47,7 +47,7 @@ class RankerConfig:
             self.feature_subset.append(SEARCH_FEATURES[i - 3])
 
     def get_ranker(self) -> Ranker:
-        return BoostedTreesRanker(self.feature_subset, self.search_params)
+        return KellyFractionEstimator(self.feature_subset, self.search_params)
 
     def get_full_decision_list(self) -> List[int]:
         full_decision_list = copy(self.decisions)

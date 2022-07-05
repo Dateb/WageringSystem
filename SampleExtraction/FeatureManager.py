@@ -53,9 +53,9 @@ class FeatureManager:
         DrawBiasExtractor(),
         PurseExtractor(),
         PastRaceCountExtractor(),
+        JockeyWeightExtractor(),
         WinRateJockeyExtractor(),
         WinRateLifetimeExtractor(),
-        JockeyWeightExtractor(),
         DistanceDifferenceExtractor(),
 
         # AverageRatingExtractor(n_races_ago=5),
@@ -67,7 +67,6 @@ class FeatureManager:
         # AveragePlaceCategoryExtractor(),
         # AveragePlaceSurfaceExtractor(),
         # AveragePlaceTrackExtractor(),
-        # DistanceDifferenceExtractor(),
         # HeadToHeadExtractor(),
         # BlinkerExtractor(),
         # ColtExtractor(),
@@ -84,6 +83,7 @@ class FeatureManager:
     ] #+ WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + PAST_PLACES_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + POST_POSITION_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
+    FEATURE_COUNT: int = len(ENABLED_FEATURE_EXTRACTORS)
 
     def fit_enabled_container(self, race_cards: List[RaceCard]):
         feature_containers = [feature_extractor.container for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS]

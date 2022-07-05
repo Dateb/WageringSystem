@@ -19,5 +19,6 @@ class WinRateLifetimeExtractor(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         n_past_wins = sum([past_form.has_won for past_form in form_table.past_forms])
+        win_rate = n_past_wins / n_past_forms
 
-        return n_past_wins / n_past_forms
+        return 1 / (win_rate + 0.001)

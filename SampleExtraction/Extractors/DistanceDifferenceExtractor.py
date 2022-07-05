@@ -18,5 +18,6 @@ class DistanceDifferenceExtractor(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         previous_distance = form_table.past_forms[0].distance
+        distance_difference = current_distance - previous_distance
 
-        return current_distance - previous_distance
+        return 1 / (distance_difference + 0.001)

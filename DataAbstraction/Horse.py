@@ -8,11 +8,11 @@ class Horse:
 
     HORSE_ID_KEY: str = "horse_id"
     PLACE_KEY: str = "place"
-    RELEVANCE_KEY: str = "relevance"
     CURRENT_ODDS_KEY: str = "current_odds"
     HAS_WON_KEY: str = "has_won"
+    KELLY_FRACTION_KEY: str = "kelly_fraction"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        HORSE_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY, HAS_WON_KEY,
+        HORSE_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, HAS_WON_KEY, KELLY_FRACTION_KEY,
     ]
 
     def __init__(self, raw_data: dict):
@@ -24,7 +24,8 @@ class Horse:
         self.current_odds = self.__extract_current_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
-        self.relevance = self.has_won# max(31 - self.place, 0)
+        self.horse_return = max([0, self.current_odds * self.has_won - 1])
+        self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
         self.form_table = FormTable(raw_data["formTable"])
 
@@ -32,8 +33,8 @@ class Horse:
             self.HORSE_ID_KEY: self.horse_id,
             self.CURRENT_ODDS_KEY: self.current_odds,
             self.PLACE_KEY: self.place,
-            self.RELEVANCE_KEY: self.relevance,
             self.HAS_WON_KEY: self.has_won,
+            self.KELLY_FRACTION_KEY: self.kelly_fraction
         }
 
         self.__features = {}

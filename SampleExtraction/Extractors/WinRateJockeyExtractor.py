@@ -16,4 +16,4 @@ class WinRateJockeyExtractor(FeatureExtractor):
         win_rate = horse.jockey.win_rate
         if win_rate == -1:
             return self.PLACEHOLDER_VALUE
-        return win_rate
+        return 1 / (win_rate + 0.001)

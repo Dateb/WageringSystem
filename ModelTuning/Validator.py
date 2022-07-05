@@ -5,13 +5,11 @@ from pandas import DataFrame
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
-from Betting.DynamicKellyBettor import DynamicKellyBettor
 from Betting.StaticKellyBettor import StaticKellyBettor
-from DataAbstraction.RaceCard import RaceCard
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
-from Ranker.BoostedTreesRanker import BoostedTreesRanker
-from Ranker.Ranker import Ranker
+from Estimators.NN.KellyFractionEstimator import KellyFractionEstimator
+from Estimators.Ranker import Ranker
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -63,23 +61,23 @@ def main():
     #with open(BEST_RANKER_PATH, "rb") as f:
     #    ranker = pickle.load(f)
 
-    ranker_features = ["Current_Odds_Feature"]
-    ranker = BoostedTreesRanker(ranker_features, {})
-    validator.fit_ranker(ranker)
+    #ranker_features = ["Current_Odds_Feature"]
+    #ranker = BoostedTreesRanker(ranker_features, {})
+    #validator.fit_ranker(ranker)
 
-    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds")]
+    #fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds")]
 
     ranker_features = FeatureManager.FEATURE_NAMES
-    ranker = BoostedTreesRanker(ranker_features, {})
+    ranker = KellyFractionEstimator(ranker_features, {})
     validator.fit_ranker(ranker)
 
-    fund_history_summaries += [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Ranker - Current Odds + Speed features")]
+    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]
 
     with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
 
-    with open(BEST_RANKER_PATH, "wb") as f:
-        pickle.dump(ranker, f)
+    # with open(BEST_RANKER_PATH, "wb") as f:
+    #     pickle.dump(ranker, f)
 
 
 if __name__ == '__main__':
