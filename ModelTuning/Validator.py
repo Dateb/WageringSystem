@@ -6,6 +6,7 @@ from pandas import DataFrame
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
 from Betting.StaticKellyBettor import StaticKellyBettor
+from Estimators.NN.NNEstimator import NNEstimator
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from Estimators.NN.KellyFractionEstimator import KellyFractionEstimator
@@ -21,15 +22,15 @@ class Validator:
 
     def __init__(self, bettor: Bettor, train_samples: DataFrame, test_samples: DataFrame, bet_evaluator: BetEvaluator):
         self.__train_samples = train_samples
-        self.__test_samples = test_samples
+        self.__validation_samples = test_samples
         self.bettor = bettor
         self.__bet_evaluator = bet_evaluator
 
-    def fit_ranker(self, ranker: Ranker):
-        ranker.fit(self.__train_samples)
+    def fit_estimator(self, estimator):
+        estimator.fit(self.__train_samples, self.__validation_samples)
 
-    def fund_history_summary(self, estimator: Ranker, name: str) -> FundHistorySummary:
-        samples_test_estimated = estimator.transform(self.__test_samples)
+    def fund_history_summary(self, estimator, name: str) -> FundHistorySummary:
+        samples_test_estimated = estimator.transform(self.__validation_samples)
 
         betting_slips = self.bettor.bet(samples_test_estimated)
         betting_slips = self.__bet_evaluator.update_wins(betting_slips)
@@ -40,7 +41,7 @@ class Validator:
 
 def get_validator() -> Validator:
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month_non_writable()
+    race_cards = persistence.load_every_month_non_writable()
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())
@@ -67,11 +68,10 @@ def main():
 
     #fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds")]
 
-    ranker_features = FeatureManager.FEATURE_NAMES
-    ranker = KellyFractionEstimator(ranker_features, {})
-    validator.fit_ranker(ranker)
+    estimator = NNEstimator()
+    validator.fit_estimator(estimator)
 
-    fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]
+    fund_history_summaries = [validator.fund_history_summary(estimator, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]
 
     with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)

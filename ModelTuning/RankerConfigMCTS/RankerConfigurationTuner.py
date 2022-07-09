@@ -68,7 +68,7 @@ class RankerConfigurationTuner:
         full_decision_list = ranker_config.get_full_decision_list()
         terminal_ranker_config = RankerConfig(full_decision_list)
         new_ranker = terminal_ranker_config.get_ranker()
-        self.__validator.fit_ranker(new_ranker)
+        self.__validator.fit_estimator(new_ranker)
         return new_ranker
 
     def __simulate(self, ranker: Ranker) -> float:
