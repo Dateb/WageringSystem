@@ -6,11 +6,9 @@ from pandas import DataFrame
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
 from Betting.StaticKellyBettor import StaticKellyBettor
-from Estimators.NN.NNEstimator import NNEstimator
+from Estimators.NN.WinProbabilityEstimator import WinProbabilityEstimator
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
-from Estimators.NN.KellyFractionEstimator import KellyFractionEstimator
-from Estimators.Ranker import Ranker
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
@@ -49,10 +47,10 @@ def get_validator() -> Validator:
 
     filepath = Path('data/out.csv')
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    test_samples.to_csv(filepath, index=False)
+    train_samples.to_csv(filepath, index=False)
 
     bet_evaluator = BetEvaluator()
-    bettor = StaticKellyBettor(sample_encoder.test_race_cards, start_kelly_wealth=200)
+    bettor = StaticKellyBettor(sample_encoder.test_race_cards, start_kelly_wealth=1)
 
     return Validator(bettor, train_samples, test_samples, bet_evaluator)
 
@@ -68,7 +66,7 @@ def main():
 
     #fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds")]
 
-    estimator = NNEstimator()
+    estimator = WinProbabilityEstimator()
     validator.fit_estimator(estimator)
 
     fund_history_summaries = [validator.fund_history_summary(estimator, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]

@@ -47,9 +47,7 @@ class RaceCard:
         self.date = self.datetime.date()
 
     def __remove_non_starters(self):
-        non_starters = [horse_id for horse_id in self.horses if self.is_horse_scratched(horse_id)]
-        for non_starter in non_starters:
-            del self.horses[non_starter]
+        self.horses = [horse for horse in self.horses if not horse.is_scratched]
 
     def to_array(self) -> ndarray:
         total_values = []
@@ -75,9 +73,6 @@ class RaceCard:
     def get_name_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["name"]
 
-    def is_horse_scratched(self, horse_id: str) -> bool:
-        return self.horses[horse_id]["scratched"]
-
     def jockey_last_name_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["jockey"]["lastName"]
 
@@ -85,10 +80,9 @@ class RaceCard:
         return self.horses[horse_id]["idSubject"]
 
     def get_data_of_subject(self, subject_id: str) -> dict:
-        for horse_id in self.horses:
-            horse_data = self.horses[horse_id]
-            if horse_data["idSubject"] == subject_id:
-                return horse_data
+        for horse in self.horses:
+            if horse.subject_id == subject_id:
+                return horse
 
     # def __set_head_to_head_horses(self):
     #     self.__head_to_head_horses = []
@@ -197,10 +191,6 @@ class RaceCard:
 
         return horse_distances
 
-    def horse_rating_n_races_ago(self, horse_id: str, n_races_ago: int) -> int:
-        if n_races_ago == 0:
-            return self.rating_of_horse(horse_id)
-
         form_table = self.form_table_of_horse(horse_id)
         if n_races_ago + 1 > len(form_table) or "rating" not in form_table[n_races_ago - 1]:
             return -1
@@ -244,12 +234,6 @@ class RaceCard:
         horse = self.get_data_of_subject(subject_id)
         trainer = horse["trainer"]
         return trainer["stats"]
-
-    def rating_of_horse(self, horse_id: str) -> int:
-        rating = int(float(self.horses[horse_id]["rating"]))
-        if rating == 0:
-            return -1
-        return rating
 
     def past_ratings_of_horse(self, horse_id: str) -> List[int]:
         form_table = self.form_table_of_horse(horse_id)

@@ -1,3 +1,6 @@
+import statistics
+
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,22 +13,16 @@ class AveragePlaceLifetimeExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Average_Place_Lifetime"
 
-    def get_value(self, horse: Horse) -> float:
-        base_race_card = horse.get_race(0)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        past_forms = horse.form_table.past_forms
 
-        if not horse.has_past_races:
+        if not past_forms:
             return self.PLACEHOLDER_VALUE
 
-        form_table = base_race_card.form_table_of_horse(horse.horse_id)
-        n_past_races = 0
+        past_places = [past_form.final_position for past_form in past_forms]
+        valid_past_places = [past_place for past_place in past_places if past_place != -1]
 
-        total_place = 0
-        for past_race in form_table:
-            if "finalPosition" in past_race:
-                n_past_races += 1
-                total_place += past_race["finalPosition"]
-
-        if n_past_races == 0:
+        if not valid_past_places:
             return self.PLACEHOLDER_VALUE
 
-        return total_place / n_past_races
+        return statistics.mean(valid_past_places)

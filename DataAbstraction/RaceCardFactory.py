@@ -18,7 +18,7 @@ class RaceCardFactory:
 
         form_guide_factory = FormGuideFactory(base_race_id)
 
-        form_guides = [form_guide_factory.run(subject_id) for subject_id in base_race_card.subject_ids]
+        form_guides = [form_guide_factory.run(horse.subject_id) for horse in base_race_card.horses]
 
         raw_race_card_injector = RawRaceCardInjector(base_race_card)
         raw_race_card_injector.inject_form_tables(form_guides)

@@ -13,6 +13,8 @@ class StaticKellyBettor(Bettor):
         super().__init__(race_cards, start_kelly_wealth)
 
     def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
+        if "stakes_fraction" not in samples.columns:
+            samples = self._add_stakes_fraction(samples)
         samples["stakes"] = samples["stakes_fraction"] * self._start_kelly_wealth
         #bets_df.loc[bets_df["stakes"] < 0.5, "stakes"] = 0.0
 

@@ -83,10 +83,10 @@ class RaceCardsPersistence:
         return race_cards
 
     def __create_race_card(self, raw_race: dict) -> RaceCard:
-        return RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=False)
+        return RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)
 
     def __create_writable_race_card(self, raw_race: dict) -> RaceCard:
-        return WritableRaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=False)
+        return WritableRaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)
 
     def __flatten(self, xss):
         return [x for xs in xss for x in xs]

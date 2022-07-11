@@ -12,5 +12,7 @@ class Jockey:
             self.win_rate = self.num_wins / self.num_races
 
         self.weight = -1
+        self.allowance = -1
         if "weight" in raw_data:
             self.weight = raw_data["weight"]["weight"]
+            self.allowance = raw_data["weight"]["allowance"]

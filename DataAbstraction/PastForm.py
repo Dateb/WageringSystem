@@ -22,11 +22,17 @@ class PastForm:
             self.lengths_behind_winner = raw_data["horseDistance"]
 
         self.purse = self.__purse_to_value(raw_data["purse"])
+        self.rating = self.__extract_rating(raw_data)
 
     def __extract_final_position(self, raw_data: dict) -> int:
         if "finalPosition" in raw_data:
             return int(raw_data["finalPosition"])
         return -1
+
+    def __extract_rating(self, raw_data: dict) -> float:
+        if "rating" not in raw_data:
+            return -1
+        return float(raw_data["rating"])
 
     def __purse_to_value(self, purse: str):
         purse_suffix = purse[-1]

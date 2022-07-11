@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,7 +11,5 @@ class BlinkerExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Has_Blinker"
 
-    def get_value(self, horse: Horse) -> int:
-        blinker_indicator = horse.raw_data["blinkers"]
-
-        return int(blinker_indicator)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return int(horse.has_blinkers)

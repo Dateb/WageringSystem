@@ -4,19 +4,18 @@ from DataAbstraction.Horse import Horse
 from Estimators.NN.NNEstimator import NNEstimator
 
 
-class KellyFractionEstimator(NNEstimator):
+class WinProbabilityEstimator(NNEstimator):
 
     def __init__(self):
-        super().__init__(label_name=Horse.KELLY_FRACTION_KEY)
-        self._init_regression_model()
+        super().__init__(label_name=Horse.HAS_WON_KEY)
+        self._init_classification_model()
 
     def fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):
         self._fit(samples_train, samples_validation)
 
     def transform(self, samples: pd.DataFrame):
         scores = self._transform(samples)
-        scores = scores.clip(min=0)
-        print(scores)
-        samples.loc[:, "stakes_fraction"] = scores
+        print(sum(scores))
+        samples.loc[:, "win_probability"] = scores
 
         return samples

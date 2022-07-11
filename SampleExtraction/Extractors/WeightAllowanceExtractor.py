@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,9 +11,6 @@ class WeightAllowanceExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Weight_Allowance"
 
-    def get_value(self, horse: Horse) -> str:
-        jockey = horse.raw_data["jockey"]
-        if "weight" in jockey:
-            return jockey["weight"]["allowance"]
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
 
-        return "0"
+        return horse.jockey.allowance

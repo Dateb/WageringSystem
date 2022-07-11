@@ -24,10 +24,15 @@ class Horse:
         self.current_odds = self.__extract_current_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
+        self.has_blinkers = raw_data["blinkers"]
         self.horse_return = max([0, self.current_odds * self.has_won - 1])
         self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
-        self.form_table = FormTable(raw_data["formTable"])
+        self.is_scratched = raw_data["scratched"]
+
+        self.form_table = []
+        if "formTable" in raw_data:
+            self.form_table = FormTable(raw_data["formTable"])
 
         self.__base_attributes = {
             self.HORSE_ID_KEY: self.horse_id,
