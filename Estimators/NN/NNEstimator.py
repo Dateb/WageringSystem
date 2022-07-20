@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from keras import Sequential, Input, Model
 from keras.callbacks import ReduceLROnPlateau
-from keras.layers import BatchNormalization, Masking, LSTM, Dense, Embedding, Flatten, Lambda, Concatenate, \
+from keras.layers import Masking, LSTM, Dense, Lambda, Concatenate, \
     Normalization, LeakyReLU
 from keras.metrics import MeanSquaredError
 from keras.optimizers import Adam
@@ -15,7 +15,6 @@ from DataAbstraction.Horse import Horse
 from DataAbstraction.RaceCard import RaceCard
 from Estimators.custom_loss import rebalanced_kelly_loss, expected_value_loss
 from SampleExtraction.FeatureManager import FeatureManager
-import keras.backend as K
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 
@@ -60,8 +59,8 @@ class NNEstimator(ABC):
         masking = Masking(mask_value=0.0)(inputs)
         norm = Normalization()(masking)
 
-        lstm1 = LSTM(200, return_sequences=True)(norm)
-        lstm2 = LSTM(200, return_sequences=False)(lstm1)
+        lstm1 = LSTM(800, return_sequences=True)(norm)
+        lstm2 = LSTM(800, return_sequences=False)(lstm1)
 
         dense1 = Dense(2048)(lstm2)
         act1 = LeakyReLU(alpha=0.3)(dense1)
@@ -89,7 +88,7 @@ class NNEstimator(ABC):
         def get_odds(tensor):
             return tensor[:, :, 0]
 
-        odds = Lambda(get_odds)(inputs)
+        odds = Lambda(get_odds)(norm)
 
         output = Concatenate(axis=1)([prediction, odds])
 
@@ -103,7 +102,7 @@ class NNEstimator(ABC):
         lr_callback = ReduceLROnPlateau(
             monitor="loss",
             factor=0.1,
-            patience=10
+            patience=5,
         )
 
         self._model.fit(

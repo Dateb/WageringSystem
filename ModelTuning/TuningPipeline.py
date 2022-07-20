@@ -3,7 +3,7 @@ import pickle
 from ModelTuning.RankerConfigMCTS.RankerConfigurationTuner import RankerConfigurationTuner
 from ModelTuning.Validator import Validator, get_validator
 
-from Estimators.Ranker import Ranker
+from Estimators.Ranker.Ranker import Ranker
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BEST_RANKER_PATH = "../data/best_ranker.dat"

@@ -6,14 +6,14 @@ from keras.layers import Dense, Subtract, Activation, Dropout
 from sklearn.preprocessing import MinMaxScaler
 
 from Estimators.NN.LambdaRankNNCore import LambdaRankNN
-from Estimators.Ranker import Ranker
+from Estimators.Ranker.Ranker import Ranker
 from DataAbstraction.Horse import Horse
 
 
 class NeuralNetworkRanker(Ranker):
 
     def __init__(self, feature_subset: List[str], search_params: dict):
-        super().__init__(feature_subset)
+        super().__init__(feature_subset, Horse.HAS_WON_KEY)
         self.__ranker = None
         self.__scaler = MinMaxScaler()
         self.__model = self._build_model(

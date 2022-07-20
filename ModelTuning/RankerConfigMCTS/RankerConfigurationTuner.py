@@ -7,7 +7,7 @@ from ModelTuning.RankerConfigMCTS.RankerConfig import RankerConfig
 from ModelTuning.Validator import Validator
 from ModelTuning.RankerConfigMCTS.RankerConfigNode import RankerConfigNode
 from ModelTuning.RankerConfigMCTS.RankerConfigurationTree import RankerConfigurationTree
-from Estimators.Ranker import Ranker
+from Estimators.Ranker.Ranker import Ranker
 
 
 class RankerConfigurationTuner:

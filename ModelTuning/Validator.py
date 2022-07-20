@@ -7,6 +7,7 @@ from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
 from Betting.StaticKellyBettor import StaticKellyBettor
 from Estimators.NN.WinProbabilityEstimator import WinProbabilityEstimator
+from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
@@ -60,13 +61,14 @@ def main():
     #with open(BEST_RANKER_PATH, "rb") as f:
     #    ranker = pickle.load(f)
 
-    #ranker_features = ["Current_Odds_Feature"]
+
     #ranker = BoostedTreesRanker(ranker_features, {})
     #validator.fit_ranker(ranker)
 
     #fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds")]
 
-    estimator = WinProbabilityEstimator()
+    ranker_features = ["Current_Odds_Feature"]
+    estimator = BoostedTreesRanker(ranker_features, {})
     validator.fit_estimator(estimator)
 
     fund_history_summaries = [validator.fund_history_summary(estimator, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]
