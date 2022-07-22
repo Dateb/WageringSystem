@@ -12,5 +12,4 @@ class WeightAllowanceExtractor(FeatureExtractor):
         return "Weight_Allowance"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> str:
-
         return horse.jockey.allowance

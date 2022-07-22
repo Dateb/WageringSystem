@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -10,7 +11,7 @@ class ColtExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Is_Colt"
 
-    def get_value(self, horse: Horse) -> int:
-        gelding_indicator = horse.raw_data["gender"] == "C"
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        gelding_indicator = horse.gender == "C"
 
         return int(gelding_indicator)

@@ -7,8 +7,11 @@ from DataAbstraction.WritableRaceCard import RaceCard, WritableRaceCard
 class RaceCardsPersistence:
     def __init__(self, file_name: str):
         self.__base_file_name = file_name
+        self.__race_cards_files = os.listdir("../data/train_test_race_cards")
+        self.__iter_idx = 0
 
     def save(self, race_cards: List[WritableRaceCard]):
+        print("writing...")
         raw_races = {str(race_card.date): {} for race_card in race_cards}
         for race_card in race_cards:
             raw_races[str(race_card.date)][race_card.title] = {}
@@ -32,6 +35,7 @@ class RaceCardsPersistence:
                 raw_races_of_month[new_race[0]] = new_race[1]
             with open(file_name, "w") as f:
                 json.dump(raw_races_of_month, f)
+        print("writing done")
 
     def load_first_month_non_writable(self) -> Dict[str, RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
@@ -54,10 +58,9 @@ class RaceCardsPersistence:
         return self.__load_race_cards_of_file(race_cards_files[0], self.__create_writable_race_card)
 
     def load_every_month_writable(self) -> Dict[str, WritableRaceCard]:
-        race_cards_files = os.listdir("../data/train_test_race_cards")
         race_cards_per_file = [
             self.__load_race_cards_of_file(race_cards_file, self.__create_writable_race_card)
-            for race_cards_file in race_cards_files
+            for race_cards_file in self.__race_cards_files
         ]
         total_race_cards = {}
         for race_cards in race_cards_per_file:
@@ -90,6 +93,21 @@ class RaceCardsPersistence:
 
     def __flatten(self, xss):
         return [x for xs in xss for x in xs]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.__iter_idx >= len(self.__race_cards_files):
+            raise StopIteration
+
+        race_cards = self.__load_race_cards_of_file(
+            self.__race_cards_files[self.__iter_idx],
+            self.__create_writable_race_card
+        )
+
+        self.__iter_idx += 1
+        return race_cards
 
 
 def main():

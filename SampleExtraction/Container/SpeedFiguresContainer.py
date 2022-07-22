@@ -75,19 +75,21 @@ class SpeedFiguresContainer(FeatureContainer):
             for track in win_times_contextualized[date]:
                 track_figure_biases = []
                 for race in win_times_contextualized[date][track]:
-                    race_distance = win_times_contextualized[date][track][race]["distance"]
-                    race_class = win_times_contextualized[date][track][race]["class"]
-                    win_time = win_times_contextualized[date][track][race]["win_time"]
+                    race_distance = str(win_times_contextualized[date][track][race]["distance"])
 
-                    base_time = self.__base_times[str(race_distance)]["base_time"]
-                    points_per_second = self.__base_times[str(race_distance)]["points per second"]
+                    if race_distance in self.__base_times:
+                        race_class = win_times_contextualized[date][track][race]["class"]
+                        win_time = win_times_contextualized[date][track][race]["win_time"]
 
-                    seconds_difference = base_time - win_time
-                    win_figure = 80 + seconds_difference * points_per_second
-                    if race_class in self.__par_figures[str(race_distance)]:
-                        par_figure = self.__par_figures[str(race_distance)][race_class]["par_figure"]
+                        base_time = self.__base_times[race_distance]["base_time"]
+                        points_per_second = self.__base_times[race_distance]["points per second"]
 
-                        track_figure_biases.append(par_figure - win_figure)
+                        seconds_difference = base_time - win_time
+                        win_figure = 80 + seconds_difference * points_per_second
+                        if race_class in self.__par_figures[race_distance]:
+                            par_figure = self.__par_figures[race_distance][race_class]["par_figure"]
+
+                            track_figure_biases.append(par_figure - win_figure)
                 if track_figure_biases:
                     self.__track_variants[date][track] = sum(track_figure_biases) / len(track_figure_biases)
                 else:

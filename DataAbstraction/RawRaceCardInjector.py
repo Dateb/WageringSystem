@@ -32,10 +32,11 @@ class RawRaceCardInjector:
                         win_times_of_date = win_times[date]
                         track_name = past_race["trackName"]
                         if track_name in win_times_of_date:
-                            race_number = past_race["raceNumber"]
-                            past_race["winTimeSeconds"] = win_times_of_date[track_name][str(race_number)]["win_time"]
-                            past_race["raceDistance"] = win_times_of_date[track_name][str(race_number)]["distance"]
-                            past_race["categoryLetter"] = win_times_of_date[track_name][str(race_number)]["class"]
+                            race_number = str(past_race["raceNumber"])
+                            if race_number in win_times_of_date[track_name]:
+                                past_race["winTimeSeconds"] = win_times_of_date[track_name][race_number]["win_time"]
+                                past_race["raceDistance"] = win_times_of_date[track_name][race_number]["distance"]
+                                past_race["categoryLetter"] = win_times_of_date[track_name][race_number]["class"]
 
                     else:
                         print(f"Date {date} has no recorded win times.")
@@ -54,15 +55,18 @@ class RawRaceCardInjector:
 
 def main():
     race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
-    race_cards = race_cards_persistence.load_every_month_writable()
 
     win_times = JSONPersistence("win_times_contextualized").load()
 
-    for date_time in race_cards:
-        injector = RawRaceCardInjector(race_cards[date_time])
-        injector.inject_win_time(win_times)
+    counter = 0
+    for race_cards in race_cards_persistence:
+        print(counter)
+        counter += 1
+        for date_time in race_cards:
+            injector = RawRaceCardInjector(race_cards[date_time])
+            injector.inject_win_time(win_times)
 
-    race_cards_persistence.save(list(race_cards.values()))
+        race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':

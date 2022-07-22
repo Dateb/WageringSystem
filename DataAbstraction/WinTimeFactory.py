@@ -148,7 +148,7 @@ def main():
 
     win_times = persistence.load()
     base = datetime.strptime('2022-06-07', "%Y-%m-%d").date()
-    dates = [base - timedelta(days=x) for x in range(4000)]
+    dates = [base - timedelta(days=x) for x in range(6000)]
     for date in dates:
         date = str(date)
         print(date)

@@ -18,7 +18,6 @@ class RaceCard:
         self.__extract_attributes(raw_race_card)
         if remove_non_starters:
             self.__remove_non_starters()
-        #self.__set_head_to_head_horses()
 
     def __extract_attributes(self, raw_race_card: dict):
         self.__extract_horses(raw_race_card["runners"]["data"])
@@ -78,11 +77,6 @@ class RaceCard:
 
     def get_subject_id_of_horse(self, horse_id: str) -> str:
         return self.horses[horse_id]["idSubject"]
-
-    def get_data_of_subject(self, subject_id: str) -> dict:
-        for horse in self.horses:
-            if horse.subject_id == subject_id:
-                return horse
 
     # def __set_head_to_head_horses(self):
     #     self.__head_to_head_horses = []

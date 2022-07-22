@@ -1,3 +1,4 @@
+from DataAbstraction.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Horse import Horse
 
@@ -16,8 +17,8 @@ class PastPlacesExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return f"Place_{self.__n_races_ago}_Races_Ago"
 
-    def get_value(self, horse: Horse) -> str:
-        past_places = horse.raw_data["ppString"].split(' - ')
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        past_places = horse.past_performance.split(' - ')
 
         if past_places[0] == '':
             return self.PLACEHOLDER_VALUE

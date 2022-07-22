@@ -18,6 +18,7 @@ class Horse:
     def __init__(self, raw_data: dict):
         self.name = raw_data["name"]
         self.age = raw_data["age"]
+        self.gender = raw_data["gender"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.place = self.__extract_place(raw_data)
@@ -29,6 +30,7 @@ class Horse:
         self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
         self.is_scratched = raw_data["scratched"]
+        self.past_performance = raw_data["ppString"]
 
         self.form_table = []
         if "formTable" in raw_data:
