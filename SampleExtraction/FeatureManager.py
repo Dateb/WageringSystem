@@ -60,7 +60,6 @@ class FeatureManager:
         PurseExtractor(),
         PastRaceCountExtractor(),
         JockeyWeightExtractor(),
-        WinRateJockeyExtractor(),
         WinRateLifetimeExtractor(),
         DistanceDifferenceExtractor(),
         PreviousRatingExtractor(n_races_ago=5),
@@ -86,7 +85,7 @@ class FeatureManager:
         # PreviousRaceStarterCountExtractor(),
         # TrackGoingDifferenceExtractor(),
         # TrackPurseExtractor(),
-    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR #+ WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
+    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS # + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
     FEATURE_COUNT: int = len(ENABLED_FEATURE_EXTRACTORS)

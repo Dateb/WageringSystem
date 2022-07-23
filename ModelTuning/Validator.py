@@ -6,7 +6,6 @@ from pandas import DataFrame
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
 from Betting.StaticKellyBettor import StaticKellyBettor
-from Estimators.NN.WinProbabilityEstimator import WinProbabilityEstimator
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -40,7 +39,7 @@ class Validator:
 
 def get_validator() -> Validator:
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month_non_writable()
+    race_cards = persistence.load_every_month_non_writable()
     print(len(race_cards))
 
     sample_encoder = SampleEncoder(FeatureManager())
@@ -58,14 +57,6 @@ def get_validator() -> Validator:
 
 def main():
     validator = get_validator()
-    #with open(BEST_RANKER_PATH, "rb") as f:
-    #    ranker = pickle.load(f)
-
-
-    #ranker = BoostedTreesRanker(ranker_features, {})
-    #validator.fit_ranker(ranker)
-
-    #fund_history_summaries = [validator.fund_history_summary(ranker, name="Gradient Boosted Trees Estimators - Current Odds")]
 
     ranker_features = ["Current_Odds_Feature"]
     estimator = BoostedTreesRanker(ranker_features, {})
@@ -76,8 +67,8 @@ def main():
     with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
 
-    # with open(BEST_RANKER_PATH, "wb") as f:
-    #     pickle.dump(ranker, f)
+    with open(BEST_RANKER_PATH, "wb") as f:
+         pickle.dump(estimator, f)
 
 
 if __name__ == '__main__':

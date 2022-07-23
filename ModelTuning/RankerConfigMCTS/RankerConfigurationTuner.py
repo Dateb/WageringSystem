@@ -34,7 +34,7 @@ class RankerConfigurationTuner:
             self.__backup(front_node, score)
 
             if score > self.__max_score:
-                print(f"Found new best ranker: {ranker} with score: {score}")
+                print(f"Score: {score}, Setup: {ranker} ")
                 self.__max_score = score
                 self.__best_ranker = deepcopy(ranker)
                 return True

@@ -34,3 +34,8 @@ class PastRaceCard:
 
     def __remove_non_starters(self):
         self.horses = [horse for horse in self.horses if not horse.is_scratched]
+
+    def get_subject(self, subject_id: str) -> PastHorse:
+        for horse in self.horses:
+            if horse.subject_id == subject_id:
+                return horse
