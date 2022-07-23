@@ -15,7 +15,7 @@ class BetType(Enum):
 class BettingSlip:
 
     def __init__(self, race_card: RaceCard, bet_type: BetType):
-        self.__track = race_card.title
+        self.__track = race_card.track_name
         self.__n_runners = race_card.n_runners
         self.__date = race_card.datetime
         self.__winner_id = race_card.winner_id

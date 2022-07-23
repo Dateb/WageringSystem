@@ -1,4 +1,5 @@
 from DataAbstraction.Present.Jockey import Jockey
+from DataAbstraction.Present.Trainer import Trainer
 
 
 class PastHorse:
@@ -17,6 +18,7 @@ class PastHorse:
         self.horse_return = max([0, self.current_odds * self.has_won - 1])
         self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
+        self.trainer = Trainer(raw_data["trainer"])
         self.is_scratched = raw_data["scratched"]
         self.past_performance = raw_data["ppString"]
 

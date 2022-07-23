@@ -4,8 +4,11 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
+from SampleExtraction.Extractors.AveragePlaceCategoryExtractor import AveragePlaceCategoryExtractor
 from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
 from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
+from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
+from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
@@ -75,9 +78,9 @@ class FeatureManager:
         GeldingExtractor(),
         MareExtractor(),
 
-        # AveragePlaceCategoryExtractor(),
-        # AveragePlaceSurfaceExtractor(),
-        # AveragePlaceTrackExtractor(),
+        AveragePlaceCategoryExtractor(),
+        AveragePlaceSurfaceExtractor(),
+        AveragePlaceTrackExtractor(),
         # HeadToHeadExtractor(),
         # JockeyCurrentHorsePurseExtractor(),
         # MaxPastRatingExtractor(),
@@ -85,7 +88,7 @@ class FeatureManager:
         # PreviousRaceStarterCountExtractor(),
         # TrackGoingDifferenceExtractor(),
         # TrackPurseExtractor(),
-    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS # + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
+    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
     FEATURE_COUNT: int = len(ENABLED_FEATURE_EXTRACTORS)

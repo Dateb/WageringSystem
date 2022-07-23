@@ -2,6 +2,7 @@ import pickle
 from pathlib import Path
 
 from pandas import DataFrame
+from sklearn.impute import KNNImputer
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor
@@ -58,7 +59,8 @@ def get_validator() -> Validator:
 def main():
     validator = get_validator()
 
-    ranker_features = ["Current_Odds_Feature"]
+    #ranker_features = ["Current_Odds_Feature"]
+    ranker_features = FeatureManager.FEATURE_NAMES
     estimator = BoostedTreesRanker(ranker_features, {})
     validator.fit_estimator(estimator)
 

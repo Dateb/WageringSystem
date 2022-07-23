@@ -1,3 +1,6 @@
+import statistics
+
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -10,23 +13,23 @@ class AveragePlaceCategoryExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Average_Place_Category"
 
-    def get_value(self, horse: Horse) -> float:
-        base_race_card = horse.get_race(0)
-
-        if not horse.has_past_races:
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        past_forms = horse.form_table.past_forms
+        if not past_forms:
             return self.PLACEHOLDER_VALUE
 
-        form_table = base_race_card.form_table_of_horse(horse.horse_id)
-        n_past_races_of_same_category = 0
+        past_forms_same_category = [
+            past_form for past_form in past_forms if past_form.category == race_card.category
+        ]
 
-        total_place = 0
-        for past_race in form_table:
-            if past_race["category"] == base_race_card.category:
-                if "finalPosition" in past_race:
-                    n_past_races_of_same_category += 1
-                    total_place += past_race["finalPosition"]
-
-        if n_past_races_of_same_category == 0:
+        if not past_forms_same_category:
             return self.PLACEHOLDER_VALUE
 
-        return total_place / n_past_races_of_same_category
+        places = [
+            past_form.final_position for past_form in past_forms_same_category if past_form.final_position > 0
+        ]
+
+        if not places:
+            return self.PLACEHOLDER_VALUE
+
+        return statistics.mean(places)

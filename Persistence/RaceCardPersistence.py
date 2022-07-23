@@ -14,11 +14,11 @@ class RaceCardsPersistence:
         print("writing...")
         raw_races = {str(race_card.date): {} for race_card in race_cards}
         for race_card in race_cards:
-            raw_races[str(race_card.date)][race_card.title] = {}
+            raw_races[str(race_card.date)][race_card.track_name] = {}
 
         while race_cards:
             race_card = race_cards.pop(0)
-            raw_races[str(race_card.date)][race_card.title][str(race_card.number)] = race_card.raw_race_card
+            raw_races[str(race_card.date)][race_card.track_name][str(race_card.number)] = race_card.raw_race_card
             del race_card
 
         file_suffixes = {date[0:7] for date in raw_races}
@@ -114,7 +114,7 @@ def main():
     persistence = RaceCardsPersistence("train_race_cards")
     race_cards = persistence.load_first_month_non_writable()
     print(race_cards)
-    print(race_cards[0].title)
+    print(race_cards[0].track_name)
     #persistence.save(race_cards)
 
 

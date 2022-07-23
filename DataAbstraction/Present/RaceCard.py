@@ -27,9 +27,11 @@ class RaceCard:
         race = raw_race_card["race"]
         result = raw_race_card["result"]
 
-        self.title = event["title"]
+        self.track_name = event["title"]
         self.number = race["raceNumber"]
         self.distance = race["distance"]
+        self.category = race["category"]
+        self.surface = race["trackSurface"]
         self.winner_id = str(result["positions"][0]["idRunner"])
 
         self.__base_attributes = {
@@ -119,7 +121,7 @@ class RaceCard:
         past_times = self.past_times_of_horse(horse_id)
         past_times_same_track = []
         for i, past_race in enumerate(form_table):
-            if past_race["trackName"] == self.title and past_times[i] != -1:
+            if past_race["trackName"] == self.track_name and past_times[i] != -1:
                 past_times_same_track.append(past_times[i])
             else:
                 past_times_same_track.append(-1)
@@ -161,7 +163,7 @@ class RaceCard:
         past_speeds = self.past_speeds_of_horse(horse_id)
         past_speeds_same_track = []
         for i, past_race in enumerate(form_table):
-            if past_race["trackName"] == self.title and past_speeds[i] != -1:
+            if past_race["trackName"] == self.track_name and past_speeds[i] != -1:
                 past_speeds_same_track.append(past_speeds[i])
 
         return past_speeds_same_track
@@ -258,7 +260,7 @@ class RaceCard:
 
     @property
     def name(self) -> str:
-        return f"{self.title} {self.number}"
+        return f"{self.track_name} {self.number}"
 
     @property
     def start_time(self):
@@ -269,16 +271,8 @@ class RaceCard:
         return self.__event["idTrack"]
 
     @property
-    def category(self) -> str:
-        return self.__race["category"]
-
-    @property
     def race(self) -> dict:
         return self.__race
-
-    @property
-    def surface(self) -> str:
-        return self.__race["trackSurface"]
 
     @property
     def n_runners(self) -> int:

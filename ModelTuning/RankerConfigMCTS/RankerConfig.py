@@ -10,7 +10,7 @@ from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeed
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-NUM_LEAVES_VALUES = list(np.arange(51, 86, 5))
+NUM_LEAVES_VALUES = list(np.arange(5, 25, 5))
 MIN_CHILD_SAMPLES_VALUES = list(np.arange(10, 32, 2))
 COLSAMPLE_BYTREE_VALUES = list(np.arange(0.2, 1.2, 0.2))
 

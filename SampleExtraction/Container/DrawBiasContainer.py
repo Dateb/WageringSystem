@@ -12,10 +12,10 @@ class DrawBiasContainer(FeatureContainer):
 
     def fit(self, train_race_cards: List[RaceCard]):
         for race_card in train_race_cards:
-            if race_card.title not in self.__draw_bias:
-                self.__draw_bias[race_card.title] = {}
+            if race_card.track_name not in self.__draw_bias:
+                self.__draw_bias[race_card.track_name] = {}
 
-            race_card_bias = self.__draw_bias[race_card.title]
+            race_card_bias = self.__draw_bias[race_card.track_name]
             for horse in race_card.horses:
                 post_position = str(horse.post_position)
                 if post_position != "-1":
