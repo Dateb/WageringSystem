@@ -1,6 +1,6 @@
-from DataAbstraction.FormGuideFactory import FormGuideFactory
+from DataCollection.FormGuideFactory import FormGuideFactory
 from DataAbstraction.RawRaceCardInjector import RawRaceCardInjector
-from DataAbstraction.WritableRaceCard import WritableRaceCard
+from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
 
 

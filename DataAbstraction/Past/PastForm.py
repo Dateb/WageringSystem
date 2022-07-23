@@ -12,6 +12,7 @@ class PastForm:
         self.win_time = raw_data["winTimeSeconds"]
         self.category = raw_data["categoryLetter"]
         self.track_name = raw_data["trackName"]
+        self.odds = raw_data["SP"]
         self.date_time = datetime.fromtimestamp(raw_data["date"])
         self.date = self.date_time.date()
         self.final_position = self.__extract_final_position(raw_data)

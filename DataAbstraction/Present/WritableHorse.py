@@ -1,4 +1,4 @@
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class WritableHorse(Horse):

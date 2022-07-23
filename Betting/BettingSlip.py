@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict
 
 from Betting.Bet import Bet
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 
 
 class BetType(Enum):

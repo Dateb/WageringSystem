@@ -4,8 +4,8 @@ from typing import List, Tuple, Dict
 
 from pandas import DataFrame
 from SampleExtraction.FeatureManager import FeatureManager
-from DataAbstraction.Horse import Horse
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.RaceCard import RaceCard
 
 
 class SampleEncoder:

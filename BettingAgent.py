@@ -9,7 +9,7 @@ from DataCollection.DayCollector import DayCollector
 from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataCollection.RaceCardsCollector import RaceCardsCollector
 from SampleExtraction.FeatureManager import FeatureManager
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 CONTROLLER_SUBMISSION_MODE_ON = True

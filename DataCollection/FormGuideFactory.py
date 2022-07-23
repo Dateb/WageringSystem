@@ -1,4 +1,4 @@
-from DataAbstraction.FormGuide import FormGuide
+from DataCollection.FormGuide import FormGuide
 from DataCollection.Scraper import get_scraper
 
 

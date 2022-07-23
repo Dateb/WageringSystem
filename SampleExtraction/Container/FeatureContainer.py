@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List
 
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 
 
 class FeatureContainer:

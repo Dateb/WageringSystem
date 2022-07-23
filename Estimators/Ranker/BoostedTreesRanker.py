@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRanker
 
-from DataAbstraction.Horse import Horse
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.Ranker import Ranker
 
 

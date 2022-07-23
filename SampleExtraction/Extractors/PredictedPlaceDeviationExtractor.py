@@ -1,5 +1,6 @@
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class PredictedPlaceDeviationExtractor(FeatureExtractor):
@@ -11,13 +12,22 @@ class PredictedPlaceDeviationExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return f"Predicted_Place_Deviation_{self.__n_races_ago}"
 
-    def get_value(self, horse: Horse) -> int:
-        if self.__n_races_ago > horse.n_races - 1:
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        if self.__n_races_ago > horse.n_past_races:
             return self.PLACEHOLDER_VALUE
 
-        past_race = horse.get_race(self.__n_races_ago)
-        past_horse_id = past_race.subject_to_horse_id(horse.subject_id)
-        predicted_place = past_race.horse_predicted_place(past_horse_id)
-        actual_place = past_race.get_place_of_horse(past_horse_id)
+        past_race = horse.past_races[self.__n_races_ago - 1]
+        horse_past_race = [past_horse for past_horse in past_race.horses if past_horse.subject_id == horse.subject_id][0]
+
+        if horse_past_race.place == -1:
+            return self.PLACEHOLDER_VALUE
+
+        horse_past_odds = horse_past_race.current_odds
+        past_race_odds = [horse.current_odds for horse in past_race.horses]
+
+        lower_odds = [odds for odds in past_race_odds if odds < horse_past_odds]
+
+        predicted_place = 1 + len(lower_odds)
+        actual_place = horse_past_race.place
 
         return predicted_place - actual_place

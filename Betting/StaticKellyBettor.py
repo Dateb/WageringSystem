@@ -4,7 +4,7 @@ import pandas as pd
 
 from Betting.BettingSlip import BettingSlip, BetType
 from Betting.Bettor import Bettor
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 
 
 class StaticKellyBettor(Bettor):

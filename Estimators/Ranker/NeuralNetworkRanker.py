@@ -7,7 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from Estimators.NN.LambdaRankNNCore import LambdaRankNN
 from Estimators.Ranker.Ranker import Ranker
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class NeuralNetworkRanker(Ranker):

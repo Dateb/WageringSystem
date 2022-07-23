@@ -1,7 +1,7 @@
 from typing import List
 
-from DataAbstraction.PastForm import PastForm
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Past.PastForm import PastForm
+from DataAbstraction.Present.RaceCard import RaceCard
 from Persistence.JSONPersistence import JSONPersistence
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
 

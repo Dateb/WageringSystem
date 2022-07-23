@@ -1,6 +1,6 @@
 from typing import List
 
-from DataAbstraction.PastForm import PastForm
+from DataAbstraction.Past.PastForm import PastForm
 
 
 class FormTable:

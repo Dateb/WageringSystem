@@ -1,8 +1,8 @@
 from typing import List
 
 from DataAbstraction.RaceCardFactory import RaceCardFactory
-from DataAbstraction.RaceCard import RaceCard
-from DataAbstraction.WritableRaceCard import WritableRaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
+from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 
 
 class RaceCardsCollector:

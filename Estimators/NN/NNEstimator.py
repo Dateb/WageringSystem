@@ -11,8 +11,8 @@ from keras.optimizers.schedules.learning_rate_schedule import ExponentialDecay
 from numpy import ndarray
 from numba import cuda
 
-from DataAbstraction.Horse import Horse
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.custom_loss import rebalanced_kelly_loss, expected_value_loss
 from SampleExtraction.FeatureManager import FeatureManager
 import tensorflow as tf

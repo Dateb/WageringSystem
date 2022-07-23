@@ -3,7 +3,7 @@ import math
 from SampleExtraction.Container import ParTimesContainer
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class AverageParTimeDeviationExtractor(FeatureExtractor):

@@ -1,10 +1,10 @@
 import statistics
 
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Container import SpeedFiguresContainer
 from SampleExtraction.Container.FeatureContainer import FeatureContainer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class AverageSpeedFigureExtractor(FeatureExtractor):

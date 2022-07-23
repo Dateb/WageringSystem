@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from numpy import ndarray
 
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class RaceCard:
@@ -190,15 +190,6 @@ class RaceCard:
             return -1
 
         return form_table[n_races_ago - 1]["rating"]
-
-    def horse_predicted_place(self, horse_id: str) -> int:
-        horse_odds = self.get_current_odds_of_horse(horse_id)
-        odds_of_race = self.get_current_odds()
-
-        lower_odds = [odds for odds in odds_of_race if odds < horse_odds]
-        predicted_place = 1 + len(lower_odds)
-
-        return predicted_place
 
     def jockey_earnings_of_horse(self, subject_id: str) -> int:
         jockey_stats = self.jockey_stats_of_horse(subject_id)

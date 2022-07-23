@@ -1,9 +1,9 @@
 from abc import abstractmethod, ABC
 from typing import Any
 
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Container import FeatureContainer
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class FeatureExtractor(ABC):

@@ -1,7 +1,7 @@
 import json
 import os
 from typing import List, Dict
-from DataAbstraction.WritableRaceCard import RaceCard, WritableRaceCard
+from DataAbstraction.Present.WritableRaceCard import RaceCard, WritableRaceCard
 
 
 class RaceCardsPersistence:

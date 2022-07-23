@@ -1,7 +1,7 @@
 from typing import List
 
-from DataAbstraction.RaceCard import RaceCard
-from DataAbstraction.WritableHorse import WritableHorse
+from DataAbstraction.Present.RaceCard import RaceCard
+from DataAbstraction.Present.WritableHorse import WritableHorse
 
 
 class WritableRaceCard(RaceCard):

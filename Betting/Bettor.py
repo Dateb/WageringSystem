@@ -4,8 +4,8 @@ import pandas as pd
 
 from Betting.Bet import Bet
 from Betting.BettingSlip import BettingSlip, BetType
-from DataAbstraction.RaceCard import RaceCard
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.RaceCard import RaceCard
+from DataAbstraction.Present.Horse import Horse
 
 pd.options.mode.chained_assignment = None
 

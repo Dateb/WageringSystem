@@ -1,6 +1,6 @@
 import pandas as pd
 
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 from Estimators.NN.NNEstimator import NNEstimator
 
 

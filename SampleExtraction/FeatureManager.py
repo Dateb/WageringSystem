@@ -1,6 +1,6 @@
 from typing import List
 
-from DataAbstraction.RaceCard import RaceCard
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
 from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEarningsJockeyExtractor
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
@@ -10,6 +10,8 @@ from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
+from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
+from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PreviousRatingExtractor import PreviousRatingExtractor
 from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
@@ -27,7 +29,7 @@ from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowance
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
 from SampleExtraction.Extractors.WinRateLifetimeExtractor import WinRateLifetimeExtractor
 from SampleExtraction.Extractors.WinRateTrainerExtractor import WinRateTrainerExtractor
-from DataAbstraction.Horse import Horse
+from DataAbstraction.Present.Horse import Horse
 
 
 class FeatureManager:
@@ -65,9 +67,10 @@ class FeatureManager:
         WeightAllowanceExtractor(),
         BlinkerExtractor(),
         AveragePlaceLifetimeExtractor(),
+        PreviousOddsExtractor(),
 
-        # PredictedPlaceDeviationExtractor(n_races_ago=1),
-        # PredictedPlaceDeviationExtractor(n_races_ago=2),
+        PredictedPlaceDeviationExtractor(n_races_ago=1),
+        PredictedPlaceDeviationExtractor(n_races_ago=2),
 
         ColtExtractor(),
         GeldingExtractor(),
@@ -80,7 +83,6 @@ class FeatureManager:
         # JockeyCurrentHorsePurseExtractor(),
         # MaxPastRatingExtractor(),
         # PreviousClassExtractor(),
-        # PreviousOddsExtractor(),
         # PreviousRaceStarterCountExtractor(),
         # TrackGoingDifferenceExtractor(),
         # TrackPurseExtractor(),

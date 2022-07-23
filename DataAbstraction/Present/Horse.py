@@ -1,7 +1,8 @@
 from typing import List
 
-from DataAbstraction.FormTable import FormTable
-from DataAbstraction.Jockey import Jockey
+from DataAbstraction.Past.FormTable import FormTable
+from DataAbstraction.Past.PastRaceCard import PastRaceCard
+from DataAbstraction.Present.Jockey import Jockey
 
 
 class Horse:
@@ -32,6 +33,12 @@ class Horse:
         self.is_scratched = raw_data["scratched"]
         self.past_performance = raw_data["ppString"]
 
+        self.past_races = []
+        if "pastRaces" in raw_data:
+            self.past_races = [
+                PastRaceCard(raw_past_race, remove_non_starters=True) for raw_past_race in raw_data["pastRaces"]
+            ]
+
         self.form_table = []
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])
@@ -53,7 +60,7 @@ class Horse:
         if 'finalPosition' in raw_data:
             return int(raw_data["finalPosition"])
 
-        return 100
+        return -1
 
     def __extract_current_odds(self, raw_data: dict):
         odds_of_horse = raw_data["odds"]
@@ -68,6 +75,10 @@ class Horse:
 
     def set_feature_value(self, name: str, value):
         self.__features[name] = value
+
+    @property
+    def n_past_races(self) -> int:
+        return len(self.past_races)
 
     @property
     def attributes(self) -> List[str]:

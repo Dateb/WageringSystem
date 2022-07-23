@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from typing import List
 
-from DataAbstraction.FormGuide import FormGuide
-from DataAbstraction.WritableRaceCard import WritableRaceCard
+from DataCollection.FormGuide import FormGuide
+from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from Persistence.JSONPersistence import JSONPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
