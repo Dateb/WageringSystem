@@ -2,7 +2,6 @@ import pickle
 from pathlib import Path
 
 from pandas import DataFrame
-from sklearn.impute import KNNImputer
 
 from Betting.BetEvaluator import BetEvaluator
 from Betting.Bettor import Bettor

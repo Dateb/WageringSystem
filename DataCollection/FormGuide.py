@@ -2,28 +2,18 @@ from typing import List
 
 
 class FormGuide:
-    def __init__(self, base_race_id: str, subject_id: str, raw_formguide: dict):
-        self.__base_race_id = base_race_id
-        self.__subject_id = subject_id
+    def __init__(self, base_race_date: int, subject_id: str, raw_formguide: dict):
+        self.__base_race_date = base_race_date
+        self.subject_id = subject_id
         self.__raw_formguide = raw_formguide
 
         self.__form_table = raw_formguide["formTable"]
-        base_race_card_idx = self.__get_base_race_card_idx()
+        dates = [past_race["date"] for past_race in self.__form_table]
+        first_past_idx = len([1 for date in dates if date >= base_race_date])
 
-        self.__form_table = self.__form_table[base_race_card_idx+1:]
+        self.__form_table = self.__form_table[first_past_idx:]
 
         self.__past_race_ids = [past_race["idRace"] for past_race in self.__form_table]
-
-    def __get_base_race_card_idx(self):
-        for idx, past_race in enumerate(self.__form_table):
-            if str(past_race["idRace"]) == self.__base_race_id:
-                return idx
-
-        return -1
-
-    @property
-    def subject_id(self):
-        return self.__subject_id
 
     @property
     def form_table(self):
@@ -32,3 +22,24 @@ class FormGuide:
     @property
     def past_race_ids(self) -> List[str]:
         return self.__past_race_ids
+
+
+def main():
+    raw_form_guide = {
+        "horseDistanceFlag": True,
+        "postPositionFlag": True,
+        "ratingsFlag": True,
+        "categoryLetterFlag": False,
+        "formTable":[
+            {"trackName":"Newcastle","country":"GB","date":1658527200,"idRace":5222093,"raceNumber":1,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":8,"raceTitle":"","numRunners":10,"SP":10,"raceDistance":2050,"category":"HCP","categoryLetter":"4","startType":0,"purse":"13.4k","purseCurrency":"GBP","weight":64.4,"postPosition":1,"name":"Ghost Rider","opponentName":"Real Terms","subsequentName":"Virgo","horseDistance":7.8,"jockey":"C. Howarth"},{"trackName":"Newcastle","country":"GB","date":1656108000,"idRace":5148853,"raceNumber":1,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":5,"raceTitle":"Racing Welfare Handicap","numRunners":9,"SP":6,"raceDistance":2504,"category":"HCP","categoryLetter":"4","startType":"","purse":"9.9k","purseCurrency":"GBP","weight":61.2,"postPosition":8,"name":"Ghost Rider","opponentName":"Arabian Warrior","subsequentName":"Manjaam","horseDistance":5.5,"jockey":"P. McDonald"},{"trackName":"Newcastle","country":"GB","date":1651183200,"idRace":4997905,"raceNumber":3,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":3,"raceTitle":"","numRunners":5,"SP":6.5,"raceDistance":2050,"category":"HCP","categoryLetter":"3","startType":0,"purse":"12k","purseCurrency":"GBP","weight":54.9,"postPosition":2,"name":"Ghost Rider","opponentName":"Possible Man","subsequentName":"Harswell Duke","horseDistance":5.75,"jockey":"S. Donohoe"},{"trackName":"Wolverhampton","country":"GB","date":1650232800,"idRace":4969953,"raceNumber":1,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":2,"raceTitle":"","numRunners":8,"SP":2.87,"raceDistance":1906,"category":"HCP","categoryLetter":"4","startType":0,"purse":"9.9k","purseCurrency":"GBP","weight":62.6,"postPosition":6,"name":"Ghost Rider","opponentName":"Daheer","subsequentName":"Global Art","horseDistance":0.5,"jockey":"R. Sexton"},{"trackName":"Chelmsford City","country":"GB","date":1635372000,"idRace":4534428,"raceNumber":7,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":2,"raceTitle":"","numRunners":6,"SP":5.5,"raceDistance":2012,"category":"HCP","categoryLetter":"4","startType":0,"purse":"9.3k","purseCurrency":"GBP","weight":60.3,"postPosition":5,"name":"Ghost Rider","opponentName":"Balgair","subsequentName":"Mutaraafeq","horseDistance":0.75,"jockey":"P. McDonald"},{"trackName":"Ayr","country":"GB","date":1632780000,"idRace":4457304,"raceNumber":1,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"TRF","trackGoing":3.5,"finalPosition":4,"raceTitle":"","numRunners":6,"SP":10,"raceDistance":1609,"category":"HCP","categoryLetter":"4","startType":0,"purse":"9.3k","purseCurrency":"GBP","weight":61.7,"postPosition":2,"rating":80,"name":"Ghost Rider","opponentName":"Gweedore","subsequentName":"Amaysmont","horseDistance":8.05,"jockey":"J. Peate"},{"trackName":"Pontefract","country":"GB","date":1631743200,"idRace":4425421,"raceNumber":6,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"TRF","trackGoing":2.5,"finalPosition":2,"raceTitle":"","numRunners":6,"SP":4.5,"raceDistance":1615,"category":"HCP","categoryLetter":"4","startType":0,"purse":"10.2k","purseCurrency":"GBP","weight":60.8,"postPosition":2,"rating":80,"name":"Ghost Rider","opponentName":"Perfect Swiss","subsequentName":"Tangled","horseDistance":0.75,"jockey":"P. McDonald"},{"trackName":"Wolverhampton","country":"GB","date":1629324000,"idRace":4354151,"raceNumber":5,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":7,"raceTitle":"","numRunners":12,"SP":5.5,"raceDistance":1739,"category":"HCP","categoryLetter":"4","startType":0,"purse":"20.6k","purseCurrency":"GBP","weight":61.2,"postPosition":7,"name":"Ghost Rider","opponentName":"Roman Mist","subsequentName":"Willie John","horseDistance":5.8,"jockey":"P. McDonald"},{"trackName":"Wolverhampton","country":"GB","date":1628460000,"idRace":4328858,"raceNumber":2,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":3,"raceTitle":"","numRunners":9,"SP":5.5,"raceDistance":1739,"category":"HCP","categoryLetter":"4","startType":0,"purse":"9.7k","purseCurrency":"GBP","weight":62.1,"postPosition":6,"name":"Ghost Rider","opponentName":"Giuseppe Cassioli","subsequentName":"John Jasper","horseDistance":3.25,"jockey":"P. McDonald"},{"trackName":"Newmarket","country":"GB","date":1627682400,"idRace":4302560,"raceNumber":7,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"TRF","trackGoing":3,"finalPosition":4,"raceTitle":"Bob And Liz Handicap","numRunners":5,"SP":41,"raceDistance":1609,"category":"HCP","categoryLetter":"4","startType":"","purse":"11.2k","purseCurrency":"GBP","weight":60.3,"postPosition":3,"rating":84,"name":"Ghost Rider","opponentName":"Anythingtoday","subsequentName":"Eevilynn Drew","horseDistance":3.3,"jockey":"P. McDonald"},{"trackName":"Leicester","country":"GB","date":1626300000,"idRace":4260386,"raceNumber":6,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"TRF","trackGoing":3,"finalPosition":8,"raceTitle":"","numRunners":8,"SP":34,"raceDistance":1408,"category":"HCP","categoryLetter":"4","startType":0,"purse":"10k","purseCurrency":"GBP","weight":60.8,"postPosition":4,"rating":86,"name":"Ghost Rider","opponentName":"The Attorney","horseDistance":15,"jockey":"P. McDonald"},{"trackName":"Beverley","country":"GB","date":1619042400,"idRace":4049445,"raceNumber":4,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"TRF","trackGoing":2.5,"finalPosition":7,"raceTitle":"","numRunners":7,"SP":5,"raceDistance":1496,"category":"HCP","categoryLetter":"3","startType":0,"purse":"12k","purseCurrency":"GBP","weight":60.3,"postPosition":2,"rating":86,"name":"Ghost Rider","opponentName":"Longlai","horseDistance":9.7,"jockey":"P. McDonald"},{"trackName":"Newcastle","country":"GB","date":1617314400,"idRace":4000824,"raceNumber":4,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":4,"raceTitle":"Burradon Stakes","numRunners":4,"SP":15,"raceDistance":1614,"category":"LST","categoryLetter":"","startType":"","purse":"50k","purseCurrency":"GBP","weight":58.1,"postPosition":1,"name":"Ghost Rider","opponentName":"Megallan","horseDistance":9.75,"jockey":"P. McDonald"},{"trackName":"Newcastle","country":"GB","date":1614034800,"idRace":3905605,"raceNumber":6,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":0,"finalPosition":1,"raceTitle":"","numRunners":6,"SP":1.61,"raceDistance":1421,"category":"NOV","categoryLetter":"5","startType":0,"purse":"5.3k","purseCurrency":"GBP","weight":61.2,"postPosition":3,"name":"Ghost Rider","opponentName":0,"subsequentName":"As If By Chance","horseDistance":3.5,"jockey":"P. McDonald"},{"trackName":"Southwell","country":"GB","date":1610838000,"idRace":3814841,"raceNumber":2,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"DRT","trackGoing":2,"finalPosition":1,"raceTitle":"","numRunners":8,"SP":1.28,"raceDistance":1421,"category":"NOV","categoryLetter":"5","startType":0,"purse":"5.3k","purseCurrency":"GBP","weight":59.4,"postPosition":3,"name":"Ghost Rider","opponentName":0,"subsequentName":"Driftwood","horseDistance":4,"jockey":"P. McDonald"},{"trackName":"Southwell","country":"GB","date":1610060400,"idRace":3792517,"raceNumber":5,"raceType":"G","raceTypeDetail":"FLT","trackSurface":"EQT","trackGoing":2,"finalPosition":2,"raceTitle":"","numRunners":9,"SP":4,"raceDistance":1222,"category":"NOV","categoryLetter":"5","startType":0,"purse":"5.3k","purseCurrency":"GBP","weight":56.2,"postPosition":3,"name":"Ghost Rider","opponentName":"Marve","subsequentName":"Driftwood","horseDistance":1.75,"jockey":"P. McDonald"}]
+    }
+
+    base_race_datetime = 1658527200
+
+    formguide = FormGuide(base_race_datetime, "112266", raw_form_guide)
+    print(formguide.form_table)
+
+
+if __name__ == '__main__':
+    main()
+    print("finished")

@@ -1,3 +1,4 @@
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -10,5 +11,5 @@ class HeadToHeadExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Does_Head_To_Head"
 
-    def get_value(self, horse: Horse) -> int:
-        return int(horse.horse_id in horse.get_race(0).head_to_head_horses)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return int(horse.horse_id in race_card.head_to_head_horses)

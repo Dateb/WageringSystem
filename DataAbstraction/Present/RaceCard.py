@@ -27,6 +27,7 @@ class RaceCard:
         race = raw_race_card["race"]
         result = raw_race_card["result"]
 
+        self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
         self.number = race["raceNumber"]
         self.distance = race["distance"]
@@ -65,171 +66,16 @@ class RaceCard:
     def attributes(self) -> List[str]:
         return list(self.__base_attributes.keys()) + self.horses[0].attributes
 
-    def remove_horse(self, horse_id: str):
-        del self.horses[horse_id]
-
     def set_odds_of_horse(self, horse_id: str, odds: float):
         self.horses[horse_id].current_odds = odds
 
-    def get_name_of_horse(self, horse_id: str) -> str:
-        return self.horses[horse_id]["name"]
+    def __set_head_to_head_horses(self, race: dict):
+        self.__head_to_head_horses = []
 
-    def jockey_last_name_of_horse(self, horse_id: str) -> str:
-        return self.horses[horse_id]["jockey"]["lastName"]
-
-    def get_subject_id_of_horse(self, horse_id: str) -> str:
-        return self.horses[horse_id]["idSubject"]
-
-    # def __set_head_to_head_horses(self):
-    #     self.__head_to_head_horses = []
-    #
-    #     if "head2head" in self.__race:
-    #         head_to_head_races = self.__race["head2head"]
-    #         for head_to_head_race in head_to_head_races:
-    #             self.__head_to_head_horses += head_to_head_race["runners"]
-
-    def get_past_races_of_horse(self, horse_id: str):
-        subject_id = self.get_subject_id_of_horse(horse_id)
-        horse_data = self.get_data_of_subject(subject_id)
-        if "pastRaces" in horse_data:
-            return horse_data["pastRaces"]
-
-        return []
-
-    def past_speed_ratings_of_horse(self, horse_id: str, base_time: float) -> List[float]:
-        past_times = self.past_times_of_horse(horse_id)
-        return [
-            self.__speed_rating_calculator.compute_speed_rating_from_time(self.distance, past_time)
-            for past_time in past_times
-        ]
-
-    def past_times_of_horse(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        return [self.time_of_past_race(past_race) for past_race in form_table]
-
-    def time_of_past_race(self, past_race: dict) -> float:
-        if "horseDistance" in past_race and past_race["winTimeSeconds"] != -1:
-            if past_race["finalPosition"] == 1:
-                return past_race["winTimeSeconds"]
-            else:
-                return past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
-        else:
-            return -1
-
-    def past_times_of_horse_same_track(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        past_times = self.past_times_of_horse(horse_id)
-        past_times_same_track = []
-        for i, past_race in enumerate(form_table):
-            if past_race["trackName"] == self.track_name and past_times[i] != -1:
-                past_times_same_track.append(past_times[i])
-            else:
-                past_times_same_track.append(-1)
-
-        return past_times_same_track
-
-    def past_speeds_of_horse(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        past_speeds = []
-        for past_race in form_table:
-            if "horseDistance" in past_race and past_race["raceDistance"] != 0 and past_race["winTimeSeconds"] != -1:
-                race_distance = past_race["raceDistance"]
-                if past_race["finalPosition"] == 1:
-                    time = past_race["winTimeSeconds"]
-                else:
-                    time = past_race["winTimeSeconds"] + (0.2 * past_race["horseDistance"])
-
-                speed = race_distance / time
-                past_speeds.append(speed)
-            else:
-                past_speeds.append(-1)
-
-        return past_speeds
-
-    def past_speeds_of_horse_similar_distance(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        past_speeds = self.past_speeds_of_horse(horse_id)
-        past_speeds_similar_distance = []
-        for i, past_race in enumerate(form_table):
-            distance_lower_bound = self.distance - 250
-            distance_upper_bound = self.distance + 250
-            if distance_lower_bound < past_race["raceDistance"] < distance_upper_bound and past_speeds[i] != -1:
-                past_speeds_similar_distance.append(past_speeds[i])
-
-        return past_speeds_similar_distance
-
-    def past_speeds_of_horse_same_track(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        past_speeds = self.past_speeds_of_horse(horse_id)
-        past_speeds_same_track = []
-        for i, past_race in enumerate(form_table):
-            if past_race["trackName"] == self.track_name and past_speeds[i] != -1:
-                past_speeds_same_track.append(past_speeds[i])
-
-        return past_speeds_same_track
-
-    def past_speeds_of_horse_same_going(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        past_speeds = self.past_speeds_of_horse(horse_id)
-        past_speeds_same_going = []
-        for i, past_race in enumerate(form_table):
-            if past_race["trackGoing"] == self.track_going and past_speeds[i] != -1:
-                past_speeds_same_going.append(past_speeds[i])
-
-        return past_speeds_same_going
-
-    def horse_distances_of_horse(self, horse_id: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        horse_distances = []
-        for past_race in form_table:
-            if "horseDistance" in past_race and past_race["raceDistance"] != 0:
-                horse_distances.append(past_race["horseDistance"] / past_race["raceDistance"])
-
-        return horse_distances
-
-        form_table = self.form_table_of_horse(horse_id)
-        if n_races_ago + 1 > len(form_table) or "rating" not in form_table[n_races_ago - 1]:
-            return -1
-
-        return form_table[n_races_ago - 1]["rating"]
-
-    def jockey_earnings_of_horse(self, subject_id: str) -> int:
-        jockey_stats = self.jockey_stats_of_horse(subject_id)
-        if jockey_stats is not False:
-            return jockey_stats["earnings"]
-        return -1
-
-    def trainer_earnings_of_horse(self, subject_id: str) -> int:
-        trainer_stats = self.trainer_stats_of_horse(subject_id)
-        if trainer_stats is not False:
-            return trainer_stats["earnings"]
-        return -1
-
-    def trainer_wins_of_horse(self, subject_id: str) -> int:
-        trainer_stats = self.trainer_stats_of_horse(subject_id)
-        if trainer_stats is not False:
-            return trainer_stats["numWin"]
-        return -1
-
-    def trainer_num_races_of_horse(self, subject_id: str) -> int:
-        trainer_stats = self.trainer_stats_of_horse(subject_id)
-        if trainer_stats is not False:
-            return trainer_stats["numRaces"]
-        return -1
-
-    def trainer_stats_of_horse(self, subject_id: str) -> dict:
-        horse = self.get_data_of_subject(subject_id)
-        trainer = horse["trainer"]
-        return trainer["stats"]
-
-    def past_ratings_of_horse(self, horse_id: str) -> List[int]:
-        form_table = self.form_table_of_horse(horse_id)
-        ratings = []
-        for past_race in form_table:
-            if "rating" in past_race:
-                ratings.append(past_race["rating"])
-
-        return ratings
+        if "head2head" in race:
+            head_to_head_races = race["head2head"]
+            for head_to_head_race in head_to_head_races:
+                self.__head_to_head_horses += head_to_head_race["runners"]
 
     def purse_history_of_horse_and_jockey(self, horse_id: str, current_jockey_last_name: str) -> List[float]:
         form_table = self.form_table_of_horse(horse_id)

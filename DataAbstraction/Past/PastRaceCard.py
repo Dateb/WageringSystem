@@ -22,6 +22,7 @@ class PastRaceCard:
         self.title = event["title"]
         self.number = race["raceNumber"]
         self.distance = race["distance"]
+        self.race_class = race["categoryLetter"]
         self.winner_id = str(result["positions"][0]["idRunner"])
 
     def __extract_horses(self, raw_horses: dict):

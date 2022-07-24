@@ -6,15 +6,15 @@ import numpy as np
 
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Estimators.Ranker.Ranker import Ranker
-from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
+from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
 NUM_LEAVES_VALUES = list(np.arange(5, 25, 5))
-MIN_CHILD_SAMPLES_VALUES = list(np.arange(10, 32, 2))
+MIN_CHILD_SAMPLES_VALUES = list(np.arange(150, 350, 50))
 COLSAMPLE_BYTREE_VALUES = list(np.arange(0.2, 1.2, 0.2))
 
-BASE_FEATURES = [CurrentOddsExtractor().get_name(), AverageSpeedFigureExtractor().get_name()]
+BASE_FEATURES = [CurrentOddsExtractor().get_name()]
 SEARCH_FEATURES = [feature for feature in FeatureManager.FEATURE_NAMES if feature not in BASE_FEATURES]
 
 N_DECISION_LIST = [len(NUM_LEAVES_VALUES), len(MIN_CHILD_SAMPLES_VALUES), len(COLSAMPLE_BYTREE_VALUES)]\
@@ -25,7 +25,7 @@ class RankerConfig:
 
     def __init__(self, decisions: List[int]):
         self.search_params = {}
-        self.feature_subset = [CurrentOddsExtractor().get_name(), AverageSpeedFigureExtractor().get_name()]
+        self.feature_subset = [CurrentOddsExtractor().get_name()]
         self.decisions = decisions
         self.is_terminal = False
         if len(decisions) == len(N_DECISION_LIST):

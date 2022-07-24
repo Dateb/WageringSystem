@@ -16,7 +16,7 @@ class RaceCardFactory:
     def run(self, base_race_id: str) -> WritableRaceCard:
         base_race_card = self.get_race_card(base_race_id)
 
-        form_guide_factory = FormGuideFactory(base_race_id)
+        form_guide_factory = FormGuideFactory(base_race_card.raw_race_card["race"]["postTime"])
 
         form_guides = [form_guide_factory.run(horse.subject_id) for horse in base_race_card.horses]
 
@@ -29,7 +29,8 @@ class RaceCardFactory:
             for i in range(n_past_races_to_inject):
                 past_race_card = self.get_race_card(past_race_ids[i])
 
-                raw_race_card_injector.inject_past_race_card(form_guide.subject_id, past_race_card)
+                if past_race_card is not None:
+                    raw_race_card_injector.inject_past_race_card(form_guide.subject_id, past_race_card)
 
         race_card = WritableRaceCard(base_race_id, raw_race_card_injector.raw_race_card, self.__remove_non_starters)
 
@@ -38,5 +39,8 @@ class RaceCardFactory:
     def get_race_card(self, race_id: str) -> WritableRaceCard:
         api_url = f"{self.__base_api_url}{str(race_id)}"
         raw_race_card = self.__scraper.request_data(api_url)
+
+        if "runners" not in raw_race_card:
+            return None
 
         return WritableRaceCard(race_id, raw_race_card, self.__remove_non_starters)

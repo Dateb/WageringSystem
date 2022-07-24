@@ -16,7 +16,7 @@ class TuningPipeline:
 
     def tune_ranker(self) -> Ranker:
         feature_selector = RankerConfigurationTuner(self.__validator)
-        ranker = feature_selector.search_for_best_ranker_config(max_iter_without_improvement=200)
+        ranker = feature_selector.search_for_best_ranker_config(max_iter_without_improvement=500)
 
         return ranker
 

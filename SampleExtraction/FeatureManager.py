@@ -12,8 +12,11 @@ from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceT
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
+from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
+from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
+from SampleExtraction.Extractors.PreviousClassExtractor import PreviousClassExtractor
 from SampleExtraction.Extractors.PreviousOddsExtractor import PreviousOddsExtractor
 from SampleExtraction.Extractors.PreviousRatingExtractor import PreviousRatingExtractor
 from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
@@ -25,7 +28,7 @@ from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.MaxSpeedFigureExtractor import MaxSpeedFigureExtractor
 from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
-from SampleExtraction.Extractors.AverageSpeedFigureExtractor import AverageSpeedFigureExtractor
+from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
@@ -52,9 +55,10 @@ class FeatureManager:
 
     PAST_PLACES_EXTRACTORS = [PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)]
 
+    SPEED_FIGURE_EXTRACTORS = [SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 6)]
+
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = [
         CurrentOddsExtractor(),
-        AverageSpeedFigureExtractor(),
         DeviationSpeedFigureExtractor(),
         MaxSpeedFigureExtractor(),
         LayoffExtractor(),
@@ -81,14 +85,14 @@ class FeatureManager:
         AveragePlaceCategoryExtractor(),
         AveragePlaceSurfaceExtractor(),
         AveragePlaceTrackExtractor(),
-        # HeadToHeadExtractor(),
+        HeadToHeadExtractor(),
+        MaxPastRatingExtractor(),
+        PreviousClassExtractor(),
         # JockeyCurrentHorsePurseExtractor(),
-        # MaxPastRatingExtractor(),
-        # PreviousClassExtractor(),
         # PreviousRaceStarterCountExtractor(),
         # TrackGoingDifferenceExtractor(),
         # TrackPurseExtractor(),
-    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
+    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS + SPEED_FIGURE_EXTRACTORS
 
     FEATURE_NAMES: List[str] = [feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS]
     FEATURE_COUNT: int = len(ENABLED_FEATURE_EXTRACTORS)

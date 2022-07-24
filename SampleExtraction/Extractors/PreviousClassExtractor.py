@@ -1,3 +1,4 @@
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -10,11 +11,11 @@ class PreviousClassExtractor(FeatureExtractor):
     def get_name(self) -> str:
         return "Previous_Class"
 
-    def get_value(self, horse: Horse) -> int:
-        if not horse.has_past_races:
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        if not horse.past_races:
             return self.PLACEHOLDER_VALUE
 
-        previous_race = horse.get_race(1)
+        previous_race = horse.past_races[0]
         previous_class = previous_race.race_class
 
         try:

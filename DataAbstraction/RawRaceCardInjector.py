@@ -58,10 +58,8 @@ def main():
 
     win_times = JSONPersistence("win_times_contextualized").load()
 
-    counter = 0
     for race_cards in race_cards_persistence:
-        print(counter)
-        counter += 1
+        print(list(race_cards.keys())[0])
         for date_time in race_cards:
             injector = RawRaceCardInjector(race_cards[date_time])
             injector.inject_win_time(win_times)
