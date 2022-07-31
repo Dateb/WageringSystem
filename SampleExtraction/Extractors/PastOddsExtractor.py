@@ -3,17 +3,19 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
 
-class PreviousRatingExtractor(FeatureExtractor):
+class PastOddsExtractor(FeatureExtractor):
 
     def __init__(self, n_races_ago: int):
-        self.__n_races_ago = n_races_ago
         super().__init__()
+        self.__n_races_ago = n_races_ago
+        self.base_name = "Past_Odds"
 
     def get_name(self) -> str:
-        return "Previous_Rating"
+        return f"{self.base_name}_{self.__n_races_ago}"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if not horse.form_table.past_forms:
+        if len(horse.form_table.past_forms) < self.__n_races_ago:
             return self.PLACEHOLDER_VALUE
 
-        return horse.form_table.past_forms[0].rating
+        past_form = horse.form_table.past_forms[self.__n_races_ago - 1]
+        return past_form.odds

@@ -72,7 +72,7 @@ class RankerConfigurationTuner:
         return new_ranker
 
     def __simulate(self, ranker: Ranker) -> float:
-        return self.__validator.fund_history_summary(ranker, "RankerConfigurationTuner").roi_per_bet
+        return self.__validator.fund_history_summary(ranker, "RankerConfigurationTuner").win_loss_ratio
 
     def __backup(self, front_node: RankerConfigNode, score: float):
         node = front_node

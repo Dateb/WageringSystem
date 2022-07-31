@@ -22,7 +22,7 @@ class Bettor(ABC):
 
     def _add_stakes_fraction(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples.loc[:, "expected_value"] = samples.loc[:, Horse.CURRENT_ODDS_KEY] * samples.loc[:, "win_probability"]
-        samples = samples[samples["expected_value"] > 1.0]
+        samples = samples[samples["expected_value"] > 1.1]
 
         kelly_numerator = samples.loc[:, "expected_value"] - 1
         kelly_denominator = samples.loc[:, Horse.CURRENT_ODDS_KEY] - 1

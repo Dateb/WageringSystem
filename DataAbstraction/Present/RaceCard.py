@@ -40,12 +40,20 @@ class RaceCard:
             self.RACE_ID_KEY: self.race_id,
         }
 
+        for horse in self.horses:
+            if horse.n_past_races > 0:
+                if self.date_raw == horse.past_races[0].date_raw:
+                    print(self.race_id)
+                    print(horse.name)
+                    print(f"Same date: {self.date}")
+                    print("--------------------")
+
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
 
     def __extract_date(self, raw_race_card: dict):
-        post_time = raw_race_card["race"]["postTime"]
-        self.datetime = datetime.fromtimestamp(post_time)
+        self.date_raw = raw_race_card["race"]["postTime"]
+        self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
 
     def __remove_non_starters(self):

@@ -14,12 +14,14 @@ class PastForm:
         if "winTimeSeconds" in raw_data:
             self.win_time = raw_data["winTimeSeconds"]
 
-        self.category = raw_data["categoryLetter"]
+        self.race_class = raw_data["categoryLetter"]
         self.track_name = raw_data["trackName"]
         self.odds = raw_data["SP"]
-        self.date_time = datetime.fromtimestamp(raw_data["date"])
+        self.date_raw = raw_data["date"]
+        self.date_time = datetime.fromtimestamp(self.date_raw)
         self.date = self.date_time.date()
         self.final_position = self.__extract_final_position(raw_data)
+        self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.final_position == 1 else 0
 
         self.lengths_behind_winner = None
@@ -38,6 +40,11 @@ class PastForm:
         if "rating" not in raw_data:
             return -1
         return float(raw_data["rating"])
+
+    def __extract_post_position(self, raw_data: dict) -> int:
+        if "postPosition" in raw_data:
+            return int(raw_data["postPosition"])
+        return -1
 
     def __purse_to_value(self, purse: str):
         purse_suffix = purse[-1]

@@ -29,8 +29,8 @@ class PastRaceCard:
         self.horses: List[PastHorse] = [PastHorse(raw_horses[horse_id]) for horse_id in raw_horses]
 
     def __extract_date(self, raw_race_card: dict):
-        post_time = raw_race_card["race"]["postTime"]
-        self.datetime = datetime.fromtimestamp(post_time)
+        self.date_raw = raw_race_card["race"]["postTime"]
+        self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
 
     def __remove_non_starters(self):

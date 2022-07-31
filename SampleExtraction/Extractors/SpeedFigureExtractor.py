@@ -11,11 +11,12 @@ class SpeedFigureExtractor(FeatureExtractor):
 
     def __init__(self, n_races_ago: int):
         super().__init__()
+        self.base_name = "Speed_Figure"
         self.__speed_figures_container = SpeedFiguresContainer.get_feature_container()
         self.__n_races_ago = n_races_ago
 
     def get_name(self) -> str:
-        return f"Speed_Figure_{self.__n_races_ago}"
+        return f"{self.base_name}_{self.__n_races_ago}"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         form_table = horse.form_table

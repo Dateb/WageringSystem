@@ -16,7 +16,7 @@ class RaceCardFactory:
     def run(self, base_race_id: str) -> WritableRaceCard:
         base_race_card = self.get_race_card(base_race_id)
 
-        form_guide_factory = FormGuideFactory(base_race_card.raw_race_card["race"]["postTime"])
+        form_guide_factory = FormGuideFactory(base_race_card.raw_race_card["race"]["idRace"])
 
         form_guides = [form_guide_factory.run(horse.subject_id) for horse in base_race_card.horses]
 

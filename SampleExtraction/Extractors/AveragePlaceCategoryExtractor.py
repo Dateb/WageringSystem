@@ -19,7 +19,7 @@ class AveragePlaceCategoryExtractor(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         past_forms_same_category = [
-            past_form for past_form in past_forms if past_form.category == race_card.category
+            past_form for past_form in past_forms if past_form.race_class == race_card.category
         ]
 
         if not past_forms_same_category:

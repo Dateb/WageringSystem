@@ -47,7 +47,7 @@ class SpeedFiguresContainer(FeatureContainer):
             for horse in race_card.horses:
                 for past_form in horse.form_table.past_forms:
                     past_distance = str(past_form.distance)
-                    past_class = str(past_form.category)
+                    past_class = str(past_form.race_class)
 
                     win_time = past_form.win_time
                     if win_time > 0:

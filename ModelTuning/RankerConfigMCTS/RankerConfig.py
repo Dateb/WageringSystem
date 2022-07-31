@@ -10,15 +10,22 @@ from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtracto
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-NUM_LEAVES_VALUES = list(np.arange(5, 25, 5))
+NUM_LEAVES_VALUES = list(np.arange(20, 45, 5))
 MIN_CHILD_SAMPLES_VALUES = list(np.arange(150, 350, 50))
 COLSAMPLE_BYTREE_VALUES = list(np.arange(0.2, 1.2, 0.2))
 
 BASE_FEATURES = [CurrentOddsExtractor().get_name()]
-SEARCH_FEATURES = [feature for feature in FeatureManager.FEATURE_NAMES if feature not in BASE_FEATURES]
+PAST_FORM_FEATURES = FeatureManager.PAST_FORM_FEATURE_NAMES
+NON_PARAMETERIZED_FEATURES = [
+    feature for feature in FeatureManager.NON_PARAMETERIZED_FEATURE_NAMES if feature not in BASE_FEATURES
+]
+SEARCH_FEATURES = PAST_FORM_FEATURES + NON_PARAMETERIZED_FEATURES
 
-N_DECISION_LIST = [len(NUM_LEAVES_VALUES), len(MIN_CHILD_SAMPLES_VALUES), len(COLSAMPLE_BYTREE_VALUES)]\
-                  + [2 for _ in range(len(SEARCH_FEATURES))]
+MAX_PAST_FORM_DEPTH = 10
+N_DECISION_LIST = \
+    [
+        len(NUM_LEAVES_VALUES), len(MIN_CHILD_SAMPLES_VALUES), len(COLSAMPLE_BYTREE_VALUES), MAX_PAST_FORM_DEPTH
+    ] + [2 for _ in range(len(SEARCH_FEATURES))]
 
 
 class RankerConfig:
@@ -26,6 +33,7 @@ class RankerConfig:
     def __init__(self, decisions: List[int]):
         self.search_params = {}
         self.feature_subset = [CurrentOddsExtractor().get_name()]
+        self.past_form_depth = 0
         self.decisions = decisions
         self.is_terminal = False
         if len(decisions) == len(N_DECISION_LIST):
@@ -43,8 +51,13 @@ class RankerConfig:
             self.search_params["min_child_samples"] = MIN_CHILD_SAMPLES_VALUES[decision_idx]
         if i == 2:
             self.search_params["colsample_bytree"] = COLSAMPLE_BYTREE_VALUES[decision_idx]
-        if i >= 3 and decision_idx == 1:
-            self.feature_subset.append(SEARCH_FEATURES[i - 3])
+        if i == 3:
+            self.past_form_depth = decision_idx + 1
+        if 4 <= i < 4 + len(PAST_FORM_FEATURES) and decision_idx == 1:
+            new_past_form_features = [f"{PAST_FORM_FEATURES[i - 4]}_{k}" for k in range(1, self.past_form_depth + 1)]
+            self.feature_subset += new_past_form_features
+        if i >= 4 + len(PAST_FORM_FEATURES) and decision_idx == 1:
+            self.feature_subset.append(NON_PARAMETERIZED_FEATURES[i - (4 + len(PAST_FORM_FEATURES))])
 
     def get_ranker(self) -> Ranker:
         return BoostedTreesRanker(self.feature_subset, self.search_params)

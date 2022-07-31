@@ -11,7 +11,7 @@ class FeatureExtractor(ABC):
     PLACEHOLDER_VALUE = float('NaN')
 
     def __init__(self):
-        pass
+        self.base_name = "default"
 
     @abstractmethod
     def get_name(self) -> str:

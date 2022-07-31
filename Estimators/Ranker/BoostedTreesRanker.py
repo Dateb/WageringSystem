@@ -15,6 +15,7 @@ class BoostedTreesRanker(Ranker):
         "boosting_type": "gbdt",
         "objective": "lambdarank",
         "metric": "ndcg",
+        "n_estimators": 1000,
         "learning_rate": 0.01,
         "verbose": -1,
         "random_state": 0,
@@ -24,7 +25,7 @@ class BoostedTreesRanker(Ranker):
     }
 
     def __init__(self, feature_subset: List[str], search_params: dict):
-        super().__init__(feature_subset, Horse.HAS_WON_KEY)
+        super().__init__(feature_subset, Horse.RELEVANCE_KEY)
         if not search_params:
             search_params = {}
 
