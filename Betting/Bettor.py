@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from datetime import datetime
 from typing import Dict, List
 import pandas as pd
 
@@ -12,17 +13,17 @@ pd.options.mode.chained_assignment = None
 
 class Bettor(ABC):
 
-    def __init__(self, race_cards: List[RaceCard], start_kelly_wealth: float):
-        self.__race_cards = race_cards
+    def __init__(self, expected_value_additional_threshold: float, start_kelly_wealth: float):
         self._start_kelly_wealth = start_kelly_wealth
+        self.expected_value_additional_threshold = expected_value_additional_threshold
 
     @abstractmethod
-    def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
+    def bet(self, race_cards: Dict[str, RaceCard], samples: pd.DataFrame) -> Dict[str, BettingSlip]:
         pass
 
     def _add_stakes_fraction(self, samples: pd.DataFrame) -> pd.DataFrame:
         samples.loc[:, "expected_value"] = samples.loc[:, Horse.CURRENT_ODDS_KEY] * samples.loc[:, "win_probability"]
-        samples = samples[samples["expected_value"] > 1.1]
+        samples = samples[samples["expected_value"] > (1.0 + self.expected_value_additional_threshold)]
 
         kelly_numerator = samples.loc[:, "expected_value"] - 1
         kelly_denominator = samples.loc[:, Horse.CURRENT_ODDS_KEY] - 1
@@ -30,9 +31,9 @@ class Bettor(ABC):
 
         return samples
 
-    def _dataframe_to_betting_slips(self, bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
+    def _dataframe_to_betting_slips(self, race_cards: Dict[str, RaceCard], bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
         betting_slips: Dict[str, BettingSlip] = {
-            race_card.datetime: BettingSlip(race_card, bet_type) for race_card in self.__race_cards
+            datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S"): BettingSlip(race_cards[date_time], bet_type) for date_time in race_cards
         }
 
         for index, row in bets_df.iterrows():

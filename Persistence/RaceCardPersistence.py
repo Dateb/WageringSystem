@@ -39,7 +39,7 @@ class RaceCardsPersistence:
 
     def load_first_month_non_writable(self) -> Dict[str, RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")
-        return self.__load_race_cards_of_file(race_cards_files[0], self.__create_race_card)
+        return self.__load_race_cards_of_file(race_cards_files[1], self.__create_race_card)
 
     def load_every_month_non_writable(self) -> Dict[str, RaceCard]:
         race_cards_files = os.listdir("../data/train_test_race_cards")

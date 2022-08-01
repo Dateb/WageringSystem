@@ -48,8 +48,9 @@ class FundHistorySummary:
         if self.__total_loss > 0:
             self.__win_loss_ratio = self.__total_win / self.__total_loss
         else:
-            self.__win_loss_ratio = np.Inf
+            self.__win_loss_ratio = -np.Inf
         self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
+        self.total_payout = self.__total_win - self.__total_loss
 
     @property
     def betting_slips(self):
