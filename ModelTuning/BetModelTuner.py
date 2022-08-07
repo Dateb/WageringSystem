@@ -22,14 +22,14 @@ class BetModelTuner:
 
     def get_tuned_bet_model(self) -> BetModel:
         configuration_tuner = BetModelConfigurationTuner(self.__race_cards, self.train_samples, self.validation_samples)
-        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=1)
+        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=500)
 
         return bet_model
 
 
 def main():
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month_non_writable()
+    race_cards = persistence.load_every_month_non_writable()
     print(len(race_cards))
 
     tuning_pipeline = BetModelTuner(race_cards)

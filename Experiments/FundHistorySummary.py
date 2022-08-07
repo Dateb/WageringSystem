@@ -4,6 +4,7 @@ import numpy as np
 
 from Betting.BettingSlip import BettingSlip
 from Experiments.FundHistorySnapshot import FundHistorySnapshot
+from scipy.special import expit
 
 
 class FundHistorySummary:
@@ -51,6 +52,7 @@ class FundHistorySummary:
             self.__win_loss_ratio = -np.Inf
         self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
         self.total_payout = self.__total_win - self.__total_loss
+        self.validation_score = expit(self.total_payout)
 
     @property
     def betting_slips(self):

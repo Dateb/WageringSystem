@@ -29,6 +29,7 @@ class RaceCard:
 
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
+        self.track_id = event["idTrack"]
         self.number = race["raceNumber"]
         self.distance = race["distance"]
         self.category = race["category"]
@@ -119,10 +120,6 @@ class RaceCard:
     @property
     def start_time(self):
         return self.__event["firstStart"]
-
-    @property
-    def track_id(self) -> str:
-        return self.__event["idTrack"]
 
     @property
     def race(self) -> dict:

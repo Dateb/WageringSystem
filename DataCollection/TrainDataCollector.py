@@ -8,8 +8,8 @@ class TrainDataCollector:
 
     __TIME_OF_A_DAY = timedelta(days=1)
 
-    def __init__(self):
-        self.__race_cards_persistence = RaceCardsPersistence(file_name="train_race_cards")
+    def __init__(self, file_name: str):
+        self.__race_cards_persistence = RaceCardsPersistence(file_name)
 
         initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
         self.__collected_days = {initial_race_cards[datetime].date for datetime in initial_race_cards}
@@ -20,7 +20,7 @@ class TrainDataCollector:
     def collect(self, query_date: date):
         newest_train_date = query_date
         if len(self.__collected_days) > 0:
-            newest_train_date = self.latest_date
+            newest_train_date = max(self.__collected_days)
 
         if newest_train_date > query_date:
             self.__collect_forward_until_newest_train_date(query_date, newest_train_date)
@@ -52,15 +52,15 @@ class TrainDataCollector:
         if len(race_ids) > 0:
             self.__race_cards_persistence.save(new_race_cards)
 
-    @property
-    def latest_date(self) -> date:
-        return max(self.__collected_days)
-
 
 def main():
-    train_data_collector = TrainDataCollector()
+    train_data_collector = TrainDataCollector(file_name="example_race_cards")
 
-    query_date = date(2022, 5, 20)
+    query_date = date(
+        year=2022,
+        month=7,
+        day=31,
+    )
 
     train_data_collector.collect(query_date)
 

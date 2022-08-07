@@ -10,7 +10,7 @@ class TestDataCollector:
     INITIAL_ODDS_FILE_NAME = "../data/initial_odds.json"
 
     def __init__(self):
-        self.__race_cards_persistence = RaceCardsPersistence(file_name="test_race_cards")
+        self.__race_cards_persistence = RaceCardsPersistence(data_dir_name="test_race_cards")
         self.__initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
 
         self.__race_cards_collector = RaceCardsCollector([], remove_non_starters=False)

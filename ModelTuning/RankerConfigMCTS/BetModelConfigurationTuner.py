@@ -21,7 +21,7 @@ class BetModelConfigurationTuner:
 
         self.__best_bet_model = None
         self.__max_score = -np.Inf
-        self.__exploration_factor = 0.2
+        self.__exploration_factor = 0.1
         self.__tree = BetModelConfigurationTree()
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModel:
@@ -76,7 +76,7 @@ class BetModelConfigurationTuner:
         return new_bet_model
 
     def __simulate(self, bet_model: BetModel) -> float:
-        return bet_model.fund_history_summary(self.__race_cards, self.__validation_samples, "RankerConfigurationTuner").total_payout
+        return bet_model.fund_history_summary(self.__race_cards, self.__validation_samples, "RankerConfigurationTuner").validation_score
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

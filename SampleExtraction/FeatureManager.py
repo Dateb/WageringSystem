@@ -32,6 +32,7 @@ from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtr
 from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
+from SampleExtraction.Extractors.TrackExtractor import TrackExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
 from SampleExtraction.Extractors.WinRateLifetimeExtractor import WinRateLifetimeExtractor
@@ -66,6 +67,7 @@ class FeatureManager:
 
     ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = SPEED_FIGURE_EXTRACTORS + ODDS_EXTRACTORS + LAYOFF_EXTRACTORS + RATING_EXTRACTORS + CLASS_EXTRACTORS + DRAW_BIAS_EXTRACTORS +  [
         CurrentOddsExtractor(),
+        TrackExtractor(),
         DeviationSpeedFigureExtractor(),
         MaxSpeedFigureExtractor(),
         AgeExtractor(),

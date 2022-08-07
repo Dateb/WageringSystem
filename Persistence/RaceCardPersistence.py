@@ -5,9 +5,14 @@ from DataAbstraction.Present.WritableRaceCard import RaceCard, WritableRaceCard
 
 
 class RaceCardsPersistence:
-    def __init__(self, file_name: str):
-        self.__base_file_name = file_name
-        self.__race_cards_files = os.listdir("../data/train_test_race_cards")
+    def __init__(self, data_dir_name: str):
+        self.__data_dir_name = data_dir_name
+        self.__dir_path = f"../data/{self.__data_dir_name}"
+        if os.path.isdir(self.__dir_path):
+            self.__race_card_file_names = os.listdir(self.__dir_path)
+        else:
+            self.__race_card_file_names = []
+            os.makedirs(self.__dir_path)
         self.__iter_idx = 0
 
     def save(self, race_cards: List[WritableRaceCard]):
@@ -23,7 +28,7 @@ class RaceCardsPersistence:
 
         file_suffixes = {date[0:7] for date in raw_races}
         for file_suffix in file_suffixes:
-            file_name = f"../data/train_test_race_cards/{self.__base_file_name}_{file_suffix}.json"
+            file_name = f"{self.__dir_path}/{self.__data_dir_name}_{file_suffix}.json"
             if not os.path.isfile(file_name):
                 raw_races_of_month = {}
             else:
@@ -38,14 +43,12 @@ class RaceCardsPersistence:
         print("writing done")
 
     def load_first_month_non_writable(self) -> Dict[str, RaceCard]:
-        race_cards_files = os.listdir("../data/train_test_race_cards")
-        return self.__load_race_cards_of_file(race_cards_files[1], self.__create_race_card)
+        return self.__load_race_cards_of_file(self.__race_card_file_names[1], self.__create_race_card)
 
     def load_every_month_non_writable(self) -> Dict[str, RaceCard]:
-        race_cards_files = os.listdir("../data/train_test_race_cards")
         race_cards_per_file = [
-            self.__load_race_cards_of_file(race_cards_file, self.__create_race_card)
-            for race_cards_file in race_cards_files
+            self.__load_race_cards_of_file(race_card_file_name, self.__create_race_card)
+            for race_card_file_name in self.__race_card_file_names
         ]
         total_race_cards = {}
         for race_cards in race_cards_per_file:
@@ -54,13 +57,12 @@ class RaceCardsPersistence:
         return total_race_cards
 
     def load_first_month_writable(self) -> Dict[str, WritableRaceCard]:
-        race_cards_files = os.listdir("../data/train_test_race_cards")
-        return self.__load_race_cards_of_file(race_cards_files[0], self.__create_writable_race_card)
+        return self.__load_race_cards_of_file(self.__race_card_file_names[1], self.__create_writable_race_card)
 
     def load_every_month_writable(self) -> Dict[str, WritableRaceCard]:
         race_cards_per_file = [
-            self.__load_race_cards_of_file(race_cards_file, self.__create_writable_race_card)
-            for race_cards_file in self.__race_cards_files
+            self.__load_race_cards_of_file(race_card_file_name, self.__create_writable_race_card)
+            for race_card_file_name in self.__race_card_file_names
         ]
         total_race_cards = {}
         for race_cards in race_cards_per_file:
@@ -69,7 +71,7 @@ class RaceCardsPersistence:
         return total_race_cards
 
     def __load_race_cards_of_file(self, file_name: str, race_card_creation):
-        file_path = f"../data/train_test_race_cards/{file_name}"
+        file_path = f"../data/{self.__data_dir_name}/{file_name}"
         with open(file_path, "r") as f:
             raw_races = json.load(f)
 
@@ -91,18 +93,15 @@ class RaceCardsPersistence:
     def __create_writable_race_card(self, raw_race: dict) -> RaceCard:
         return WritableRaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)
 
-    def __flatten(self, xss):
-        return [x for xs in xss for x in xs]
-
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.__iter_idx >= len(self.__race_cards_files):
+        if self.__iter_idx >= len(self.__race_card_file_names):
             raise StopIteration
 
         race_cards = self.__load_race_cards_of_file(
-            self.__race_cards_files[self.__iter_idx],
+            self.__race_card_file_names[self.__iter_idx],
             self.__create_writable_race_card
         )
 
