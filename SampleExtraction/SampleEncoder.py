@@ -12,8 +12,8 @@ from DataAbstraction.Present.RaceCard import RaceCard
 
 class SampleEncoder:
 
-    def __init__(self, feature_extractors: List[FeatureExtractor]):
-        self.__feature_names = [feature_extractor.get_name() for feature_extractor in feature_extractors]
+    def __init__(self, features: List[FeatureExtractor]):
+        self.__feature_names = [feature.get_name() for feature in features]
 
     def transform(self, race_cards: List[RaceCard]) -> DataFrame:
         samples_array = np.concatenate([race_card.to_array() for race_card in race_cards])

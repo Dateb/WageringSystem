@@ -3,16 +3,18 @@ from typing import List, Dict
 
 import pandas as pd
 
+from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+
 
 class Ranker(ABC):
 
     _FIXED_PARAMS: Dict
 
-    def __init__(self, feature_subset: List[str], label_name: str):
+    def __init__(self, features: List[FeatureExtractor], label_name: str):
         self._ranker = None
         self._params = None
         self.search_params = None
-        self.feature_subset = feature_subset
+        self.features = features
         self.label_name = label_name
 
     def _fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):

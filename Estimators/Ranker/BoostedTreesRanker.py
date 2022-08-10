@@ -7,6 +7,7 @@ from lightgbm import LGBMRanker
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.Ranker import Ranker
+from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
 
 class BoostedTreesRanker(Ranker):
@@ -24,24 +25,25 @@ class BoostedTreesRanker(Ranker):
         "n_jobs": -1,
     }
 
-    def __init__(self, feature_subset: List[str], search_params: dict):
-        super().__init__(feature_subset, Horse.RELEVANCE_KEY)
+    def __init__(self, features: List[FeatureExtractor], search_params: dict):
+        super().__init__(features, Horse.RELEVANCE_KEY)
         if not search_params:
             search_params = {}
 
-        self.feature_subset = feature_subset
+        self.features = features
+        self.feature_names = [feature.get_name() for feature in features]
         self._ranker = LGBMRanker()
         self.set_search_params(search_params)
 
     def fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):
-        x_ranker = samples_train[self.feature_subset].to_numpy()
+        x_ranker = samples_train[self.feature_names].to_numpy()
         y_ranker = samples_train[self.label_name].to_numpy()
         qid = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
         self._ranker.fit(X=x_ranker, y=y_ranker, group=qid)
 
     def transform(self, samples: pd.DataFrame) -> pd.DataFrame:
-        X = samples[self.feature_subset]
+        X = samples[self.feature_names].to_numpy()
         scores = self._ranker.predict(X)
 
         samples.loc[:, "score"] = scores

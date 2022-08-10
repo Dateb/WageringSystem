@@ -41,10 +41,10 @@ class BetModelConfigurationTuner:
         BetModelConfiguration.min_child_samples_values = list(np.arange(300, 550, 50))
         BetModelConfiguration.colsample_by_tree_values = list(np.arange(0.2, 1.2, 0.2))
 
-        BetModelConfiguration.base_features = [CurrentOddsExtractor().get_name()]
-        BetModelConfiguration.past_form_features = self.__feature_manager.past_form_feature_names
-        BetModelConfiguration.non_parameterized_features = self.__feature_manager.non_parameterized_feature_names
-        BetModelConfiguration.search_features = BetModelConfiguration.past_form_features + BetModelConfiguration.non_parameterized_features
+        BetModelConfiguration.base_features = [CurrentOddsExtractor()]
+        BetModelConfiguration.past_form_features = self.__feature_manager.past_form_features
+        BetModelConfiguration.non_past_form_features = self.__feature_manager.non_past_form_features
+        BetModelConfiguration.n_feature_decisions = len(self.__feature_manager.past_form_features) + len(self.__feature_manager.non_past_form_features)
 
         BetModelConfiguration.max_past_form_depth = 10
         BetModelConfiguration.n_decision_list = \
@@ -54,7 +54,7 @@ class BetModelConfigurationTuner:
                 len(BetModelConfiguration.min_child_samples_values),
                 len(BetModelConfiguration.colsample_by_tree_values),
                 BetModelConfiguration.max_past_form_depth
-            ] + [2 for _ in range(len(BetModelConfiguration.search_features))]
+            ] + [2 for _ in range(BetModelConfiguration.n_feature_decisions)]
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModel:
         while self.__improve_ranker_config(max_iter_without_improvement):

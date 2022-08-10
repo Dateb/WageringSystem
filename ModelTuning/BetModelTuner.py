@@ -24,7 +24,7 @@ class BetModelTuner:
         self.feature_manager.fit_enabled_container(list(self.train_race_cards.values()))
         self.feature_manager.set_features(list(race_cards.values()))
 
-        sample_encoder = SampleEncoder(self.feature_manager.feature_extractors)
+        sample_encoder = SampleEncoder(self.feature_manager.non_past_form_features)
         self.train_samples = sample_encoder.transform(list(self.train_race_cards.values()))
         self.validation_samples = sample_encoder.transform(list(self.validation_race_cards.values()))
 

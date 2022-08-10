@@ -34,7 +34,7 @@ class BetModel:
         return fund_history_summary
 
     def __str__(self) -> str:
-        return f"{self.bettor.expected_value_additional_threshold}/{self.estimator.search_params}/{self.estimator.feature_subset}"
+        return f"{self.bettor.expected_value_additional_threshold}/{self.estimator.search_params}/{self.estimator.features}"
 
 
 def main():

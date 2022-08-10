@@ -45,25 +45,34 @@ class FeatureManager:
     def __init__(
             self,
             report_missing_features: bool = False,
-            feature_extractors: List[FeatureExtractor] = None
+            features: List[FeatureExtractor] = None
     ):
         self.__report_missing_features = report_missing_features
-        self.feature_extractors = feature_extractors
-        if feature_extractors is None:
-            self.__init_feature_extractors()
+        self.features = features
+        if features is None:
+            self.__init_features()
 
-        self.past_form_feature_names = list({
-            feature.base_name for feature in self.feature_extractors if feature.base_name != "default"
-        })
-        self.non_parameterized_feature_names = [
-            feature.get_name() for feature in self.feature_extractors if feature.base_name == "default"
+        self.n_features = len(self.features)
+
+    def __init_features(self):
+        self.__init_past_form_features()
+        self.__init_non_past_form_features()
+
+        flattened_past_form_features = [
+            past_form_feature for past_form_group in self.past_form_features for past_form_feature in past_form_group
         ]
+        self.features = flattened_past_form_features + self.non_past_form_features
 
-        self.feature_names = self.past_form_feature_names + self.non_parameterized_feature_names
-        self.n_features = len(self.feature_extractors)
+    def __init_past_form_features(self):
+        self.past_form_features = [[SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+        self.past_form_features.append([LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
-    def __init_feature_extractors(self):
-        self.feature_extractors = [
+    def __init_non_past_form_features(self):
+        self.non_past_form_features = [
             CurrentOddsExtractor(),
             TrackExtractor(),
             DeviationSpeedFigureExtractor(),
@@ -97,12 +106,11 @@ class FeatureManager:
             # TrackPurseExtractor(),
         ]
 
-        self.feature_extractors += self.__get_past_race_cards_extractors()
-        self.feature_extractors += self.__get_past_form_extractors()
-        self.feature_extractors += [
+        self.non_past_form_features += self.__get_past_race_cards_extractors()
+        self.non_past_form_features += [
             AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
         ]
-        self.feature_extractors += [
+        self.non_past_form_features += [
             PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
         ]
 
@@ -122,18 +130,8 @@ class FeatureManager:
 
         return past_race_cards_extractors
 
-    def __get_past_form_extractors(self) -> List[FeatureExtractor]:
-        past_form_extractors = [SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-        past_form_extractors += [LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-        past_form_extractors += [PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-        past_form_extractors += [PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-        past_form_extractors += [PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-        past_form_extractors += [PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-
-        return past_form_extractors
-
     def fit_enabled_container(self, race_cards: List[RaceCard]):
-        feature_containers = [feature_extractor.container for feature_extractor in self.feature_extractors]
+        feature_containers = [feature_extractor.container for feature_extractor in self.features]
         for feature_container in feature_containers:
             feature_container.fit(race_cards)
 
@@ -143,7 +141,7 @@ class FeatureManager:
 
     def __set_features_of_race_card(self, race_card: RaceCard):
         for horse in race_card.horses:
-            for feature_extractor in self.feature_extractors:
+            for feature_extractor in self.features:
                 feature_value = feature_extractor.get_value(race_card, horse)
                 if self.__report_missing_features:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)

@@ -7,6 +7,7 @@ from Betting.StaticKellyBettor import StaticKellyBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.BetModel import BetModel
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
+from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
 
 class BetModelConfiguration:
@@ -15,10 +16,10 @@ class BetModelConfiguration:
     min_child_samples_values: List[float]
     colsample_by_tree_values: List[float]
 
-    base_features: List[str]
-    past_form_features: List[str]
-    non_parameterized_features: List[str]
-    search_features: List[str]
+    base_features: List[FeatureExtractor]
+    past_form_features: List[List[FeatureExtractor]]
+    non_past_form_features: List[FeatureExtractor]
+    n_feature_decisions: List[FeatureExtractor]
 
     max_past_form_depth: float
     n_decision_list: List[int]
@@ -26,7 +27,7 @@ class BetModelConfiguration:
     def __init__(self, decisions: List[int]):
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
-        self.feature_subset = [CurrentOddsExtractor().get_name()]
+        self.feature_subset: List[FeatureExtractor] = [CurrentOddsExtractor()]
         self.past_form_depth = 0
         self.decisions = decisions
         self.is_terminal = False
@@ -50,10 +51,11 @@ class BetModelConfiguration:
         if i == 4:
             self.past_form_depth = decision_idx + 1
         if 5 <= i < 5 + len(self.past_form_features) and decision_idx == 1:
-            new_past_form_features = [f"{self.past_form_features[i - 5]}_{k}" for k in range(1, self.past_form_depth + 1)]
+            new_past_form_features = self.past_form_features[i - 5][:self.past_form_depth]
             self.feature_subset += new_past_form_features
         if i >= 5 + len(self.past_form_features) and decision_idx == 1:
-            self.feature_subset.append(self.non_parameterized_features[i - (5 + len(self.past_form_features))])
+            new_non_past_form_feature = self.non_past_form_features[i - (5 + len(self.past_form_features))]
+            self.feature_subset.append(new_non_past_form_feature)
 
     def get_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)

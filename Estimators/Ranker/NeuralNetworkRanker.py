@@ -12,8 +12,8 @@ from DataAbstraction.Present.Horse import Horse
 
 class NeuralNetworkRanker(Ranker):
 
-    def __init__(self, feature_subset: List[str], search_params: dict):
-        super().__init__(feature_subset, Horse.HAS_WON_KEY)
+    def __init__(self, features: List[str], search_params: dict):
+        super().__init__(features, Horse.HAS_WON_KEY)
         self.__ranker = None
         self.__scaler = MinMaxScaler()
         self.__model = self._build_model(
@@ -25,8 +25,8 @@ class NeuralNetworkRanker(Ranker):
         hidden_layers = []
         for i in range(len(hidden_layer_sizes)):
             hidden_layers.append(Dense(hidden_layer_sizes[i], activation=activation[i], name=str(activation[i]) + '_layer' + str(i)))
-        input1 = Input(shape=(len(self.feature_subset),), name='Input_layer1')
-        input2 = Input(shape=(len(self.feature_subset),), name='Input_layer2')
+        input1 = Input(shape=(len(self.features),), name='Input_layer1')
+        input2 = Input(shape=(len(self.features),), name='Input_layer2')
         x1 = input1
         x2 = input2
         for i in range(len(hidden_layer_sizes)):
@@ -43,7 +43,7 @@ class NeuralNetworkRanker(Ranker):
         return model
 
     def fit(self, samples_train: pd.DataFrame, samples_test: pd.DataFrame):
-        train_features = samples_train[self.feature_subset]
+        train_features = samples_train[self.features]
         self.__scaler.fit(train_features)
         train_features = self.__scaler.transform(train_features)
 
@@ -55,7 +55,7 @@ class NeuralNetworkRanker(Ranker):
             solver='adam',
         )
 
-        test_features = samples_test[self.feature_subset]
+        test_features = samples_test[self.features]
         test_features = self.__scaler.transform(test_features)
         test_y = samples_test[Horse.RELEVANCE_KEY].to_numpy()
         test_qid = samples_test[Horse.RACE_ID_KEY].to_numpy()
@@ -63,7 +63,7 @@ class NeuralNetworkRanker(Ranker):
         self.__ranker.fit(train_features, y, qid, validation_data=[test_features, test_y, test_qid], epochs=500, batch_size=128)
 
     def transform(self, samples_test: pd.DataFrame) -> pd.DataFrame:
-        test_features = samples_test[self.feature_subset]
+        test_features = samples_test[self.features]
         test_features = self.__scaler.transform(test_features)
 
         scores = self.__ranker.predict(test_features)
