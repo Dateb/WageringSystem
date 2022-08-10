@@ -20,6 +20,7 @@ class RawRaceCardInjector:
         for form_guide in form_guides:
             horse_data = self.__race_card.get_data_of_subject(form_guide.subject_id)
             horse_data["formTable"] = form_guide.form_table
+            self.inject_win_times_to_form_table(horse_data["formTable"])
 
     def inject_win_times_to_form_table(self, form_table: List[dict]):
         for past_form in form_table:

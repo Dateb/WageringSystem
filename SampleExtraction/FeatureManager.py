@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
@@ -42,74 +42,98 @@ from DataAbstraction.Present.Horse import Horse
 
 class FeatureManager:
 
-    def __init__(self, report_missing_features: bool = False):
+    def __init__(
+            self,
+            report_missing_features: bool = False,
+            feature_extractors: List[FeatureExtractor] = None
+    ):
         self.__report_missing_features = report_missing_features
+        self.feature_extractors = feature_extractors
+        if feature_extractors is None:
+            self.__init_feature_extractors()
 
-    AVERAGE_EARNINGS_JOCKEY_EXTRACTORS = [AverageEarningsJockeyExtractor(race_card_idx) for race_card_idx in range(3)]
-    AVERAGE_EARNINGS_TRAINER_EXTRACTORS = [AverageEarningsTrainerExtractor(race_card_idx) for race_card_idx in range(3)]
+        self.past_form_feature_names = list({
+            feature.base_name for feature in self.feature_extractors if feature.base_name != "default"
+        })
+        self.non_parameterized_feature_names = [
+            feature.get_name() for feature in self.feature_extractors if feature.base_name == "default"
+        ]
 
-    WIN_RATE_JOCKEY_EXTRACTORS = [WinRateJockeyExtractor(race_card_idx) for race_card_idx in range(3)]
-    WIN_RATE_TRAINER_EXTRACTORS = [WinRateTrainerExtractor(race_card_idx) for race_card_idx in range(3)]
+        self.feature_names = self.past_form_feature_names + self.non_parameterized_feature_names
+        self.n_features = len(self.feature_extractors)
 
-    AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR = [
-        AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
-    ]
+    def __init_feature_extractors(self):
+        self.feature_extractors = [
+            CurrentOddsExtractor(),
+            TrackExtractor(),
+            DeviationSpeedFigureExtractor(),
+            MaxSpeedFigureExtractor(),
+            AgeExtractor(),
+            DrawBiasExtractor(),
+            PurseExtractor(),
+            PastRaceCountExtractor(),
+            JockeyWeightExtractor(),
+            WinRateLifetimeExtractor(),
+            DistanceDifferenceExtractor(),
+            WeightAllowanceExtractor(),
+            BlinkerExtractor(),
+            AveragePlaceLifetimeExtractor(),
 
-    PAST_PLACES_EXTRACTORS = [PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)]
+            PredictedPlaceDeviationExtractor(n_races_ago=1),
+            PredictedPlaceDeviationExtractor(n_races_ago=2),
 
-    # Past form based extractors:
-    SPEED_FIGURE_EXTRACTORS = [SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-    LAYOFF_EXTRACTORS = [LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-    RATING_EXTRACTORS = [PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-    ODDS_EXTRACTORS = [PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-    CLASS_EXTRACTORS = [PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
-    DRAW_BIAS_EXTRACTORS = [PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+            ColtExtractor(),
+            GeldingExtractor(),
+            MareExtractor(),
 
-    ENABLED_FEATURE_EXTRACTORS: List[FeatureExtractor] = SPEED_FIGURE_EXTRACTORS + ODDS_EXTRACTORS + LAYOFF_EXTRACTORS + RATING_EXTRACTORS + CLASS_EXTRACTORS + DRAW_BIAS_EXTRACTORS +  [
-        CurrentOddsExtractor(),
-        TrackExtractor(),
-        DeviationSpeedFigureExtractor(),
-        MaxSpeedFigureExtractor(),
-        AgeExtractor(),
-        DrawBiasExtractor(),
-        PurseExtractor(),
-        PastRaceCountExtractor(),
-        JockeyWeightExtractor(),
-        WinRateLifetimeExtractor(),
-        DistanceDifferenceExtractor(),
-        WeightAllowanceExtractor(),
-        BlinkerExtractor(),
-        AveragePlaceLifetimeExtractor(),
+            AveragePlaceCategoryExtractor(),
+            AveragePlaceSurfaceExtractor(),
+            AveragePlaceTrackExtractor(),
+            HeadToHeadExtractor(),
+            MaxPastRatingExtractor(),
+            # JockeyCurrentHorsePurseExtractor(),
+            # PreviousRaceStarterCountExtractor(),
+            # TrackGoingDifferenceExtractor(),
+            # TrackPurseExtractor(),
+        ]
 
-        PredictedPlaceDeviationExtractor(n_races_ago=1),
-        PredictedPlaceDeviationExtractor(n_races_ago=2),
+        self.feature_extractors += self.__get_past_race_cards_extractors()
+        self.feature_extractors += self.__get_past_form_extractors()
+        self.feature_extractors += [
+            AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
+        ]
+        self.feature_extractors += [
+            PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
+        ]
 
-        ColtExtractor(),
-        GeldingExtractor(),
-        MareExtractor(),
+    def __get_past_race_cards_extractors(self) -> List[FeatureExtractor]:
+        past_race_cards_extractors = [
+            AverageEarningsJockeyExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            AverageEarningsTrainerExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            WinRateJockeyExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            WinRateTrainerExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
 
-        AveragePlaceCategoryExtractor(),
-        AveragePlaceSurfaceExtractor(),
-        AveragePlaceTrackExtractor(),
-        HeadToHeadExtractor(),
-        MaxPastRatingExtractor(),
-        # JockeyCurrentHorsePurseExtractor(),
-        # PreviousRaceStarterCountExtractor(),
-        # TrackGoingDifferenceExtractor(),
-        # TrackPurseExtractor(),
-    ] + PAST_PLACES_EXTRACTORS + AVERAGE_PLACE_SIMILAR_DISTANCE_EXTRACTOR + WIN_RATE_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_JOCKEY_EXTRACTORS + AVERAGE_EARNINGS_TRAINER_EXTRACTORS + WIN_RATE_TRAINER_EXTRACTORS
+        return past_race_cards_extractors
 
-    PAST_FORM_FEATURE_NAMES: List[str] = list({
-        feature.base_name for feature in ENABLED_FEATURE_EXTRACTORS if feature.base_name != "default"
-    })
-    NON_PARAMETERIZED_FEATURE_NAMES = [
-        feature.get_name() for feature in ENABLED_FEATURE_EXTRACTORS if feature.base_name == "default"
-    ]
-    FEATURE_NAMES: List[str] = PAST_FORM_FEATURE_NAMES + NON_PARAMETERIZED_FEATURE_NAMES
-    FEATURE_COUNT: int = len(ENABLED_FEATURE_EXTRACTORS)
+    def __get_past_form_extractors(self) -> List[FeatureExtractor]:
+        past_form_extractors = [SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+        past_form_extractors += [LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+        past_form_extractors += [PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+        past_form_extractors += [PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+        past_form_extractors += [PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+        past_form_extractors += [PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]
+
+        return past_form_extractors
 
     def fit_enabled_container(self, race_cards: List[RaceCard]):
-        feature_containers = [feature_extractor.container for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS]
+        feature_containers = [feature_extractor.container for feature_extractor in self.feature_extractors]
         for feature_container in feature_containers:
             feature_container.fit(race_cards)
 
@@ -119,7 +143,7 @@ class FeatureManager:
 
     def __set_features_of_race_card(self, race_card: RaceCard):
         for horse in race_card.horses:
-            for feature_extractor in self.ENABLED_FEATURE_EXTRACTORS:
+            for feature_extractor in self.feature_extractors:
                 feature_value = feature_extractor.get_value(race_card, horse)
                 if self.__report_missing_features:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
@@ -130,5 +154,3 @@ class FeatureManager:
             horse_name = horse.get_race(0).get_name_of_horse(horse.horse_id)
             print(f"WARNING: Missing feature {feature_extractor.get_name()} for horse {horse_name}, "
                   f"used value: {feature_extractor.PLACEHOLDER_VALUE}")
-
-

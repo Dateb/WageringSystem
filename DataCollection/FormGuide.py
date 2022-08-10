@@ -16,7 +16,7 @@ class FormGuide:
         self.__past_race_ids = [past_race["idRace"] for past_race in self.__form_table]
 
     @property
-    def form_table(self):
+    def form_table(self) -> List[dict]:
         return self.__form_table
 
     @property

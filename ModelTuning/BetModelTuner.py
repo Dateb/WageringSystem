@@ -6,6 +6,7 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConf
 from ModelTuning.BetModel import BetModel
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsSplitter import RaceCardsSplitter
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
@@ -15,20 +16,33 @@ __BEST_MODEL_PATH = "../data/best_ranker.dat"
 class BetModelTuner:
 
     def __init__(self, race_cards: Dict[str, RaceCard]):
-        sample_encoder = SampleEncoder(FeatureManager())
-        self.train_samples, self.validation_samples = sample_encoder.transform(race_cards)
-        self.validation_race_cards = sample_encoder.validation_race_cards
+        self.feature_manager = FeatureManager()
+
+        race_cards_splitter = RaceCardsSplitter()
+        self.train_race_cards, self.validation_race_cards = race_cards_splitter.split_race_cards(race_cards)
+
+        self.feature_manager.fit_enabled_container(list(self.train_race_cards.values()))
+        self.feature_manager.set_features(list(race_cards.values()))
+
+        sample_encoder = SampleEncoder(self.feature_manager.feature_extractors)
+        self.train_samples = sample_encoder.transform(list(self.train_race_cards.values()))
+        self.validation_samples = sample_encoder.transform(list(self.validation_race_cards.values()))
 
     def get_tuned_bet_model(self) -> BetModel:
-        configuration_tuner = BetModelConfigurationTuner(self.validation_race_cards, self.train_samples, self.validation_samples)
-        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=500)
+        configuration_tuner = BetModelConfigurationTuner(
+            self.validation_race_cards,
+            self.train_samples,
+            self.validation_samples,
+            self.feature_manager,
+        )
+        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=1)
 
         return bet_model
 
 
 def main():
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_every_month_non_writable()
+    race_cards = persistence.load_first_month_non_writable()
     print(len(race_cards))
 
     tuning_pipeline = BetModelTuner(race_cards)

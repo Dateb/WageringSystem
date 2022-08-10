@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
-from typing import List, Tuple, Dict
+from typing import List
 
 from pandas import DataFrame
+
+from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -10,40 +12,10 @@ from DataAbstraction.Present.RaceCard import RaceCard
 
 class SampleEncoder:
 
-    def __init__(self, feature_manager: FeatureManager, train_fraction: float = 0.8):
-        self.__feature_manager = feature_manager
-        self.__feature_names = [
-            feature_extractor.get_name() for feature_extractor in feature_manager.ENABLED_FEATURE_EXTRACTORS
-        ]
-        self.__train_fraction = train_fraction
-        self.train_race_cards = None
-        self.validation_race_cards = None
+    def __init__(self, feature_extractors: List[FeatureExtractor]):
+        self.__feature_names = [feature_extractor.get_name() for feature_extractor in feature_extractors]
 
-    def transform(self, race_cards: Dict[str, RaceCard]) -> Tuple[DataFrame, DataFrame]:
-        race_keys = list(race_cards.keys())
-        race_keys.sort()
-
-        n_races = len(race_keys)
-        n_races_train = int(self.__train_fraction * n_races)
-
-        train_race_keys = race_keys[:n_races_train]
-        validation_race_keys = race_keys[n_races_train:]
-
-        self.train_race_cards = {race_key: race_cards[race_key] for race_key in train_race_keys}
-        self.validation_race_cards = {race_key: race_cards[race_key] for race_key in validation_race_keys}
-
-        train_dataframe = self.__encode_train_race_cards(list(self.train_race_cards.values()))
-        validation_dataframe = self.__race_cards_to_dataframe(list(self.validation_race_cards.values()))
-
-        return train_dataframe, validation_dataframe
-
-    def __encode_train_race_cards(self, train_race_cards: List[RaceCard]) -> DataFrame:
-        self.__feature_manager.fit_enabled_container(train_race_cards)
-
-        return self.__race_cards_to_dataframe(train_race_cards)
-
-    def __race_cards_to_dataframe(self, race_cards: List[RaceCard]) -> DataFrame:
-        self.__feature_manager.set_features(race_cards)
+    def transform(self, race_cards: List[RaceCard]) -> DataFrame:
         samples_array = np.concatenate([race_card.to_array() for race_card in race_cards])
 
         race_card_attributes = race_cards[0].attributes
