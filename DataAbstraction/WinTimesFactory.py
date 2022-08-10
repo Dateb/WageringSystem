@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from Persistence.JSONPersistence import JSONPersistence
 
 
-class WinTimeFactory:
+class WinTimesFactory:
 
     def __init__(self):
         self.__scraper = get_scraper()
@@ -144,7 +144,7 @@ class WinTimeFactory:
 
 def main():
     persistence = JSONPersistence("win_times_contextualized")
-    win_time_factory = WinTimeFactory()
+    win_time_factory = WinTimesFactory()
 
     win_times = persistence.load()
     base = datetime.strptime('2022-06-07', "%Y-%m-%d").date()

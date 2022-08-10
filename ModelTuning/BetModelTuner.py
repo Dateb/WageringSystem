@@ -15,13 +15,12 @@ __BEST_MODEL_PATH = "../data/best_ranker.dat"
 class BetModelTuner:
 
     def __init__(self, race_cards: Dict[str, RaceCard]):
-        self.__race_cards = race_cards
-
         sample_encoder = SampleEncoder(FeatureManager())
         self.train_samples, self.validation_samples = sample_encoder.transform(race_cards)
+        self.validation_race_cards = sample_encoder.validation_race_cards
 
     def get_tuned_bet_model(self) -> BetModel:
-        configuration_tuner = BetModelConfigurationTuner(self.__race_cards, self.train_samples, self.validation_samples)
+        configuration_tuner = BetModelConfigurationTuner(self.validation_race_cards, self.train_samples, self.validation_samples)
         bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=500)
 
         return bet_model
@@ -37,7 +36,7 @@ def main():
 
     fund_history_summaries = [
         bet_model.fund_history_summary(
-            race_cards,
+            tuning_pipeline.validation_race_cards,
             tuning_pipeline.validation_samples,
             name="Gradient Boosted Trees Estimators"
         )

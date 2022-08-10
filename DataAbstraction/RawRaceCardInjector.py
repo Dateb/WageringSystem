@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List
 
+from DataAbstraction.WinTimesFactory import WinTimesFactory
 from DataCollection.FormGuide import FormGuide
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from Persistence.JSONPersistence import JSONPersistence
@@ -11,7 +12,9 @@ class RawRaceCardInjector:
 
     def __init__(self, race_card: WritableRaceCard):
         self.__race_card = race_card
-        self.__win_times = JSONPersistence("win_times_contextualized").load()
+        self.__persistence = JSONPersistence("win_times_contextualized")
+        self.__win_times = self.__persistence.load()
+        self.__win_times_factory = WinTimesFactory()
 
     def inject_form_tables(self, form_guides: List[FormGuide]):
         for form_guide in form_guides:
@@ -30,17 +33,19 @@ class RawRaceCardInjector:
             date = datetime.utcfromtimestamp(past_form["date"])
             date += timedelta(hours=2)
             date = date.strftime('%Y-%m-%d')
-            if date in self.__win_times:
-                win_times_of_date = self.__win_times[date]
-                track_name = past_form["trackName"]
-                if track_name in win_times_of_date:
-                    race_number = str(past_form["raceNumber"])
-                    if race_number in win_times_of_date[track_name]:
-                        past_form["winTimeSeconds"] = win_times_of_date[track_name][race_number]["win_time"]
-                        past_form["raceDistance"] = win_times_of_date[track_name][race_number]["distance"]
-                        past_form["categoryLetter"] = win_times_of_date[track_name][race_number]["class"]
-            else:
+            if date not in self.__win_times:
                 print(f"Date {date} has no recorded win times.")
+                self.__win_times[date] = self.__win_times_factory.get_win_times_of_date(date)
+                self.__persistence.save(self.__win_times)
+
+            win_times_of_date = self.__win_times[date]
+            track_name = past_form["trackName"]
+            if track_name in win_times_of_date:
+                race_number = str(past_form["raceNumber"])
+                if race_number in win_times_of_date[track_name]:
+                    past_form["winTimeSeconds"] = win_times_of_date[track_name][race_number]["win_time"]
+                    past_form["raceDistance"] = win_times_of_date[track_name][race_number]["distance"]
+                    past_form["categoryLetter"] = win_times_of_date[track_name][race_number]["class"]
 
     def update_win_times(self):
         for horse in self.__race_card.horses:

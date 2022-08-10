@@ -14,9 +14,9 @@ from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtracto
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 
-EXPECTED_VALUE_ADDITIONAL_THRESHOLD_VALUES = list(np.arange(0.00, 0.12, 0.02))
-NUM_LEAVES_VALUES = list(np.arange(20, 45, 5))
-MIN_CHILD_SAMPLES_VALUES = list(np.arange(150, 350, 50))
+EXPECTED_VALUE_ADDITIONAL_THRESHOLD_VALUES = list(np.arange(0.1, 0.2, 0.02))
+NUM_LEAVES_VALUES = list(np.arange(10, 22, 2))
+MIN_CHILD_SAMPLES_VALUES = list(np.arange(300, 550, 50))
 COLSAMPLE_BYTREE_VALUES = list(np.arange(0.2, 1.2, 0.2))
 
 BASE_FEATURES = [CurrentOddsExtractor().get_name()]

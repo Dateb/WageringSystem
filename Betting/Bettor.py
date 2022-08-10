@@ -31,8 +31,10 @@ class Bettor(ABC):
 
         return samples
 
-    def _dataframe_to_betting_slips(self, race_cards: Dict[str, RaceCard], bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
-        betting_slips: Dict[str, BettingSlip] = {}
+    def _dataframe_to_betting_slips(self, validation_race_cards: Dict[str, RaceCard], bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
+        betting_slips: Dict[str, BettingSlip] = {
+            date_time: BettingSlip(validation_race_cards[str(date_time)], bet_type) for date_time in validation_race_cards
+        }
 
         for index, row in bets_df.iterrows():
             horse_id = str(int(row[Horse.HORSE_ID_KEY]))
@@ -42,9 +44,6 @@ class Bettor(ABC):
             new_bet = Bet(horse_id, odds, stakes, stakes_fraction)
 
             date_time = row[RaceCard.DATETIME_KEY]
-
-            if str(date_time) not in betting_slips:
-                betting_slips[str(date_time)] = BettingSlip(race_cards[str(date_time)], bet_type)
 
             betting_slips[str(date_time)].add_bet(new_bet)
 

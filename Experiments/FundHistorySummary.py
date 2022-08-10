@@ -1,3 +1,4 @@
+from statistics import mean
 from typing import List, Dict
 
 import numpy as np
@@ -12,13 +13,13 @@ class FundHistorySummary:
     def __init__(self, name: str, betting_slips: Dict[str, BettingSlip], start_wealth=0):
         self.__name = name
         self.__betting_slips = betting_slips
-        self.__payouts = []
+        self.payouts = []
         self.__winnings = []
         self.__loss = []
         self.__dates = []
         for date in sorted(betting_slips):
             betting_slip = betting_slips[date]
-            self.__payouts.append(betting_slip.payout)
+            self.payouts.append(betting_slip.payout)
             self.__winnings.append(betting_slip.win)
             self.__loss.append(betting_slip.loss)
             self.__dates.append(betting_slip.date)
@@ -30,15 +31,15 @@ class FundHistorySummary:
     def __set_fund_snapshots(self):
         current_wealth = self.__start_wealth
         self.__snapshots = []
-        for i, payout in enumerate(self.__payouts):
+        for i, payout in enumerate(self.payouts):
             current_wealth += payout
             self.__snapshots += [FundHistorySnapshot(name=self.__name, date=self.__dates[i], wealth=current_wealth)]
 
     def __set_summary(self):
-        n_positive_payouts = len([payout for payout in self.__payouts if payout > 0])
-        n_negative_payouts = len([payout for payout in self.__payouts if payout < 0])
+        n_positive_payouts = len([payout for payout in self.payouts if payout > 0])
+        n_negative_payouts = len([payout for payout in self.payouts if payout < 0])
 
-        self.__n_train_test_samples = len(self.__payouts)
+        self.__n_validation_samples = len(self.payouts)
         if n_positive_payouts == 0:
             self.__won_bets_percentage = 0
         else:
@@ -50,9 +51,9 @@ class FundHistorySummary:
             self.__win_loss_ratio = self.__total_win / self.__total_loss
         else:
             self.__win_loss_ratio = -np.Inf
-        self.__roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_train_test_samples) + 1
+        self.roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_validation_samples)
         self.total_payout = self.__total_win - self.__total_loss
-        self.validation_score = expit(self.total_payout)
+        self.validation_score = mean(self.payouts)
 
     @property
     def betting_slips(self):
@@ -61,7 +62,7 @@ class FundHistorySummary:
     @property
     def summary(self):
         return (self.__name, self.__total_win, self.__total_loss, self.__win_loss_ratio,
-                self.__won_bets_percentage, self.__n_train_test_samples, self.__roi_per_bet)
+                self.__won_bets_percentage, self.__n_validation_samples, self.roi_per_bet)
 
     @property
     def win_percentage(self):
@@ -70,10 +71,6 @@ class FundHistorySummary:
     @property
     def win_loss_ratio(self):
         return self.__win_loss_ratio
-
-    @property
-    def roi_per_bet(self):
-        return self.__roi_per_bet
 
     @property
     def snapshots(self) -> List[FundHistorySnapshot]:

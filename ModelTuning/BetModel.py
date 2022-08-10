@@ -24,10 +24,10 @@ class BetModel:
     def fit_estimator(self, train_samples: DataFrame, validation_samples: DataFrame):
         self.estimator.fit(train_samples, validation_samples)
 
-    def fund_history_summary(self, race_cards: Dict[str, RaceCard], validation_samples: DataFrame, name: str) -> FundHistorySummary:
+    def fund_history_summary(self, validation_race_cards: Dict[str, RaceCard], validation_samples: DataFrame, name: str) -> FundHistorySummary:
         samples_test_estimated = self.estimator.transform(validation_samples)
 
-        betting_slips = self.bettor.bet(race_cards, samples_test_estimated)
+        betting_slips = self.bettor.bet(validation_race_cards, samples_test_estimated)
         betting_slips = self.__bet_evaluator.update_wins(betting_slips)
         fund_history_summary = FundHistorySummary(name, betting_slips)
 
@@ -35,6 +35,7 @@ class BetModel:
 
     def __str__(self) -> str:
         return f"{self.bettor.expected_value_additional_threshold}/{self.estimator.search_params}/{self.estimator.feature_subset}"
+
 
 def main():
     validator = get_bet_model()

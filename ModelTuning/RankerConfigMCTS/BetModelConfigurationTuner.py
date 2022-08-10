@@ -14,8 +14,8 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfi
 
 class BetModelConfigurationTuner:
 
-    def __init__(self, race_cards: Dict[str, RaceCard], train_samples: DataFrame, validation_samples: DataFrame):
-        self.__race_cards = race_cards
+    def __init__(self, validation_race_cards: Dict[str, RaceCard], train_samples: DataFrame, validation_samples: DataFrame):
+        self.__validation_race_cards = validation_race_cards
         self.__train_samples = train_samples
         self.__validation_samples = validation_samples
 
@@ -76,7 +76,7 @@ class BetModelConfigurationTuner:
         return new_bet_model
 
     def __simulate(self, bet_model: BetModel) -> float:
-        return bet_model.fund_history_summary(self.__race_cards, self.__validation_samples, "RankerConfigurationTuner").validation_score
+        return bet_model.fund_history_summary(self.__validation_race_cards, self.__validation_samples, "RankerConfigurationTuner").validation_score
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

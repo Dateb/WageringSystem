@@ -17,7 +17,7 @@ class SampleEncoder:
         ]
         self.__train_fraction = train_fraction
         self.train_race_cards = None
-        self.test_race_cards = None
+        self.validation_race_cards = None
 
     def transform(self, race_cards: Dict[str, RaceCard]) -> Tuple[DataFrame, DataFrame]:
         race_keys = list(race_cards.keys())
@@ -27,12 +27,15 @@ class SampleEncoder:
         n_races_train = int(self.__train_fraction * n_races)
 
         train_race_keys = race_keys[:n_races_train]
-        test_race_keys = race_keys[n_races_train:]
+        validation_race_keys = race_keys[n_races_train:]
 
-        self.train_race_cards = [race_cards[race_key] for race_key in train_race_keys]
-        self.test_race_cards = [race_cards[race_key] for race_key in test_race_keys]
+        self.train_race_cards = {race_key: race_cards[race_key] for race_key in train_race_keys}
+        self.validation_race_cards = {race_key: race_cards[race_key] for race_key in validation_race_keys}
 
-        return self.__encode_train_race_cards(self.train_race_cards), self.__race_cards_to_dataframe(self.test_race_cards)
+        train_dataframe = self.__encode_train_race_cards(list(self.train_race_cards.values()))
+        validation_dataframe = self.__race_cards_to_dataframe(list(self.validation_race_cards.values()))
+
+        return train_dataframe, validation_dataframe
 
     def __encode_train_race_cards(self, train_race_cards: List[RaceCard]) -> DataFrame:
         self.__feature_manager.fit_enabled_container(train_race_cards)
