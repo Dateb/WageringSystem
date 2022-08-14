@@ -60,7 +60,7 @@ class BetModelConfiguration:
     def get_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
-        bettor = StaticKellyBettor(self.expected_value_additional_threshold, start_kelly_wealth=1)
+        bettor = StaticKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)
         bet_evaluator = BetEvaluator()
 
         return BetModel(estimator, bettor, bet_evaluator)

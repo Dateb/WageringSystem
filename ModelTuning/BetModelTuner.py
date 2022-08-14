@@ -10,7 +10,7 @@ from SampleExtraction.RaceCardsSplitter import RaceCardsSplitter
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
-__BEST_MODEL_PATH = "../data/best_ranker.dat"
+__BET_MODEL_PATH = "../data/bet_model.dat"
 
 
 class BetModelTuner:
@@ -26,6 +26,7 @@ class BetModelTuner:
 
         sample_encoder = SampleEncoder(self.feature_manager.non_past_form_features)
         self.train_samples = sample_encoder.transform(list(self.train_race_cards.values()))
+
         self.validation_samples = sample_encoder.transform(list(self.validation_race_cards.values()))
 
     def get_tuned_bet_model(self) -> BetModel:
@@ -35,14 +36,14 @@ class BetModelTuner:
             self.validation_samples,
             self.feature_manager,
         )
-        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=1)
+        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
 
         return bet_model
 
 
 def main():
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_first_month_non_writable()
+    race_cards = persistence.load_every_month_non_writable()
     print(len(race_cards))
 
     tuning_pipeline = BetModelTuner(race_cards)
@@ -62,7 +63,7 @@ def main():
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
 
-    with open(__BEST_MODEL_PATH, "wb") as f:
+    with open(__BET_MODEL_PATH, "wb") as f:
         pickle.dump(bet_model, f)
 
 

@@ -1,48 +1,39 @@
 import pickle
-from datetime import date
-from typing import List
+from typing import List, Dict
 
-import pandas as pd
-
-from Betting.BetEvaluator import BetEvaluator
-from Betting.StaticKellyBettor import StaticKellyBettor
+from DataAbstraction.Present.RaceCard import RaceCard
 from Experiments.FundHistorySummary import FundHistorySummary
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-TEST_RACE_CARDS_FILE_NAME: str = "may_18_race_cards"
-
-TEST_ESTIMATOR_PATH: str = "../data/estimator_v2-03.dat"
-
+BET_MODEL_PATH: str = "../data/bet_model.dat"
 TEST_FUND_HISTORY_SUMMARIES_PATH: str = "../data/fund_history_summaries.dat"
 
 
 class Tester:
 
-    def __init__(self, samples: pd.DataFrame, kelly_wealth: float):
-        self.__bettor = StaticKellyBettor(kelly_wealth)
-        self.__samples = samples
+    def __init__(self, test_race_cards: Dict[str, RaceCard]):
+        self.test_race_cards = test_race_cards
+        with open(BET_MODEL_PATH, "rb") as f:
+            self.bet_model = pickle.load(f)
 
-        with open(TEST_ESTIMATOR_PATH, "rb") as f:
-            self.__estimator = pickle.load(f)
+        self.feature_manager = FeatureManager(features=self.bet_model.features)
+        self.feature_manager.set_features(list(self.test_race_cards.values()))
+
+        sample_encoder = SampleEncoder(self.feature_manager.features)
+        self.test_samples = sample_encoder.transform(list(self.test_race_cards.values()))
 
     def run(self, name: str) -> List[FundHistorySummary]:
-        samples_test_estimated = self.__estimator.transform(self.__samples)
-
-        bets = self.__bettor.bet(samples_test_estimated)
-        bet_results = BetEvaluator(TEST_RACE_CARDS_FILE_NAME).update_wins(bets)
-        return [FundHistorySummary(name, bet_results)]
+        return [self.bet_model.fund_history_summary(self.test_race_cards, self.test_samples, name)]
 
 
 def main():
-    race_cards = RaceCardsPersistence(TEST_RACE_CARDS_FILE_NAME).load_every_month_non_writable()
+    persistence = RaceCardsPersistence("test_race_cards")
+    test_race_cards = persistence.load_every_month_non_writable()
 
-    sample_encoder = SampleEncoder(FeatureManager(report_missing_features=True))
-    test_samples = sample_encoder.transform(race_cards)
-
-    tester = Tester(test_samples, kelly_wealth=10)
-    fund_history_summaries = tester.run("Test run")
+    tester = Tester(test_race_cards)
+    fund_history_summaries = tester.run("GBT test set")
 
     with open(TEST_FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
@@ -50,3 +41,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print("finished")

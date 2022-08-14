@@ -13,12 +13,12 @@ class SpeedFiguresContainer(FeatureContainer):
         self.__base_times = {}
         self.__par_figures = {}
         self.__track_variants = {}
+        self.__win_times = JSONPersistence("win_times_contextualized").load()
 
     def fit(self, train_race_cards: List[RaceCard]):
         self.__compute_base_times(train_race_cards)
         self.__compute_points_per_second()
         self.__compute_par_figures(train_race_cards)
-        self.__compute_track_variants()
 
     def __compute_base_times(self, train_race_cards: List[RaceCard]):
         for race_card in train_race_cards:
@@ -67,34 +67,6 @@ class SpeedFiguresContainer(FeatureContainer):
                             new_avg = old_avg + (par_figure - old_avg) / new_count
                             self.__par_figures[past_distance][past_class]["par_figure"] = new_avg
 
-    def __compute_track_variants(self):
-        win_times_contextualized = JSONPersistence("win_times_contextualized").load()
-
-        for date in win_times_contextualized:
-            self.__track_variants[date] = {}
-            for track in win_times_contextualized[date]:
-                track_figure_biases = []
-                for race in win_times_contextualized[date][track]:
-                    race_distance = str(win_times_contextualized[date][track][race]["distance"])
-
-                    if race_distance in self.__base_times:
-                        race_class = win_times_contextualized[date][track][race]["class"]
-                        win_time = win_times_contextualized[date][track][race]["win_time"]
-
-                        base_time = self.__base_times[race_distance]["base_time"]
-                        points_per_second = self.__base_times[race_distance]["points per second"]
-
-                        seconds_difference = base_time - win_time
-                        win_figure = 80 + seconds_difference * points_per_second
-                        if race_class in self.__par_figures[race_distance]:
-                            par_figure = self.__par_figures[race_distance][race_class]["par_figure"]
-
-                            track_figure_biases.append(par_figure - win_figure)
-                if track_figure_biases:
-                    self.__track_variants[date][track] = sum(track_figure_biases) / len(track_figure_biases)
-                else:
-                    self.__track_variants[date][track] = 0
-
     def get_speed_figure(self, past_form: PastForm) -> float:
         # TODO: collect more past winning times (distance != 1 check is then not necessary anymore)
         if past_form.country != "GB" or past_form.lengths_behind_winner is None or past_form.distance == -1:
@@ -108,9 +80,34 @@ class SpeedFiguresContainer(FeatureContainer):
 
         seconds_difference = base_time - horse_time
 
-        track_variant = self.__track_variants[str(past_form.date)][past_form.track_name]
+        track_variant = self.__get_track_variant(str(past_form.date), past_form.track_name)
         horse_speed_figure = 80 + seconds_difference * points_per_second + track_variant
         return horse_speed_figure
+
+    def __get_track_variant(self, date: str, track: str):
+        track_figure_biases = []
+
+        for race in self.__win_times[date][track]:
+            race_distance = str(self.__win_times[date][track][race]["distance"])
+
+            if race_distance in self.__base_times:
+                race_class = self.__win_times[date][track][race]["class"]
+                win_time = self.__win_times[date][track][race]["win_time"]
+
+                base_time = self.__base_times[race_distance]["base_time"]
+                points_per_second = self.__base_times[race_distance]["points per second"]
+
+                seconds_difference = base_time - win_time
+                win_figure = 80 + seconds_difference * points_per_second
+                if race_class in self.__par_figures[race_distance]:
+                    par_figure = self.__par_figures[race_distance][race_class]["par_figure"]
+
+                    track_figure_biases.append(par_figure - win_figure)
+
+        if track_figure_biases:
+            return sum(track_figure_biases) / len(track_figure_biases)
+        else:
+            return 0
 
     def __get_lengths_per_second(self, past_form: PastForm) -> float:
         if past_form.type == "G":

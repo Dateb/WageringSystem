@@ -9,8 +9,8 @@ from Betting.Bettor import Bettor
 
 class DynamicKellyBettor(Bettor):
 
-    def __init__(self, start_kelly_wealth: float, kelly_fraction: float, bet_evaluator: BetEvaluator):
-        super().__init__(start_kelly_wealth)
+    def __init__(self, kelly_wealth: float, kelly_fraction: float, bet_evaluator: BetEvaluator):
+        super().__init__(kelly_wealth)
         self.__kelly_fraction = kelly_fraction
         self.__bet_evaluator = bet_evaluator
 
@@ -26,7 +26,7 @@ class DynamicKellyBettor(Bettor):
         return self.__bet_on_betting_slips_sequentially(betting_slips)
 
     def __bet_on_betting_slips_sequentially(self, betting_slips: Dict[str, BettingSlip]) -> Dict[str, BettingSlip]:
-        kelly_wealth = self._start_kelly_wealth
+        kelly_wealth = self._kelly_wealth
         for betting_slip_key in betting_slips:
             betting_slip = betting_slips[betting_slip_key]
             for bet_key in betting_slip.bets:

@@ -13,8 +13,8 @@ pd.options.mode.chained_assignment = None
 
 class Bettor(ABC):
 
-    def __init__(self, expected_value_additional_threshold: float, start_kelly_wealth: float):
-        self._start_kelly_wealth = start_kelly_wealth
+    def __init__(self, expected_value_additional_threshold: float, kelly_wealth: float):
+        self._kelly_wealth = kelly_wealth
         self.expected_value_additional_threshold = expected_value_additional_threshold
 
     @abstractmethod

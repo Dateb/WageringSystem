@@ -43,8 +43,11 @@ class BetModelConfigurationTuner:
 
         BetModelConfiguration.base_features = [CurrentOddsExtractor()]
         BetModelConfiguration.past_form_features = self.__feature_manager.past_form_features
-        BetModelConfiguration.non_past_form_features = self.__feature_manager.non_past_form_features
-        BetModelConfiguration.n_feature_decisions = len(self.__feature_manager.past_form_features) + len(self.__feature_manager.non_past_form_features)
+        BetModelConfiguration.non_past_form_features = [
+            feature for feature in self.__feature_manager.non_past_form_features
+            if feature.get_name() != CurrentOddsExtractor().get_name()
+        ]
+        BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.past_form_features) + len(BetModelConfiguration.non_past_form_features)
 
         BetModelConfiguration.max_past_form_depth = 10
         BetModelConfiguration.n_decision_list = \

@@ -5,7 +5,6 @@ import numpy as np
 
 from Betting.BettingSlip import BettingSlip
 from Experiments.FundHistorySnapshot import FundHistorySnapshot
-from scipy.special import expit
 
 
 class FundHistorySummary:
@@ -23,13 +22,13 @@ class FundHistorySummary:
             self.__winnings.append(betting_slip.win)
             self.__loss.append(betting_slip.loss)
             self.__dates.append(betting_slip.date)
-        self.__start_wealth = start_wealth
+        self.start_wealth = start_wealth
 
         self.__set_fund_snapshots()
         self.__set_summary()
 
     def __set_fund_snapshots(self):
-        current_wealth = self.__start_wealth
+        current_wealth = self.start_wealth
         self.__snapshots = []
         for i, payout in enumerate(self.payouts):
             current_wealth += payout
