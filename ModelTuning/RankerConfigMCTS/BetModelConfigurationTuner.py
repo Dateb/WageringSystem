@@ -6,7 +6,7 @@ from pandas import DataFrame
 from tqdm import trange
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from ModelTuning.BetModel import BetModel
+from Model.BetModel import BetModel
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree

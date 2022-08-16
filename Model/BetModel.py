@@ -1,4 +1,3 @@
-import pickle
 from typing import Dict, List
 
 from pandas import DataFrame
@@ -9,10 +8,6 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Experiments.FundHistorySummary import FundHistorySummary
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.FeatureManager import FeatureManager
-
-BEST_RANKER_PATH = "../data/best_ranker.dat"
-FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 
 
 class BetModel:
@@ -40,25 +35,3 @@ class BetModel:
     @property
     def features(self) -> List[FeatureExtractor]:
         return self.estimator.features
-
-
-def main():
-    validator = get_bet_model()
-
-    #ranker_features = ["Current_Odds_Feature"]
-    ranker_features = FeatureManager.FEATURE_NAMES
-    estimator = BoostedTreesRanker(ranker_features, {})
-    validator.fit_estimator(estimator)
-
-    fund_history_summaries = [validator.fund_history_summary(estimator, name="Gradient Boosted Trees Estimators - Current Odds + Speed features")]
-
-    with open(FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
-        pickle.dump(fund_history_summaries, f)
-
-    with open(BEST_RANKER_PATH, "wb") as f:
-         pickle.dump(estimator, f)
-
-
-if __name__ == '__main__':
-    main()
-    print("finished")

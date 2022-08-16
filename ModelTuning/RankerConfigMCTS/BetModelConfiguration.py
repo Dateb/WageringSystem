@@ -5,7 +5,7 @@ from typing import List
 from Betting.BetEvaluator import BetEvaluator
 from Betting.StaticKellyBettor import StaticKellyBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
-from ModelTuning.BetModel import BetModel
+from Model.BetModel import BetModel
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 

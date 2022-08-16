@@ -3,7 +3,7 @@ from typing import Dict
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
-from ModelTuning.BetModel import BetModel
+from Model.BetModel import BetModel
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSplitter import RaceCardsSplitter
@@ -26,6 +26,7 @@ class BetModelTuner:
 
         sample_encoder = SampleEncoder(self.feature_manager.non_past_form_features)
         self.train_samples = sample_encoder.transform(list(self.train_race_cards.values()))
+        print(self.train_samples)
 
         self.validation_samples = sample_encoder.transform(list(self.validation_race_cards.values()))
 
@@ -36,14 +37,14 @@ class BetModelTuner:
             self.validation_samples,
             self.feature_manager,
         )
-        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
+        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
 
         return bet_model
 
 
 def main():
     persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_every_month_non_writable()
+    race_cards = persistence.load_first_month_non_writable()
     print(len(race_cards))
 
     tuning_pipeline = BetModelTuner(race_cards)
@@ -56,9 +57,6 @@ def main():
             name="Gradient Boosted Trees Estimators"
         )
     ]
-
-    #validator.bettor = FavoriteBettor(kelly_wealth=1000)
-    #fund_history_summaries += [validator.fund_history_summary(bet_model, name="Favorite Bettor")]
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
