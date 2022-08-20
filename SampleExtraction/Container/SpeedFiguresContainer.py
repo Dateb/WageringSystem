@@ -72,6 +72,9 @@ class SpeedFiguresContainer(FeatureContainer):
         if past_form.country != "GB" or past_form.lengths_behind_winner is None or past_form.distance == -1:
             return -1
 
+        if str(past_form.distance) not in self.__base_times:
+            return -1
+
         seconds_behind_winner = ((1 / self.__get_lengths_per_second(past_form)) * past_form.lengths_behind_winner)
         horse_time = past_form.win_time + seconds_behind_winner
 

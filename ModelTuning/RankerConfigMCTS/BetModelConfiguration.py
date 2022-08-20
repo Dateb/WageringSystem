@@ -57,7 +57,7 @@ class BetModelConfiguration:
             new_non_past_form_feature = self.non_past_form_features[i - (5 + len(self.past_form_features))]
             self.feature_subset.append(new_non_past_form_feature)
 
-    def get_bet_model(self) -> BetModel:
+    def create_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
         bettor = StaticKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)

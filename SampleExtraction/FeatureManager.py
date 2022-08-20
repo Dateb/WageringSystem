@@ -66,14 +66,14 @@ class FeatureManager:
 
     def __init_past_form_features(self):
         # Covariate shift:
-        # self.past_form_features = [[SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
-        # self.past_form_features.append([LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        # self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        # self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        # self.past_form_features = [[PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+        self.past_form_features = [[SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+        self.past_form_features.append([LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
         # No covariate shift:
-        self.past_form_features = [[PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+        self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
@@ -98,15 +98,15 @@ class FeatureManager:
             PredictedPlaceDeviationExtractor(n_races_ago=2),
 
             # Covariate Shift:
-            # DrawBiasExtractor(),
-            # AgeExtractor(),
-            # WinRateLifetimeExtractor(),
-            # JockeyWeightExtractor(),
-            # GeldingExtractor(),
-            # MareExtractor(),
-            # MaxPastRatingExtractor(),
-            # WeightAllowanceExtractor(),
-            # AveragePlaceSurfaceExtractor(),
+            DrawBiasExtractor(),
+            AgeExtractor(),
+            WinRateLifetimeExtractor(),
+            JockeyWeightExtractor(),
+            GeldingExtractor(),
+            MareExtractor(),
+            MaxPastRatingExtractor(),
+            WeightAllowanceExtractor(),
+            AveragePlaceSurfaceExtractor(),
 
             # Not implemented:
             # JockeyCurrentHorsePurseExtractor(),
@@ -115,31 +115,31 @@ class FeatureManager:
             # TrackPurseExtractor(),
         ]
 
-        #self.non_past_form_features += self.__get_past_race_cards_extractors()
+        self.non_past_form_features += self.__get_past_race_cards_extractors()
 
         self.non_past_form_features += [
             PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
         ]
 
         # Covariate shift:
-        # self.non_past_form_features += [
-        #     AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
-        # ]
+        self.non_past_form_features += [
+            AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
+        ]
 
     def __get_past_race_cards_extractors(self) -> List[FeatureExtractor]:
         # Covariate shift
-        # past_race_cards_extractors = [
-        #     AverageEarningsJockeyExtractor(race_card_idx) for race_card_idx in range(3)
-        # ]
-        # past_race_cards_extractors += [
-        #     AverageEarningsTrainerExtractor(race_card_idx) for race_card_idx in range(3)
-        # ]
-        # past_race_cards_extractors += [
-        #     WinRateJockeyExtractor(race_card_idx) for race_card_idx in range(3)
-        # ]
-        # past_race_cards_extractors += [
-        #     WinRateTrainerExtractor(race_card_idx) for race_card_idx in range(3)
-        # ]
+        past_race_cards_extractors = [
+            AverageEarningsJockeyExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            AverageEarningsTrainerExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            WinRateJockeyExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
+        past_race_cards_extractors += [
+            WinRateTrainerExtractor(race_card_idx) for race_card_idx in range(3)
+        ]
 
         return past_race_cards_extractors
 

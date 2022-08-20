@@ -1,4 +1,3 @@
-from statistics import mean
 from typing import List, Dict
 
 import numpy as np
@@ -52,7 +51,7 @@ class FundHistorySummary:
             self.__win_loss_ratio = -np.Inf
         self.roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_validation_samples)
         self.total_payout = self.__total_win - self.__total_loss
-        self.validation_score = mean(self.payouts)
+        self.validation_score = self.total_payout
 
     @property
     def betting_slips(self):
@@ -61,7 +60,7 @@ class FundHistorySummary:
     @property
     def summary(self):
         return (self.__name, self.__total_win, self.__total_loss, self.__win_loss_ratio,
-                self.__won_bets_percentage, self.__n_validation_samples, self.roi_per_bet)
+                self.__won_bets_percentage, self.__n_validation_samples, self.validation_score)
 
     @property
     def win_percentage(self):

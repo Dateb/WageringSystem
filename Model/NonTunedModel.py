@@ -2,7 +2,7 @@ from Betting.BetEvaluator import BetEvaluator
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
 from SampleExtraction.FeatureManager import FeatureManager
-from SampleExtraction.RaceCardsSplitter import RaceCardsSplitter
+from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -16,7 +16,7 @@ def main():
     persistence = RaceCardsPersistence("train_race_cards")
     race_cards = persistence.load_every_month_non_writable()
 
-    train_race_cards, validation_race_cards = RaceCardsSplitter().split_race_cards(race_cards)
+    train_race_cards, validation_race_cards = SampleSplitGenerator().split_race_cards(race_cards)
 
     feature_manager = FeatureManager()
 
