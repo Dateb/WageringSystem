@@ -20,7 +20,7 @@ class FundHistorySummary:
             self.payouts.append(betting_slip.payout)
             self.__winnings.append(betting_slip.win)
             self.__loss.append(betting_slip.loss)
-            self.__dates.append(betting_slip.date)
+            self.__dates.append(date)
         self.start_wealth = start_wealth
 
         self.__set_fund_snapshots()

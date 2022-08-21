@@ -19,8 +19,8 @@ class FavoriteBettor(Bettor):
 
         return race_groups.groupby(Horse.RACE_ID_KEY).head(n)
 
-    def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
-        bets_df = self._get_lowest_n_odds(samples, 1)
+    def bet(self, race_cards_sample: pd.DataFrame) -> Dict[str, BettingSlip]:
+        bets_df = self._get_lowest_n_odds(race_cards_sample, 1)
         bets_df["stakes"] = self._kelly_wealth * 0.5
 
         print(bets_df)

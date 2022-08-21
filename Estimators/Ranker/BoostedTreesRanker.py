@@ -8,6 +8,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BoostedTreesRanker(Ranker):
@@ -42,18 +43,21 @@ class BoostedTreesRanker(Ranker):
 
         self._ranker.fit(X=x_ranker, y=y_ranker, group=qid)
 
-    def transform(self, samples: pd.DataFrame) -> pd.DataFrame:
-        X = samples[self.feature_names].to_numpy()
+    def transform(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:
+        race_cards_dataframe = race_cards_sample.race_cards_dataframe
+        X = race_cards_dataframe[self.feature_names].to_numpy()
         scores = self._ranker.predict(X)
 
-        samples.loc[:, "score"] = scores
+        race_cards_dataframe.loc[:, "score"] = scores
 
-        samples.loc[:, "exp_score"] = np.exp(samples.loc[:, "score"])
-        score_sums = samples.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
-        samples = samples.join(other=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
-        samples.loc[:, "win_probability"] = samples.loc[:, "exp_score"] / samples.loc[:, "sum_exp_scores"]
+        race_cards_dataframe.loc[:, "exp_score"] = np.exp(race_cards_dataframe.loc[:, "score"])
+        score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
+        race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
 
-        return samples
+        race_cards_dataframe.loc[:, "win_probability"] = \
+            race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"]
+
+        return RaceCardsSample(race_cards_dataframe)
 
     @property
     def ranker(self):

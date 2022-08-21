@@ -1,12 +1,12 @@
 from abc import abstractmethod, ABC
-from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 import pandas as pd
 
 from Betting.Bet import Bet
 from Betting.BettingSlip import BettingSlip, BetType
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 pd.options.mode.chained_assignment = None
 
@@ -18,7 +18,7 @@ class Bettor(ABC):
         self.expected_value_additional_threshold = expected_value_additional_threshold
 
     @abstractmethod
-    def bet(self, race_cards: Dict[str, RaceCard], samples: pd.DataFrame) -> Dict[str, BettingSlip]:
+    def bet(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
         pass
 
     def _add_stakes_fraction(self, samples: pd.DataFrame) -> pd.DataFrame:
@@ -31,12 +31,14 @@ class Bettor(ABC):
 
         return samples
 
-    def _dataframe_to_betting_slips(self, validation_race_cards: Dict[str, RaceCard], bets_df: pd.DataFrame, bet_type: BetType) -> Dict[str, BettingSlip]:
+    def _dataframe_to_betting_slips(self, bet_race_cards_sample: RaceCardsSample, bet_type: BetType) -> Dict[str, BettingSlip]:
+        bet_race_cards_dataframe = bet_race_cards_sample.race_cards_dataframe
+        bet_race_cards_keys = bet_race_cards_sample.race_keys
         betting_slips: Dict[str, BettingSlip] = {
-            date_time: BettingSlip(validation_race_cards[str(date_time)], bet_type) for date_time in validation_race_cards
+            race_key: BettingSlip("0", bet_type) for race_key in bet_race_cards_keys
         }
 
-        for index, row in bets_df.iterrows():
+        for index, row in bet_race_cards_dataframe.iterrows():
             horse_id = str(int(row[Horse.HORSE_ID_KEY]))
             odds = float(row[Horse.CURRENT_ODDS_KEY])
             stakes = float(row["stakes"])

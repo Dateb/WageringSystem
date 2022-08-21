@@ -15,8 +15,8 @@ class FirstHorseBettor(Bettor):
     def _get_bet_of_first_horse_per_race(self, samples: pd.DataFrame):
         return samples.groupby(Horse.RACE_ID_KEY).head(1)
 
-    def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
-        bets_df = self._get_bet_of_first_horse_per_race(samples)
+    def bet(self, race_cards_sample: pd.DataFrame) -> Dict[str, BettingSlip]:
+        bets_df = self._get_bet_of_first_horse_per_race(race_cards_sample)
         bets_df["stakes"] = self._kelly_wealth * 0.5
 
         print(bets_df)

@@ -1,73 +1,62 @@
 import threading
-from typing import Dict, List
 
 import numpy as np
-from pandas import DataFrame
 from tqdm import trange
 
-from DataAbstraction.Present.RaceCard import RaceCard
-from Model.BetModel import BetModel
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 
 
 class SimulateThread(threading.Thread):
     def __init__(
             self,
-            samples: DataFrame,
-            race_cards: Dict[str, RaceCard],
+            race_cards_sample: RaceCardsSample,
             sample_split_generator: SampleSplitGenerator,
             bet_model_configuration: BetModelConfiguration,
             validation_fold_idx: int,
-            scores: List[float],
+            results: dict,
     ):
         threading.Thread.__init__(self)
-        self.samples = samples
-        self.race_cards = race_cards
+        self.race_cards_sample = race_cards_sample
         self.race_cards_splitter = sample_split_generator
         self.bet_model_configuration = bet_model_configuration
         self.validation_fold_idx = validation_fold_idx
-        self.scores = scores
+        self.scores = results
 
     def run(self):
         train_samples, validation_samples = self.race_cards_splitter.get_train_validation_split(self.validation_fold_idx)
-        validation_race_times = list(validation_samples["date_time"].astype(str).values)
 
         bet_model = self.bet_model_configuration.create_bet_model()
-        bet_model.fit_estimator(train_samples, validation_samples)
+        bet_model.fit_estimator(train_samples.race_cards_dataframe, validation_samples.race_cards_dataframe)
 
-        validation_race_cards = {
-            validation_race_time: self.race_cards[validation_race_time] for validation_race_time in validation_race_times
-        }
         fund_history = bet_model.fund_history_summary(
-            validation_race_cards,
             validation_samples,
             "RankerConfigurationTuner"
         )
 
-        self.scores.append(fund_history.validation_score)
+        year_month = self.race_cards_splitter.get_year_month(self.validation_fold_idx)
+        self.scores[year_month] = fund_history.validation_score
 
 
 class BetModelConfigurationTuner:
 
     def __init__(
             self,
-            race_cards: Dict[str, RaceCard],
-            samples: DataFrame,
+            race_cards_sample: RaceCardsSample,
             feature_manager: FeatureManager,
             sample_split_generator: SampleSplitGenerator,
     ):
-        self.race_cards = race_cards
-        self.samples = samples
+        self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
 
         self.sample_split_generator = sample_split_generator
 
-        self.__best_model: BetModel = None
+        self.__best_configuration: BetModelConfiguration = None
         self.__init_model_configuration_setting()
         self.__max_score = -np.Inf
         self.__exploration_factor = 0.1
@@ -75,7 +64,7 @@ class BetModelConfigurationTuner:
 
     def __init_model_configuration_setting(self):
         BetModelConfiguration.expected_value_additional_threshold_values = list(np.arange(0.1, 0.2, 0.02))
-        BetModelConfiguration.num_leaves_values = list(np.arange(6, 18, 2))
+        BetModelConfiguration.num_leaves_values = list(np.arange(3, 8, 1))
         BetModelConfiguration.min_child_samples_values = list(np.arange(300, 550, 50))
         BetModelConfiguration.colsample_by_tree_values = list(np.arange(0.2, 1.2, 0.2))
 
@@ -97,27 +86,32 @@ class BetModelConfigurationTuner:
                 BetModelConfiguration.max_past_form_depth
             ] + [2 for _ in range(BetModelConfiguration.n_feature_decisions)]
 
-    def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModel:
+    def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
         while self.__improve_ranker_config(max_iter_without_improvement):
             pass
 
-        self.__best_model.fit_estimator(self.samples, None)
-
-        return self.__best_model
+        return self.__best_configuration
 
     def __improve_ranker_config(self, max_iter_without_improvement: int) -> bool:
         for _ in trange(max_iter_without_improvement):
             front_node = self.__select()
 
             full_decision_list = front_node.ranker_config.get_full_decision_list()
-            terminal_ranker_config = BetModelConfiguration(full_decision_list)
+            terminal_configuration = BetModelConfiguration(full_decision_list)
 
-            score = self.__simulate(terminal_ranker_config)
+            results = self.__simulate(terminal_configuration)
+            score = sum(list(results.values()))
             self.__backup(front_node, score)
 
             if score > self.__max_score:
-                self.__best_model = terminal_ranker_config.create_bet_model()
-                print(f"Score: {score}, Setup: {self.__best_model}")
+                self.__best_configuration = terminal_configuration
+                print("New best Result:")
+                for month_year in results:
+                    print(f"{month_year}: {results[month_year]}")
+                print(f"Score: {score}")
+                print("----------------------------------------")
+                print(f"Setup: {self.__best_configuration}")
+                print("----------------------------------------")
                 self.__max_score = score
                 return True
 
@@ -146,10 +140,10 @@ class BetModelConfigurationTuner:
         )
         return self.__tree.add_node(new_node, node)
 
-    def __simulate(self, bet_model_configuration: BetModelConfiguration) -> float:
-        scores = []
+    def __simulate(self, bet_model_configuration: BetModelConfiguration) -> dict:
+        results = {}
         simulation_threads = [
-            SimulateThread(self.samples, self.race_cards, self.sample_split_generator, bet_model_configuration, validation_fold_idx, scores)
+            SimulateThread(self.race_cards_sample, self.sample_split_generator, bet_model_configuration, validation_fold_idx, results)
             for validation_fold_idx in range(len(self.sample_split_generator.validation_folds))
         ]
         for simulation_thread in simulation_threads:
@@ -158,7 +152,7 @@ class BetModelConfigurationTuner:
         for simulation_thread in simulation_threads:
             simulation_thread.join()
 
-        return sum(scores)
+        return results
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

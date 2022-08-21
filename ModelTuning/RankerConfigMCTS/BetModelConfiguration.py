@@ -73,6 +73,9 @@ class BetModelConfiguration:
             full_decision_list.append(next_decision)
         return full_decision_list
 
+    def __str__(self) -> str:
+        return f"{self.expected_value_additional_threshold}/{self.search_params}/{self.feature_subset}"
+
     @property
     def identifier(self) -> str:
         return str(self.decisions)

@@ -14,8 +14,8 @@ class DynamicKellyBettor(Bettor):
         self.__kelly_fraction = kelly_fraction
         self.__bet_evaluator = bet_evaluator
 
-    def bet(self, samples: pd.DataFrame) -> Dict[str, BettingSlip]:
-        bets_df = self._add_stakes_fraction(samples)
+    def bet(self, race_cards_sample: pd.DataFrame) -> Dict[str, BettingSlip]:
+        bets_df = self._add_stakes_fraction(race_cards_sample)
 
         if bets_df.empty:
             return {}

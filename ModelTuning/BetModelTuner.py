@@ -4,15 +4,16 @@ from random import sample
 from typing import Dict
 
 from DataAbstraction.Present.RaceCard import RaceCard
+from Experiments.FundHistorySummary import FundHistorySummary
+from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
-from Model.BetModel import BetModel
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
-__BET_MODEL_PATH = "../data/bet_model.dat"
+__BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 
 class BetModelTuner:
@@ -30,19 +31,35 @@ class BetModelTuner:
         self.feature_manager.fit_enabled_container(container_race_cards)
 
         sample_encoder = SampleEncoder(self.feature_manager.features)
-        self.samples = sample_encoder.transform(list(race_cards.values()))
-        self.sample_split_generator = SampleSplitGenerator(self.samples)
+        self.race_cards_sample = sample_encoder.transform(list(race_cards.values()))
+        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample)
 
-    def get_tuned_bet_model(self) -> BetModel:
+    def get_tuned_model_configuration(self) -> BetModelConfiguration:
         configuration_tuner = BetModelConfigurationTuner(
-            race_cards=self.race_cards,
-            samples=self.samples,
+            race_cards_sample=self.race_cards_sample,
             feature_manager=self.feature_manager,
             sample_split_generator=self.sample_split_generator,
         )
-        bet_model = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=5)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
 
-        return bet_model
+        return bet_model_configuration
+
+    def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
+        betting_slips = {}
+        for i in range(self.sample_split_generator.test_width):
+            bet_model = bet_model_configuration.create_bet_model()
+            train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=i)
+
+            bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
+
+            estimated_samples = bet_model.estimator.transform(test_samples)
+
+            new_betting_slips = bet_model.bettor.bet(estimated_samples)
+            new_betting_slips = bet_model.bet_evaluator.update_wins(new_betting_slips)
+
+            betting_slips = {**betting_slips, **new_betting_slips}
+
+        return FundHistorySummary("GBT Test", betting_slips, start_wealth=200)
 
 
 def main():
@@ -51,30 +68,14 @@ def main():
     print(len(race_cards))
 
     tuning_pipeline = BetModelTuner(race_cards)
-    bet_model = tuning_pipeline.get_tuned_bet_model()
-
-    persistence = RaceCardsPersistence("test_race_cards")
-    test_race_cards = persistence.load_every_month_non_writable()
-
-    feature_manager = FeatureManager(features=bet_model.features)
-    feature_manager.set_features(list(test_race_cards.values()))
-
-    sample_encoder = SampleEncoder(bet_model.features)
-    test_samples = sample_encoder.transform(list(test_race_cards.values()))
-
-    fund_history_summaries = [
-        bet_model.fund_history_summary(
-            race_cards=test_race_cards,
-            samples=test_samples,
-            name="Gradient Boosted Trees Estimators"
-        )
-    ]
+    bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
+    fund_history_summaries = [tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)]
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
         pickle.dump(fund_history_summaries, f)
 
-    with open(__BET_MODEL_PATH, "wb") as f:
-        pickle.dump(bet_model, f)
+    with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
+        pickle.dump(bet_model_configuration, f)
 
 
 if __name__ == '__main__':
