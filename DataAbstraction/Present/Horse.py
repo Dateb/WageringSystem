@@ -43,9 +43,10 @@ class Horse:
                 PastRaceCard(raw_past_race, remove_non_starters=True) for raw_past_race in raw_data["pastRaces"]
             ]
 
-        self.form_table = []
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])
+        else:
+            self.form_table = FormTable([])
 
         self.__base_attributes = {
             self.HORSE_ID_KEY: self.horse_id,

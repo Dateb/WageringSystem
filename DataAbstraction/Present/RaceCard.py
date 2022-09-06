@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List
 
-import numpy as np
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
@@ -34,13 +33,16 @@ class RaceCard:
         self.distance = race["distance"]
         self.category = race["category"]
         self.surface = race["trackSurface"]
-        self.winner_id = str(result["positions"][0]["idRunner"])
+        self.winner_id = -1
+        if result:
+            self.winner_id = str(result["positions"][0]["idRunner"])
 
         self.__base_attributes = {
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
         }
 
+        # TODO: check has seemingly false positives. Increase accuracy of check.
         for horse in self.horses:
             if horse.n_past_races > 0:
                 if self.date_raw == horse.past_races[0].date_raw:
@@ -65,7 +67,11 @@ class RaceCard:
         for horse in self.horses:
             values = self.values + horse.values
             total_values.append(values)
-        return np.asarray(total_values)
+        return total_values
+
+    def get_horse_with_id(self, horse_id: str) -> Horse:
+        horse_with_id = [horse for horse in self.horses if horse.horse_id == horse_id][0]
+        return horse_with_id
 
     @property
     def values(self) -> List:

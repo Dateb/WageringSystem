@@ -1,4 +1,5 @@
 import threading
+from statistics import mean
 
 import numpy as np
 from tqdm import trange
@@ -34,7 +35,7 @@ class SimulateThread(threading.Thread):
         bet_model = self.bet_model_configuration.create_bet_model()
         bet_model.fit_estimator(train_samples.race_cards_dataframe, validation_samples.race_cards_dataframe)
 
-        fund_history = bet_model.fund_history_summary(
+        fund_history = bet_model.get_fund_history_summary(
             validation_samples,
             "RankerConfigurationTuner"
         )
@@ -66,7 +67,6 @@ class BetModelConfigurationTuner:
         BetModelConfiguration.expected_value_additional_threshold_values = list(np.arange(0.1, 0.2, 0.02))
         BetModelConfiguration.num_leaves_values = list(np.arange(3, 8, 1))
         BetModelConfiguration.min_child_samples_values = list(np.arange(300, 550, 50))
-        BetModelConfiguration.colsample_by_tree_values = list(np.arange(0.2, 1.2, 0.2))
 
         BetModelConfiguration.base_features = [CurrentOddsExtractor()]
         BetModelConfiguration.past_form_features = self.feature_manager.past_form_features
@@ -82,7 +82,6 @@ class BetModelConfigurationTuner:
                 len(BetModelConfiguration.expected_value_additional_threshold_values),
                 len(BetModelConfiguration.num_leaves_values),
                 len(BetModelConfiguration.min_child_samples_values),
-                len(BetModelConfiguration.colsample_by_tree_values),
                 BetModelConfiguration.max_past_form_depth
             ] + [2 for _ in range(BetModelConfiguration.n_feature_decisions)]
 
@@ -100,7 +99,7 @@ class BetModelConfigurationTuner:
             terminal_configuration = BetModelConfiguration(full_decision_list)
 
             results = self.__simulate(terminal_configuration)
-            score = sum(list(results.values()))
+            score = mean(list(results.values()))
             self.__backup(front_node, score)
 
             if score > self.__max_score:

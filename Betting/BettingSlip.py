@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Dict
 
 from Betting.Bet import Bet
-from DataAbstraction.Present.RaceCard import RaceCard
 
 
 class BetType(Enum):
@@ -14,8 +13,8 @@ class BetType(Enum):
 
 class BettingSlip:
 
-    def __init__(self, winner_id: str, bet_type: BetType):
-        self.__winner_id = winner_id
+    def __init__(self, bet_type: BetType):
+        self.winner_id = "None"
         self.__bet_type = bet_type
         self.__bets: Dict[str, Bet] = {}
         self.__loss = 0
@@ -37,10 +36,6 @@ class BettingSlip:
 
     def update_won_bet(self, bet: Bet):
         self.__win = self.__bets[bet.horse_id].potential_win
-
-    @property
-    def winner_id(self):
-        return self.__winner_id
 
     @property
     def bets(self):

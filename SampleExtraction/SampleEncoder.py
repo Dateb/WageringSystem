@@ -14,12 +14,23 @@ class SampleEncoder:
 
     def __init__(self, features: List[FeatureExtractor]):
         self.__feature_names = [feature.get_name() for feature in features]
+        self.__samples_array = None
+        self.__columns = None
 
-    def transform(self, race_cards: List[RaceCard]) -> RaceCardsSample:
-        samples_array = np.concatenate([race_card.to_array() for race_card in race_cards])
+    def encode_race_cards(self, race_cards: List[RaceCard]):
+        self.__columns = race_cards[0].attributes
+        horse_values = []
+        for race_card in race_cards:
+            for horse in race_card.horses:
+                horse_values.append(race_card.values + horse.values)
+        race_cards_arr = np.array(horse_values)
+        if self.__samples_array is None:
+            self.__samples_array = race_cards_arr
+        else:
+            self.__samples_array = np.concatenate([self.__samples_array, race_cards_arr])
 
-        race_card_attributes = race_cards[0].attributes
-        race_cards_dataframe = DataFrame(data=samples_array, columns=race_card_attributes)
+    def get_race_cards_sample(self) -> RaceCardsSample:
+        race_cards_dataframe = DataFrame(data=self.__samples_array, columns=self.__columns)
 
         race_cards_dataframe[self.__feature_names] = \
             race_cards_dataframe[self.__feature_names].apply(pd.to_numeric, errors="coerce")

@@ -6,13 +6,13 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
-from Betting.Bet import Bet
+from Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 
 
-class BetController:
+class AgentController:
 
-    def __init__(self, post_race_start_wait: int = 13, submission_mode_on: bool = False):
+    def __init__(self, post_race_start_wait: int = 5, submission_mode_on: bool = False):
         self.__driver = webdriver.Firefox()
         self.__user_name = os.environ["CONTROLLER_ACCOUNT"]
         self.__password = os.environ["CONTROLLER_PW"]
@@ -43,18 +43,21 @@ class BetController:
         if race_card.datetime > datetime.now():
             sleep(max(0, time_until_race_start.seconds))
 
+    def prepare_for_race_start(self):
         if self.is_logged_out():
             self.login()
 
         print(f"Race starting every moment, delaying bet for {self.__post_race_start_wait} seconds...")
         sleep(self.__post_race_start_wait)
 
-    def execute_bet(self, race_card: RaceCard, bet: Bet):
-        if bet.stakes < 0.5:
-            print("No value found here. Skipping to next race.")
-            return 0
+    def execute_betting_slip(self, race_card: RaceCard, betting_slip: BettingSlip):
+        bet_list = list(betting_slip.bets.values())
+        bet = bet_list[0]
 
-        win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner={bet.runner_ids[0]}]')
+        print(bet.odds)
+        print(bet.horse_id)
+
+        win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner=\"{bet.horse_id}\" and @data-bet-type=\"WIN\"]')
         win_button.click()
 
         if self.__is_bet_closed():
@@ -77,13 +80,15 @@ class BetController:
 
         sleep(1)
 
-        bet_horse_id = bet.runner_ids[0]
+        # TODO: Fix this part
+        # print(f"bet horse id: {bet.horse_id}")
+        # bet_horse = race_card.get_horse_with_id(bet.horse_id)
         print("Successfully done this bet.")
-        print("----------------------------")
-        print(f"Horse name: {race_card.get_name_of_horse(bet_horse_id)}")
-        print(f"Odds: {race_card.get_current_odds_of_horse(bet_horse_id)}")
-        print(f"Stakes: {bet.stakes}")
-        print("----------------------------")
+        # print("----------------------------")
+        # print(f"Horse name: {bet_horse.name}")
+        # print(f"Odds: {bet_horse.current_odds}")
+        # print(f"Stakes: {bet.stakes}")
+        # print("----------------------------")
 
     def accept_cookies(self):
         cookies_accept_button = self.__driver.find_element(by=By.XPATH, value=f'//button[@id="onetrust-accept-btn-handler"]')

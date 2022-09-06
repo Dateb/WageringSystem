@@ -3,7 +3,7 @@ from copy import copy
 from typing import List
 
 from Betting.BetEvaluator import BetEvaluator
-from Betting.StaticKellyBettor import StaticKellyBettor
+from Betting.SingleKellyBettor import SingleKellyBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
@@ -14,7 +14,6 @@ class BetModelConfiguration:
     expected_value_additional_threshold_values: List[float]
     num_leaves_values: List[float]
     min_child_samples_values: List[float]
-    colsample_by_tree_values: List[float]
 
     base_features: List[FeatureExtractor]
     past_form_features: List[List[FeatureExtractor]]
@@ -47,20 +46,18 @@ class BetModelConfiguration:
         if i == 2:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
         if i == 3:
-            self.search_params["colsample_bytree"] = self.colsample_by_tree_values[decision_idx]
-        if i == 4:
             self.past_form_depth = decision_idx + 1
-        if 5 <= i < 5 + len(self.past_form_features) and decision_idx == 1:
+        if 4 <= i < 4 + len(self.past_form_features) and decision_idx == 1:
             new_past_form_features = self.past_form_features[i - 5][:self.past_form_depth]
             self.feature_subset += new_past_form_features
-        if i >= 5 + len(self.past_form_features) and decision_idx == 1:
+        if i >= 4 + len(self.past_form_features) and decision_idx == 1:
             new_non_past_form_feature = self.non_past_form_features[i - (5 + len(self.past_form_features))]
             self.feature_subset.append(new_non_past_form_feature)
 
     def create_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
-        bettor = StaticKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)
+        bettor = SingleKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)
         bet_evaluator = BetEvaluator()
 
         return BetModel(estimator, bettor, bet_evaluator)

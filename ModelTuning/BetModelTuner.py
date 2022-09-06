@@ -1,14 +1,10 @@
 import pickle
-from math import floor
-from random import sample
-from typing import Dict
-
-from DataAbstraction.Present.RaceCard import RaceCard
 from Experiments.FundHistorySummary import FundHistorySummary
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 
@@ -18,20 +14,9 @@ __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 class BetModelTuner:
 
-    def __init__(self, race_cards: Dict[str, RaceCard]):
-        self.race_cards = race_cards
-        self.feature_manager = FeatureManager()
-
-        n_container_race_cards = floor(len(race_cards) * 0.1)
-        print(n_container_race_cards)
-        container_race_card_keys = sample(list(self.race_cards.keys()), k=n_container_race_cards)
-        container_race_cards = [race_cards.pop(race_card_key) for race_card_key in container_race_card_keys]
-
-        self.feature_manager.set_features(list(race_cards.values()))
-        self.feature_manager.fit_enabled_container(container_race_cards)
-
-        sample_encoder = SampleEncoder(self.feature_manager.features)
-        self.race_cards_sample = sample_encoder.transform(list(race_cards.values()))
+    def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample):
+        self.feature_manager = feature_manager
+        self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample)
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
@@ -40,7 +25,7 @@ class BetModelTuner:
             feature_manager=self.feature_manager,
             sample_split_generator=self.sample_split_generator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=100)
 
         return bet_model_configuration
 
@@ -63,11 +48,25 @@ class BetModelTuner:
 
 
 def main():
-    persistence = RaceCardsPersistence("train_race_cards")
-    race_cards = persistence.load_every_month_non_writable()
-    print(len(race_cards))
+    feature_manager = FeatureManager()
+    sample_encoder = SampleEncoder(feature_manager.features)
 
-    tuning_pipeline = BetModelTuner(race_cards)
+    race_cards_loader = RaceCardsPersistence("train_race_cards")
+    container_race_card_file_names = race_cards_loader.race_card_file_names[:4]
+    container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
+    feature_manager.fit_enabled_container(list(container_race_cards.values()))
+
+    sample_race_card_file_names = race_cards_loader.race_card_file_names[4:]
+
+    for sample_race_card_file in sample_race_card_file_names:
+        sample_race_cards = race_cards_loader.load_race_card_files_non_writable([sample_race_card_file])
+
+        feature_manager.set_features(list(sample_race_cards.values()))
+        sample_encoder.encode_race_cards(list(sample_race_cards.values()))
+
+    race_cards_sample = sample_encoder.get_race_cards_sample()
+
+    tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample)
     bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
     fund_history_summaries = [tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)]
 

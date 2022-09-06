@@ -17,7 +17,7 @@ class RaceCardsCollector:
 
         return final_full_race_cards
 
-    def collect_base_race_cards_from_race_ids(self, race_ids: List[str]) -> List[RaceCard]:
+    def collect_base_race_cards_from_race_ids(self, race_ids: List[str]) -> List[WritableRaceCard]:
         counter = 0
         n_race_cards = len(race_ids)
         new_race_cards = []

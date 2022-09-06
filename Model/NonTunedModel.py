@@ -6,7 +6,7 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 from Persistence.RaceCardPersistence import RaceCardsPersistence
-from Betting.StaticKellyBettor import StaticKellyBettor
+from Betting.SingleKellyBettor import SingleKellyBettor
 import pickle
 
 __BET_MODEL_PATH = "../data/non_tuned_bet_model.dat"
@@ -25,11 +25,11 @@ def main():
 
     sample_encoder = SampleEncoder(features=feature_manager.features)
 
-    train_samples = sample_encoder.transform(list(train_race_cards.values()))
-    validation_samples = sample_encoder.transform(list(validation_race_cards.values()))
+    train_samples = sample_encoder.get_race_cards_sample(list(train_race_cards.values()))
+    validation_samples = sample_encoder.get_race_cards_sample(list(validation_race_cards.values()))
 
     estimator = BoostedTreesRanker(feature_manager.features, search_params={})
-    bettor = StaticKellyBettor(expected_value_additional_threshold=0, kelly_wealth=20)
+    bettor = SingleKellyBettor(expected_value_additional_threshold=0, kelly_wealth=20)
     bet_evaluator = BetEvaluator()
 
     bet_model = BetModel(estimator, bettor, bet_evaluator)

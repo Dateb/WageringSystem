@@ -10,8 +10,9 @@ class DrawBiasContainer(FeatureContainer):
         super().__init__()
         self.__draw_bias = {}
 
-    def fit(self, train_race_cards: List[RaceCard]):
-        for race_card in train_race_cards:
+    def fit(self, race_cards: List[RaceCard]):
+        self.__draw_bias = {}
+        for race_card in race_cards:
             if race_card.track_name not in self.__draw_bias:
                 self.__draw_bias[race_card.track_name] = {}
 
@@ -32,7 +33,6 @@ class DrawBiasContainer(FeatureContainer):
 
                         new_avg = old_avg + (new_obs - old_avg) / new_count
                         race_card_bias[post_position]["avg"] = new_avg
-        print(self.__draw_bias)
 
     def draw_bias(self, track_name: str, post_position: int):
         if track_name not in self.__draw_bias:

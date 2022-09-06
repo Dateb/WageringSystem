@@ -15,4 +15,3 @@ class Bet:
 
         self.loss = stakes * (1 + self.TAX)
         self.potential_win = self.odds * stakes
-

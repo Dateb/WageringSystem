@@ -57,7 +57,7 @@ def main():
     train_data_collector = TrainDataCollector(file_name="train_race_cards")
 
     query_date = date(
-        year=2022,
+        year=2020,
         month=5,
         day=31,
     )

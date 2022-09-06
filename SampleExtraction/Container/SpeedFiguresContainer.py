@@ -10,17 +10,18 @@ class SpeedFiguresContainer(FeatureContainer):
 
     def __init__(self):
         super().__init__()
+        self.__win_times = {}
         self.__base_times = {}
         self.__par_figures = {}
-        self.__track_variants = {}
-        self.__win_times = JSONPersistence("win_times_contextualized").load()
 
     def fit(self, train_race_cards: List[RaceCard]):
+        self.__win_times = JSONPersistence("win_times_contextualized").load()
         self.__compute_base_times(train_race_cards)
         self.__compute_points_per_second()
         self.__compute_par_figures(train_race_cards)
 
     def __compute_base_times(self, train_race_cards: List[RaceCard]):
+        self.__base_times = {}
         for race_card in train_race_cards:
             for horse in race_card.horses:
                 for past_form in horse.form_table.past_forms:
@@ -43,6 +44,7 @@ class SpeedFiguresContainer(FeatureContainer):
             self.__base_times[distance]["points per second"] = (1 / self.__base_times[distance]["base_time"]) * 100 * 10
 
     def __compute_par_figures(self, train_race_cards: List[RaceCard]):
+        self.__par_figures = {}
         for race_card in train_race_cards:
             for horse in race_card.horses:
                 for past_form in horse.form_table.past_forms:

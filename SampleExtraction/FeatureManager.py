@@ -91,7 +91,6 @@ class FeatureManager:
 
             HeadToHeadExtractor(),
 
-            ColtExtractor(),
             BlinkerExtractor(),
 
             PredictedPlaceDeviationExtractor(n_races_ago=1),
@@ -104,6 +103,7 @@ class FeatureManager:
             JockeyWeightExtractor(),
             GeldingExtractor(),
             MareExtractor(),
+            ColtExtractor(),
             MaxPastRatingExtractor(),
             WeightAllowanceExtractor(),
             AveragePlaceSurfaceExtractor(),
@@ -143,8 +143,10 @@ class FeatureManager:
 
         return past_race_cards_extractors
 
+    # TODO: container could be fitted multiple times
     def fit_enabled_container(self, race_cards: List[RaceCard]):
-        feature_containers = [feature_extractor.container for feature_extractor in self.features]
+        feature_containers = {feature_extractor.container for feature_extractor in self.features}
+        print(f"containers: {feature_containers}")
         for feature_container in feature_containers:
             feature_container.fit(race_cards)
 
