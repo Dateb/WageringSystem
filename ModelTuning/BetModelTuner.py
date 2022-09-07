@@ -25,7 +25,7 @@ class BetModelTuner:
             feature_manager=self.feature_manager,
             sample_split_generator=self.sample_split_generator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=100)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=30)
 
         return bet_model_configuration
 

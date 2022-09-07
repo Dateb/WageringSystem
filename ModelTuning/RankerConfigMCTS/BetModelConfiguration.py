@@ -3,6 +3,7 @@ from copy import copy
 from typing import List
 
 from Betting.BetEvaluator import BetEvaluator
+from Betting.MultiKellyBettor import MultiKellyBettor
 from Betting.SingleKellyBettor import SingleKellyBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
@@ -57,7 +58,7 @@ class BetModelConfiguration:
     def create_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
-        bettor = SingleKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)
+        bettor = MultiKellyBettor(self.expected_value_additional_threshold, kelly_wealth=20)
         bet_evaluator = BetEvaluator()
 
         return BetModel(estimator, bettor, bet_evaluator)
