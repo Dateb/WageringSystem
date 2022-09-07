@@ -72,7 +72,10 @@ class BetModelConfiguration:
         return full_decision_list
 
     def __str__(self) -> str:
-        return f"{self.expected_value_additional_threshold}/{self.search_params}/{self.feature_subset}"
+        config_str = f"{self.expected_value_additional_threshold}/{self.search_params}\n"
+        for feature in self.feature_subset:
+            config_str += f"{feature}\n"
+        return config_str
 
     @property
     def identifier(self) -> str:

@@ -13,6 +13,9 @@ class FeatureExtractor(ABC):
     def __init__(self):
         self.base_name = "default"
 
+    def __str__(self) -> str:
+        return self.get_name()
+
     @abstractmethod
     def get_name(self) -> str:
         pass

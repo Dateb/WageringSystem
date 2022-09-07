@@ -147,7 +147,6 @@ class FeatureManager:
 
         return past_race_cards_extractors
 
-    # TODO: container could be fitted multiple times
     def fit_enabled_container(self, race_cards: List[RaceCard]):
         feature_containers = {feature_extractor.container for feature_extractor in self.features}
         print(f"containers: {feature_containers}")
