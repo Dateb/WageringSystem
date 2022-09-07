@@ -18,6 +18,7 @@ class PastForm:
         self.track_name = raw_data["trackName"]
         self.odds = raw_data["SP"]
         self.date_raw = raw_data["date"]
+        self.weight = raw_data["weight"]
         self.date_time = datetime.fromtimestamp(self.date_raw)
         self.date = self.date_time.date()
         self.final_position = self.__extract_final_position(raw_data)

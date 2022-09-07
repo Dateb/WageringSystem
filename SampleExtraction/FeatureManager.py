@@ -16,6 +16,7 @@ from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.PastDrawBiasExtractor import PastDrawBiasExtractor
+from SampleExtraction.Extractors.PastWeightExtractor import PastWeightExtractor
 from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
 from SampleExtraction.Extractors.PastClassExtractor import PastClassExtractor
 from SampleExtraction.Extractors.PastOddsExtractor import PastOddsExtractor
@@ -74,6 +75,9 @@ class FeatureManager:
 
         # No covariate shift:
         self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+
+        # Unknown
+        self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [

@@ -11,6 +11,9 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
+N_CONTAINER_MONTHS = 2
+N_SAMPLE_MONTHS = 3
+
 
 class BetModelTuner:
 
@@ -52,11 +55,15 @@ def main():
     sample_encoder = SampleEncoder(feature_manager.features)
 
     race_cards_loader = RaceCardsPersistence("train_race_cards")
-    container_race_card_file_names = race_cards_loader.race_card_file_names[:4]
+    container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
     feature_manager.fit_enabled_container(list(container_race_cards.values()))
 
-    sample_race_card_file_names = race_cards_loader.race_card_file_names[4:]
+    if N_SAMPLE_MONTHS == -1:
+        last_sample_container_idx = len(race_cards_loader.race_card_file_names)
+    else:
+        last_sample_container_idx = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
+    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
 
     for sample_race_card_file in sample_race_card_file_names:
         sample_race_cards = race_cards_loader.load_race_card_files_non_writable([sample_race_card_file])
