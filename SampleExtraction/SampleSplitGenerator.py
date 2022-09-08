@@ -7,7 +7,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class SampleSplitGenerator:
 
-    def __init__(self, race_card_samples: RaceCardsSample, train_width: int = 8, test_width: int = 4):
+    def __init__(self, race_card_samples: RaceCardsSample, train_width: int = 1, test_width: int = 1):
         race_cards_dataframe = race_card_samples.race_cards_dataframe
         race_cards_dataframe["year-month"] = race_cards_dataframe["date_time"].astype(str).str[:7]
         self.year_months_pairs = sorted(race_cards_dataframe["year-month"].unique())

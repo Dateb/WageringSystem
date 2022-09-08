@@ -1,5 +1,6 @@
 from typing import Dict
 
+from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
 from Betting.BettingSlip import BettingSlip, BetType
 from Betting.Bettor import Bettor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -7,16 +8,16 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class MultiKellyBettor(Bettor):
 
-    def __init__(self, expected_value_additional_threshold: float, kelly_wealth: float):
-        super().__init__(expected_value_additional_threshold, kelly_wealth)
+    def __init__(self, additional_ev_threshold: float, bet_limit: float):
+        bet_generators = [WinBetGenerator(additional_ev_threshold, bet_limit)]
+        super().__init__(bet_generators)
 
     def bet(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
-        bet_dataframe = race_cards_sample.race_cards_dataframe
-        if "stakes_fraction" not in bet_dataframe.columns:
-            bet_dataframe = self._add_expected_value(bet_dataframe)
-            self._add_stakes_fraction(bet_dataframe)
+        betting_slips: Dict[str, BettingSlip] = {
+            race_key: BettingSlip(BetType.WIN) for race_key in race_cards_sample.race_keys
+        }
 
-        bet_dataframe["stakes"] = bet_dataframe["stakes_fraction"] * self._kelly_wealth
-        bet_dataframe.loc[bet_dataframe["stakes"] < 0.5, "stakes"] = 0.0
+        for bet_generator in self.bet_generators:
+            bet_generator.add_bets(race_cards_sample, betting_slips)
 
-        return self._dataframe_to_betting_slips(RaceCardsSample(bet_dataframe), bet_type=BetType.WIN)
+        return betting_slips

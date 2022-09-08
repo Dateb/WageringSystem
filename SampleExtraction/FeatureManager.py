@@ -55,6 +55,7 @@ class FeatureManager:
         if features is None:
             self.features = self.available_features
 
+        self.feature_names = [feature.get_name() for feature in self.features]
         self.n_features = len(self.features)
 
     def __init_features(self):

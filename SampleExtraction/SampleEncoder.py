@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import List
 
+from numpy import ndarray
 from pandas import DataFrame
 
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -12,18 +13,12 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class SampleEncoder:
 
-    def __init__(self, features: List[FeatureExtractor]):
+    def __init__(self, features: List[FeatureExtractor], columns: List[str]):
         self.__feature_names = [feature.get_name() for feature in features]
         self.__samples_array = None
-        self.__columns = None
+        self.__columns = columns
 
-    def encode_race_cards(self, race_cards: List[RaceCard]):
-        self.__columns = race_cards[0].attributes
-        horse_values = []
-        for race_card in race_cards:
-            for horse in race_card.horses:
-                horse_values.append(race_card.values + horse.values)
-        race_cards_arr = np.array(horse_values)
+    def add_race_cards_arr(self, race_cards_arr: ndarray):
         if self.__samples_array is None:
             self.__samples_array = race_cards_arr
         else:

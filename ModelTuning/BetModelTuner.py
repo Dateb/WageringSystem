@@ -1,4 +1,5 @@
 import pickle
+
 from Experiments.FundHistorySummary import FundHistorySummary
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
@@ -6,13 +7,14 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
+from SampleExtraction.SampleExtractionThread import SampleExtractionThread
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 4
-N_SAMPLE_MONTHS = 20
+N_CONTAINER_MONTHS = 1
+N_SAMPLE_MONTHS = 3
 
 
 class BetModelTuner:
@@ -28,7 +30,7 @@ class BetModelTuner:
             feature_manager=self.feature_manager,
             sample_split_generator=self.sample_split_generator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=5)
 
         return bet_model_configuration
 
@@ -52,12 +54,12 @@ class BetModelTuner:
 
 def main():
     feature_manager = FeatureManager()
-    sample_encoder = SampleEncoder(feature_manager.features)
 
     race_cards_loader = RaceCardsPersistence("train_race_cards")
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
-    feature_manager.fit_enabled_container(list(container_race_cards.values()))
+    container_race_cards = list(container_race_cards.values())
+    feature_manager.fit_enabled_container(container_race_cards)
 
     if N_SAMPLE_MONTHS == -1:
         last_sample_container_idx = len(race_cards_loader.race_card_file_names)
@@ -65,11 +67,31 @@ def main():
         last_sample_container_idx = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
 
-    for sample_race_card_file in sample_race_card_file_names:
-        sample_race_cards = race_cards_loader.load_race_card_files_non_writable([sample_race_card_file])
+    race_arr_per_month = {}
 
-        feature_manager.set_features(list(sample_race_cards.values()))
-        sample_encoder.encode_race_cards(list(sample_race_cards.values()))
+    while sample_race_card_file_names:
+        next_file_names = sample_race_card_file_names[:4]
+        sample_race_card_file_names = sample_race_card_file_names[4:]
+
+        extraction_threads = [
+            SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month)
+            for race_cards_file_name in next_file_names
+        ]
+
+        print(len(extraction_threads))
+
+        for extraction_thread in extraction_threads:
+            extraction_thread.start()
+
+        for extraction_thread in extraction_threads:
+            extraction_thread.join()
+
+    # features not known from the container race card
+    columns = container_race_cards[0].attributes + feature_manager.feature_names
+    sample_encoder = SampleEncoder(feature_manager.features, columns)
+
+    for race_cards_arr in list(race_arr_per_month.values()):
+        sample_encoder.add_race_cards_arr(race_cards_arr)
 
     race_cards_sample = sample_encoder.get_race_cards_sample()
 

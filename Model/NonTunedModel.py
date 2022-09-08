@@ -29,7 +29,7 @@ def main():
     validation_samples = sample_encoder.get_race_cards_sample(list(validation_race_cards.values()))
 
     estimator = BoostedTreesRanker(feature_manager.features, search_params={})
-    bettor = SingleKellyBettor(expected_value_additional_threshold=0, kelly_wealth=20)
+    bettor = SingleKellyBettor(additional_ev_threshold=0, bet_limit=20)
     bet_evaluator = BetEvaluator()
 
     bet_model = BetModel(estimator, bettor, bet_evaluator)
