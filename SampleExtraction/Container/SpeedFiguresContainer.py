@@ -71,7 +71,7 @@ class SpeedFiguresContainer(FeatureContainer):
 
     def get_speed_figure(self, past_form: PastForm) -> float:
         # TODO: collect more past winning times (distance != 1 check is then not necessary anymore)
-        if past_form.country != "GB" or past_form.lengths_behind_winner is None or past_form.distance == -1:
+        if past_form.country != "GB" or past_form.lengths_behind_winner == -1 or past_form.distance == -1:
             return -1
 
         if str(past_form.distance) not in self.__base_times:

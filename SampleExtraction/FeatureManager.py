@@ -16,6 +16,7 @@ from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.PastDrawBiasExtractor import PastDrawBiasExtractor
+from SampleExtraction.Extractors.PastLengthsBehindWinnerExtractor import PastLengthsBehindWinnerExtractor
 from SampleExtraction.Extractors.PastWeightExtractor import PastWeightExtractor
 from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
 from SampleExtraction.Extractors.PastClassExtractor import PastClassExtractor
@@ -78,6 +79,7 @@ class FeatureManager:
 
         # Unknown
         self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastLengthsBehindWinnerExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
@@ -119,11 +121,11 @@ class FeatureManager:
             # TrackPurseExtractor(),
         ]
 
-        self.non_past_form_features += self.__get_past_race_cards_extractors()
-
-        self.non_past_form_features += [
-            PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
-        ]
+        # self.non_past_form_features += self.__get_past_race_cards_extractors()
+        #
+        # self.non_past_form_features += [
+        #     PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
+        # ]
 
         # Covariate shift:
         self.non_past_form_features += [
