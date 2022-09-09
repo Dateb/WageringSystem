@@ -1,6 +1,9 @@
+from abc import ABC, abstractmethod
+
+from DataAbstraction.Present.RaceResult import RaceResult
 
 
-class Bet:
+class Bet(ABC):
 
     TAX: float = 0.05
 
@@ -8,10 +11,11 @@ class Bet:
         self.horse_id = horse_id
         self.odds = odds
         self.stakes_fraction = stakes_fraction
-        self.set_stakes(stakes)
-
-    def set_stakes(self, stakes: float):
         self.stakes = stakes
 
         self.loss = stakes * (1 + self.TAX)
-        self.potential_win = self.odds * stakes
+        self.potential_win = odds * stakes
+
+    @abstractmethod
+    def is_won(self, race_result: RaceResult) -> bool:
+        pass

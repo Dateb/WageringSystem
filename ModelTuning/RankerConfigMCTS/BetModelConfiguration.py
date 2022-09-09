@@ -58,9 +58,8 @@ class BetModelConfiguration:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
         bettor = MultiKellyBettor(self.expected_value_additional_threshold, bet_limit=20)
-        bet_evaluator = BetEvaluator()
 
-        return BetModel(estimator, bettor, bet_evaluator)
+        return BetModel(estimator, bettor)
 
     def get_full_decision_list(self) -> List[int]:
         full_decision_list = copy(self.decisions)

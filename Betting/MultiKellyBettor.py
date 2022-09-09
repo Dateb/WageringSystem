@@ -1,7 +1,7 @@
 from typing import Dict
 
 from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
-from Betting.BettingSlip import BettingSlip, BetType
+from Betting.BettingSlip import BettingSlip
 from Betting.Bettor import Bettor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -14,7 +14,7 @@ class MultiKellyBettor(Bettor):
 
     def bet(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
         betting_slips: Dict[str, BettingSlip] = {
-            race_key: BettingSlip(BetType.WIN) for race_key in race_cards_sample.race_keys
+            race_key: BettingSlip() for race_key in race_cards_sample.race_keys
         }
 
         for bet_generator in self.bet_generators:

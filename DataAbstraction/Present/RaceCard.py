@@ -4,6 +4,7 @@ from typing import List
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.RaceResult import RaceResult
 
 
 class RaceCard:
@@ -24,7 +25,12 @@ class RaceCard:
 
         event = raw_race_card["event"]
         race = raw_race_card["race"]
-        result = raw_race_card["result"]
+
+        self.winner_id = -1
+        self.race_result = None
+        raw_result = raw_race_card["result"]
+        if raw_result:
+            self.race_result: RaceResult = RaceResult(raw_result)
 
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
@@ -33,9 +39,6 @@ class RaceCard:
         self.distance = race["distance"]
         self.category = race["category"]
         self.surface = race["trackSurface"]
-        self.winner_id = -1
-        if result:
-            self.winner_id = str(result["positions"][0]["idRunner"])
 
         self.__base_attributes = {
             self.DATETIME_KEY: self.datetime,

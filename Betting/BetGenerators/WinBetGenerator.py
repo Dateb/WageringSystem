@@ -1,10 +1,9 @@
 from typing import Dict
 
-from Betting.Bet import Bet
 from Betting.BetGenerators.BetGenerator import BetGenerator
+from Betting.Bets.WinBet import WinBet
 from Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.Horse import Horse
-from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -32,7 +31,7 @@ class WinBetGenerator(BetGenerator):
                 stakes = stakes_fraction * self.bet_limit
 
                 if stakes >= 0.5:
-                    new_bet = Bet(horse_ids[i], odds[i], stakes, stakes_fraction)
+                    new_bet = WinBet(horse_ids[i], odds[i], stakes, stakes_fraction)
 
                     betting_slip = betting_slips[str(race_cards_sample.race_keys[i])]
                     betting_slip.add_bet(new_bet)

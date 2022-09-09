@@ -1,6 +1,7 @@
 import pickle
 
 from Experiments.FundHistorySummary import FundHistorySummary
+from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -19,18 +20,20 @@ N_SAMPLE_MONTHS = 3
 
 class BetModelTuner:
 
-    def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample):
+    def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
         self.feature_manager = feature_manager
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample)
+        self.model_evaluator = model_evaluator
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
         configuration_tuner = BetModelConfigurationTuner(
             race_cards_sample=self.race_cards_sample,
             feature_manager=self.feature_manager,
             sample_split_generator=self.sample_split_generator,
+            model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=5)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
 
         return bet_model_configuration
 
@@ -42,12 +45,9 @@ class BetModelTuner:
 
             bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
 
-            estimated_samples = bet_model.estimator.transform(test_samples)
+            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
 
-            new_betting_slips = bet_model.bettor.bet(estimated_samples)
-            new_betting_slips = bet_model.bet_evaluator.update_wins(new_betting_slips)
-
-            betting_slips = {**betting_slips, **new_betting_slips}
+            betting_slips = {**betting_slips, **fund_history_summary.betting_slips}
 
         return FundHistorySummary("GBT Test", betting_slips, start_wealth=200)
 
@@ -68,13 +68,14 @@ def main():
     sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
 
     race_arr_per_month = {}
+    model_evaluator = ModelEvaluator()
 
     while sample_race_card_file_names:
         next_file_names = sample_race_card_file_names[:4]
         sample_race_card_file_names = sample_race_card_file_names[4:]
 
         extraction_threads = [
-            SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month)
+            SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month, model_evaluator)
             for race_cards_file_name in next_file_names
         ]
 
@@ -95,7 +96,7 @@ def main():
 
     race_cards_sample = sample_encoder.get_race_cards_sample()
 
-    tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample)
+    tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample, model_evaluator)
     bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
     fund_history_summaries = [tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)]
 

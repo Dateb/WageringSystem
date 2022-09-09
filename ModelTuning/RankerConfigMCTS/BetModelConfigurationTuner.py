@@ -4,6 +4,7 @@ from statistics import mean
 import numpy as np
 from tqdm import trange
 
+from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
@@ -18,6 +19,7 @@ class SimulateThread(threading.Thread):
             self,
             race_cards_sample: RaceCardsSample,
             sample_split_generator: SampleSplitGenerator,
+            model_evaluator: ModelEvaluator,
             bet_model_configuration: BetModelConfiguration,
             validation_fold_idx: int,
             results: dict,
@@ -25,6 +27,7 @@ class SimulateThread(threading.Thread):
         threading.Thread.__init__(self)
         self.race_cards_sample = race_cards_sample
         self.race_cards_splitter = sample_split_generator
+        self.model_evaluator = model_evaluator
         self.bet_model_configuration = bet_model_configuration
         self.validation_fold_idx = validation_fold_idx
         self.scores = results
@@ -35,13 +38,10 @@ class SimulateThread(threading.Thread):
         bet_model = self.bet_model_configuration.create_bet_model()
         bet_model.fit_estimator(train_samples.race_cards_dataframe, validation_samples.race_cards_dataframe)
 
-        fund_history = bet_model.get_fund_history_summary(
-            validation_samples,
-            "RankerConfigurationTuner"
-        )
+        fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_samples)
 
         year_month = self.race_cards_splitter.get_year_month(self.validation_fold_idx)
-        self.scores[year_month] = fund_history.validation_score
+        self.scores[year_month] = fund_history_summary.validation_score
 
 
 class BetModelConfigurationTuner:
@@ -51,11 +51,13 @@ class BetModelConfigurationTuner:
             race_cards_sample: RaceCardsSample,
             feature_manager: FeatureManager,
             sample_split_generator: SampleSplitGenerator,
+            model_evaluator: ModelEvaluator,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
 
         self.sample_split_generator = sample_split_generator
+        self.model_evaluator = model_evaluator
 
         self.__best_configuration: BetModelConfiguration = None
         self.__init_model_configuration_setting()
@@ -142,7 +144,7 @@ class BetModelConfigurationTuner:
     def __simulate(self, bet_model_configuration: BetModelConfiguration) -> dict:
         results = {}
         simulation_threads = [
-            SimulateThread(self.race_cards_sample, self.sample_split_generator, bet_model_configuration, validation_fold_idx, results)
+            SimulateThread(self.race_cards_sample, self.sample_split_generator, self.model_evaluator, bet_model_configuration, validation_fold_idx, results)
             for validation_fold_idx in range(len(self.sample_split_generator.validation_folds))
         ]
         for simulation_thread in simulation_threads:

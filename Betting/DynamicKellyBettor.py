@@ -35,7 +35,7 @@ class DynamicKellyBettor(Bettor):
                 stakes = kelly_wealth * self.__kelly_fraction * stakes_fraction
                 betting_slip.set_stakes(bet, stakes)
 
-            self.__bet_evaluator.update_wins({betting_slip.race_id: betting_slip})
+            self.__bet_evaluator.add_wins_to_betting_slips({betting_slip.race_id: betting_slip})
             kelly_wealth += betting_slip.payout
 
         return betting_slips
