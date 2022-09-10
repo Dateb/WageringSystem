@@ -14,7 +14,7 @@ class FavoriteBettor(Bettor):
 
     def _get_lowest_n_odds(self, samples: pd.DataFrame, n: int):
         race_groups = samples.groupby([Horse.RACE_ID_KEY]).apply(
-            lambda x: x.sort_values([Horse.CURRENT_ODDS_KEY], ascending=True)
+            lambda x: x.sort_values([Horse.CURRENT_WIN_ODDS_KEY], ascending=True)
         ).reset_index(drop=True)
 
         return race_groups.groupby(Horse.RACE_ID_KEY).head(n)

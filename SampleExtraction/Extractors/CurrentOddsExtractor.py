@@ -12,4 +12,4 @@ class CurrentOddsExtractor(FeatureExtractor):
         return "Current_Odds_Feature"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return horse.current_odds
+        return horse.current_win_odds

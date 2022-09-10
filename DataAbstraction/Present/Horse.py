@@ -10,12 +10,13 @@ class Horse:
 
     HORSE_ID_KEY: str = "horse_id"
     PLACE_KEY: str = "place"
-    CURRENT_ODDS_KEY: str = "current_odds"
+    CURRENT_WIN_ODDS_KEY: str = "current_odds"
+    CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     HAS_WON_KEY: str = "has_won"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     RELEVANCE_KEY: str = "relevance"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        HORSE_ID_KEY, CURRENT_ODDS_KEY, PLACE_KEY, HAS_WON_KEY, KELLY_FRACTION_KEY, RELEVANCE_KEY,
+        HORSE_ID_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, HAS_WON_KEY, RELEVANCE_KEY,
     ]
 
     def __init__(self, raw_data: dict):
@@ -25,13 +26,12 @@ class Horse:
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.place = self.__extract_place(raw_data)
-        self.current_odds = self.__extract_current_odds(raw_data)
+        self.current_win_odds = self.__extract_current_win_odds(raw_data)
+        self.current_place_odds = self.__extract_current_place_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
         self.relevance = 0 if self.place == -1 else max([4 - self.place, 0])
         self.has_blinkers = raw_data["blinkers"]
-        self.horse_return = max([0, self.current_odds * self.has_won - 1])
-        self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
         self.trainer = Trainer(raw_data["trainer"])
         self.is_scratched = raw_data["scratched"]
@@ -50,10 +50,10 @@ class Horse:
 
         self.__base_attributes = {
             self.HORSE_ID_KEY: self.horse_id,
-            self.CURRENT_ODDS_KEY: self.current_odds,
+            self.CURRENT_WIN_ODDS_KEY: self.current_win_odds,
+            self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,
             self.HAS_WON_KEY: self.has_won,
-            self.KELLY_FRACTION_KEY: self.kelly_fraction,
             self.RELEVANCE_KEY: self.relevance,
         }
 
@@ -68,11 +68,15 @@ class Horse:
 
         return -1
 
-    def __extract_current_odds(self, raw_data: dict):
+    def __extract_current_win_odds(self, raw_data: dict):
         odds_of_horse = raw_data["odds"]
         if odds_of_horse["FXW"] == 0:
             return float(odds_of_horse["PRC"])
         return float(odds_of_horse["FXW"])
+
+    def __extract_current_place_odds(self, raw_data: dict):
+        odds_of_horse = raw_data["odds"]
+        return odds_of_horse["FXP"]
 
     def __extract_post_position(self, raw_data: dict) -> int:
         if "postPosition" in raw_data:

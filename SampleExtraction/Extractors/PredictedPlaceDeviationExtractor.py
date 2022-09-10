@@ -22,8 +22,8 @@ class PredictedPlaceDeviationExtractor(FeatureExtractor):
         if horse_past_race.place == -1:
             return self.PLACEHOLDER_VALUE
 
-        horse_past_odds = horse_past_race.current_odds
-        past_race_odds = [horse.current_odds for horse in past_race.horses]
+        horse_past_odds = horse_past_race.current_win_odds
+        past_race_odds = [horse.current_win_odds for horse in past_race.horses]
 
         lower_odds = [odds for odds in past_race_odds if odds < horse_past_odds]
 

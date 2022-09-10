@@ -55,9 +55,9 @@ class AgentController:
         bet = bet_list[0]
 
         print(bet.odds)
-        print(bet.horse_id)
+        print(bet.horse_ids)
 
-        win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner=\"{bet.horse_id}\" and @data-bet-type=\"WIN\"]')
+        win_button = self.__driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner=\"{bet.horse_ids}\" and @data-bet-type=\"WIN\"]')
         win_button.click()
 
         if self.__is_bet_closed():

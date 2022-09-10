@@ -129,7 +129,7 @@ class NNEstimator(ABC):
     def __horse_dataframe_to_features_and_labels(self, horse_dataframe: pd.DataFrame):
         horses_features = horse_dataframe[self.__feature_names].to_numpy()
         horses_win_indicator = horse_dataframe[self.__label_name].to_numpy()
-        horses_odds = horse_dataframe[Horse.CURRENT_ODDS_KEY].to_numpy()
+        horses_odds = horse_dataframe[Horse.CURRENT_WIN_ODDS_KEY].to_numpy()
         group_counts = horse_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
 
         x_horses, y_horses = self.__get_padded_features_and_labels(

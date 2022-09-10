@@ -4,6 +4,7 @@ from Betting.BetGenerators.BetGenerator import BetGenerator
 from Betting.Bets.WinBet import WinBet
 from Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.HorseResult import HorseResult
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -16,8 +17,9 @@ class WinBetGenerator(BetGenerator):
         sample_df = race_cards_sample.race_cards_dataframe
 
         horse_ids = sample_df.loc[:, Horse.HORSE_ID_KEY].values
-        odds = sample_df.loc[:, Horse.CURRENT_ODDS_KEY].values
+        odds = sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         win_probabilities = sample_df.loc[:, "win_probability"].values
+        # TODO: Remove win indicators from df
         win_indicators = sample_df.loc[:, Horse.HAS_WON_KEY].values
 
         expected_values = odds * win_probabilities
@@ -31,10 +33,13 @@ class WinBetGenerator(BetGenerator):
                 stakes = stakes_fraction * self.bet_limit
 
                 if stakes >= 0.5:
-                    new_bet = WinBet(horse_ids[i], odds[i], stakes, stakes_fraction)
+                    predicted_horse_result = HorseResult(
+                        horse_id=horse_ids[i],
+                        position=1,
+                        win_odds=odds[i],
+                        place_odds=0,
+                    )
+                    new_bet = WinBet([predicted_horse_result], stakes)
 
                     betting_slip = betting_slips[str(race_cards_sample.race_keys[i])]
                     betting_slip.add_bet(new_bet)
-
-                    if win_indicators[i]:
-                        betting_slip.winner_id = horse_ids[i]

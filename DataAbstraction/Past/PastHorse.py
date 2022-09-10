@@ -11,12 +11,10 @@ class PastHorse:
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.place = self.__extract_place(raw_data)
-        self.current_odds = self.__extract_current_odds(raw_data)
+        self.current_win_odds = self.__extract_current_win_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
         self.has_blinkers = raw_data["blinkers"]
-        self.horse_return = max([0, self.current_odds * self.has_won - 1])
-        self.kelly_fraction = self.horse_return / (self.current_odds - 1)
         self.jockey = Jockey(raw_data["jockey"])
         self.trainer = Trainer(raw_data["trainer"])
         self.is_scratched = raw_data["scratched"]
@@ -31,7 +29,7 @@ class PastHorse:
 
         return -1
 
-    def __extract_current_odds(self, raw_data: dict):
+    def __extract_current_win_odds(self, raw_data: dict):
         odds_of_horse = raw_data["odds"]
         if odds_of_horse["FXW"] == 0:
             return float(odds_of_horse["PRC"])

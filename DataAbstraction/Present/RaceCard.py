@@ -85,7 +85,7 @@ class RaceCard:
         return list(self.__base_attributes.keys()) + self.horses[0].attributes
 
     def set_odds_of_horse(self, horse_id: str, odds: float):
-        self.horses[horse_id].current_odds = odds
+        self.horses[horse_id].current_win_odds = odds
 
     def __set_head_to_head_horses(self, race: dict):
         self.__head_to_head_horses = []

@@ -6,7 +6,6 @@ from Betting.Bets.Bet import Bet
 class BettingSlip:
 
     def __init__(self):
-        self.winner_id = "None"
         self.__bets: List[Bet] = []
         self.__loss = 0
         self.__win = 0
