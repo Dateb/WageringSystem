@@ -1,5 +1,6 @@
 from typing import Dict
 
+from Betting.BetGenerators.ExactaBetGenerator import ExactaBetGenerator
 from Betting.BetGenerators.PlaceBetGenerator import PlaceBetGenerator
 from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
 from Betting.BettingSlip import BettingSlip
@@ -10,7 +11,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class MultiKellyBettor(Bettor):
 
     def __init__(self, additional_ev_threshold: float, bet_limit: float):
-        bet_generators = [PlaceBetGenerator(additional_ev_threshold, bet_limit)]
+        bet_generators = [WinBetGenerator(additional_ev_threshold, bet_limit)]
         super().__init__(bet_generators)
 
     def bet(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:

@@ -7,12 +7,10 @@ class BettingSlip:
 
     def __init__(self):
         self.__bets: List[Bet] = []
-        self.__loss = 0
         self.__win = 0
 
     def add_bet(self, bet: Bet):
         self.__bets.append(bet)
-        self.__loss += bet.loss
 
     def update_win(self, bet: Bet):
         self.__win += bet.potential_win
@@ -27,9 +25,9 @@ class BettingSlip:
 
     @property
     def loss(self) -> float:
-        return self.__loss
+        return sum([bet.loss for bet in self.__bets])
 
     @property
     def payout(self) -> float:
-        return self.__win - self.__loss
+        return self.__win - self.loss
 

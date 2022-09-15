@@ -1,10 +1,10 @@
 from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Container.FeatureContainer import FeatureContainer
+from SampleExtraction.Sources.FeatureSource import FeatureSource
 
 
-class ParTimesContainer(FeatureContainer):
+class ParTimesContainer(FeatureSource):
 
     def __init__(self):
         super().__init__()

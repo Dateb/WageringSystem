@@ -11,16 +11,18 @@ class RaceCard:
 
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
+    N_HORSES_KEY: str = "n_runners"
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
 
-        self.__extract_attributes(raw_race_card)
+        self.__extract_horses(raw_race_card["runners"]["data"])
         if remove_non_starters:
             self.__remove_non_starters()
 
+        self.__extract_attributes(raw_race_card)
+
     def __extract_attributes(self, raw_race_card: dict):
-        self.__extract_horses(raw_race_card["runners"]["data"])
         self.__extract_date(raw_race_card)
 
         event = raw_race_card["event"]
@@ -43,6 +45,7 @@ class RaceCard:
         self.__base_attributes = {
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
+            self.N_HORSES_KEY: self.n_horses,
         }
 
         # TODO: check has seemingly false positives. Increase accuracy of check.
@@ -135,7 +138,7 @@ class RaceCard:
         return self.__race
 
     @property
-    def n_runners(self) -> int:
+    def n_horses(self) -> int:
         return len(self.horses)
 
     @property

@@ -1,7 +1,7 @@
 import math
 
-from SampleExtraction.Container import ParTimesContainer
-from SampleExtraction.Container.FeatureContainer import FeatureContainer
+from SampleExtraction.Sources import ParTimesContainer
+from SampleExtraction.Sources.FeatureSource import FeatureSource
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -49,5 +49,5 @@ class AverageParTimeDeviationExtractor(FeatureExtractor):
         return (past_time - past_par_time) / past_par_time
 
     @property
-    def container(self) -> FeatureContainer:
+    def container(self) -> FeatureSource:
         return self.__par_times_container

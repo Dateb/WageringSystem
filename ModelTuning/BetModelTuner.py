@@ -1,21 +1,23 @@
 import pickle
 
+from tqdm import tqdm
+
 from Experiments.FundHistorySummary import FundHistorySummary
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
-from SampleExtraction.SampleExtractionThread import SampleExtractionThread
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 3
+N_CONTAINER_MONTHS = 4
+N_SAMPLE_MONTHS = 4
 
 
 class BetModelTuner:
@@ -67,32 +69,17 @@ def main():
         last_sample_container_idx = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
 
-    race_arr_per_month = {}
     model_evaluator = ModelEvaluator()
-
-    while sample_race_card_file_names:
-        next_file_names = sample_race_card_file_names[:4]
-        sample_race_card_file_names = sample_race_card_file_names[4:]
-
-        extraction_threads = [
-            SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month, model_evaluator)
-            for race_cards_file_name in next_file_names
-        ]
-
-        print(len(extraction_threads))
-
-        for extraction_thread in extraction_threads:
-            extraction_thread.start()
-
-        for extraction_thread in extraction_threads:
-            extraction_thread.join()
+    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
 
     # features not known from the container race card
+    # TODO: this throws an indexerror when containers are none
     columns = container_race_cards[0].attributes + feature_manager.feature_names
     sample_encoder = SampleEncoder(feature_manager.features, columns)
 
-    for race_cards_arr in list(race_arr_per_month.values()):
-        sample_encoder.add_race_cards_arr(race_cards_arr)
+    for race_card_file_name in tqdm(sample_race_card_file_names):
+        arr_of_race_cards = race_cards_array_factory.generate_from_race_cards_file(race_card_file_name)
+        sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
     race_cards_sample = sample_encoder.get_race_cards_sample()
 
@@ -110,3 +97,22 @@ def main():
 if __name__ == '__main__':
     main()
     print("finished")
+
+
+    # race_arr_per_month = {}
+    # while sample_race_card_file_names:
+    #     next_file_names = sample_race_card_file_names[:4]
+    #     sample_race_card_file_names = sample_race_card_file_names[4:]
+    #
+    #     extraction_threads = [
+    #         SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month, model_evaluator)
+    #         for race_cards_file_name in next_file_names
+    #     ]
+    #
+    #     print(len(extraction_threads))
+    #
+    #     for extraction_thread in extraction_threads:
+    #         extraction_thread.start()
+    #
+    #     for extraction_thread in extraction_threads:
+    #         extraction_thread.join()

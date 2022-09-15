@@ -15,6 +15,14 @@ class RaceResult:
 
             self.horse_results[horse_id] = HorseResult(horse_id, position, win_odds, place_odds)
 
+        # TODO: Needs refactoring
+        self.exacta_odds = 0
+        odds = raw_result["odds"]
+        if "other" in odds:
+            other_odds = odds["other"]
+            if "EXA" in other_odds[0]:
+                self.exacta_odds = float(list(other_odds[0]["EXA"].keys())[0])
+
     def get_result_of_horse_id(self, horse_id: str) -> HorseResult:
         # TODO: Returning None is sloppy
         if horse_id not in self.horse_results:

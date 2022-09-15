@@ -1,8 +1,8 @@
 import statistics
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Container import SpeedFiguresContainer
-from SampleExtraction.Container.FeatureContainer import FeatureContainer
+from SampleExtraction.Sources import SpeedFiguresContainer
+from SampleExtraction.Sources.FeatureSource import FeatureSource
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -34,5 +34,5 @@ class SpeedFigureExtractor(FeatureExtractor):
         return past_speed_figure
 
     @property
-    def container(self) -> FeatureContainer:
+    def container(self) -> FeatureSource:
         return self.__speed_figures_container

@@ -11,27 +11,26 @@ from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlac
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
+from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDistanceExtractor
+from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
+from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import PastFasterHorsesExtractor
+from SampleExtraction.Extractors.Form_Based.PastSlowerHorsesExtractor import PastSlowerHorsesExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
-from SampleExtraction.Extractors.PastDrawBiasExtractor import PastDrawBiasExtractor
+from SampleExtraction.Extractors.Form_Based.PastGoingExtractor import PastGoingExtractor
 from SampleExtraction.Extractors.PastLengthsBehindWinnerExtractor import PastLengthsBehindWinnerExtractor
-from SampleExtraction.Extractors.PastWeightExtractor import PastWeightExtractor
+from SampleExtraction.Extractors.Form_Based.PastWeightExtractor import PastWeightExtractor
 from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
-from SampleExtraction.Extractors.PastClassExtractor import PastClassExtractor
-from SampleExtraction.Extractors.PastOddsExtractor import PastOddsExtractor
-from SampleExtraction.Extractors.PastRatingExtractor import PastRatingExtractor
-from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
+from SampleExtraction.Extractors.Form_Based.PastClassExtractor import PastClassExtractor
+from SampleExtraction.Extractors.Form_Based.PastOddsExtractor import PastOddsExtractor
+from SampleExtraction.Extractors.Form_Based.PastRatingExtractor import PastRatingExtractor
 from SampleExtraction.Extractors.DistanceDifferenceExtractor import DistanceDifferenceExtractor
-from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
-from SampleExtraction.Extractors.LayoffExtractor import LayoffExtractor
-from SampleExtraction.Extractors.MaxSpeedFigureExtractor import MaxSpeedFigureExtractor
-from SampleExtraction.Extractors.PastPlacesExtractor import PastPlacesExtractor
+from SampleExtraction.Extractors.Form_Based.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
-from SampleExtraction.Extractors.SpeedFigureExtractor import SpeedFigureExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
 from SampleExtraction.Extractors.TrackExtractor import TrackExtractor
@@ -69,28 +68,32 @@ class FeatureManager:
 
     def __init_past_form_features(self):
         # Covariate shift:
-        self.past_form_features = [[SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
-        self.past_form_features.append([LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features = [[LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+
+        # self.past_form_features.append([SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
         self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+
+        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
         self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
         # No covariate shift:
         self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
         # Unknown
+        self.past_form_features.append([PastSlowerHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastFasterHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastDistanceExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
         self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
         self.past_form_features.append([PastLengthsBehindWinnerExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastGoingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
             # No covariate shift:
             CurrentOddsExtractor(),
             TrackExtractor(),
-            DeviationSpeedFigureExtractor(),
             PastRaceCountExtractor(),
             PurseExtractor(),
-            MaxSpeedFigureExtractor(),
             DistanceDifferenceExtractor(),
             AveragePlaceLifetimeExtractor(),
             AveragePlaceCategoryExtractor(),
@@ -103,8 +106,11 @@ class FeatureManager:
             PredictedPlaceDeviationExtractor(n_races_ago=1),
             PredictedPlaceDeviationExtractor(n_races_ago=2),
 
+            # DeviationSpeedFigureExtractor(),
+            # MaxSpeedFigureExtractor(),
+
             # Covariate Shift:
-            DrawBiasExtractor(),
+            # DrawBiasExtractor(),
             AgeExtractor(),
             WinRateLifetimeExtractor(),
             JockeyWeightExtractor(),

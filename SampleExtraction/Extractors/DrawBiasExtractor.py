@@ -1,6 +1,6 @@
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Container import DrawBiasContainer
-from SampleExtraction.Container.FeatureContainer import FeatureContainer
+from SampleExtraction.Sources import DrawBiasSource
+from SampleExtraction.Sources.FeatureSource import FeatureSource
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
@@ -9,7 +9,7 @@ class DrawBiasExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.__draw_bias_container = DrawBiasContainer.get_feature_container()
+        self.__draw_bias_container = DrawBiasContainer.get_feature_source()
 
     def get_name(self) -> str:
         return "Draw_Bias"
@@ -21,5 +21,5 @@ class DrawBiasExtractor(FeatureExtractor):
         return draw_bias
 
     @property
-    def container(self) -> FeatureContainer:
+    def container(self) -> FeatureSource:
         return self.__draw_bias_container

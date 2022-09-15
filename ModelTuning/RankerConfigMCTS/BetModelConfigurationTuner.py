@@ -66,9 +66,9 @@ class BetModelConfigurationTuner:
         self.__tree = BetModelConfigurationTree()
 
     def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = list(np.arange(0.1, 0.2, 0.02))
-        BetModelConfiguration.num_leaves_values = list(np.arange(3, 8, 1))
-        BetModelConfiguration.min_child_samples_values = list(np.arange(300, 550, 50))
+        BetModelConfiguration.expected_value_additional_threshold_values = list(np.arange(0.0, 0.01, 0.01))
+        BetModelConfiguration.num_leaves_values = [3]
+        BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
         BetModelConfiguration.base_features = [CurrentOddsExtractor()]
         BetModelConfiguration.past_form_features = self.feature_manager.past_form_features

@@ -3,10 +3,10 @@ from typing import List
 from DataAbstraction.Past.PastForm import PastForm
 from DataAbstraction.Present.RaceCard import RaceCard
 from Persistence.JSONPersistence import JSONPersistence
-from SampleExtraction.Container.FeatureContainer import FeatureContainer
+from SampleExtraction.Sources.FeatureSource import FeatureSource
 
 
-class SpeedFiguresContainer(FeatureContainer):
+class SpeedFiguresContainer(FeatureSource):
 
     def __init__(self):
         super().__init__()

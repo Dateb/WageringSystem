@@ -16,6 +16,8 @@ class PlaceBetGenerator(BetGenerator):
 
     def add_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         sample_df = race_cards_sample.race_cards_dataframe
+        sample_df = sample_df[sample_df[RaceCard.N_HORSES_KEY] <= 7]
+        sample_df = sample_df[sample_df[RaceCard.N_HORSES_KEY] >= 5]
 
         sample_df["place_2_prob"] = sample_df["win_probability"] / (1 - sample_df["win_probability"])
         sum_prob_df = sample_df.groupby([RaceCard.RACE_ID_KEY]).agg(prob_sum=("place_2_prob", "sum"))
@@ -25,6 +27,7 @@ class PlaceBetGenerator(BetGenerator):
         sample_df["place_2_probability"] = sample_df["win_probability"] * (sample_df["prob_sum"] - sample_df["win_prob_complement"])
         sample_df["place_probability"] = sample_df["win_probability"] + sample_df["place_2_probability"]
 
+        race_date_times = list(sample_df["date_time"].astype(str).values)
         horse_ids = sample_df.loc[:, Horse.HORSE_ID_KEY].values
         place_odds = sample_df.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
         win_probabilities = sample_df.loc[:, "place_probability"].values
@@ -51,5 +54,5 @@ class PlaceBetGenerator(BetGenerator):
                     )
                     new_bet = PlaceBet([predicted_horse_result], stakes)
 
-                    betting_slip = betting_slips[str(race_cards_sample.race_keys[i])]
+                    betting_slip = betting_slips[str(race_date_times[i])]
                     betting_slip.add_bet(new_bet)

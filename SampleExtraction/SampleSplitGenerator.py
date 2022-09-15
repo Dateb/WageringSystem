@@ -37,8 +37,8 @@ class SampleSplitGenerator:
         return self.__split(test_fold_idx)
 
     def __split(self, last_fold_idx: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        train_folds = [last_fold_idx - i for i in range(1, self.train_width + 1)]
-        #train_folds = [i for i in range(last_fold_idx)]
+        #train_folds = [last_fold_idx - i for i in range(1, self.train_width + 1)]
+        train_folds = [i for i in range(last_fold_idx)]
 
         train_dataframe = self.race_cards_dataframe.loc[self.race_cards_dataframe["fold_idx"].isin(train_folds)]
         last_fold_dataframe = self.race_cards_dataframe.loc[self.race_cards_dataframe["fold_idx"] == last_fold_idx]
