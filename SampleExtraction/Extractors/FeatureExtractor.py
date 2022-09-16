@@ -12,7 +12,7 @@ class FeatureExtractor(ABC):
 
     def __init__(self):
         self.base_name = "default"
-        self.container = FeatureSource.get_feature_source()
+        self.source = FeatureSource.get_feature_source()
 
     def __str__(self) -> str:
         return self.get_name()

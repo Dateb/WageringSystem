@@ -44,7 +44,7 @@ class RaceCardsPersistence:
                 json.dump(raw_races_of_month, f)
         print("writing done")
 
-    def load_race_card_files_non_writable(self, race_card_file_names: List[str]):
+    def load_race_card_files_non_writable(self, race_card_file_names: List[str]) -> Dict[str, RaceCard]:
         race_cards_per_file = [
             self.__load_race_cards_of_file(race_card_file_name, self.__create_race_card)
             for race_card_file_name in race_card_file_names

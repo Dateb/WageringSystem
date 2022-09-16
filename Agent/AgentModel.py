@@ -36,7 +36,7 @@ class AgentModel:
         self.__fit_estimator()
 
     def __fit_estimator(self):
-        self.__feature_manager.fit_enabled_container(list(self.__container_race_cards.values()))
+        self.__feature_manager.warmup_feature_sources(list(self.__container_race_cards.values()))
         self.__feature_manager.set_features(list(self.__train_race_cards.values()))
 
         sample_encoder = SampleEncoder(features=self.__bet_model.features)
@@ -47,7 +47,7 @@ class AgentModel:
         self.__bet_model.fit_estimator(train_samples=race_cards_sample.race_cards_dataframe, validation_samples=None)
 
     def predict_race_card(self, race_card: RaceCard) -> Dict[str, BettingSlip]:
-        self.__feature_manager.fit_enabled_container(list(self.__container_race_cards.values()))
+        self.__feature_manager.warmup_feature_sources(list(self.__container_race_cards.values()))
         self.__feature_manager.set_features([race_card])
 
         sample_encoder = SampleEncoder(features=self.__bet_model.features)

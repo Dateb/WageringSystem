@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AgeExtractor import AgeExtractor
@@ -10,16 +10,19 @@ from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import Ave
 from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
+from SampleExtraction.Extractors.BreederWinRateExtractor import BreederWinRateExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
 from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDistanceExtractor
 from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
 from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import PastFasterHorsesExtractor
 from SampleExtraction.Extractors.Form_Based.PastSlowerHorsesExtractor import PastSlowerHorsesExtractor
+from SampleExtraction.Extractors.Form_Based.SpeedFigureExtractor import SpeedFigureExtractor
 from SampleExtraction.Extractors.GeldingExtractor import GeldingExtractor
 from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.Form_Based.PastGoingExtractor import PastGoingExtractor
+from SampleExtraction.Extractors.OwnerWinRateExtractor import OwnerWinRateExtractor
 from SampleExtraction.Extractors.PastLengthsBehindWinnerExtractor import PastLengthsBehindWinnerExtractor
 from SampleExtraction.Extractors.Form_Based.PastWeightExtractor import PastWeightExtractor
 from SampleExtraction.Extractors.PredictedPlaceDeviationExtractor import PredictedPlaceDeviationExtractor
@@ -33,6 +36,7 @@ from SampleExtraction.Extractors.Form_Based.LayoffExtractor import LayoffExtract
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
+from SampleExtraction.Extractors.SireWinRateExtractor import SireWinRateExtractor
 from SampleExtraction.Extractors.TrackExtractor import TrackExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
@@ -67,30 +71,34 @@ class FeatureManager:
         self.available_features = flattened_past_form_features + self.non_past_form_features
 
     def __init_past_form_features(self):
+        past_form_depth = 11
         # Covariate shift:
-        self.past_form_features = [[LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)]]
+        self.past_form_features = [[LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)]]
 
-        # self.past_form_features.append([SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([SpeedFigureExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
 
-        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
 
         # No covariate shift:
-        self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
 
         # Unknown
-        self.past_form_features.append([PastSlowerHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastFasterHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastDistanceExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastLengthsBehindWinnerExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
-        self.past_form_features.append([PastGoingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, 11)])
+        self.past_form_features.append([PastSlowerHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastFasterHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastDistanceExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastLengthsBehindWinnerExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
+        self.past_form_features.append([PastGoingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
             # No covariate shift:
             CurrentOddsExtractor(),
+            #SireWinRateExtractor(),
+            BreederWinRateExtractor(),
+            OwnerWinRateExtractor(),
             TrackExtractor(),
             PastRaceCountExtractor(),
             PurseExtractor(),
@@ -104,7 +112,7 @@ class FeatureManager:
             BlinkerExtractor(),
 
             PredictedPlaceDeviationExtractor(n_races_ago=1),
-            PredictedPlaceDeviationExtractor(n_races_ago=2),
+            # PredictedPlaceDeviationExtractor(n_races_ago=2),
 
             # DeviationSpeedFigureExtractor(),
             # MaxSpeedFigureExtractor(),
@@ -156,15 +164,15 @@ class FeatureManager:
 
         return past_race_cards_extractors
 
-    def fit_enabled_container(self, race_cards: List[RaceCard]):
-        feature_containers = {feature_extractor.container for feature_extractor in self.features}
-        print(f"containers: {feature_containers}")
-        for feature_container in feature_containers:
-            feature_container.fit(race_cards)
+    def warmup_feature_sources(self, race_cards: List[RaceCard]):
+        feature_sources = {feature_extractor.source for feature_extractor in self.features}
+        print(f"Feature sources: {feature_sources}")
+        for feature_source in feature_sources:
+            feature_source.warmup(race_cards)
 
-    def set_features(self, race_cards: List[RaceCard]):
-        for race_card in race_cards:
-            self.__set_features_of_race_card(race_card)
+    def set_features(self, race_cards: Dict[str, RaceCard]):
+        for datetime in sorted(race_cards):
+            self.__set_features_of_race_card(race_cards[datetime])
 
     def __set_features_of_race_card(self, race_card: RaceCard):
         for horse in race_card.horses:
@@ -173,6 +181,10 @@ class FeatureManager:
                 if self.__report_missing_features:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
                 horse.set_feature_value(feature_extractor.get_name(), feature_value)
+
+        feature_sources = {feature_extractor.source for feature_extractor in self.features}
+        for feature_source in feature_sources:
+            feature_source.update(race_card)
 
     def __report_if_feature_missing(self, horse: Horse, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

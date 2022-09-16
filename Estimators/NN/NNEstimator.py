@@ -105,7 +105,7 @@ class NNEstimator(ABC):
             patience=5,
         )
 
-        self._model.fit(
+        self._model.warmup(
             x=x_train,
             y=y_train,
             epochs=400,

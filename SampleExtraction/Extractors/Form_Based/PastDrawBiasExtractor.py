@@ -10,7 +10,7 @@ class PastDrawBiasExtractor(FeatureExtractor):
         super().__init__()
         self.base_name = "Draw_Bias"
         self.__n_races_ago = n_races_ago
-        self.container = DrawBiasSource.get_feature_source()
+        self.source = DrawBiasSource.get_feature_source()
 
     def get_name(self) -> str:
         return f"{self.base_name}_{self.__n_races_ago}"
@@ -22,7 +22,7 @@ class PastDrawBiasExtractor(FeatureExtractor):
         past_track_name = horse.form_table.past_forms[self.__n_races_ago - 1].track_name
         past_post_position = horse.form_table.past_forms[self.__n_races_ago - 1].post_position
 
-        draw_bias = self.container.draw_bias(past_track_name, past_post_position)
+        draw_bias = self.source.draw_bias(past_track_name, past_post_position)
 
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE

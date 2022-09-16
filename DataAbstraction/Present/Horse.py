@@ -21,6 +21,9 @@ class Horse:
 
     def __init__(self, raw_data: dict):
         self.name = raw_data["name"]
+        self.sire = raw_data["sire"]
+        self.breeder = raw_data["breeder"]
+        self.owner = raw_data["owner"]
         self.age = raw_data["age"]
         self.gender = raw_data["gender"]
         self.horse_id = raw_data["idRunner"]

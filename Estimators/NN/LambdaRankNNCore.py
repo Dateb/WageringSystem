@@ -85,8 +85,8 @@ class RankerNN(object):
 
         X1_trans, X2_trans, y_trans, weight = self._transform_pairwise(X, y, qid)
         X1_trans_test, X2_trans_test, y_trans_test, weight_test = self._transform_pairwise(validation_data[0], validation_data[1], validation_data[2])
-        self.model.fit([X1_trans, X2_trans], y_trans, sample_weight=weight, batch_size=batch_size, epochs=epochs,
-                       verbose=verbose, validation_data=([X1_trans_test, X2_trans_test], y_trans_test), callbacks=callbacks)
+        self.model.warmup([X1_trans, X2_trans], y_trans, sample_weight=weight, batch_size=batch_size, epochs=epochs,
+                          verbose=verbose, validation_data=([X1_trans_test, X2_trans_test], y_trans_test), callbacks=callbacks)
         self.evaluate(X, y, qid)
 
     def predict(self, X):

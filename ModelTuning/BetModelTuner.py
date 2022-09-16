@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 4
-N_SAMPLE_MONTHS = 4
+N_CONTAINER_MONTHS = 12
+N_SAMPLE_MONTHS = 27
 
 
 class BetModelTuner:
@@ -35,7 +35,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=100)
 
         return bet_model_configuration
 
@@ -61,7 +61,7 @@ def main():
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
     container_race_cards = list(container_race_cards.values())
-    feature_manager.fit_enabled_container(container_race_cards)
+    feature_manager.warmup_feature_sources(container_race_cards)
 
     if N_SAMPLE_MONTHS == -1:
         last_sample_container_idx = len(race_cards_loader.race_card_file_names)

@@ -21,12 +21,10 @@ class RaceCardsArrayFactory:
         sample_race_cards = self.__race_cards_loader.load_race_card_files_non_writable([race_cards_file_name])
 
         self.__model_evaluator.add_results_from_race_cards(sample_race_cards)
-
-        sample_race_cards = list(sample_race_cards.values())
         self.__feature_manager.set_features(sample_race_cards)
 
         horse_values = []
-        for race_card in sample_race_cards:
+        for date_time, race_card in sample_race_cards.items():
             for horse in race_card.horses:
                 horse_values.append(race_card.values + horse.values)
 
