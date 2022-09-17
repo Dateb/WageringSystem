@@ -17,5 +17,4 @@ class OwnerWinRateExtractor(FeatureExtractor):
         owner_win_rate = self.source.get_win_rate_of_name(horse.owner)
         if owner_win_rate == -1:
             return self.PLACEHOLDER_VALUE
-        print(owner_win_rate)
         return owner_win_rate

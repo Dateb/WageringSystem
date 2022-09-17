@@ -40,8 +40,7 @@ class SimulateThread(threading.Thread):
 
         fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_samples)
 
-        year_month = self.race_cards_splitter.get_year_month(self.validation_fold_idx)
-        self.scores[year_month] = fund_history_summary.validation_score
+        self.scores[self.validation_fold_idx] = fund_history_summary.validation_score
 
 
 class BetModelConfigurationTuner:
@@ -66,7 +65,7 @@ class BetModelConfigurationTuner:
         self.__tree = BetModelConfigurationTree()
 
     def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = [0.0]
+        BetModelConfiguration.expected_value_additional_threshold_values = [0.16, 0.18]
         BetModelConfiguration.num_leaves_values = [3]
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
@@ -145,7 +144,7 @@ class BetModelConfigurationTuner:
         results = {}
         simulation_threads = [
             SimulateThread(self.race_cards_sample, self.sample_split_generator, self.model_evaluator, bet_model_configuration, validation_fold_idx, results)
-            for validation_fold_idx in range(len(self.sample_split_generator.validation_folds))
+            for validation_fold_idx in range(self.sample_split_generator.n_folds)
         ]
         for simulation_thread in simulation_threads:
             simulation_thread.start()

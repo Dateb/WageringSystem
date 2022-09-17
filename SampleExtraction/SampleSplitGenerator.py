@@ -1,49 +1,51 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import pandas as pd
 
+from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class SampleSplitGenerator:
 
-    def __init__(self, race_card_samples: RaceCardsSample, train_width: int = 10, test_width: int = 10):
+    def __init__(self, race_card_samples: RaceCardsSample, n_train: int, n_validation: int, n_folds: int):
+        self.n_train = n_train
+        self.n_validation = n_validation
+        self.n_folds = n_folds
+        last_idx = n_train + (n_folds + 1) * n_validation - 1
+        print(last_idx)
+
         race_cards_dataframe = race_card_samples.race_cards_dataframe
-        race_cards_dataframe["year-month"] = race_cards_dataframe["date_time"].astype(str).str[:7]
-        self.year_months_pairs = sorted(race_cards_dataframe["year-month"].unique())
-        year_months_pairs_df = pd.DataFrame(
+        self.race_ids = list(set(race_cards_dataframe[RaceCard.RACE_ID_KEY].values))
+
+        if last_idx >= len(self.race_ids):
+            print(f"Splits are requiring {last_idx + 1} races. Only got {len(self.race_ids)}")
+            return -1
+
+        race_number_df = pd.DataFrame(
             {
-                "year-month": self.year_months_pairs,
-                "fold_idx": [i for i in range(len(self.year_months_pairs))],
+                RaceCard.RACE_ID_KEY: self.race_ids,
+                "race_number": [i for i in range(len(self.race_ids))],
             }
         )
 
-        self.train_width = train_width
-        self.test_width = test_width
-
-        self.validation_folds = [i for i in range(self.train_width, len(self.year_months_pairs) - test_width)]
-        self.test_folds = [len(self.year_months_pairs) - i for i in range(1, test_width + 1)]
-
-        self.race_cards_dataframe = race_cards_dataframe.merge(right=year_months_pairs_df, on="year-month", how="inner")
+        self.race_cards_dataframe = race_cards_dataframe.merge(right=race_number_df, on=RaceCard.RACE_ID_KEY, how="inner").sort_values(by="race_number")
+        print(self.race_cards_dataframe["race_number"])
 
     def get_train_validation_split(self, nth_validation_fold: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        validation_fold_idx = self.validation_folds[nth_validation_fold]
+        train_interval = [i + (self.n_validation * nth_validation_fold) for i in range(self.n_train)]
+        validation_interval = [i + train_interval[-1] + 1 for i in range(self.n_validation)]
 
-        return self.__split(validation_fold_idx)
+        return self.__split(train_interval, validation_interval)
 
-    def get_train_test_split(self, nth_test_fold: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        test_fold_idx = self.test_folds[nth_test_fold]
+    def get_train_test_split(self) -> Tuple[RaceCardsSample, RaceCardsSample]:
+        train_interval = [i + (self.n_validation * self.n_folds) for i in range(self.n_train)]
+        test_interval = [i + train_interval[-1] + 1 for i in range(self.n_validation)]
 
-        return self.__split(test_fold_idx)
+        return self.__split(train_interval, test_interval)
 
-    def __split(self, last_fold_idx: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        #train_folds = [last_fold_idx - i for i in range(1, self.train_width + 1)]
-        train_folds = [i for i in range(last_fold_idx)]
+    def __split(self, first_interval: List[int], second_interval: List[int]) -> Tuple[RaceCardsSample, RaceCardsSample]:
+        first_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(first_interval)]
+        second_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(second_interval)]
 
-        train_dataframe = self.race_cards_dataframe.loc[self.race_cards_dataframe["fold_idx"].isin(train_folds)]
-        last_fold_dataframe = self.race_cards_dataframe.loc[self.race_cards_dataframe["fold_idx"] == last_fold_idx]
-
-        return RaceCardsSample(train_dataframe), RaceCardsSample(last_fold_dataframe)
-
-    def get_year_month(self, fold_idx: int):
-        return self.year_months_pairs[self.validation_folds[fold_idx]]
+        return RaceCardsSample(first_df), RaceCardsSample(second_df)

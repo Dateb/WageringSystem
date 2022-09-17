@@ -16,8 +16,11 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 12
-N_SAMPLE_MONTHS = 27
+N_CONTAINER_MONTHS = 4
+N_SAMPLE_MONTHS = 22
+
+#Working Setup:
+# 4 container, 22 sample, 2000 train, 3000 validation, 4 folds, 100 iter
 
 
 class BetModelTuner:
@@ -25,7 +28,7 @@ class BetModelTuner:
     def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
         self.feature_manager = feature_manager
         self.race_cards_sample = race_cards_sample
-        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample)
+        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample, n_train=2000, n_validation=3000, n_folds=4)
         self.model_evaluator = model_evaluator
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
@@ -40,18 +43,12 @@ class BetModelTuner:
         return bet_model_configuration
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
-        betting_slips = {}
-        for i in range(self.sample_split_generator.test_width):
-            bet_model = bet_model_configuration.create_bet_model()
-            train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=i)
+        bet_model = bet_model_configuration.create_bet_model()
+        train_samples, test_samples = self.sample_split_generator.get_train_test_split()
 
-            bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
+        bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
 
-            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
-
-            betting_slips = {**betting_slips, **fund_history_summary.betting_slips}
-
-        return FundHistorySummary("GBT Test", betting_slips, start_wealth=200)
+        return self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
 
 
 def main():
