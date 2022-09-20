@@ -6,12 +6,14 @@ from SampleExtraction.Extractors.AverageEarningsJockeyExtractor import AverageEa
 from SampleExtraction.Extractors.AverageEarningsTrainerExtractor import AverageEarningsTrainerExtractor
 from SampleExtraction.Extractors.AveragePlaceCategoryExtractor import AveragePlaceCategoryExtractor
 from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
-from SampleExtraction.Extractors.AveragePlaceSimilarDistanceExtractor import AveragePlaceSimilarDistanceExtractor
+from SampleExtraction.Extractors.AverageSpeedSimilarDistanceExtractor import AverageSpeedSimilarDistanceExtractor
 from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.BreederWinRateExtractor import BreederWinRateExtractor
 from SampleExtraction.Extractors.ColtExtractor import ColtExtractor
+from SampleExtraction.Extractors.DeviationSpeedFigureExtractor import DeviationSpeedFigureExtractor
+from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
 from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDistanceExtractor
 from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
 from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import PastFasterHorsesExtractor
@@ -22,6 +24,11 @@ from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.MareExtractor import MareExtractor
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.Form_Based.PastGoingExtractor import PastGoingExtractor
+from SampleExtraction.Extractors.MaxSpeedFigureExtractor import MaxSpeedFigureExtractor
+from SampleExtraction.Extractors.Time.HourCosExtractor import HourCosExtractor
+from SampleExtraction.Extractors.Time.HourSinExtractor import HourSinExtractor
+from SampleExtraction.Extractors.Time.MonthCosExtractor import MonthCosExtractor
+from SampleExtraction.Extractors.Time.MonthSinExtractor import MonthSinExtractor
 from SampleExtraction.Extractors.OwnerWinRateExtractor import OwnerWinRateExtractor
 from SampleExtraction.Extractors.PastLengthsBehindWinnerExtractor import PastLengthsBehindWinnerExtractor
 from SampleExtraction.Extractors.Form_Based.PastWeightExtractor import PastWeightExtractor
@@ -36,7 +43,8 @@ from SampleExtraction.Extractors.Form_Based.LayoffExtractor import LayoffExtract
 from SampleExtraction.Extractors.PastRaceCountExtractor import PastRaceCountExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
-from SampleExtraction.Extractors.SireWinRateExtractor import SireWinRateExtractor
+from SampleExtraction.Extractors.Time.WeekDayCosExtractor import WeekDayCosExtractor
+from SampleExtraction.Extractors.Time.WeekDaySinExtractor import WeekDaySinExtractor
 from SampleExtraction.Extractors.TrackExtractor import TrackExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from SampleExtraction.Extractors.WinRateJockeyExtractor import WinRateJockeyExtractor
@@ -96,7 +104,11 @@ class FeatureManager:
         self.non_past_form_features = [
             # No covariate shift:
             CurrentOddsExtractor(),
-            #SireWinRateExtractor(),
+
+            MonthCosExtractor(), MonthSinExtractor(),
+            WeekDayCosExtractor(), WeekDaySinExtractor(),
+            HourCosExtractor(), HourSinExtractor(),
+
             BreederWinRateExtractor(),
             OwnerWinRateExtractor(),
             TrackExtractor(),
@@ -114,11 +126,11 @@ class FeatureManager:
             PredictedPlaceDeviationExtractor(n_races_ago=1),
             # PredictedPlaceDeviationExtractor(n_races_ago=2),
 
-            # DeviationSpeedFigureExtractor(),
-            # MaxSpeedFigureExtractor(),
+            DeviationSpeedFigureExtractor(),
+            MaxSpeedFigureExtractor(),
 
             # Covariate Shift:
-            # DrawBiasExtractor(),
+            DrawBiasExtractor(),
             AgeExtractor(),
             WinRateLifetimeExtractor(),
             JockeyWeightExtractor(),
@@ -144,7 +156,7 @@ class FeatureManager:
 
         # Covariate shift:
         self.non_past_form_features += [
-            AveragePlaceSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
+            AverageSpeedSimilarDistanceExtractor(similarity_distance) for similarity_distance in [100, 250, 500, 1000]
         ]
 
     def __get_past_race_cards_extractors(self) -> List[FeatureExtractor]:

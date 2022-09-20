@@ -1,7 +1,7 @@
 import statistics
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Sources import SpeedFiguresContainer
+from SampleExtraction.Sources import SpeedFiguresSource
 from SampleExtraction.Sources.FeatureSource import FeatureSource
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
@@ -11,7 +11,7 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.__speed_figures_container = SpeedFiguresContainer.get_feature_container()
+        self.source = SpeedFiguresSource.get_feature_source()
 
     def get_name(self) -> str:
         return "Deviation_Speed_Figure"
@@ -27,9 +27,9 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
         past_form_idx = 0
         while past_form_idx < n_past_forms and len(speed_figures) < 5:
             past_form = form_table.get(past_form_idx)
-            past_speed_figure = self.__speed_figures_container.get_speed_figure(past_form)
+            past_speed_figure = self.source.get_speed_figure(past_form)
 
-            if past_speed_figure > 0:
+            if past_speed_figure != -1:
                 speed_figures.append(past_speed_figure)
             past_form_idx += 1
 
@@ -40,4 +40,4 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
 
     @property
     def container(self) -> FeatureSource:
-        return self.__speed_figures_container
+        return self.source

@@ -40,13 +40,16 @@ class RawRaceCardInjector:
                 self.__persistence.save(self.__win_times)
 
             win_times_of_date = self.__win_times[date]
-            track_name = past_form["trackName"]
+            track_name = past_form_track_to_win_time_track(past_form["trackName"])
             if track_name in win_times_of_date:
                 race_number = str(past_form["raceNumber"])
                 if race_number in win_times_of_date[track_name]:
                     past_form["winTimeSeconds"] = win_times_of_date[track_name][race_number]["win_time"]
                     past_form["raceDistance"] = win_times_of_date[track_name][race_number]["distance"]
                     past_form["categoryLetter"] = win_times_of_date[track_name][race_number]["class"]
+
+            else:
+                print(f"track name not found: {track_name}")
 
     def update_win_times(self):
         for horse in self.__race_card.horses:
@@ -63,6 +66,22 @@ class RawRaceCardInjector:
     @property
     def raw_race_card(self):
         return self.__race_card.raw_race_card
+
+
+def past_form_track_to_win_time_track(track_name: str) -> str:
+    if track_name == "Epsom":
+        return "Epsom Downs"
+    if track_name == "Bangor":
+        return "Bangor-On-Dee"
+    if track_name == "Royal Ascot":
+        return "Ascot"
+    if track_name == "Chelmsford":
+        return "Chelmsford City"
+    if track_name == "Glorious Goodwood":
+        return "Goodwood"
+    if track_name == "Perth Hunt":
+        return "Perth"
+    return track_name
 
 
 def main():

@@ -2,7 +2,6 @@ import random
 from copy import copy
 from typing import List
 
-from Betting.BetEvaluator import BetEvaluator
 from Betting.MultiKellyBettor import MultiKellyBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
@@ -26,7 +25,7 @@ class BetModelConfiguration:
     def __init__(self, decisions: List[int]):
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
-        self.feature_subset: List[FeatureExtractor] = [CurrentOddsExtractor()]
+        self.feature_subset: List[FeatureExtractor] = copy(BetModelConfiguration.base_features)
         self.past_form_depth = 0
         self.decisions = decisions
         self.is_terminal = False

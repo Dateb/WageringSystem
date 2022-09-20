@@ -4,6 +4,7 @@ from datetime import datetime
 class PastForm:
 
     def __init__(self, raw_data: dict):
+        self.race_id = raw_data["idRace"]
         self.n_horses = raw_data["numRunners"]
         self.country = raw_data["country"]
         self.distance = raw_data["raceDistance"]

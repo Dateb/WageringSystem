@@ -20,6 +20,7 @@ class PastRaceCard:
         result = raw_race_card["result"]
 
         self.title = event["title"]
+        self.race_id = race["idRace"]
         self.number = race["raceNumber"]
         self.distance = race["distance"]
         self.race_class = race["categoryLetter"]

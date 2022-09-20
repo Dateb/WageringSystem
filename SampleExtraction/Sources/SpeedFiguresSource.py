@@ -1,13 +1,12 @@
-from typing import List
-
 from DataAbstraction.Past.PastForm import PastForm
 from DataAbstraction.Present.RaceCard import RaceCard
+from DataAbstraction.RawRaceCardInjector import past_form_track_to_win_time_track
 from Persistence.JSONPersistence import JSONPersistence
 from SampleExtraction.Sources.FeatureSource import FeatureSource
 from util.nested_dict import nested_dict
 
 
-class SpeedFiguresContainer(FeatureSource):
+class SpeedFiguresSource(FeatureSource):
 
     def __init__(self):
         super().__init__()
@@ -24,6 +23,8 @@ class SpeedFiguresContainer(FeatureSource):
         for horse in race_card.horses:
             for past_form in horse.form_table.past_forms:
                 distance_key = str(past_form.distance)
+                if str(past_form.distance) == "1006":
+                    print("yellow")
 
                 win_time = past_form.win_time
                 if win_time > 0:
@@ -31,7 +32,7 @@ class SpeedFiguresContainer(FeatureSource):
 
     def __compute_points_per_second(self):
         for distance in self.__base_times:
-            self.__base_times[distance]["points per second"] = (1 / self.__base_times[distance]["base_time"]) * 100 * 10
+            self.__base_times[distance]["points per second"] = (1 / self.__base_times[distance]["avg"]) * 100 * 10
 
     def __compute_par_figures(self, race_card: RaceCard):
         # TODO: dont use past form winning times to estimate par figures
@@ -42,7 +43,7 @@ class SpeedFiguresContainer(FeatureSource):
 
                 win_time = past_form.win_time
                 if win_time > 0:
-                    base_time_of_distance = self.__base_times[past_distance]["base_time"]
+                    base_time_of_distance = self.__base_times[past_distance]["avg"]
                     points_per_second_of_distance = self.__base_times[past_distance]["points per second"]
                     seconds_difference = base_time_of_distance - win_time
                     par_figure = 80 + seconds_difference * points_per_second_of_distance
@@ -60,7 +61,7 @@ class SpeedFiguresContainer(FeatureSource):
         seconds_behind_winner = ((1 / self.__get_lengths_per_second(past_form)) * past_form.lengths_behind_winner)
         horse_time = past_form.win_time + seconds_behind_winner
 
-        base_time = self.__base_times[str(past_form.distance)]["base_time"]
+        base_time = self.__base_times[str(past_form.distance)]["avg"]
         points_per_second = self.__base_times[str(past_form.distance)]["points per second"]
 
         seconds_difference = base_time - horse_time
@@ -69,23 +70,26 @@ class SpeedFiguresContainer(FeatureSource):
         horse_speed_figure = 80 + seconds_difference * points_per_second + track_variant
         return horse_speed_figure
 
-    def __get_track_variant(self, date: str, track: str):
+    def __get_track_variant(self, date: str, track_name: str):
         track_figure_biases = []
 
-        for race in self.__win_times[date][track]:
-            race_distance = str(self.__win_times[date][track][race]["distance"])
+        # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
+        track_name = past_form_track_to_win_time_track(track_name)
+
+        for race in self.__win_times[date][track_name]:
+            race_distance = str(self.__win_times[date][track_name][race]["distance"])
 
             if race_distance in self.__base_times:
-                race_class = self.__win_times[date][track][race]["class"]
-                win_time = self.__win_times[date][track][race]["win_time"]
+                race_class = self.__win_times[date][track_name][race]["class"]
+                win_time = self.__win_times[date][track_name][race]["win_time"]
 
-                base_time = self.__base_times[race_distance]["base_time"]
+                base_time = self.__base_times[race_distance]["avg"]
                 points_per_second = self.__base_times[race_distance]["points per second"]
 
                 seconds_difference = base_time - win_time
                 win_figure = 80 + seconds_difference * points_per_second
                 if race_class in self.__par_figures[race_distance]:
-                    par_figure = self.__par_figures[race_distance][race_class]["par_figure"]
+                    par_figure = self.__par_figures[race_distance][race_class]["avg"]
 
                     track_figure_biases.append(par_figure - win_figure)
 
@@ -102,11 +106,13 @@ class SpeedFiguresContainer(FeatureSource):
                 if past_form.going >= 4:
                     return 5
             if past_form.surface == "EQT":
-                if past_form.track_name in ["Kempton", "Lingfield", "Wolverhampton", "Chelmsford City", "Newcastle"]:
+                if past_form.track_name in ["Kempton", "Lingfield", "Wolverhampton", "Newcastle", "Chelmsford", "Chelmsford City"]:
                     return 6
                 if past_form.track_name in ["Southwell"]:
                     return 5
+                # TODO: Chelmsford and Chelmsford are in the data
                 print(past_form.track_name)
+                print(past_form.race_id)
         if past_form.type == "J":
             if past_form.going <= 3:
                 return 5
@@ -122,8 +128,8 @@ class SpeedFiguresContainer(FeatureSource):
 #gut-weich: 3.5
 #weich: 4
 
-__feature_container: SpeedFiguresContainer = SpeedFiguresContainer()
+__feature_source: SpeedFiguresSource = SpeedFiguresSource()
 
 
-def get_feature_container() -> SpeedFiguresContainer:
-    return __feature_container
+def get_feature_source() -> SpeedFiguresSource:
+    return __feature_source

@@ -9,6 +9,12 @@ from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfigura
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
+from SampleExtraction.Extractors.Time.HourCosExtractor import HourCosExtractor
+from SampleExtraction.Extractors.Time.HourSinExtractor import HourSinExtractor
+from SampleExtraction.Extractors.Time.MonthCosExtractor import MonthCosExtractor
+from SampleExtraction.Extractors.Time.MonthSinExtractor import MonthSinExtractor
+from SampleExtraction.Extractors.Time.WeekDayCosExtractor import WeekDayCosExtractor
+from SampleExtraction.Extractors.Time.WeekDaySinExtractor import WeekDaySinExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
@@ -65,15 +71,22 @@ class BetModelConfigurationTuner:
         self.__tree = BetModelConfigurationTree()
 
     def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = [0.16, 0.18]
+        BetModelConfiguration.expected_value_additional_threshold_values = [0.18]
         BetModelConfiguration.num_leaves_values = [3]
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
-        BetModelConfiguration.base_features = [CurrentOddsExtractor()]
+        BetModelConfiguration.base_features = [
+            CurrentOddsExtractor(),
+            MonthCosExtractor(), MonthSinExtractor(),
+            WeekDayCosExtractor(), WeekDaySinExtractor(),
+            HourCosExtractor(), HourSinExtractor(),
+        ]
         BetModelConfiguration.past_form_features = self.feature_manager.past_form_features
+
+        base_feature_names = [feature.get_name() for feature in BetModelConfiguration.base_features]
         BetModelConfiguration.non_past_form_features = [
             feature for feature in self.feature_manager.non_past_form_features
-            if feature.get_name() != CurrentOddsExtractor().get_name()
+            if feature.get_name() not in base_feature_names
         ]
         BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.past_form_features) + len(BetModelConfiguration.non_past_form_features)
 

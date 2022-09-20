@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 from lightgbm import LGBMRanker
+from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -48,6 +49,30 @@ class BoostedTreesRanker(Ranker):
         X = race_cards_dataframe[self.feature_names].to_numpy()
         scores = self._ranker.predict(X)
 
+        return self.set_win_probabilities(race_cards_sample, scores)
+
+    def transform_sequential(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:
+        race_cards_dataframe = race_cards_sample.race_cards_dataframe
+        X = race_cards_dataframe[self.feature_names].to_numpy()
+        y = race_cards_dataframe[self.label_name].to_numpy()
+        qid = race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().values
+        scores = np.zeros(shape=(len(X)))
+
+        start_idx = 0
+        for i in range(len(qid)):
+            group_count = qid[i]
+            x_group = X[start_idx:start_idx+group_count]
+            y_group = y[start_idx:start_idx+group_count]
+
+            scores[start_idx:start_idx+group_count] = self._ranker.predict(x_group)
+            self._ranker.fit(X=x_group, y=y_group, group=[group_count], init_model=self._ranker.booster_)
+
+            start_idx += group_count
+
+        return self.set_win_probabilities(race_cards_sample, scores)
+
+    def set_win_probabilities(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> RaceCardsSample:
+        race_cards_dataframe = race_cards_sample.race_cards_dataframe
         race_cards_dataframe.loc[:, "score"] = scores
 
         race_cards_dataframe.loc[:, "exp_score"] = np.exp(race_cards_dataframe.loc[:, "score"])

@@ -48,14 +48,16 @@ class RaceCard:
             self.N_HORSES_KEY: self.n_horses,
         }
 
-        # TODO: check has seemingly false positives. Increase accuracy of check.
+        # TODO: there some border cases here. Would need a fix.
         for horse in self.horses:
-            if horse.n_past_races > 0:
-                if self.date_raw == horse.past_races[0].date_raw:
-                    print(self.race_id)
-                    print(horse.name)
-                    print(f"Same date: {self.date}")
-                    print("--------------------")
+            if horse.n_past_races >= 1:
+                previous_race_ids = [past_form.race_id for past_form in horse.form_table.past_forms]
+
+                if self.race_id in previous_race_ids:
+                    print(f"1 Same race id {self.race_id} for horse: {horse.name}\n")
+
+                if len(previous_race_ids) != len(set(previous_race_ids)):
+                    print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
 
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
