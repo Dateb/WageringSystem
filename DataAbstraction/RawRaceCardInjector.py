@@ -49,7 +49,7 @@ class RawRaceCardInjector:
                     past_form["categoryLetter"] = win_times_of_date[track_name][race_number]["class"]
 
             else:
-                print(f"track name not found: {track_name}")
+                print(f"track name not found: {track_name}, date: {date}")
 
     def update_win_times(self):
         for horse in self.__race_card.horses:
@@ -81,6 +81,8 @@ def past_form_track_to_win_time_track(track_name: str) -> str:
         return "Goodwood"
     if track_name == "Perth Hunt":
         return "Perth"
+    if track_name == "Ascot Champions Day":
+        return "Ascot"
     return track_name
 
 

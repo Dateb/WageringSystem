@@ -37,11 +37,13 @@ class FundHistorySummary:
         n_positive_payouts = len([payout for payout in self.payouts if payout > 0])
         n_negative_payouts = len([payout for payout in self.payouts if payout < 0])
 
+        n_payouts = n_positive_payouts + n_negative_payouts
+
         self.__n_validation_samples = len(self.payouts)
         if n_positive_payouts == 0:
             self.__won_bets_percentage = 0
         else:
-            self.__won_bets_percentage = n_positive_payouts / (n_positive_payouts + n_negative_payouts)
+            self.__won_bets_percentage = n_positive_payouts / n_payouts
         self.__total_win = sum(self.__winnings)
         self.__total_loss = sum(self.__loss)
 
@@ -51,7 +53,7 @@ class FundHistorySummary:
             self.__win_loss_ratio = -np.Inf
         self.roi_per_bet = ((self.win_loss_ratio - 1) / self.__n_validation_samples)
         self.total_payout = self.__total_win - self.__total_loss
-        self.validation_score = self.total_payout
+        self.validation_score = self.total_payout / n_payouts
 
     @property
     def betting_slips(self):

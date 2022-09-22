@@ -71,7 +71,7 @@ class BetModelConfigurationTuner:
         self.__tree = BetModelConfigurationTree()
 
     def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = [0.18]
+        BetModelConfiguration.expected_value_additional_threshold_values = [0.0]
         BetModelConfiguration.num_leaves_values = [3]
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
@@ -90,13 +90,11 @@ class BetModelConfigurationTuner:
         ]
         BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.past_form_features) + len(BetModelConfiguration.non_past_form_features)
 
-        BetModelConfiguration.max_past_form_depth = 10
         BetModelConfiguration.n_decision_list = \
             [
                 len(BetModelConfiguration.expected_value_additional_threshold_values),
                 len(BetModelConfiguration.num_leaves_values),
                 len(BetModelConfiguration.min_child_samples_values),
-                BetModelConfiguration.max_past_form_depth
             ] + [2 for _ in range(BetModelConfiguration.n_feature_decisions)]
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:

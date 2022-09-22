@@ -15,5 +15,5 @@ class WeekDayCosExtractor(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         weekday = race_card.datetime.weekday()
-        weekday_max = 6
+        weekday_max = 7
         return np.cos(2 * np.pi * weekday / weekday_max)

@@ -70,13 +70,13 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def __init_features(self):
-        self.__init_past_form_features()
+        #self.__init_past_form_features()
         self.__init_non_past_form_features()
 
-        flattened_past_form_features = [
-            past_form_feature for past_form_group in self.past_form_features for past_form_feature in past_form_group
-        ]
-        self.available_features = flattened_past_form_features + self.non_past_form_features
+        # flattened_past_form_features = [
+        #     past_form_feature for past_form_group in self.past_form_features for past_form_feature in past_form_group
+        # ]
+        self.available_features = self.non_past_form_features
 
     def __init_past_form_features(self):
         past_form_depth = 11

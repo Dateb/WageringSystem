@@ -15,5 +15,5 @@ class HourCosExtractor(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         hour = race_card.datetime.hour
-        hour_max = 23
+        hour_max = 24
         return np.cos(2 * np.pi * hour / hour_max)

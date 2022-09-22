@@ -9,8 +9,13 @@ class BettingSlip:
         self.__bets: List[Bet] = []
         self.__win = 0
 
+        self.conditional_ev = 0
+        self.conditional_odds = 0
+
     def add_bet(self, bet: Bet):
         self.__bets.append(bet)
+        self.conditional_ev += bet.success_probability * bet.odds - (1 + Bet.BET_TAX)
+        self.conditional_odds += bet.odds - (1 + Bet.BET_TAX)
 
     def update_win(self, bet: Bet):
         self.__win += bet.potential_win

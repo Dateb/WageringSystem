@@ -15,5 +15,5 @@ class MonthSinExtractor(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         month = race_card.datetime.month - 1
-        month_max = 11
+        month_max = 12
         return np.sin(2 * np.pi * month / month_max)
