@@ -1,19 +1,20 @@
-from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Sources.FeatureSource import FeatureSource
 from util.nested_dict import nested_dict
 
 
-class NamedWinRateSource(FeatureSource):
+class WinRateSource(FeatureSource):
 
     def __init__(self):
         super().__init__()
         self.__win_rates = nested_dict()
+        self.win_rate_attributes = []
 
     def update(self, race_card: RaceCard):
         for horse in race_card.horses:
-            self.update_average(self.__win_rates[horse.breeder], horse.has_won)
-            self.update_average(self.__win_rates[horse.owner], horse.has_won)
+            for win_rate_attribute in self.win_rate_attributes:
+                win_rate_name = getattr(horse, win_rate_attribute)
+                self.update_average(self.__win_rates[win_rate_name], horse.has_won)
 
     def get_win_rate_of_name(self, name: str) -> float:
         win_rate = self.__win_rates[name]
@@ -22,8 +23,4 @@ class NamedWinRateSource(FeatureSource):
         return -1
 
 
-__feature_source: NamedWinRateSource = NamedWinRateSource()
-
-
-def get_feature_source() -> NamedWinRateSource:
-    return __feature_source
+win_rate_source: WinRateSource = WinRateSource()

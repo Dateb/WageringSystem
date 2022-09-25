@@ -21,8 +21,8 @@ class PastForm:
         self.odds = raw_data["SP"]
         self.date_raw = raw_data["date"]
         self.weight = raw_data["weight"]
-        self.date_time = datetime.fromtimestamp(self.date_raw)
-        self.date = self.date_time.date()
+        self.datetime = datetime.fromtimestamp(self.date_raw)
+        self.date = self.datetime.date()
         self.final_position = self.__extract_final_position(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.final_position == 1 else 0

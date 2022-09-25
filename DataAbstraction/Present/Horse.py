@@ -36,7 +36,19 @@ class Horse:
         self.relevance = 0 if self.place == -1 else max([4 - self.place, 0])
         self.has_blinkers = raw_data["blinkers"]
         self.jockey = Jockey(raw_data["jockey"])
+
+        jockey_first_name = raw_data["jockey"]["firstName"]
+        jockey_last_name = raw_data["jockey"]["lastName"]
+
+        self.jockey_name = f"{jockey_first_name} {jockey_last_name}"
+
         self.trainer = Trainer(raw_data["trainer"])
+
+        trainer_first_name = raw_data["trainer"]["firstName"]
+        trainer_last_name = raw_data["trainer"]["lastName"]
+
+        self.trainer_name = f"{trainer_first_name} {trainer_last_name}"
+
         self.is_scratched = raw_data["scratched"]
         self.past_performance = raw_data["ppString"]
 

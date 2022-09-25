@@ -3,9 +3,9 @@ from copy import copy
 from typing import List
 
 from Betting.MultiKellyBettor import MultiKellyBettor
+from Estimators.BoostedTreesClassifier import BoostedTreesClassifier
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
-from SampleExtraction.Extractors.CurrentOddsExtractor import CurrentOddsExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
 
@@ -44,13 +44,8 @@ class BetModelConfiguration:
             self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
         if i == 2:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
-        if i == 3:
-            self.past_form_depth = decision_idx + 1
-        if 4 <= i < 4 + len(self.past_form_features) and decision_idx == 1:
-            new_past_form_features = self.past_form_features[i - 5][:self.past_form_depth]
-            self.feature_subset += new_past_form_features
-        if i >= 4 + len(self.past_form_features) and decision_idx == 1:
-            new_non_past_form_feature = self.non_past_form_features[i - (5 + len(self.past_form_features))]
+        if i >= 3 and decision_idx == 1:
+            new_non_past_form_feature = self.non_past_form_features[i - 3]
             self.feature_subset.append(new_non_past_form_feature)
 
     def create_bet_model(self) -> BetModel:
