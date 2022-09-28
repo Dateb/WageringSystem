@@ -26,7 +26,7 @@ class SpeedFigureExtractor(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         past_form = form_table.past_forms[self.__n_races_ago - 1]
-        past_speed_figure = self.source.get_speed_figure(past_form)
+        past_speed_figure = self.source.__get_speed_figure(past_form)
 
         if past_speed_figure == -1:
             return self.PLACEHOLDER_VALUE

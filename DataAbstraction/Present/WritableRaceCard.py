@@ -19,6 +19,11 @@ class WritableRaceCard(RaceCard):
             if horse.subject_id == subject_id:
                 return horse.raw_data
 
+    def get_data_of_horse_name(self, horse_name_of_form: str) -> dict:
+        for horse in self.horses:
+            if horse.name == horse_name_of_form:
+                return horse.raw_data
+
     @property
     def raw_race_card(self) -> dict:
         return self.__raw_race_card

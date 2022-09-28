@@ -5,27 +5,21 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
 
-class MaxSpeedFigureExtractor(FeatureExtractor):
+class CurrentSpeedFigure(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
         self.source = SpeedFiguresSource.get_feature_source()
 
     def get_name(self) -> str:
-        return "Max_Speed_Figure"
+        return "Current_Speed_Figure"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        form_table = horse.form_table
-        speed_figures = [
-            self.source.get_speed_figure(past_form) for past_form in form_table.past_forms
-        ]
-
-        valid_speed_figures = [figure for figure in speed_figures if figure != -1]
-
-        if not valid_speed_figures:
+        current_speed_figure = self.source.get_current_speed_figure(horse)
+        if current_speed_figure == -1:
             return self.PLACEHOLDER_VALUE
 
-        return max(valid_speed_figures)
+        return current_speed_figure
 
     @property
     def container(self) -> FeatureSource:

@@ -8,13 +8,9 @@ from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
-from SampleExtraction.Extractors.Time.HourCosExtractor import HourCosExtractor
-from SampleExtraction.Extractors.Time.HourSinExtractor import HourSinExtractor
-from SampleExtraction.Extractors.Time.MonthCosExtractor import MonthCosExtractor
-from SampleExtraction.Extractors.Time.MonthSinExtractor import MonthSinExtractor
-from SampleExtraction.Extractors.Time.WeekDayCosExtractor import WeekDayCosExtractor
-from SampleExtraction.Extractors.Time.WeekDaySinExtractor import WeekDaySinExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentOdds
+from SampleExtraction.Extractors.time_based import MonthCosExtractor, MonthSinExtractor, WeekDayCosExtractor, \
+    WeekDaySinExtractor, HourCosExtractor, HourSinExtractor
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator

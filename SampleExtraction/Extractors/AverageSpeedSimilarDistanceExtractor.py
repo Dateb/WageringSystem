@@ -26,7 +26,7 @@ class AverageSpeedSimilarDistanceExtractor(FeatureExtractor):
         speed_figures = []
         for past_form in horse.form_table.past_forms:
             if distance_lower_bound <= past_form.distance <= distance_upper_bound:
-                past_speed = self.source.get_speed_figure(past_form)
+                past_speed = self.source.__get_speed_figure(past_form)
                 if past_speed != -1:
                     speed_figures.append(past_speed)
 

@@ -28,12 +28,15 @@ class Horse:
         self.gender = raw_data["gender"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
+        self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.current_win_odds = self.__extract_current_win_odds(raw_data)
         self.current_place_odds = self.__extract_current_place_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
-        self.relevance = 0 if self.place == -1 else max([4 - self.place, 0])
+
+        self.relevance = 0 if self.horse_distance == -1 else max([30 - round(self.horse_distance), 0])
+
         self.has_blinkers = raw_data["blinkers"]
         self.jockey = Jockey(raw_data["jockey"])
 
@@ -51,12 +54,6 @@ class Horse:
 
         self.is_scratched = raw_data["scratched"]
         self.past_performance = raw_data["ppString"]
-
-        self.past_races = []
-        if "pastRaces" in raw_data:
-            self.past_races = [
-                PastRaceCard(raw_past_race, remove_non_starters=True) for raw_past_race in raw_data["pastRaces"]
-            ]
 
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])
@@ -83,6 +80,15 @@ class Horse:
 
         return -1
 
+    def __extract_horse_distance(self, raw_data: dict):
+        if raw_data["scratched"]:
+            return -1
+
+        if 'horseDistance' in raw_data:
+            return float(raw_data["horseDistance"])
+
+        return -1
+
     def __extract_current_win_odds(self, raw_data: dict):
         odds_of_horse = raw_data["odds"]
         if odds_of_horse["FXW"] == 0:
@@ -100,10 +106,6 @@ class Horse:
 
     def set_feature_value(self, name: str, value):
         self.__features[name] = value
-
-    @property
-    def n_past_races(self) -> int:
-        return len(self.past_races)
 
     @property
     def attributes(self) -> List[str]:

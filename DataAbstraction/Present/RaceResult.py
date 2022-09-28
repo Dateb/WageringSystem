@@ -23,6 +23,10 @@ class RaceResult:
             if "EXA" in other_odds[0]:
                 self.exacta_odds = float(list(other_odds[0]["EXA"].keys())[0])
 
+        self.win_time = -1
+        if "winTimeSeconds" in raw_result:
+            self.win_time = raw_result["winTimeSeconds"]
+
     def get_result_of_horse_id(self, horse_id: str) -> HorseResult:
         # TODO: Returning None is sloppy
         if horse_id not in self.horse_results:

@@ -2,26 +2,21 @@ from typing import List
 
 
 class FormGuide:
-    def __init__(self, base_race_id: int, subject_id: str, raw_formguide: dict):
-        self.__base_race_id = base_race_id
+    def __init__(self, current_race_id: int, subject_id: str, raw_form_guide: dict):
+        self.current_race_id = current_race_id
         self.subject_id = subject_id
-        self.__raw_formguide = raw_formguide
+        self.raw_form_guide = raw_form_guide
 
-        self.__form_table = raw_formguide["formTable"]
-        race_ids = [past_race["idRace"] for past_race in self.__form_table]
-        first_past_idx = len([1 for race_id in race_ids if race_id >= base_race_id])
+        self.form_table = raw_form_guide["formTable"]
+        race_ids = [past_race["idRace"] for past_race in self.form_table]
+        first_past_form_idx = len([1 for race_id in race_ids if race_id >= current_race_id])
 
-        self.__form_table = self.__form_table[first_past_idx:]
+        self.current_race_form = {}
+        if first_past_form_idx > 0:
+            self.current_race_form = self.form_table[first_past_form_idx - 1]
+        self.form_table = self.form_table[first_past_form_idx:]
 
-        self.__past_race_ids = [past_race["idRace"] for past_race in self.__form_table]
-
-    @property
-    def form_table(self) -> List[dict]:
-        return self.__form_table
-
-    @property
-    def past_race_ids(self) -> List[str]:
-        return self.__past_race_ids
+        self.past_race_ids = [past_race["idRace"] for past_race in self.form_table]
 
 
 def main():

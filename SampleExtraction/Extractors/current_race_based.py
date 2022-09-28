@@ -27,6 +27,43 @@ class CurrentOdds(FeatureExtractor):
         return horse.current_win_odds
 
 
+class CurrentDistance(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Current_Distance"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return float(race_card.distance)
+
+
+class CurrentRaceClass(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Current_Race_Class"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        if race_card.race_class.isnumeric():
+            return int(race_card.race_class)
+
+
+class CurrentGoing(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Current_Going"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return race_card.going
+
+
 class HasTrainerMultipleHorses(FeatureExtractor):
 
     def __init__(self):
@@ -40,5 +77,5 @@ class HasTrainerMultipleHorses(FeatureExtractor):
             other_horse.trainer_name for other_horse in race_card.horses if other_horse.trainer_name == horse.trainer_name
         ]
 
-        return len(trainer_names) > 1
+        return int(len(trainer_names) > 1)
 

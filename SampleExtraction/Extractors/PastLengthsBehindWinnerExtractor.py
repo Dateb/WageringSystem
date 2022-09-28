@@ -17,7 +17,7 @@ class PastLengthsBehindWinnerExtractor(FeatureExtractor):
         if len(horse.form_table.past_forms) < self.__n_races_ago:
             return self.PLACEHOLDER_VALUE
 
-        past_lengths_behind_winner = horse.form_table.past_forms[self.__n_races_ago - 1].lengths_behind_winner
+        past_lengths_behind_winner = horse.form_table.past_forms[self.__n_races_ago - 1].horse_distance
 
         if past_lengths_behind_winner == -1:
             return self.PLACEHOLDER_VALUE

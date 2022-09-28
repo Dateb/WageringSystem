@@ -23,7 +23,7 @@ class RaceCardsPersistence:
 
         while race_cards:
             race_card = race_cards.pop(0)
-            raw_races[str(race_card.date)][race_card.track_name][str(race_card.number)] = race_card.raw_race_card
+            raw_races[str(race_card.date)][race_card.track_name][str(race_card.race_number)] = race_card.raw_race_card
             del race_card
 
         file_suffixes = {date[0:7] for date in raw_races}

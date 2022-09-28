@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 4
-N_SAMPLE_MONTHS = 21
+N_CONTAINER_MONTHS = 5
+N_SAMPLE_MONTHS = 9
 
 #Working Setup:
 # 4 container, 21 sample, 2000 train, 3000 validation, 4 folds, 100 iter
@@ -28,7 +28,7 @@ class BetModelTuner:
     def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
         self.feature_manager = feature_manager
         self.race_cards_sample = race_cards_sample
-        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample, n_train=2000, n_validation=3000, n_folds=4)
+        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample, n_train=1000, n_validation=1000, n_folds=4)
         self.model_evaluator = model_evaluator
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
@@ -54,7 +54,7 @@ class BetModelTuner:
 def main():
     feature_manager = FeatureManager()
 
-    race_cards_loader = RaceCardsPersistence("train_race_cards")
+    race_cards_loader = RaceCardsPersistence("race_cards")
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
     container_race_cards = list(container_race_cards.values())

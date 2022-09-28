@@ -54,12 +54,12 @@ class TrainDataCollector:
 
 
 def main():
-    train_data_collector = TrainDataCollector(file_name="train_race_cards")
+    train_data_collector = TrainDataCollector(file_name="race_cards")
 
     query_date = date(
-        year=2020,
-        month=5,
-        day=31,
+        year=2022,
+        month=9,
+        day=20,
     )
 
     train_data_collector.collect(query_date)

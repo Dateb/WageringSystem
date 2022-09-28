@@ -65,6 +65,7 @@ class BoostedTreesRanker(Ranker):
             y_group = y[start_idx:start_idx+group_count]
 
             scores[start_idx:start_idx+group_count] = self._ranker.predict(x_group)
+            self._ranker.set_params(**{"n_estimators": 1})
             self._ranker.fit(X=x_group, y=y_group, group=[group_count], init_model=self._ranker.booster_)
 
             start_idx += group_count

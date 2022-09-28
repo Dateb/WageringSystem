@@ -27,7 +27,7 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
         past_form_idx = 0
         while past_form_idx < n_past_forms and len(speed_figures) < 5:
             past_form = form_table.get(past_form_idx)
-            past_speed_figure = self.source.get_speed_figure(past_form)
+            past_speed_figure = self.source.__get_speed_figure(past_form)
 
             if past_speed_figure != -1:
                 speed_figures.append(past_speed_figure)

@@ -37,9 +37,12 @@ class RaceCard:
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
         self.track_id = event["idTrack"]
-        self.number = race["raceNumber"]
+        self.race_number = race["raceNumber"]
         self.distance = race["distance"]
+        self.going = race["trackGoing"]
         self.category = race["category"]
+        self.race_type = race["raceType"]
+        self.race_class = race["categoryLetter"]
         self.surface = race["trackSurface"]
 
         self.__base_attributes = {
@@ -49,15 +52,15 @@ class RaceCard:
         }
 
         # TODO: there some border cases here. Would need a fix.
-        for horse in self.horses:
-            if horse.n_past_races >= 1:
-                previous_race_ids = [past_form.race_id for past_form in horse.form_table.past_forms]
-
-                if self.race_id in previous_race_ids:
-                    print(f"1 Same race id {self.race_id} for horse: {horse.name}\n")
-
-                if len(previous_race_ids) != len(set(previous_race_ids)):
-                    print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
+        # for horse in self.horses:
+        #     if horse.n_past_races >= 1:
+        #         previous_race_ids = [past_form.race_id for past_form in horse.form_table.past_forms]
+        #
+        #         if self.race_id in previous_race_ids:
+        #             print(f"1 Same race id {self.race_id} for horse: {horse.name}\n")
+        #
+        #         if len(previous_race_ids) != len(set(previous_race_ids)):
+        #             print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
 
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
@@ -129,7 +132,7 @@ class RaceCard:
 
     @property
     def name(self) -> str:
-        return f"{self.track_name} {self.number}"
+        return f"{self.track_name} {self.race_number}"
 
     @property
     def start_time(self):
@@ -154,14 +157,6 @@ class RaceCard:
     @property
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
-
-    @property
-    def track_going(self) -> float:
-        return self.__race["trackGoing"]
-
-    @property
-    def race_class(self) -> str:
-        return self.__race["categoryLetter"]
 
     @property
     def subject_ids(self):

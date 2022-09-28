@@ -27,9 +27,9 @@ class PastForm:
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.final_position == 1 else 0
 
-        self.lengths_behind_winner = -1
+        self.horse_distance = -1
         if "horseDistance" in raw_data:
-            self.lengths_behind_winner = raw_data["horseDistance"]
+            self.horse_distance = raw_data["horseDistance"]
 
         self.purse = self.__purse_to_value(raw_data["purse"])
         self.rating = self.__extract_rating(raw_data)
