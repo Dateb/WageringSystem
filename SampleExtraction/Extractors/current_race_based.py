@@ -39,6 +39,18 @@ class CurrentDistance(FeatureExtractor):
         return float(race_card.distance)
 
 
+class CurrentRaceTrack(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Current_Race_Track"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return int(race_card.track_id)
+
+
 class CurrentRaceClass(FeatureExtractor):
 
     def __init__(self):
@@ -79,3 +91,28 @@ class HasTrainerMultipleHorses(FeatureExtractor):
 
         return int(len(trainer_names) > 1)
 
+
+class HasBlinker(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Has_Blinker"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return int(horse.has_blinkers)
+
+
+class CurrentRating(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Current_Rating"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if not horse.rating:
+            return self.PLACEHOLDER_VALUE
+        return float(horse.rating)

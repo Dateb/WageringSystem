@@ -34,7 +34,7 @@ class SpeedFiguresSource(FeatureSource):
         distance_key = str(race_card.distance)
 
         if win_time > 0:
-            self.update_average(category=self.__base_times[distance_key], new_obs=win_time)
+            self.update_average(category=self.__base_times[distance_key], new_obs=win_time, new_obs_date=race_card.date)
 
     def __compute_points_per_second(self):
         for distance in self.__base_times:
@@ -50,12 +50,13 @@ class SpeedFiguresSource(FeatureSource):
             seconds_difference = base_time_of_distance - win_time
             par_figure = self.BASE_SPEED + seconds_difference * points_per_second_of_distance
 
-            self.update_average(category=self.__par_figures[distance_key][race_class_key], new_obs=par_figure)
+            self.update_average(category=self.__par_figures[distance_key][race_class_key], new_obs=par_figure, new_obs_date=race_card.date)
 
     def __compute_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = self.__compute_speed_figure(race_card, horse)
-            self.update_average(category=self.__speed_figures[horse.name], new_obs=speed_figure)
+            if speed_figure is not None:
+                self.update_average(category=self.__speed_figures[horse.name], new_obs=speed_figure, new_obs_date=race_card.date)
 
     def __compute_speed_figure(self, race_card: RaceCard, horse: Horse) -> float:
         # TODO: collect more past winning times (distance != 1 check is then not necessary anymore)
@@ -74,19 +75,10 @@ class SpeedFiguresSource(FeatureSource):
         points_per_second = self.__base_times[str(race_card.distance)]["points per second"]
 
         track_variant = self.__get_track_variant(str(race_card.date), race_card.track_name)
+        if abs(track_variant) > 60:
+            return None
 
         horse_speed_figure = self.BASE_SPEED + seconds_difference * points_per_second + track_variant
-        # if horse_speed_figure < -250:
-        #     print(f"horse_time:{horse_time}")
-        #     print(f"base_time:{base_time}")
-        #     print(f"points_per_second:{points_per_second}")
-        #     print(f"track_variant:{track_variant}")
-        #     print("----------------------------------------")
-        if horse_speed_figure < -250:
-            return -250
-
-        if horse_speed_figure > 250:
-            return 250
 
         return horse_speed_figure
 
@@ -114,18 +106,6 @@ class SpeedFiguresSource(FeatureSource):
                         par_figure = self.__par_figures[race_distance][race_class]["avg"]
 
                         track_figure_biases.append(par_figure - win_figure)
-                        if (par_figure - win_figure) < -250:
-                            print("-------------------------------")
-                            print(f"date:{date}")
-                            print(f"track_name:{track_name}")
-                            print(f"race_distance:{race_distance}")
-                            print(f"base_time:{base_time}")
-                            print(f"win_time:{win_time}")
-                            print(f"seconds_difference:{seconds_difference}")
-                            print(f"points_per_second:{points_per_second}")
-                            print(f"par figure: {par_figure}")
-                            print(f"win figure: {win_figure}")
-                            print("---------------------------------")
 
         if track_figure_biases:
             return sum(track_figure_biases) / len(track_figure_biases)

@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 
 import numpy as np
 
@@ -10,7 +10,7 @@ class FundHistorySummary:
 
     def __init__(self, name: str, betting_slips: Dict[str, BettingSlip], start_wealth=0):
         self.__name = name
-        self.__betting_slips = betting_slips
+        self.betting_slips = betting_slips
         self.payouts = []
         self.__winnings = []
         self.__loss = []
@@ -28,10 +28,10 @@ class FundHistorySummary:
 
     def __set_fund_snapshots(self):
         current_wealth = self.start_wealth
-        self.__snapshots = []
+        self.snapshots = []
         for i, payout in enumerate(self.payouts):
             current_wealth += payout
-            self.__snapshots += [FundHistorySnapshot(name=self.__name, date=self.__dates[i], wealth=current_wealth)]
+            self.snapshots += [FundHistorySnapshot(name=self.__name, date=self.__dates[i], wealth=current_wealth)]
 
     def __set_summary(self):
         n_positive_payouts = len([payout for payout in self.payouts if payout > 0])
@@ -41,40 +41,26 @@ class FundHistorySummary:
 
         self.__n_validation_samples = len(self.payouts)
         if n_positive_payouts == 0:
-            self.__won_bets_percentage = 0
+            self.won_bets_percentage = 0
         else:
-            self.__won_bets_percentage = n_positive_payouts / n_payouts
-        self.__total_win = sum(self.__winnings)
-        self.__total_loss = sum(self.__loss)
+            self.won_bets_percentage = n_positive_payouts / n_payouts
+        self.total_win = sum(self.__winnings)
+        self.total_loss = sum(self.__loss)
 
-        if self.__total_loss > 0:
-            self.__win_loss_ratio = self.__total_win / self.__total_loss
+        if self.total_loss > 0:
+            self.win_loss_ratio = self.total_win / self.total_loss
         else:
-            self.__win_loss_ratio = -np.Inf
+            self.win_loss_ratio = -np.Inf
 
-        self.total_payout = self.__total_win - self.__total_loss
-        self.roi_per_bet = self.total_payout / n_payouts
+        self.total_payout = self.total_win - self.total_loss
+        if n_payouts == 0:
+            self.roi_per_bet = 0
+        else:
+            self.roi_per_bet = self.total_payout / n_payouts
 
-        self.validation_score = self.__win_loss_ratio
-
-    @property
-    def betting_slips(self):
-        return self.__betting_slips
+        self.validation_score = self.win_loss_ratio
 
     @property
     def summary(self):
-        return (self.__name, self.__total_win, self.__total_loss, self.__win_loss_ratio,
-                self.__won_bets_percentage, self.__n_validation_samples, self.validation_score)
-
-    @property
-    def win_percentage(self):
-        return self.__won_bets_percentage
-
-    @property
-    def win_loss_ratio(self):
-        return self.__win_loss_ratio
-
-    @property
-    def snapshots(self) -> List[FundHistorySnapshot]:
-        return self.__snapshots
-
+        return (self.__name, self.total_win, self.total_loss, self.win_loss_ratio,
+                self.won_bets_percentage, self.__n_validation_samples, self.validation_score)

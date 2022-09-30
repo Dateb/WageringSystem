@@ -14,11 +14,11 @@ class WinRateSource(FeatureSource):
         for horse in race_card.horses:
             for win_rate_attribute in self.win_rate_attributes:
                 win_rate_name = getattr(horse, win_rate_attribute)
-                self.update_average(self.__win_rates[win_rate_name], horse.has_won)
+                self.update_average(self.__win_rates[win_rate_name], horse.has_won, race_card.date)
 
     def get_win_rate_of_name(self, name: str) -> float:
         win_rate = self.__win_rates[name]
-        if "avg" in win_rate and win_rate["count"] >= 5:
+        if "avg" in win_rate:
             return win_rate["avg"]
         return -1
 

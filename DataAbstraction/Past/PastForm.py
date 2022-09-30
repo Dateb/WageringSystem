@@ -21,6 +21,7 @@ class PastForm:
         self.odds = raw_data["SP"]
         self.date_raw = raw_data["date"]
         self.weight = raw_data["weight"]
+        self.jockey_name = raw_data["jockey"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
         self.final_position = self.__extract_final_position(raw_data)

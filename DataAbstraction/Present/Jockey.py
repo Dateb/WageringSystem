@@ -2,6 +2,7 @@ class Jockey:
 
     def __init__(self, raw_data: dict):
         self.stats = raw_data["stats"]
+        self.last_name = raw_data["lastName"]
         self.num_wins = -1
         self.num_races = -1
         self.earnings = -1

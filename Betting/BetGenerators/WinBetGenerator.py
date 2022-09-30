@@ -6,7 +6,6 @@ from Betting.Bets.WinBet import WinBet
 from Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.HorseResult import HorseResult
-from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 

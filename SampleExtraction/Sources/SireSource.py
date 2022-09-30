@@ -12,7 +12,7 @@ class SireSource(FeatureSource):
 
     def update(self, race_card: RaceCard):
         for horse in race_card.horses:
-            self.update_average(self.__horse_win_rate[horse.name], horse.has_won)
+            self.update_average(self.__horse_win_rate[horse.name], horse.has_won, race_card.date)
 
     def get_sire_win_rate(self, child_horse: Horse) -> float:
         sire_data = self.__horse_win_rate[child_horse.sire]

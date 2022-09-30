@@ -13,7 +13,7 @@ class DrawBiasSource(FeatureSource):
         for horse in race_card.horses:
             post_position = str(horse.post_position)
             if post_position != "-1":
-                self.update_average(self.__draw_bias[race_card.track_name][post_position], horse.has_won)
+                self.update_average(self.__draw_bias[race_card.track_name][post_position], horse.has_won, race_card.date)
 
     def draw_bias(self, track_name: str, post_position: int):
         if track_name not in self.__draw_bias or str(post_position) not in self.__draw_bias[track_name]:

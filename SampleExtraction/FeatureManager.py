@@ -4,7 +4,6 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
 from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
-from SampleExtraction.Extractors.BlinkerExtractor import BlinkerExtractor
 from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
 from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDistanceExtractor
 from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
@@ -12,7 +11,7 @@ from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import Pas
 from SampleExtraction.Extractors.Form_Based.PastSlowerHorsesExtractor import PastSlowerHorsesExtractor
 from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentOdds, Age, HasTrainerMultipleHorses, CurrentDistance, \
-    CurrentRaceClass, CurrentGoing
+    CurrentRaceClass, CurrentGoing, CurrentRating, CurrentRaceTrack, HasBlinker
 from SampleExtraction.Extractors.gender_based import IsGelding, IsMare, IsColt
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
     HasVeryLongBreak, HasWonAfterLongBreak
@@ -27,11 +26,11 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.Form_Based.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
-from SampleExtraction.Extractors.TrackExtractor import TrackExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
-from SampleExtraction.Extractors.previous_race_difference_based import DistanceDifference, RaceClassDifference
+from SampleExtraction.Extractors.previous_race_difference_based import DistanceDifference, RaceClassDifference, \
+    HasJockeyChanged
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
@@ -89,15 +88,13 @@ class FeatureManager:
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
             CurrentOdds(), CurrentDistance(), CurrentRaceClass(), CurrentGoing(),
+            Age(), CurrentRating(), DrawBiasExtractor(),
+            HasTrainerMultipleHorses(), CurrentRaceTrack(),
+            HasBlinker(),
 
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
             HourCosExtractor(), HourSinExtractor(),
-
-            Age(),
-            DrawBiasExtractor(),
-            HasTrainerMultipleHorses(),
-            TrackExtractor(),
 
             CurrentSpeedFigure(),
 
@@ -119,15 +116,13 @@ class FeatureManager:
             BreederWinRate(), OwnerWinRate(),
             SireWinRate(),
 
-            DistanceDifference(), RaceClassDifference(),
+            DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
 
             PurseExtractor(),
             AveragePlaceLifetimeExtractor(),
             AveragePlaceTrackExtractor(),
 
             HeadToHeadExtractor(),
-
-            BlinkerExtractor(),
 
             # PredictedPlaceDeviationExtractor(n_races_ago=1),
             # PredictedPlaceDeviationExtractor(n_races_ago=2),

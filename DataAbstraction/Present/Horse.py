@@ -28,6 +28,7 @@ class Horse:
         self.gender = raw_data["gender"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
+        self.rating = raw_data["rating"]
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.current_win_odds = self.__extract_current_win_odds(raw_data)

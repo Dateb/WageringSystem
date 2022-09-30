@@ -9,6 +9,7 @@ from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfigura
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.Extractors.current_race_based import CurrentOdds
+from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, MonthSinExtractor, WeekDayCosExtractor, \
     WeekDaySinExtractor, HourCosExtractor, HourSinExtractor
 from SampleExtraction.FeatureManager import FeatureManager
@@ -72,7 +73,7 @@ class BetModelConfigurationTuner:
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
         BetModelConfiguration.base_features = [
-            CurrentOdds(),
+            CurrentOdds(), CurrentSpeedFigure(),
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
             HourCosExtractor(), HourSinExtractor(),
