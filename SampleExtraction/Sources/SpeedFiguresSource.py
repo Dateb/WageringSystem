@@ -61,10 +61,10 @@ class SpeedFiguresSource(FeatureSource):
     def __compute_speed_figure(self, race_card: RaceCard, horse: Horse) -> float:
         # TODO: collect more past winning times (distance != 1 check is then not necessary anymore)
         if horse.horse_distance == -1 or race_card.distance == -1:
-            return -1
+            return None
 
         if str(race_card.distance) not in self.__base_times:
-            return -1
+            return None
 
         seconds_behind_winner = ((1 / self.__get_lengths_per_second(race_card)) * horse.horse_distance)
 

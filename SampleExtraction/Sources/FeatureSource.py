@@ -9,7 +9,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 class FeatureSource:
 
     def __init__(self):
-        self.base_alpha = 0.125
+        pass
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -19,7 +19,7 @@ class FeatureSource:
     def update(self, race_card: RaceCard):
         pass
 
-    def update_average(self, category: dict, new_obs: float, new_obs_date: Date) -> None:
+    def update_average(self, category: dict, new_obs: float, new_obs_date: Date, base_alpha=0.125) -> None:
         if "avg" not in category:
             category["avg"] = new_obs
             category["count"] = 1
@@ -28,7 +28,7 @@ class FeatureSource:
             n_days_since_last_obs = (new_obs_date - category["last_obs_date"]).days
             average_fade_factor = 0.1 * log(0.1 * n_days_since_last_obs) if n_days_since_last_obs > 10 else 0
 
-            alpha = self.base_alpha + average_fade_factor
+            alpha = base_alpha + average_fade_factor
 
             category["avg"] = alpha * new_obs + (1 - alpha) * category["avg"]
             category["count"] += 1

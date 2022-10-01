@@ -9,18 +9,18 @@ from Experiments.FundHistorySnapshot import FundHistorySnapshot
 class FundHistorySummary:
 
     def __init__(self, name: str, betting_slips: Dict[str, BettingSlip], start_wealth=0):
-        self.__name = name
+        self.name = name
         self.betting_slips = betting_slips
         self.payouts = []
-        self.__winnings = []
-        self.__loss = []
-        self.__dates = []
+        self.winnings = []
+        self.loss = []
+        self.dates = []
         for date in sorted(betting_slips):
             betting_slip = betting_slips[date]
             self.payouts.append(betting_slip.payout)
-            self.__winnings.append(betting_slip.win)
-            self.__loss.append(betting_slip.loss)
-            self.__dates.append(date)
+            self.winnings.append(betting_slip.win)
+            self.loss.append(betting_slip.loss)
+            self.dates.append(date)
         self.start_wealth = start_wealth
 
         self.__set_fund_snapshots()
@@ -31,7 +31,7 @@ class FundHistorySummary:
         self.snapshots = []
         for i, payout in enumerate(self.payouts):
             current_wealth += payout
-            self.snapshots += [FundHistorySnapshot(name=self.__name, date=self.__dates[i], wealth=current_wealth)]
+            self.snapshots += [FundHistorySnapshot(name=self.name, date=self.dates[i], wealth=current_wealth)]
 
     def __set_summary(self):
         n_positive_payouts = len([payout for payout in self.payouts if payout > 0])
@@ -39,13 +39,13 @@ class FundHistorySummary:
 
         n_payouts = n_positive_payouts + n_negative_payouts
 
-        self.__n_validation_samples = len(self.payouts)
+        self.n_samples = len(self.payouts)
         if n_positive_payouts == 0:
             self.won_bets_percentage = 0
         else:
             self.won_bets_percentage = n_positive_payouts / n_payouts
-        self.total_win = sum(self.__winnings)
-        self.total_loss = sum(self.__loss)
+        self.total_win = sum(self.winnings)
+        self.total_loss = sum(self.loss)
 
         if self.total_loss > 0:
             self.win_loss_ratio = self.total_win / self.total_loss
@@ -58,9 +58,9 @@ class FundHistorySummary:
         else:
             self.roi_per_bet = self.total_payout / n_payouts
 
-        self.validation_score = self.win_loss_ratio
+        self.validation_score = self.total_payout
 
     @property
     def summary(self):
-        return (self.__name, self.total_win, self.total_loss, self.win_loss_ratio,
-                self.won_bets_percentage, self.__n_validation_samples, self.validation_score)
+        return (self.name, self.total_win, self.total_loss, self.win_loss_ratio,
+                self.won_bets_percentage, self.n_samples, self.validation_score)

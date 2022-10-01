@@ -46,6 +46,9 @@ class HasJockeyChanged(FeatureExtractor):
         if not previous_form.jockey_name:
             return self.PLACEHOLDER_VALUE
 
+        if len(previous_form.jockey_name.split(" ")) < 2:
+            return self.PLACEHOLDER_VALUE
+
         previous_jockey_last_name = previous_form.jockey_name.split(" ")[1]
 
         return previous_jockey_last_name != current_jockey_last_name

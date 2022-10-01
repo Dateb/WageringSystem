@@ -21,7 +21,6 @@ class BoostedTreesRanker(Ranker):
         "n_estimators": 1000,
         "learning_rate": 0.01,
         "verbose": -1,
-        "random_state": 0,
         "deterministic": True,
         "force_row_wise": True,
         "n_jobs": -1,

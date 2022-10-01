@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 12
-N_SAMPLE_MONTHS = 8
+N_CONTAINER_MONTHS = 3
+N_SAMPLE_MONTHS = 24
 
 #Working Setup:
 # 4 container, 21 sample, 2000 train, 3000 validation, 4 folds, 100 iter
@@ -28,7 +28,7 @@ class BetModelTuner:
     def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
         self.feature_manager = feature_manager
         self.race_cards_sample = race_cards_sample
-        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample, n_train=1000, n_validation=500, n_folds=10)
+        self.sample_split_generator = SampleSplitGenerator(self.race_cards_sample, n_train_races=5000, n_races_per_fold=1500, n_folds=5)
         self.model_evaluator = model_evaluator
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
@@ -38,17 +38,23 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=35)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=30)
 
         return bet_model_configuration
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         bet_model = bet_model_configuration.create_bet_model()
-        train_samples, test_samples = self.sample_split_generator.get_train_test_split()
+        test_betting_slips = {}
+        for i in range(self.sample_split_generator.n_folds):
+            train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=i)
 
-        bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
+            bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
 
-        return self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+
+            test_betting_slips = {**test_betting_slips, **fund_history_summary.betting_slips}
+
+        return FundHistorySummary("Test run GBT", betting_slips=test_betting_slips, start_wealth=200)
 
 
 def main():

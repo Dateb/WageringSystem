@@ -37,7 +37,7 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYear
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, WeekDaySinExtractor, MonthSinExtractor, \
     WeekDayCosExtractor, HourCosExtractor, HourSinExtractor
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
-    JockeyWinRate
+    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate
 
 
 class FeatureManager:
@@ -114,7 +114,7 @@ class FeatureManager:
 
             HorseWinRate(), JockeyWinRate(),
             BreederWinRate(), OwnerWinRate(),
-            SireWinRate(),
+            SireWinRate(), HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
 
             DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
 
