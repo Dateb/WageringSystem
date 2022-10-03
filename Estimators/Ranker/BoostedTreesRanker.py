@@ -1,14 +1,16 @@
 from typing import List
 
+import lightgbm
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMRanker
+from lightgbm import LGBMRanker, Dataset
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.Extractors.horse_attributes_based import Gender
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -18,7 +20,6 @@ class BoostedTreesRanker(Ranker):
         "boosting_type": "gbdt",
         "objective": "lambdarank",
         "metric": "ndcg",
-        "n_estimators": 1000,
         "learning_rate": 0.01,
         "verbose": -1,
         "deterministic": True,
@@ -33,20 +34,25 @@ class BoostedTreesRanker(Ranker):
 
         self.features = features
         self.feature_names = [feature.get_name() for feature in features]
-        self._ranker = LGBMRanker()
-        self.set_search_params(search_params)
+
+        self.categorical_feature_names = [feature.get_name() for feature in features if feature.is_categorical]
+
+        self.set_parameter_set(search_params)
+        self.booster = None
 
     def fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):
-        x_ranker = samples_train[self.feature_names].to_numpy()
-        y_ranker = samples_train[self.label_name].to_numpy()
-        qid = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
+        input_data = samples_train[self.feature_names]
+        label = samples_train[self.label_name].astype(dtype="int")
+        group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
-        self._ranker.fit(X=x_ranker, y=y_ranker, group=qid)
+        dataset = Dataset(data=input_data, label=label, group=group, categorical_feature=self.categorical_feature_names)
+
+        self.booster = lightgbm.train(self.parameter_set, train_set=dataset, num_boost_round=500, categorical_feature=self.categorical_feature_names)
 
     def transform(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        X = race_cards_dataframe[self.feature_names].to_numpy()
-        scores = self._ranker.predict(X)
+        X = race_cards_dataframe[self.feature_names]
+        scores = self.booster.predict(X)
 
         return self.set_win_probabilities(race_cards_sample, scores)
 

@@ -50,6 +50,7 @@ class HasFewStartsInTwoYears(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_name(self) -> str:
         return "Has_Few_Starts_In_Two_Years"

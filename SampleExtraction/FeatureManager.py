@@ -9,10 +9,11 @@ from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDis
 from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
 from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import PastFasterHorsesExtractor
 from SampleExtraction.Extractors.Form_Based.PastSlowerHorsesExtractor import PastSlowerHorsesExtractor
-from SampleExtraction.Extractors.HeadToHeadExtractor import HeadToHeadExtractor
-from SampleExtraction.Extractors.current_race_based import CurrentOdds, Age, HasTrainerMultipleHorses, CurrentDistance, \
-    CurrentRaceClass, CurrentGoing, CurrentRating, CurrentRaceTrack, HasBlinker
-from SampleExtraction.Extractors.gender_based import IsGelding, IsMare, IsColt
+from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
+    CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
+    CurrentRaceTypeDetail
+from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker, \
+    DoesHeadToHead
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
     HasVeryLongBreak, HasWonAfterLongBreak
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
@@ -87,10 +88,12 @@ class FeatureManager:
 
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
-            CurrentOdds(), CurrentDistance(), CurrentRaceClass(), CurrentGoing(),
-            Age(), CurrentRating(), DrawBiasExtractor(),
-            HasTrainerMultipleHorses(), CurrentRaceTrack(),
-            HasBlinker(),
+            CurrentOdds(), Age(), CurrentRating(), DrawBiasExtractor(),
+            HasTrainerMultipleHorses(),
+            HasBlinker(), DoesHeadToHead(),
+
+            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
+            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
 
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
@@ -110,7 +113,7 @@ class FeatureManager:
 
             HighestOddsWin(),
 
-            IsGelding(), IsMare(), IsColt(),
+            Gender(),
 
             HorseWinRate(), JockeyWinRate(),
             BreederWinRate(), OwnerWinRate(),
@@ -121,8 +124,6 @@ class FeatureManager:
             PurseExtractor(),
             AveragePlaceLifetimeExtractor(),
             AveragePlaceTrackExtractor(),
-
-            HeadToHeadExtractor(),
 
             # PredictedPlaceDeviationExtractor(n_races_ago=1),
             # PredictedPlaceDeviationExtractor(n_races_ago=2),

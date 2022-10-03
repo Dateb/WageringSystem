@@ -8,6 +8,7 @@ class HasOptimalBreak(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_name(self) -> str:
         return "Has_Optimal_Break"
@@ -22,6 +23,7 @@ class HasLongBreak(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_name(self) -> str:
         return "Has_Long_Break"
@@ -36,6 +38,7 @@ class HasVeryLongBreak(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_name(self) -> str:
         return "Has_Very_Long_Break"
@@ -50,6 +53,7 @@ class HasWonAfterLongBreak(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_name(self) -> str:
         return "Has_Won_After_Long_Break"

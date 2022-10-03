@@ -8,7 +8,9 @@ from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
-from SampleExtraction.Extractors.current_race_based import CurrentOdds
+from SampleExtraction.Extractors.current_race_based import CurrentDistance, CurrentRaceClass, CurrentGoing, \
+    CurrentRaceTrack, CurrentRaceCategory, CurrentRaceType, CurrentRaceSurface, CurrentRaceTypeDetail
+from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, MonthSinExtractor, WeekDayCosExtractor, \
     WeekDaySinExtractor, HourCosExtractor, HourSinExtractor
@@ -68,15 +70,19 @@ class BetModelConfigurationTuner:
         self.__tree = BetModelConfigurationTree()
 
     def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = [0.18]
-        BetModelConfiguration.num_leaves_values = [3]
+        BetModelConfiguration.expected_value_additional_threshold_values = [0.5]
+        BetModelConfiguration.num_leaves_values = [60]
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
         BetModelConfiguration.base_features = [
             CurrentOdds(), CurrentSpeedFigure(),
+
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
             HourCosExtractor(), HourSinExtractor(),
+
+            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
+            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
         ]
 
         base_feature_names = [feature.get_name() for feature in BetModelConfiguration.base_features]

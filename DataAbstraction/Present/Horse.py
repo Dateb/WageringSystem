@@ -1,7 +1,7 @@
+from math import ceil
 from typing import List
 
 from DataAbstraction.Past.FormTable import FormTable
-from DataAbstraction.Past.PastRaceCard import PastRaceCard
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
 
@@ -36,8 +36,6 @@ class Horse:
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
 
-        self.relevance = 0 if self.horse_distance == -1 else max([30 - round(self.horse_distance), 0])
-
         self.has_blinkers = raw_data["blinkers"]
         self.jockey = Jockey(raw_data["jockey"])
 
@@ -67,10 +65,17 @@ class Horse:
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,
             self.HAS_WON_KEY: self.has_won,
-            self.RELEVANCE_KEY: self.relevance,
         }
 
         self.__features = {}
+
+    def set_relevance(self, race_distance: float):
+        self.relevance = 0
+        if self.horse_distance >= 0:
+            percentage_behind_winner = self.horse_distance * 2.4 / race_distance
+            self.relevance = max(3 - ceil(percentage_behind_winner * 200), 0)
+
+        self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 
     def __extract_place(self, raw_data: dict):
         if raw_data["scratched"]:

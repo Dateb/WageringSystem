@@ -15,10 +15,7 @@ class RaceCard:
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
-
-        self.__extract_horses(raw_race_card["runners"]["data"])
-        if remove_non_starters:
-            self.__remove_non_starters()
+        self.remove_non_starters = remove_non_starters
 
         self.__extract_attributes(raw_race_card)
 
@@ -42,8 +39,15 @@ class RaceCard:
         self.going = race["trackGoing"]
         self.category = race["category"]
         self.race_type = race["raceType"]
+        self.race_type_detail = race["raceTypeDetail"]
         self.race_class = race["categoryLetter"]
         self.surface = race["trackSurface"]
+
+        self.__extract_horses(raw_race_card["runners"]["data"])
+        if self.remove_non_starters:
+            self.__remove_non_starters()
+
+        self.n_horses = len(self.horses)
 
         self.__base_attributes = {
             self.DATETIME_KEY: self.datetime,
@@ -64,6 +68,8 @@ class RaceCard:
 
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+        for horse in self.horses:
+            horse.set_relevance(self.distance)
 
     def __extract_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]
@@ -141,10 +147,6 @@ class RaceCard:
     @property
     def race(self) -> dict:
         return self.__race
-
-    @property
-    def n_horses(self) -> int:
-        return len(self.horses)
 
     @property
     def runner_ids(self):

@@ -13,6 +13,7 @@ class FeatureExtractor(ABC):
     def __init__(self):
         self.base_name = "default"
         self.source = FeatureSource.get_feature_source()
+        self.is_categorical = False
 
     def __str__(self) -> str:
         return self.get_name()

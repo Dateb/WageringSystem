@@ -11,8 +11,7 @@ class Ranker(ABC):
     _FIXED_PARAMS: Dict
 
     def __init__(self, features: List[FeatureExtractor], label_name: str):
-        self._ranker = None
-        self._params = None
+        self.parameter_set = None
         self.search_params = None
         self.features = features
         self.label_name = label_name
@@ -23,7 +22,6 @@ class Ranker(ABC):
     def transform(self, samples: pd.DataFrame) -> pd.DataFrame:
         pass
 
-    def set_search_params(self, search_params: Dict):
+    def set_parameter_set(self, search_params: Dict):
         self.search_params = search_params
-        self._params = {**self._FIXED_PARAMS, **search_params}
-        self._ranker.set_params(**self._params)
+        self.parameter_set = {**self._FIXED_PARAMS, **search_params}
