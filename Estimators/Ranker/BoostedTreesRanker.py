@@ -3,14 +3,13 @@ from typing import List
 import lightgbm
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMRanker, Dataset
+from lightgbm import Dataset
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.Ranker.Ranker import Ranker
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.horse_attributes_based import Gender
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 

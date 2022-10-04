@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class FundHistorySnapshot:
+class PayoutSnapshot:
     name: str
     date: str
-    wealth: float
+    payout_percentages: float

@@ -12,7 +12,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class WinBetGenerator(BetGenerator):
 
     def __init__(self, additional_ev_threshold: float, bet_limit: float):
-        super().__init__(additional_ev_threshold, bet_limit)
+        super().__init__(additional_ev_threshold)
 
     def add_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         sample_df = race_cards_sample.race_cards_dataframe
@@ -40,15 +40,12 @@ class WinBetGenerator(BetGenerator):
                 denominator = betting_slip.conditional_odds + odds[i] - (1 + Bet.BET_TAX)
                 stakes_fraction = numerator / denominator
 
-                stakes = stakes_fraction * self.bet_limit
+                predicted_horse_result = HorseResult(
+                    horse_id=horse_ids[i],
+                    position=1,
+                    win_odds=odds[i],
+                    place_odds=0,
+                )
+                new_bet = WinBet([predicted_horse_result], stakes_fraction, win_probabilities[i])
 
-                if stakes >= 0.5:
-                    predicted_horse_result = HorseResult(
-                        horse_id=horse_ids[i],
-                        position=1,
-                        win_odds=odds[i],
-                        place_odds=0,
-                    )
-                    new_bet = WinBet([predicted_horse_result], stakes, win_probabilities[i])
-
-                    betting_slip.add_bet(new_bet)
+                betting_slip.add_bet(new_bet)

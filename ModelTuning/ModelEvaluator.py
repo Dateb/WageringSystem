@@ -26,6 +26,6 @@ class ModelEvaluator:
         betting_slips = bet_model.bettor.bet(estimated_race_cards_sample)
         bet_evaluator.add_wins_to_betting_slips(betting_slips)
 
-        fund_history_summary = FundHistorySummary("Some Name", betting_slips, start_wealth=200)
+        fund_history_summary = FundHistorySummary("Some Name", betting_slips)
 
         return fund_history_summary
