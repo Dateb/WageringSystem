@@ -80,3 +80,14 @@ class WeekDaySinExtractor(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * race_card.datetime.weekday() / WEEKDAY_MAX)
 
+
+class AbsoluteTime(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Absolute_Time"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return race_card.date_raw

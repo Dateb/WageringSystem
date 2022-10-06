@@ -16,7 +16,7 @@ class BetModelConfiguration:
 
     base_features: List[FeatureExtractor]
     past_form_features: List[List[FeatureExtractor]]
-    non_past_form_features: List[FeatureExtractor]
+    search_features: List[FeatureExtractor]
     n_feature_decisions: List[FeatureExtractor]
 
     max_past_form_depth: float
@@ -26,6 +26,7 @@ class BetModelConfiguration:
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
         self.feature_subset: List[FeatureExtractor] = copy(BetModelConfiguration.base_features)
+        self.selected_search_features = []
         self.past_form_depth = 0
         self.decisions = decisions
         self.is_terminal = False
@@ -45,8 +46,9 @@ class BetModelConfiguration:
         if i == 2:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
         if i >= 3 and decision_idx == 1:
-            new_non_past_form_feature = self.non_past_form_features[i - 3]
-            self.feature_subset.append(new_non_past_form_feature)
+            selected_search_feature = self.search_features[i - 3]
+            self.selected_search_features.append(selected_search_feature)
+            self.feature_subset.append(selected_search_feature)
 
     def create_bet_model(self) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)

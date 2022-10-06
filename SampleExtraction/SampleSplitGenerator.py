@@ -30,7 +30,6 @@ class SampleSplitGenerator:
         )
 
         self.race_cards_dataframe = race_cards_dataframe.merge(right=race_number_df, on=RaceCard.RACE_ID_KEY, how="inner").sort_values(by="race_number")
-        print(self.race_cards_dataframe["race_number"])
 
     def get_train_validation_split(self, nth_validation_fold: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
         train_interval = [i + (self.n_races_per_fold * nth_validation_fold) for i in range(self.n_train_races)]

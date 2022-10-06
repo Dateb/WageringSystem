@@ -4,29 +4,16 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
 from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
 from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
-from SampleExtraction.Extractors.DrawBiasExtractor import DrawBiasExtractor
-from SampleExtraction.Extractors.Form_Based.PastDistanceExtractor import PastDistanceExtractor
-from SampleExtraction.Extractors.Form_Based.PastDrawBiasExtractor import PastDrawBiasExtractor
-from SampleExtraction.Extractors.Form_Based.PastFasterHorsesExtractor import PastFasterHorsesExtractor
-from SampleExtraction.Extractors.Form_Based.PastSlowerHorsesExtractor import PastSlowerHorsesExtractor
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail
-from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker, \
-    DoesHeadToHead
+    CurrentRaceTypeDetail, DrawBias
+from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker
+from SampleExtraction.Extractors.jockey_based import JockeyWeight
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
     HasVeryLongBreak, HasWonAfterLongBreak
 from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
-from SampleExtraction.Extractors.Form_Based.PastGoingExtractor import PastGoingExtractor
-from SampleExtraction.Extractors.PastLengthsBehindWinnerExtractor import PastLengthsBehindWinnerExtractor
-from SampleExtraction.Extractors.Form_Based.PastWeightExtractor import PastWeightExtractor
-from SampleExtraction.Extractors.Form_Based.PastClassExtractor import PastClassExtractor
-from SampleExtraction.Extractors.Form_Based.PastOddsExtractor import PastOddsExtractor
-from SampleExtraction.Extractors.Form_Based.PastRatingExtractor import PastRatingExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.Form_Based.LayoffExtractor import LayoffExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
-from SampleExtraction.Extractors.JockeyWeightExtractor import JockeyWeightExtractor
 from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
@@ -36,7 +23,7 @@ from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, WeekDaySinExtractor, MonthSinExtractor, \
-    WeekDayCosExtractor, HourCosExtractor, HourSinExtractor
+    WeekDayCosExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
     JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate
 
@@ -66,38 +53,18 @@ class FeatureManager:
         # ]
         self.available_features = self.non_past_form_features
 
-    def __init_past_form_features(self):
-        past_form_depth = 11
-        # Covariate shift:
-        self.past_form_features = [[LayoffExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)]]
-        self.past_form_features.append([PastDrawBiasExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-
-        self.past_form_features.append([PastRatingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastOddsExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-
-        # No covariate shift:
-        self.past_form_features.append([PastClassExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-
-        # Unknown
-        self.past_form_features.append([PastSlowerHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastFasterHorsesExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastDistanceExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastWeightExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastLengthsBehindWinnerExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-        self.past_form_features.append([PastGoingExtractor(n_races_ago=n_races_ago) for n_races_ago in range(1, past_form_depth)])
-
     def __init_non_past_form_features(self):
         self.non_past_form_features = [
-            CurrentOdds(), Age(), CurrentRating(), DrawBiasExtractor(),
+            CurrentOdds(), Age(), CurrentRating(), DrawBias(),
             HasTrainerMultipleHorses(),
-            HasBlinker(), DoesHeadToHead(),
+            HasBlinker(),
 
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
 
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
-            HourCosExtractor(), HourSinExtractor(),
+            HourCosExtractor(), HourSinExtractor(), AbsoluteTime(),
 
             CurrentSpeedFigure(),
 
@@ -129,7 +96,7 @@ class FeatureManager:
             # PredictedPlaceDeviationExtractor(n_races_ago=2),
 
             # Covariate Shift:
-            JockeyWeightExtractor(),
+            JockeyWeight(),
             MaxPastRatingExtractor(),
             WeightAllowanceExtractor(),
             AveragePlaceSurfaceExtractor(),

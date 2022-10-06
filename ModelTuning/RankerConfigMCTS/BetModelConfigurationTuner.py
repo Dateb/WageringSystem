@@ -4,16 +4,24 @@ from statistics import mean
 import numpy as np
 from tqdm import trange
 
+from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.Extractors.current_race_based import CurrentDistance, CurrentRaceClass, CurrentGoing, \
-    CurrentRaceTrack, CurrentRaceCategory, CurrentRaceType, CurrentRaceSurface, CurrentRaceTypeDetail
-from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds
+    CurrentRaceTrack, CurrentRaceCategory, CurrentRaceType, CurrentRaceSurface, CurrentRaceTypeDetail, \
+    HasTrainerMultipleHorses, DrawBias
+from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Gender
+from SampleExtraction.Extractors.jockey_based import JockeyWeight
+from SampleExtraction.Extractors.layoff_based import HasLongBreak, HasWonAfterLongBreak
+from SampleExtraction.Extractors.odds_based import HighestOddsWin
+from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
+from SampleExtraction.Extractors.starts_based import TwoYearStartCount
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, MonthSinExtractor, WeekDayCosExtractor, \
-    WeekDaySinExtractor, HourCosExtractor, HourSinExtractor
+    WeekDaySinExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime
+from SampleExtraction.Extractors.win_rate_based import HorseTrainerWinRate, JockeyWinRate
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
@@ -68,10 +76,12 @@ class BetModelConfigurationTuner:
         self.__max_score = -np.Inf
         self.__exploration_factor = 0.1
         self.__tree = BetModelConfigurationTree()
+        self.feature_scorer = FeatureScorer()
+        self.n_runs = 0
 
     def __init_model_configuration_setting(self):
         BetModelConfiguration.expected_value_additional_threshold_values = [0.5]
-        BetModelConfiguration.num_leaves_values = [60]
+        BetModelConfiguration.num_leaves_values = [90]
         BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
 
         BetModelConfiguration.base_features = [
@@ -86,11 +96,11 @@ class BetModelConfigurationTuner:
         ]
 
         base_feature_names = [feature.get_name() for feature in BetModelConfiguration.base_features]
-        BetModelConfiguration.non_past_form_features = [
+        BetModelConfiguration.search_features = [
             feature for feature in self.feature_manager.non_past_form_features
             if feature.get_name() not in base_feature_names
         ]
-        BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.non_past_form_features)
+        BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.search_features)
 
         BetModelConfiguration.n_decision_list = \
             [
@@ -114,17 +124,20 @@ class BetModelConfigurationTuner:
 
             results = self.__simulate(terminal_configuration)
             score = mean(list(results.values()))
+            self.feature_scorer.update_feature_scores(score, terminal_configuration.selected_search_features)
             self.__backup(front_node, score)
+
+            self.n_runs += 1
+            if self.n_runs % 5 == 0:
+                self.feature_scorer.show_feature_scores()
 
             if score > self.__max_score:
                 self.__best_configuration = terminal_configuration
                 print("New best Result:")
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
+                print(terminal_configuration.search_params)
                 print(f"Score: {score}")
-                print("----------------------------------------")
-                print(f"Setup: {self.__best_configuration}")
-                print("----------------------------------------")
                 self.__max_score = score
                 return True
 

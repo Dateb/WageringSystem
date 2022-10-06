@@ -25,4 +25,4 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        self.validation_score = sum(payout_percentages)
+        self.validation_score = (sum(payout_percentages) / len(betting_slips)) * 1000

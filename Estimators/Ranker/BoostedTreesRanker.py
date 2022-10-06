@@ -24,6 +24,7 @@ class BoostedTreesRanker(Ranker):
         "deterministic": True,
         "force_row_wise": True,
         "n_jobs": -1,
+        "device": "gpu",
     }
 
     def __init__(self, features: List[FeatureExtractor], search_params: dict):

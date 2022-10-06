@@ -23,7 +23,7 @@ class WinRateSource(FeatureSource):
 
     def get_win_rate_of_name(self, name: str) -> float:
         win_rate = self.__win_rates[name]
-        if "avg" in win_rate:
+        if "avg" in win_rate and win_rate["count"] >= 5:
             return win_rate["avg"]
         return -1
 
