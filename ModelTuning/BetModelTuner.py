@@ -17,7 +17,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 3
-N_SAMPLE_MONTHS = 37
+N_SAMPLE_MONTHS = 1
 
 #Working Setup:
 # 4 container, 21 sample, 2000 train, 3000 validation, 4 folds, 100 iter
@@ -30,8 +30,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_train_races=17000,
-            n_races_per_fold=1150,
+            n_train_races=300,
+            n_races_per_fold=40,
             n_folds=5
         )
         self.model_evaluator = model_evaluator
@@ -43,17 +43,16 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=30)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=2)
 
         return bet_model_configuration
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
-        bet_model = bet_model_configuration.create_bet_model()
         test_betting_slips = {}
         for i in range(self.sample_split_generator.n_folds):
             train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=i)
 
-            bet_model.fit_estimator(train_samples.race_cards_dataframe, None)
+            bet_model = bet_model_configuration.create_bet_model(train_samples)
 
             fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
 
@@ -62,7 +61,7 @@ class BetModelTuner:
         return FundHistorySummary("Test run GBT", betting_slips=test_betting_slips)
 
 
-def main():
+def optimize_model_configuration():
     feature_manager = FeatureManager()
 
     race_cards_loader = RaceCardsPersistence("race_cards")
@@ -86,7 +85,7 @@ def main():
     sample_encoder = SampleEncoder(feature_manager.features, columns)
 
     for race_card_file_name in tqdm(sample_race_card_file_names):
-        arr_of_race_cards = race_cards_array_factory.generate_from_race_cards_file(race_card_file_name)
+        arr_of_race_cards = race_cards_array_factory.race_card_file_to_array(race_card_file_name)
         sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
     race_cards_sample = sample_encoder.get_race_cards_sample()
@@ -104,25 +103,47 @@ def main():
         pickle.dump(bet_model_configuration, f)
 
 
+def execute_model_configuration():
+    with open(__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
+        bet_model_configuration: BetModelConfiguration = pickle.load(f)
+
+    feature_manager = FeatureManager(features=bet_model_configuration.feature_subset)
+
+    print(bet_model_configuration.n_train_races)
+
+    # extract training set all the way
+    race_cards_loader = RaceCardsPersistence("race_cards")
+
+    model_evaluator = ModelEvaluator()
+    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
+
+    # We load a race cards dummy list to know the columns
+    dummy_race_cards = race_cards_loader.load_race_card_files_non_writable([race_cards_loader.race_card_file_names[0]])
+    dummy_race_cards = list(dummy_race_cards.values())
+    columns = dummy_race_cards[0].attributes + feature_manager.feature_names
+    sample_encoder = SampleEncoder(feature_manager.features, columns)
+
+    for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
+        arr_of_race_cards = race_cards_array_factory.race_card_file_to_array(race_card_file_name)
+        sample_encoder.add_race_cards_arr(arr_of_race_cards)
+
+    race_cards_sample = sample_encoder.get_race_cards_sample()
+    sample_split_generator = SampleSplitGenerator(
+        race_cards_sample,
+        n_train_races=bet_model_configuration.n_train_races,
+        n_races_per_fold=0,
+        n_folds=0,
+    )
+
+    train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
+
+    bet_model = bet_model_configuration.create_bet_model(train_sample)
+
+    estimated_race_cards_sample = bet_model.estimator.transform(race_cards_sample)
+    betting_slips = bet_model.bettor.bet(estimated_race_cards_sample)
+
+
 if __name__ == '__main__':
-    main()
+    optimize_model_configuration()
+    #execute_model_configuration()
     print("finished")
-
-
-    # race_arr_per_month = {}
-    # while sample_race_card_file_names:
-    #     next_file_names = sample_race_card_file_names[:4]
-    #     sample_race_card_file_names = sample_race_card_file_names[4:]
-    #
-    #     extraction_threads = [
-    #         SampleExtractionThread(race_cards_loader, feature_manager, race_cards_file_name, race_arr_per_month, model_evaluator)
-    #         for race_cards_file_name in next_file_names
-    #     ]
-    #
-    #     print(len(extraction_threads))
-    #
-    #     for extraction_thread in extraction_threads:
-    #         extraction_thread.start()
-    #
-    #     for extraction_thread in extraction_threads:
-    #         extraction_thread.join()

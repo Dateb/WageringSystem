@@ -18,8 +18,8 @@ class BetModel:
         self.estimator = estimator
         self.bettor = bettor
 
-    def fit_estimator(self, train_samples: DataFrame, validation_samples: DataFrame):
-        self.estimator.fit(train_samples, validation_samples)
+    def fit_estimator(self, train_samples: DataFrame):
+        self.estimator.fit(train_samples)
 
     @property
     def features(self) -> List[FeatureExtractor]:

@@ -8,8 +8,6 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-# TODO: Dict to list for race cards
-
 
 class AgentModel:
     __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"

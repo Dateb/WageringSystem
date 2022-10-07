@@ -17,5 +17,5 @@ class SampleExtractionThread(threading.Thread):
         self.__race_arr_per_month = race_arr_per_month
 
     def run(self):
-        race_arr_of_month = self.__race_cards_array_factory.generate_from_race_cards_file(self.__race_cards_file_name)
+        race_arr_of_month = self.__race_cards_array_factory.race_card_file_to_array(self.__race_cards_file_name)
         self.__race_arr_per_month[self.__race_cards_file_name] = race_arr_of_month

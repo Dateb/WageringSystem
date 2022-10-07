@@ -16,7 +16,7 @@ class Ranker(ABC):
         self.features = features
         self.label_name = label_name
 
-    def _fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):
+    def _fit(self, samples_train: pd.DataFrame):
         pass
 
     def transform(self, samples: pd.DataFrame) -> pd.DataFrame:

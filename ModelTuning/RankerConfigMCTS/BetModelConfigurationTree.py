@@ -9,14 +9,8 @@ from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfigura
 
 class BetModelConfigurationTree:
 
-    def __init__(self):
+    def __init__(self, root_node: BetModelConfigurationNode):
         self.__tree = Tree()
-        root_node = BetModelConfigurationNode(
-            identifier="root",
-            max_score=-np.Inf,
-            n_visits=0,
-            ranker_config=BetModelConfiguration([]),
-        )
         self.add_root(root_node)
 
     def add_root(self, root_node: BetModelConfigurationNode):

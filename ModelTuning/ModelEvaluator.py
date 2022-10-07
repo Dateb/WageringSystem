@@ -21,9 +21,10 @@ class ModelEvaluator:
     def get_fund_history_summary_of_model(self, bet_model: BetModel, race_cards_sample: RaceCardsSample) -> FundHistorySummary:
         bet_evaluator = BetEvaluator(self.race_card_results)
         race_cards_sample = deepcopy(race_cards_sample)
-        estimated_race_cards_sample = bet_model.estimator.transform(race_cards_sample)
 
+        estimated_race_cards_sample = bet_model.estimator.transform(race_cards_sample)
         betting_slips = bet_model.bettor.bet(estimated_race_cards_sample)
+
         bet_evaluator.add_wins_to_betting_slips(betting_slips)
 
         fund_history_summary = FundHistorySummary("Some Name", betting_slips)

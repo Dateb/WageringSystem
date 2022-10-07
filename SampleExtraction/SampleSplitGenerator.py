@@ -13,10 +13,10 @@ class SampleSplitGenerator:
         self.n_races_per_fold = n_races_per_fold
         self.n_folds = n_folds
         last_idx = n_train_races + 2 * n_folds * n_races_per_fold - 1
-        print(last_idx)
 
         race_cards_dataframe = race_card_samples.race_cards_dataframe
         self.race_ids = sorted(list(set(race_cards_dataframe[RaceCard.RACE_ID_KEY].values)))
+        self.n_races = len(self.race_ids)
 
         if last_idx >= len(self.race_ids):
             print(f"Splits are requiring {last_idx + 1} races. Only got {len(self.race_ids)}")
@@ -48,3 +48,9 @@ class SampleSplitGenerator:
         second_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(second_interval)]
 
         return RaceCardsSample(first_df), RaceCardsSample(second_df)
+
+    def get_last_n_races_sample(self, n: int) -> RaceCardsSample:
+        last_n_races_interval = [self.n_train_races - 1 - i for i in range(n)]
+        races_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(last_n_races_interval)]
+
+        return RaceCardsSample(races_df)

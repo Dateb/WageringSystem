@@ -2,32 +2,41 @@ import random
 from copy import copy
 from typing import List
 
+import numpy as np
+
 from Betting.MultiKellyBettor import MultiKellyBettor
-from Estimators.BoostedTreesClassifier import BoostedTreesClassifier
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
-    expected_value_additional_threshold_values: List[float]
-    num_leaves_values: List[float]
-    min_child_samples_values: List[float]
+    expected_value_additional_threshold_values = [0.5]
+    num_leaves_values = [90]
+    min_child_samples_values = list(np.arange(500, 550, 50))
 
-    base_features: List[FeatureExtractor]
-    past_form_features: List[List[FeatureExtractor]]
-    search_features: List[FeatureExtractor]
-    n_feature_decisions: List[FeatureExtractor]
-
-    max_past_form_depth: float
     n_decision_list: List[int]
 
-    def __init__(self, decisions: List[int]):
+    def __init__(
+            self,
+            decisions: List[int],
+            base_features: List[FeatureExtractor],
+            search_features: List[FeatureExtractor],
+            n_train_races: int,
+    ):
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
-        self.feature_subset: List[FeatureExtractor] = copy(BetModelConfiguration.base_features)
+        self.feature_subset: List[FeatureExtractor] = copy(base_features)
+        self.search_features = search_features
+        self.n_train_races = n_train_races
         self.selected_search_features = []
-        self.past_form_depth = 0
+        self.n_decision_list = \
+            [
+                len(BetModelConfiguration.expected_value_additional_threshold_values),
+                len(BetModelConfiguration.num_leaves_values),
+                len(BetModelConfiguration.min_child_samples_values),
+            ] + [2 for _ in range(len(search_features))]
         self.decisions = decisions
         self.is_terminal = False
         if len(decisions) == len(self.n_decision_list):
@@ -50,12 +59,15 @@ class BetModelConfiguration:
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
 
-    def create_bet_model(self) -> BetModel:
+    def create_bet_model(self, train_samples: RaceCardsSample) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
         bettor = MultiKellyBettor(self.expected_value_additional_threshold, bet_limit=20)
 
-        return BetModel(estimator, bettor)
+        bet_model = BetModel(estimator, bettor)
+        bet_model.fit_estimator(train_samples.race_cards_dataframe)
+
+        return bet_model
 
     def get_full_decision_list(self) -> List[int]:
         full_decision_list = copy(self.decisions)

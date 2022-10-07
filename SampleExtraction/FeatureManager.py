@@ -36,37 +36,33 @@ class FeatureManager:
             features: List[FeatureExtractor] = None
     ):
         self.__report_missing_features = report_missing_features
+
+        self.base_features = [
+            CurrentOdds(), CurrentSpeedFigure(),
+
+            MonthCosExtractor(), MonthSinExtractor(),
+            WeekDayCosExtractor(), WeekDaySinExtractor(),
+            HourCosExtractor(), HourSinExtractor(),
+
+            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
+            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
+        ]
+
         self.features = features
-        self.__init_features()
         if features is None:
-            self.features = self.available_features
+            self.search_features = self.get_search_features()
+            self.features = self.base_features + self.search_features
 
         self.feature_names = [feature.get_name() for feature in self.features]
         self.n_features = len(self.features)
 
-    def __init_features(self):
-        #self.__init_past_form_features()
-        self.__init_non_past_form_features()
-
-        # flattened_past_form_features = [
-        #     past_form_feature for past_form_group in self.past_form_features for past_form_feature in past_form_group
-        # ]
-        self.available_features = self.non_past_form_features
-
-    def __init_non_past_form_features(self):
-        self.non_past_form_features = [
-            CurrentOdds(), Age(), CurrentRating(), DrawBias(),
+    def get_search_features(self) -> List[FeatureExtractor]:
+        default_features = [
+            Age(), CurrentRating(), DrawBias(),
             HasTrainerMultipleHorses(),
             HasBlinker(),
 
-            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
-            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
-
-            MonthCosExtractor(), MonthSinExtractor(),
-            WeekDayCosExtractor(), WeekDaySinExtractor(),
-            HourCosExtractor(), HourSinExtractor(), AbsoluteTime(),
-
-            CurrentSpeedFigure(),
+            AbsoluteTime(),
 
             HasOptimalBreak(),
             HasLongBreak(),
@@ -92,27 +88,13 @@ class FeatureManager:
             AveragePlaceLifetimeExtractor(),
             AveragePlaceTrackExtractor(),
 
-            # PredictedPlaceDeviationExtractor(n_races_ago=1),
-            # PredictedPlaceDeviationExtractor(n_races_ago=2),
-
-            # Covariate Shift:
             JockeyWeight(),
             MaxPastRatingExtractor(),
             WeightAllowanceExtractor(),
             AveragePlaceSurfaceExtractor(),
-
-            # Not implemented:
-            # JockeyCurrentHorsePurseExtractor(),
-            # PreviousRaceStarterCountExtractor(),
-            # TrackGoingDifferenceExtractor(),
-            # TrackPurseExtractor(),
         ]
 
-        # self.non_past_form_features += self.__get_past_race_cards_extractors()
-        #
-        # self.non_past_form_features += [
-        #     PastPlacesExtractor(n_races_ago) for n_races_ago in range(1, 6)
-        # ]
+        return default_features
 
     def warmup_feature_sources(self, race_cards: List[RaceCard]):
         feature_sources = {feature_extractor.source for feature_extractor in self.features}
@@ -120,9 +102,9 @@ class FeatureManager:
         for feature_source in feature_sources:
             feature_source.warmup(race_cards)
 
-    def set_features(self, race_cards: Dict[str, RaceCard]):
-        for datetime in sorted(race_cards):
-            self.__set_features_of_race_card(race_cards[datetime])
+    def set_features(self, race_cards: List[RaceCard]):
+        for race_card in race_cards:
+            self.__set_features_of_race_card(race_card)
 
     def __set_features_of_race_card(self, race_card: RaceCard):
         for horse in race_card.horses:

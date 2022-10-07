@@ -40,14 +40,24 @@ class BoostedTreesRanker(Ranker):
         self.set_parameter_set(search_params)
         self.booster = None
 
-    def fit(self, samples_train: pd.DataFrame, samples_validation: pd.DataFrame):
+    def fit(self, samples_train: pd.DataFrame):
         input_data = samples_train[self.feature_names]
         label = samples_train[self.label_name].astype(dtype="int")
         group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
-        dataset = Dataset(data=input_data, label=label, group=group, categorical_feature=self.categorical_feature_names)
+        dataset = Dataset(
+            data=input_data,
+            label=label,
+            group=group,
+            categorical_feature=self.categorical_feature_names,
+        )
 
-        self.booster = lightgbm.train(self.parameter_set, train_set=dataset, num_boost_round=500, categorical_feature=self.categorical_feature_names)
+        self.booster = lightgbm.train(
+            self.parameter_set,
+            train_set=dataset,
+            categorical_feature=self.categorical_feature_names,
+            num_boost_round=500,
+        )
 
     def transform(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe

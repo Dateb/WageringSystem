@@ -9,19 +9,6 @@ from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
-from SampleExtraction.Extractors.current_race_based import CurrentDistance, CurrentRaceClass, CurrentGoing, \
-    CurrentRaceTrack, CurrentRaceCategory, CurrentRaceType, CurrentRaceSurface, CurrentRaceTypeDetail, \
-    HasTrainerMultipleHorses, DrawBias
-from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Gender
-from SampleExtraction.Extractors.jockey_based import JockeyWeight
-from SampleExtraction.Extractors.layoff_based import HasLongBreak, HasWonAfterLongBreak
-from SampleExtraction.Extractors.odds_based import HighestOddsWin
-from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference
-from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
-from SampleExtraction.Extractors.starts_based import TwoYearStartCount
-from SampleExtraction.Extractors.time_based import MonthCosExtractor, MonthSinExtractor, WeekDayCosExtractor, \
-    WeekDaySinExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime
-from SampleExtraction.Extractors.win_rate_based import HorseTrainerWinRate, JockeyWinRate
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
@@ -48,8 +35,7 @@ class SimulateThread(threading.Thread):
     def run(self):
         train_samples, validation_samples = self.race_cards_splitter.get_train_validation_split(self.validation_fold_idx)
 
-        bet_model = self.bet_model_configuration.create_bet_model()
-        bet_model.fit_estimator(train_samples.race_cards_dataframe, validation_samples.race_cards_dataframe)
+        bet_model = self.bet_model_configuration.create_bet_model(train_samples)
 
         fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_samples)
 
@@ -72,42 +58,24 @@ class BetModelConfigurationTuner:
         self.model_evaluator = model_evaluator
 
         self.__best_configuration: BetModelConfiguration = None
-        self.__init_model_configuration_setting()
         self.__max_score = -np.Inf
         self.__exploration_factor = 0.1
-        self.__tree = BetModelConfigurationTree()
+
+        root_node = BetModelConfigurationNode(
+            identifier="root",
+            max_score=-np.Inf,
+            n_visits=0,
+            ranker_config=BetModelConfiguration(
+                decisions=[],
+                base_features=self.feature_manager.base_features,
+                search_features=self.feature_manager.search_features,
+                n_train_races=self.sample_split_generator.n_train_races,
+            ),
+        )
+
+        self.tree = BetModelConfigurationTree(root_node)
         self.feature_scorer = FeatureScorer()
         self.n_runs = 0
-
-    def __init_model_configuration_setting(self):
-        BetModelConfiguration.expected_value_additional_threshold_values = [0.5]
-        BetModelConfiguration.num_leaves_values = [90]
-        BetModelConfiguration.min_child_samples_values = list(np.arange(500, 550, 50))
-
-        BetModelConfiguration.base_features = [
-            CurrentOdds(), CurrentSpeedFigure(),
-
-            MonthCosExtractor(), MonthSinExtractor(),
-            WeekDayCosExtractor(), WeekDaySinExtractor(),
-            HourCosExtractor(), HourSinExtractor(),
-
-            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
-            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
-        ]
-
-        base_feature_names = [feature.get_name() for feature in BetModelConfiguration.base_features]
-        BetModelConfiguration.search_features = [
-            feature for feature in self.feature_manager.non_past_form_features
-            if feature.get_name() not in base_feature_names
-        ]
-        BetModelConfiguration.n_feature_decisions = len(BetModelConfiguration.search_features)
-
-        BetModelConfiguration.n_decision_list = \
-            [
-                len(BetModelConfiguration.expected_value_additional_threshold_values),
-                len(BetModelConfiguration.num_leaves_values),
-                len(BetModelConfiguration.min_child_samples_values),
-            ] + [2 for _ in range(BetModelConfiguration.n_feature_decisions)]
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
         while self.__improve_ranker_config(max_iter_without_improvement):
@@ -120,16 +88,17 @@ class BetModelConfigurationTuner:
             front_node = self.__select()
 
             full_decision_list = front_node.ranker_config.get_full_decision_list()
-            terminal_configuration = BetModelConfiguration(full_decision_list)
+            terminal_configuration = BetModelConfiguration(
+                full_decision_list,
+                self.feature_manager.base_features,
+                self.feature_manager.search_features,
+                self.sample_split_generator.n_train_races,
+            )
 
             results = self.__simulate(terminal_configuration)
             score = mean(list(results.values()))
             self.feature_scorer.update_feature_scores(score, terminal_configuration.selected_search_features)
             self.__backup(front_node, score)
-
-            self.n_runs += 1
-            if self.n_runs % 5 == 0:
-                self.feature_scorer.show_feature_scores()
 
             if score > self.__max_score:
                 self.__best_configuration = terminal_configuration
@@ -144,7 +113,7 @@ class BetModelConfigurationTuner:
         return False
 
     def __select(self):
-        node = self.__tree.node("root")
+        node = self.tree.node("root")
         while not node.ranker_config.is_terminal:
             if not self.__is_node_fully_expanded(node):
                 return self.__expand(node)
@@ -154,9 +123,14 @@ class BetModelConfigurationTuner:
         return node
 
     def __expand(self, node: BetModelConfigurationNode):
-        next_action_idx = len(self.__tree.children(node.identifier))
+        next_action_idx = len(self.tree.children(node.identifier))
         decisions_children = node.ranker_config.decisions + [next_action_idx]
-        children_ranker_config = BetModelConfiguration(decisions_children)
+        children_ranker_config = BetModelConfiguration(
+            decisions_children,
+            self.feature_manager.base_features,
+            self.feature_manager.search_features,
+            self.sample_split_generator.n_train_races,
+        )
 
         new_node = BetModelConfigurationNode(
             identifier=children_ranker_config.identifier,
@@ -164,7 +138,7 @@ class BetModelConfigurationTuner:
             n_visits=0,
             ranker_config=children_ranker_config,
         )
-        return self.__tree.add_node(new_node, node)
+        return self.tree.add_node(new_node, node)
 
     def __simulate(self, bet_model_configuration: BetModelConfiguration) -> dict:
         results = {}
@@ -186,14 +160,14 @@ class BetModelConfigurationTuner:
             node.n_visits += 1
             if score > node.max_score:
                 node.max_score = score
-            node = self.__tree.parent(node.identifier)
+            node = self.tree.parent(node.identifier)
         node.n_visits += 1
 
     def __is_node_fully_expanded(self, node):
-        return len(self.__tree.children(node.identifier)) == node.ranker_config.n_decisions_next_action
+        return len(self.tree.children(node.identifier)) == node.ranker_config.n_decisions_next_action
 
     def __select_best_children(self, node: BetModelConfigurationNode):
-        children = self.__tree.children(node.identifier)
+        children = self.tree.children(node.identifier)
 
         children_uct = np.array([self.__get_uct(node, child) for child in children])
         return children[children_uct.argmax()]
