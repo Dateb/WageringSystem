@@ -6,8 +6,6 @@ from DataCollection.Scraper import get_scraper
 
 class RaceCardFactory:
 
-    __N_MAX_PAST_RACES_TO_INJECT: int = 2
-
     def __init__(self, remove_non_starters: bool = True):
         self.__scraper = get_scraper()
         self.__base_api_url = 'https://www.racebets.de/ajax/races/details/id/'

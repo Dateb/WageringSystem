@@ -16,7 +16,7 @@ class ExactaBetGenerator(BetGenerator):
     def __init__(self, additional_ev_threshold: float, bet_limit: float):
         super().__init__(additional_ev_threshold, bet_limit)
 
-    def add_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
+    def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         sample_df = race_cards_sample.race_cards_dataframe
 
         sample_df["place_2_prob"] = sample_df["win_probability"] / (1 - sample_df["win_probability"])

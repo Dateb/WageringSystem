@@ -7,9 +7,9 @@ from DataAbstraction.Present.RaceResult import RaceResult
 
 class ExactaBet(Bet):
 
-    def __init__(self, predicted_horse_results: List[HorseResult], stakes: float):
-        super().__init__(predicted_horse_results, stakes)
-        self.stakes = stakes
+    def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float):
+        super().__init__(predicted_horse_results, stakes_fraction)
+        self.stakes = stakes_fraction
         self.potential_win = 0
 
     def is_won(self, race_result: RaceResult) -> bool:

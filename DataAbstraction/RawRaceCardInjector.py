@@ -118,6 +118,10 @@ def past_form_track_to_win_time_track(track_name: str) -> str:
         return "Newcastle"
     if track_name == "Chelmsford City PMU":
         return "Chelmsford City"
+    if track_name == "Chelmsford PMU":
+        return "Chelmsford City"
+    if track_name == "Kempton PMU":
+        return "Kempton"
     return track_name
 
 

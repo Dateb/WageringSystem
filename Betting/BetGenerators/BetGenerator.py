@@ -11,5 +11,9 @@ class BetGenerator(ABC):
         self.additional_ev_threshold = additional_ev_threshold
 
     @abstractmethod
-    def add_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
+    def add_single_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
+        pass
+
+    @abstractmethod
+    def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         pass

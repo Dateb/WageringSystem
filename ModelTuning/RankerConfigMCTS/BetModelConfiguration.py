@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 
-from Betting.MultiKellyBettor import MultiKellyBettor
+from Betting.EVSingleBettor import EVSingleBettor
 from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -62,7 +62,7 @@ class BetModelConfiguration:
     def create_bet_model(self, train_samples: RaceCardsSample) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
 
-        bettor = MultiKellyBettor(self.expected_value_additional_threshold, bet_limit=20)
+        bettor = EVSingleBettor(self.expected_value_additional_threshold)
 
         bet_model = BetModel(estimator, bettor)
         bet_model.fit_estimator(train_samples.race_cards_dataframe)

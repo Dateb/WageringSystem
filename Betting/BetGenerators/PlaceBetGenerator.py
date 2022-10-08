@@ -14,7 +14,7 @@ class PlaceBetGenerator(BetGenerator):
     def __init__(self, additional_ev_threshold: float, bet_limit: float):
         super().__init__(additional_ev_threshold, bet_limit)
 
-    def add_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
+    def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         sample_df = race_cards_sample.race_cards_dataframe
         sample_df = sample_df[sample_df[RaceCard.N_HORSES_KEY] <= 7]
         sample_df = sample_df[sample_df[RaceCard.N_HORSES_KEY] >= 5]
