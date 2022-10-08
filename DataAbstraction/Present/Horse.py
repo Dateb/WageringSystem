@@ -8,7 +8,7 @@ from DataAbstraction.Present.Trainer import Trainer
 
 class Horse:
 
-    HORSE_ID_KEY: str = "horse_id"
+    NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
     CURRENT_WIN_ODDS_KEY: str = "current_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
@@ -17,7 +17,7 @@ class Horse:
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        HORSE_ID_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY,
+        NUMBER_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY,
     ]
 
     def __init__(self, raw_data: dict):
@@ -27,6 +27,7 @@ class Horse:
         self.owner = raw_data["owner"]
         self.age = raw_data["age"]
         self.gender = raw_data["gender"]
+        self.number = raw_data["programNumber"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.rating = raw_data["rating"]
@@ -61,7 +62,7 @@ class Horse:
             self.form_table = FormTable([])
 
         self.__base_attributes = {
-            self.HORSE_ID_KEY: self.horse_id,
+            self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.current_win_odds,
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,

@@ -12,7 +12,7 @@ class PlaceBet(Bet):
         self.potential_win = predicted_horse_results[0].place_odds * stakes_fraction
 
     def is_won(self, race_result: RaceResult) -> bool:
-        result_of_predicted_horse = race_result.get_result_of_horse_id(self.predicted_horse_results[0].horse_id)
+        result_of_predicted_horse = race_result.get_result_of_horse_id(self.predicted_horse_results[0].number)
 
         if result_of_predicted_horse is None:
             return False

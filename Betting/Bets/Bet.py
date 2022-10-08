@@ -11,7 +11,7 @@ class Bet(ABC):
 
     def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float, success_probability: float):
         self.predicted_horse_results = predicted_horse_results
-        self.stakes = stakes_fraction
+        self.stakes_fraction = stakes_fraction
         self.success_probability = success_probability
 
         self.loss = stakes_fraction * (1 + self.BET_TAX)

@@ -28,7 +28,7 @@ class PlaceBetGenerator(BetGenerator):
         sample_df["place_probability"] = sample_df["win_probability"] + sample_df["place_2_probability"]
 
         race_date_times = list(sample_df["date_time"].astype(str).values)
-        horse_ids = sample_df.loc[:, Horse.HORSE_ID_KEY].values
+        horse_ids = sample_df.loc[:, Horse.NUMBER_KEY].values
         place_odds = sample_df.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
         win_probabilities = sample_df.loc[:, "place_probability"].values
 
@@ -47,7 +47,7 @@ class PlaceBetGenerator(BetGenerator):
 
                 if stakes >= 0.5:
                     predicted_horse_result = HorseResult(
-                        horse_id=horse_ids[i],
+                        number=horse_ids[i],
                         position=1,
                         win_odds=0,
                         place_odds=place_odds[i],

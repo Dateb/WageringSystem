@@ -42,12 +42,12 @@ class WinBetGenerator(BetGenerator):
         sample_df = sample_df.sort_values(by=[Horse.BASE_EXPECTED_VALUE_KEY], ascending=False)
 
         race_date_times = list(sample_df["date_time"].astype(str).values)
-        horse_ids = sample_df.loc[:, Horse.HORSE_ID_KEY].values
+        horse_numbers = sample_df.loc[:, Horse.NUMBER_KEY].values
         odds = sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         win_probabilities = sample_df.loc[:, Horse.WIN_PROBABILITY_KEY].values
         single_ev = sample_df.loc[:, Horse.BASE_EXPECTED_VALUE_KEY].values
 
-        for i in range(len(horse_ids)):
+        for i in range(len(horse_numbers)):
             betting_slip = betting_slips[str(race_date_times[i])]
             ev = betting_slip.conditional_ev + single_ev[i]
 
@@ -57,7 +57,7 @@ class WinBetGenerator(BetGenerator):
                 stakes_fraction = numerator / denominator
 
                 predicted_horse_result = HorseResult(
-                    horse_id=horse_ids[i],
+                    number=horse_numbers[i],
                     position=1,
                     win_odds=odds[i],
                     place_odds=0,

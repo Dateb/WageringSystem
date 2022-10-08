@@ -28,7 +28,7 @@ class ExactaBetGenerator(BetGenerator):
 
         for race_key in set(race_cards_sample.race_keys):
             race_df = sample_df[sample_df[RaceCard.DATETIME_KEY] == race_key]
-            horse_ids = race_df.loc[:, Horse.HORSE_ID_KEY].values
+            horse_ids = race_df.loc[:, Horse.NUMBER_KEY].values
 
             place_1_probabilities = race_df.loc[:, "win_probability"].values
             place_2_probabilities = race_df.loc[:, "place_2_prob"].values
@@ -51,13 +51,13 @@ class ExactaBetGenerator(BetGenerator):
 
                         if stakes >= 0.5:
                             place_1_prediction = HorseResult(
-                                horse_id=horse_ids[i],
+                                number=horse_ids[i],
                                 position=1,
                                 win_odds=0,
                                 place_odds=0,
                             )
                             place_2_prediction = HorseResult(
-                                horse_id=horse_ids[j],
+                                number=horse_ids[j],
                                 position=2,
                                 win_odds=0,
                                 place_odds=0,

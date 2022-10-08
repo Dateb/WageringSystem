@@ -16,12 +16,13 @@ from DataAbstraction.Present.RaceCard import RaceCard
 
 class AgentController:
 
-    def __init__(self, post_race_start_wait: int = 5, submission_mode_on: bool = False):
+    def __init__(self, bet_limit: float, post_race_start_wait: int = 5, submission_mode_on: bool = False):
         self.driver = webdriver.Firefox()
         self.user_name = "Malfen"
         self.password = "Titctsat49_"
-        self.__post_race_start_wait = post_race_start_wait
-        self.__submission_mode_on = submission_mode_on
+        self.bet_limit = bet_limit
+        self.post_race_start_wait = post_race_start_wait
+        self.submission_mode_on = submission_mode_on
 
         self.driver.get("https://m.racebets.de/")
         sleep(4)
@@ -51,8 +52,8 @@ class AgentController:
         if self.is_logged_out():
             self.login()
 
-        print(f"Race starting every moment, delaying bet for {self.__post_race_start_wait} seconds...")
-        sleep(self.__post_race_start_wait)
+        print(f"Race starting every moment, delaying bet for {self.post_race_start_wait} seconds...")
+        sleep(self.post_race_start_wait)
 
     def execute_betting_slip(self, race_card: RaceCard, betting_slip: BettingSlip):
         bet_list = list(betting_slip.bets.values())
@@ -72,10 +73,10 @@ class AgentController:
         stakes_change_button.click()
 
         stakes_input_field = self.driver.find_element(by=By.XPATH, value=f'//input[@value="0,50 EUR"]')
-        stakes_input_field.send_keys(str(bet.stakes))
+        stakes_input_field.send_keys(str(bet.stakes_fraction))
         stakes_input_field.send_keys(Keys.RETURN)
 
-        if self.__submission_mode_on:
+        if self.submission_mode_on:
             submit_bet_button = self.driver.find_element(by=By.XPATH, value=f'//button[@type="submit"]')
             submit_bet_button.click()
 
@@ -112,17 +113,20 @@ class AgentController:
         print(race_url)
         self.driver.get(race_url)
         self.click_on_horses_in_betting_slip(betting_slip)
+        self.click_on_betting_slip_icon()
+        self.enter_bet_stakes(betting_slip)
+        sleep(10)
+        self.click_on_submit_button()
         self.driver.close()
 
     def click_on_horses_in_betting_slip(self, betting_slip: BettingSlip):
-        # for bet in betting_slip.bets:
-        #     for horse_result in bet.predicted_horse_results:
-        self.click_on_horse_fixed_odds_button(2)
-        self.click_on_append_to_betting_slip_button()
-
-        self.click_on_horse_fixed_odds_button(4)
-
-        sleep(10)
+        created_betting_slip = False
+        for bet in betting_slip.bets:
+            for horse_result in bet.predicted_horse_results:
+                self.click_on_horse_fixed_odds_button(horse_result.number)
+                if not created_betting_slip:
+                    self.click_on_append_to_betting_slip_button()
+                    created_betting_slip = True
 
     def click_on_horse_fixed_odds_button(self, program_number: int):
         horse_fixed_odds_button = self.driver.find_elements(by=By.XPATH, value="//div[@data-button-1='']")[program_number - 1]
@@ -132,24 +136,53 @@ class AgentController:
         append_to_betting_slip_button = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Add to Betslip')]")))
         append_to_betting_slip_button.click()
 
+    def click_on_betting_slip_icon(self):
+        betting_slip_icon = self.driver.find_element(by=By.XPATH, value="//div[@data-betslip='']")
+        betting_slip_icon.click()
+
+    def enter_bet_stakes(self, betting_slip: BettingSlip):
+        for bet_idx, bet in enumerate(betting_slip.bets):
+            self.enter_stakes(input_idx=bet_idx, stakes=bet.stakes_fraction * self.bet_limit)
+
+    def enter_stakes(self, input_idx: int, stakes: float):
+        stakes_input_field = self.driver.find_elements(by=By.XPATH, value="//input[@data-unit='']")[input_idx]
+        stakes_input_field.send_keys(stakes)
+
+    def click_on_submit_button(self):
+        submit_button = self.driver.find_element(by=By.XPATH, value="//input[@data-place-bet='']")
+        submit_button.click()
+
 
 def main():
     first_predicted_horse_result = HorseResult(
-        horse_id="49061326",
+        number=3,
         position=1,
-        win_odds=3.75,
+        win_odds=0.0,
         place_odds=0.0,
     )
     first_bet = WinBet(
         predicted_horse_results=[first_predicted_horse_result],
+        stakes_fraction=0.08,
+        success_probability=0.0,
+    )
+
+    second_predicted_horse_result = HorseResult(
+        number=1,
+        position=1,
+        win_odds=0.0,
+        place_odds=0.0,
+    )
+    second_bet = WinBet(
+        predicted_horse_results=[second_predicted_horse_result],
         stakes_fraction=0.05,
         success_probability=0.0,
     )
 
     dummy_betting_slip = BettingSlip(race_id="5419583")
     dummy_betting_slip.add_bet(first_bet)
+    dummy_betting_slip.add_bet(second_bet)
 
-    agent_controller = AgentController()
+    agent_controller = AgentController(bet_limit=100)
     agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
 
 
