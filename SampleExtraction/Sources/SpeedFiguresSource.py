@@ -18,10 +18,11 @@ class SpeedFiguresSource(FeatureSource):
         self.__win_times = JSONPersistence("win_times_contextualized").load()
 
     def update(self, race_card: RaceCard):
-        self.__compute_base_times(race_card)
-        self.__compute_points_per_second()
-        self.__compute_par_figures(race_card)
-        self.__compute_speed_figures(race_card)
+        if race_card.race_result is not None:
+            self.__compute_base_times(race_card)
+            self.__compute_points_per_second()
+            self.__compute_par_figures(race_card)
+            self.__compute_speed_figures(race_card)
 
     def get_current_speed_figure(self, horse: Horse):
         if horse.name not in self.__speed_figures:

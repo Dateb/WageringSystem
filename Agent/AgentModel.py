@@ -21,7 +21,7 @@ class AgentModel:
         with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
             bet_model_configuration: BetModelConfiguration = pickle.load(f)
 
-        feature_manager = FeatureManager(features=bet_model_configuration.feature_subset)
+        self.feature_manager = FeatureManager(features=bet_model_configuration.feature_subset)
 
         print(bet_model_configuration.n_train_races)
 
@@ -29,17 +29,17 @@ class AgentModel:
         race_cards_loader = RaceCardsPersistence("race_cards")
 
         model_evaluator = ModelEvaluator()
-        race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
+        self.race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, self.feature_manager, model_evaluator)
 
         # We load a race cards dummy list to know the columns
         dummy_race_cards = race_cards_loader.load_race_card_files_non_writable(
             [race_cards_loader.race_card_file_names[0]])
         dummy_race_cards = list(dummy_race_cards.values())
-        columns = dummy_race_cards[0].attributes + feature_manager.feature_names
-        sample_encoder = SampleEncoder(feature_manager.features, columns)
+        self.columns = dummy_race_cards[0].attributes + self.feature_manager.feature_names
+        sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
         for race_card_file_name in tqdm([race_cards_loader.race_card_file_names[0]]):
-            arr_of_race_cards = race_cards_array_factory.race_card_file_to_array(race_card_file_name)
+            arr_of_race_cards = self.race_cards_array_factory.race_card_file_to_array(race_card_file_name)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         race_cards_sample = sample_encoder.get_race_cards_sample()
@@ -52,29 +52,14 @@ class AgentModel:
 
         train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
 
-        bet_model = bet_model_configuration.create_bet_model(train_sample)
+        self.bet_model = bet_model_configuration.create_bet_model(train_sample)
 
-        # estimated_race_cards_sample = bet_model.estimator.transform(race_cards_sample)
-        # betting_slips = bet_model.bettor.bet(estimated_race_cards_sample)
+    def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
+        sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+        race_card_arr = self.race_cards_array_factory.race_card_to_array(race_card)
+        sample_encoder.add_race_cards_arr(race_card_arr)
 
-    def __fit_estimator(self):
-        self.__feature_manager.warmup_feature_sources(list(self.__container_race_cards.values()))
-        self.__feature_manager.set_features(list(self.__train_race_cards.values()))
+        race_card_sample = sample_encoder.get_race_cards_sample()
+        betting_slips = self.bet_model.bet_on_race_cards_sample(race_card_sample)
 
-        sample_encoder = SampleEncoder(features=self.__bet_model.features)
-        sample_encoder.encode_race_cards(list(self.__train_race_cards.values()))
-
-        race_cards_sample = sample_encoder.get_race_cards_sample()
-
-        self.__bet_model.fit_estimator(train_samples=race_cards_sample.race_cards_dataframe, validation_samples=None)
-
-    def predict_race_card(self, race_card: RaceCard) -> Dict[str, BettingSlip]:
-        self.__feature_manager.warmup_feature_sources(list(self.__container_race_cards.values()))
-        self.__feature_manager.set_features([race_card])
-
-        sample_encoder = SampleEncoder(features=self.__bet_model.features)
-        sample_encoder.encode_race_cards([race_card])
-
-        next_race_sample = sample_encoder.get_race_cards_sample()
-
-        return self.__bet_model.predict_race_cards_sample(next_race_sample)
+        return betting_slips[race_card_sample.race_keys[0]]

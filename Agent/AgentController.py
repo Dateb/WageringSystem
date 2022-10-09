@@ -3,7 +3,6 @@ from datetime import datetime
 from time import sleep
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -55,46 +54,6 @@ class AgentController:
         print(f"Race starting every moment, delaying bet for {self.post_race_start_wait} seconds...")
         sleep(self.post_race_start_wait)
 
-    def execute_betting_slip(self, race_card: RaceCard, betting_slip: BettingSlip):
-        bet_list = list(betting_slip.bets.values())
-        bet = bet_list[0]
-
-        print(bet.odds)
-        print(bet.horse_ids)
-
-        win_button = self.driver.find_element(by=By.XPATH, value=f'//a[@data-id-runner=\"{bet.horse_ids}\" and @data-bet-type=\"WIN\"]')
-        win_button.click()
-
-        if self.__is_bet_closed():
-            print("Bet is already closed. Skipping to next race.")
-            return 0
-
-        stakes_change_button = self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Betrag ändern')]")
-        stakes_change_button.click()
-
-        stakes_input_field = self.driver.find_element(by=By.XPATH, value=f'//input[@value="0,50 EUR"]')
-        stakes_input_field.send_keys(str(bet.stakes_fraction))
-        stakes_input_field.send_keys(Keys.RETURN)
-
-        if self.submission_mode_on:
-            submit_bet_button = self.driver.find_element(by=By.XPATH, value=f'//button[@type="submit"]')
-            submit_bet_button.click()
-
-            finish_button = self.driver.find_element(by=By.XPATH, value=f'//button[@class="btn btn-primary"]')
-            finish_button.click()
-
-        sleep(1)
-
-        # TODO: Fix this part
-        # print(f"bet horse id: {bet.horse_id}")
-        # bet_horse = race_card.get_horse_with_id(bet.horse_id)
-        print("Successfully done this bet.")
-        # print("----------------------------")
-        # print(f"Horse name: {bet_horse.name}")
-        # print(f"Odds: {bet_horse.current_odds}")
-        # print(f"Stakes: {bet.stakes}")
-        # print("----------------------------")
-
     def accept_cookies(self):
         cookies_accept_button = self.driver.find_element(by=By.XPATH, value=f'//button[@id="onetrust-accept-btn-handler"]')
         cookies_accept_button.click()
@@ -109,15 +68,11 @@ class AgentController:
         return len(stakes_change_buttons) == 0
 
     def submit_betting_slip(self, betting_slip: BettingSlip):
-        race_url = f"https://m.racebets.de/race/details/id/{betting_slip.race_id}"
-        print(race_url)
-        self.driver.get(race_url)
         self.click_on_horses_in_betting_slip(betting_slip)
         self.click_on_betting_slip_icon()
         self.enter_bet_stakes(betting_slip)
-        sleep(10)
-        self.click_on_submit_button()
-        self.driver.close()
+        sleep(20)
+        #self.click_on_submit_button()
 
     def click_on_horses_in_betting_slip(self, betting_slip: BettingSlip):
         created_betting_slip = False
@@ -157,33 +112,35 @@ def main():
     first_predicted_horse_result = HorseResult(
         number=3,
         position=1,
-        win_odds=0.0,
+        win_odds=2.0,
         place_odds=0.0,
     )
     first_bet = WinBet(
         predicted_horse_results=[first_predicted_horse_result],
         stakes_fraction=0.08,
-        success_probability=0.0,
+        success_probability=0.48,
     )
 
     second_predicted_horse_result = HorseResult(
         number=1,
         position=1,
-        win_odds=0.0,
+        win_odds=22.0,
         place_odds=0.0,
     )
     second_bet = WinBet(
         predicted_horse_results=[second_predicted_horse_result],
         stakes_fraction=0.05,
-        success_probability=0.0,
+        success_probability=0.12,
     )
 
     dummy_betting_slip = BettingSlip(race_id="5419583")
     dummy_betting_slip.add_bet(first_bet)
     dummy_betting_slip.add_bet(second_bet)
 
-    agent_controller = AgentController(bet_limit=100)
-    agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
+    print(dummy_betting_slip)
+
+    # agent_controller = AgentController(bet_limit=100)
+    # agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
 
 
 if __name__ == '__main__':

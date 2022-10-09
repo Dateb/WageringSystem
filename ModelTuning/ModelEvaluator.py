@@ -22,8 +22,7 @@ class ModelEvaluator:
         bet_evaluator = BetEvaluator(self.race_card_results)
         race_cards_sample = deepcopy(race_cards_sample)
 
-        estimated_race_cards_sample = bet_model.estimator.transform(race_cards_sample)
-        betting_slips = bet_model.bettor.bet(estimated_race_cards_sample)
+        betting_slips = bet_model.bet_on_race_cards_sample(race_cards_sample)
 
         bet_evaluator.add_wins_to_betting_slips(betting_slips)
 

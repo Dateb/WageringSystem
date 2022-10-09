@@ -24,6 +24,17 @@ class BettingSlip:
     def update_win(self, bet: Bet):
         self.win += bet.potential_win
 
+    def __str__(self) -> str:
+        betting_slip_str = ""
+        betting_slip_str += "Betting slip:\n"
+        betting_slip_str += f"(Fractional) total loss: {self.loss}\n"
+        betting_slip_str += "Bets:\n"
+        betting_slip_str += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+        for bet in self.bets:
+            betting_slip_str += str(bet)
+        betting_slip_str += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+        return betting_slip_str
+
     @property
     def payout_percentage(self) -> float:
         return self.win - self.loss
