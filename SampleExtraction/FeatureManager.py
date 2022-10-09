@@ -38,14 +38,14 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            CurrentOdds(), CurrentSpeedFigure(),
-
-            MonthCosExtractor(), MonthSinExtractor(),
-            WeekDayCosExtractor(), WeekDaySinExtractor(),
-            HourCosExtractor(), HourSinExtractor(),
-
-            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
-            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
+            CurrentOdds(), #CurrentSpeedFigure(),
+            #
+            # MonthCosExtractor(), MonthSinExtractor(),
+            # WeekDayCosExtractor(), WeekDaySinExtractor(),
+            # HourCosExtractor(), HourSinExtractor(),
+            #
+            # CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
+            # CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
         ]
 
         self.features = features
@@ -58,40 +58,40 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            Age(), CurrentRating(), DrawBias(),
-            HasTrainerMultipleHorses(),
-            HasBlinker(),
-
-            AbsoluteTime(),
-
-            HasOptimalBreak(),
-            HasLongBreak(),
-            HasVeryLongBreak(),
-            HasWonAfterLongBreak(),
-
-            LifeTimeStartCount(),
-            OneYearStartCount(),
-            TwoYearStartCount(),
-            HasFewStartsInTwoYears(),
-
-            HighestOddsWin(),
-
-            Gender(),
-
-            HorseWinRate(), JockeyWinRate(),
-            BreederWinRate(), OwnerWinRate(),
-            SireWinRate(), HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
-
-            DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
-
-            PurseExtractor(),
-            AveragePlaceLifetimeExtractor(),
-            AveragePlaceTrackExtractor(),
-
-            JockeyWeight(),
-            MaxPastRatingExtractor(),
-            WeightAllowanceExtractor(),
-            AveragePlaceSurfaceExtractor(),
+            # Age(), CurrentRating(), DrawBias(),
+            # HasTrainerMultipleHorses(),
+            # HasBlinker(),
+            #
+            # AbsoluteTime(),
+            #
+            # HasOptimalBreak(),
+            # HasLongBreak(),
+            # HasVeryLongBreak(),
+            # HasWonAfterLongBreak(),
+            #
+            # LifeTimeStartCount(),
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+            # HasFewStartsInTwoYears(),
+            #
+            # HighestOddsWin(),
+            #
+            # Gender(),
+            #
+            # HorseWinRate(), JockeyWinRate(),
+            # BreederWinRate(), OwnerWinRate(),
+            # SireWinRate(), HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
+            #
+            # DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
+            #
+            # PurseExtractor(),
+            # AveragePlaceLifetimeExtractor(),
+            # AveragePlaceTrackExtractor(),
+            #
+            # JockeyWeight(),
+            # MaxPastRatingExtractor(),
+            # WeightAllowanceExtractor(),
+            # AveragePlaceSurfaceExtractor(),
         ]
 
         return default_features

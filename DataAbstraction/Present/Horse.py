@@ -33,6 +33,7 @@ class Horse:
         self.rating = raw_data["rating"]
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
+        self.relevance = 0
         self.current_win_odds = self.__extract_current_win_odds(raw_data)
         self.current_place_odds = self.__extract_current_place_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
@@ -66,12 +67,12 @@ class Horse:
             self.CURRENT_WIN_ODDS_KEY: self.current_win_odds,
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,
+            self.RELEVANCE_KEY: self.relevance,
         }
 
         self.__features = {}
 
     def set_relevance(self, race_distance: float):
-        self.relevance = 0
         if self.horse_distance >= 0:
             percentage_behind_winner = self.horse_distance * 2.4 / race_distance
             self.relevance = max(3 - ceil(percentage_behind_winner * 200), 0)

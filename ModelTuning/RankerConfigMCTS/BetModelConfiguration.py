@@ -12,7 +12,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
-    expected_value_additional_threshold_values = [0.5]
+    expected_value_additional_threshold_values = [0.0]
     num_leaves_values = [90]
     min_child_samples_values = list(np.arange(500, 550, 50))
 

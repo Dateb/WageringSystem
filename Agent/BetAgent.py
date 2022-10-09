@@ -52,7 +52,10 @@ class BetAgent:
 
             betting_slip = self.model.bet_on_race_card(updated_race_card)
             print(betting_slip)
-            self.controller.submit_betting_slip(betting_slip)
+            if betting_slip.bets:
+                self.controller.submit_betting_slip(betting_slip)
+            else:
+                print("No value found. Skipping race.")
 
     def __update_current_race_card(self, race_card: RaceCard) -> RaceCard:
         updated_race_card = self.today_race_cards_factory.get_race_card(race_card.race_id)

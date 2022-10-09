@@ -17,7 +17,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 3
-N_SAMPLE_MONTHS = 1
+N_SAMPLE_MONTHS = 2
 
 #Working Setup:
 # 4 container, 21 sample, 2000 train, 3000 validation, 4 folds, 100 iter

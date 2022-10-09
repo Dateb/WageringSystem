@@ -25,8 +25,6 @@ class SampleEncoder:
             self.__samples_array = np.concatenate([self.__samples_array, race_cards_arr])
 
     def get_race_cards_sample(self) -> RaceCardsSample:
-        print(self.__samples_array.shape)
-        print(len(self.__columns))
         race_cards_dataframe = DataFrame(data=self.__samples_array, columns=self.__columns)
 
         race_cards_dataframe[self.__feature_names] = \
