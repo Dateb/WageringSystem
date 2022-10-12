@@ -43,8 +43,7 @@ class RawRaceCardInjector:
         for form_guide in form_guides:
             if form_guide.current_race_form:
                 current_race_form = form_guide.current_race_form
-                horse_name_of_form = current_race_form["name"]
-                horse_data = self.__race_card.get_data_of_horse_name(horse_name_of_form)
+                horse_data = self.__race_card.get_data_of_subject(form_guide.subject_id)
 
                 horse_data["horseDistance"] = -1
 
@@ -124,6 +123,8 @@ def past_form_track_to_win_time_track(track_name: str) -> str:
         return "Chelmsford City"
     if track_name == "Kempton PMU":
         return "Kempton"
+    if track_name == "Lingfield PMU":
+        return "Lingfield"
     return track_name
 
 

@@ -17,8 +17,8 @@ class ExactaBet(Bet):
             self.loss = 0
             return False
 
-        place_1_predicted_horse = race_result.get_result_of_horse_id(self.predicted_horse_results[0].number)
-        place_2_predicted_horse = race_result.get_result_of_horse_id(self.predicted_horse_results[1].number)
+        place_1_predicted_horse = race_result.get_result_of_horse_number(self.predicted_horse_results[0].number)
+        place_2_predicted_horse = race_result.get_result_of_horse_number(self.predicted_horse_results[1].number)
 
         if place_1_predicted_horse is None or place_2_predicted_horse is None:
             return False

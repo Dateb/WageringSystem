@@ -1,5 +1,4 @@
 import pickle
-from typing import Dict
 
 from tqdm import tqdm
 
@@ -36,7 +35,7 @@ class AgentModel:
         self.columns = dummy_race_cards[0].attributes + self.feature_manager.feature_names
         sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
+        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
             arr_of_race_cards = self.race_cards_array_factory.race_card_file_to_array(race_card_file_name)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
@@ -51,6 +50,9 @@ class AgentModel:
         train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
 
         self.bet_model = bet_model_configuration.create_bet_model(train_sample)
+        print(f"thresh:{bet_model_configuration.expected_value_additional_threshold}")
+        print(f"search_params:{bet_model_configuration.search_params}")
+        print(f"features:{bet_model_configuration.feature_subset}")
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
         sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)

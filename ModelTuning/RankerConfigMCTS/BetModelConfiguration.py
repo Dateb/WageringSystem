@@ -12,7 +12,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
-    expected_value_additional_threshold_values = [0.0]
+    expected_value_additional_threshold_values = [0.7]
     num_leaves_values = [90]
     min_child_samples_values = list(np.arange(500, 550, 50))
 
@@ -79,8 +79,6 @@ class BetModelConfiguration:
 
     def __str__(self) -> str:
         config_str = f"{self.expected_value_additional_threshold}/{self.search_params}\n"
-        for feature in self.feature_subset:
-            config_str += f"{feature}\n"
         return config_str
 
     @property

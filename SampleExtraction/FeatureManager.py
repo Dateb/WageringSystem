@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
@@ -7,6 +7,7 @@ from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceT
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
     CurrentRaceTypeDetail, DrawBias
+from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker
 from SampleExtraction.Extractors.jockey_based import JockeyWeight
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
@@ -25,7 +26,7 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYear
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, WeekDaySinExtractor, MonthSinExtractor, \
     WeekDayCosExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
-    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate
+    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate
 
 
 class FeatureManager:
@@ -38,14 +39,15 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            CurrentOdds(), #CurrentSpeedFigure(),
-            #
-            # MonthCosExtractor(), MonthSinExtractor(),
-            # WeekDayCosExtractor(), WeekDaySinExtractor(),
-            # HourCosExtractor(), HourSinExtractor(),
-            #
-            # CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
-            # CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
+            CurrentOdds(),
+            CurrentSpeedFigure(),
+
+            MonthCosExtractor(), MonthSinExtractor(),
+            WeekDayCosExtractor(), WeekDaySinExtractor(),
+            HourCosExtractor(), HourSinExtractor(),
+
+            CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
+            CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
         ]
 
         self.features = features
@@ -58,46 +60,46 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            # Age(), CurrentRating(), DrawBias(),
-            # HasTrainerMultipleHorses(),
-            # HasBlinker(),
-            #
-            # AbsoluteTime(),
-            #
-            # HasOptimalBreak(),
-            # HasLongBreak(),
-            # HasVeryLongBreak(),
-            # HasWonAfterLongBreak(),
-            #
-            # LifeTimeStartCount(),
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
-            # HasFewStartsInTwoYears(),
-            #
-            # HighestOddsWin(),
-            #
-            # Gender(),
-            #
-            # HorseWinRate(), JockeyWinRate(),
-            # BreederWinRate(), OwnerWinRate(),
-            # SireWinRate(), HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
-            #
-            # DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
-            #
-            # PurseExtractor(),
-            # AveragePlaceLifetimeExtractor(),
-            # AveragePlaceTrackExtractor(),
-            #
-            # JockeyWeight(),
-            # MaxPastRatingExtractor(),
-            # WeightAllowanceExtractor(),
-            # AveragePlaceSurfaceExtractor(),
+            Age(), CurrentRating(), DrawBias(),
+            HasTrainerMultipleHorses(),
+            HasBlinker(),
+
+            AbsoluteTime(),
+
+            HasOptimalBreak(),
+            HasLongBreak(),
+            HasVeryLongBreak(),
+            HasWonAfterLongBreak(),
+
+            LifeTimeStartCount(),
+            OneYearStartCount(),
+            TwoYearStartCount(),
+            HasFewStartsInTwoYears(),
+
+            HighestOddsWin(),
+
+            Gender(),
+
+            HorseWinRate(), JockeyWinRate(), TrainerWinRate(),
+            BreederWinRate(), OwnerWinRate(), SireWinRate(),
+            HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
+
+            DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
+
+            PurseExtractor(),
+            AveragePlaceLifetimeExtractor(),
+            AveragePlaceTrackExtractor(),
+
+            JockeyWeight(),
+            MaxPastRatingExtractor(),
+            WeightAllowanceExtractor(),
+            AveragePlaceSurfaceExtractor(),
         ]
 
         return default_features
 
     def warmup_feature_sources(self, race_cards: List[RaceCard]):
-        feature_sources = {feature_extractor.source for feature_extractor in self.features}
+        feature_sources = get_feature_sources()
         print(f"Feature sources: {feature_sources}")
         for feature_source in feature_sources:
             feature_source.warmup(race_cards)
@@ -114,7 +116,7 @@ class FeatureManager:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
                 horse.set_feature_value(feature_extractor.get_name(), feature_value)
 
-        feature_sources = {feature_extractor.source for feature_extractor in self.features}
+        feature_sources = get_feature_sources()
         for feature_source in feature_sources:
             feature_source.update(race_card)
 

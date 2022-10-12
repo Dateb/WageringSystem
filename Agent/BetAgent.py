@@ -1,5 +1,7 @@
+import os
+import time
 from datetime import datetime
-from typing import List, Dict
+from typing import List
 
 from Agent.AgentController import AgentController
 from Agent.AgentModel import AgentModel
@@ -7,15 +9,14 @@ from DataCollection.DayCollector import DayCollector
 from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataCollection.RaceCardsCollector import RaceCardsCollector
 from DataAbstraction.Present.RaceCard import RaceCard
-from Persistence.RaceCardPersistence import RaceCardsPersistence
 
-CONTROLLER_SUBMISSION_MODE_ON = False
+CONTROLLER_SUBMISSION_MODE_ON = True
+BET_LIMIT = 60
 
 
 class BetAgent:
 
     def __init__(self):
-        self.controller = AgentController(bet_limit=20, submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
         self.model = AgentModel()
 
         self.today_race_cards: List[RaceCard] = []
@@ -27,33 +28,36 @@ class BetAgent:
         race_ids_today = self.day_collector.get_open_race_ids_of_day(today)
         print("Initialising races:")
         self.__init_races(race_ids_today)
+        self.controller = AgentController(bet_limit=BET_LIMIT, submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
+        self.controller.relogin()
 
     def __init_races(self, race_ids: List[str]):
         base_race_cards = self.race_cards_collector.collect_base_race_cards_from_race_ids(race_ids)
 
         base_race_cards.sort(key=lambda x: x.datetime)
-
-        # The persistence is used because of the conversion inside. This needs to be fixed quickly.
-        # race_cards_persistence = RaceCardsPersistence(f"production_cache_{race_ids[0]}")
-        #
-        # race_cards_persistence.save(base_race_cards)
-        # race_card_files = [race_cards_persistence.race_card_file_names[0]]
         self.today_race_cards = base_race_cards
 
     def run(self):
         for race_card in self.today_race_cards:
+            print("Loading full version of race card...")
             full_race_card = self.today_race_cards_factory.run(race_card.race_id)
 
             self.controller.open_race_card(full_race_card)
-            #self.__controller.wait_for_race_start(next_race_card)
+            self.controller.wait_for_race_start(full_race_card)
             self.controller.prepare_for_race_start()
 
             updated_race_card = self.__update_current_race_card(full_race_card)
+            start_newest_info = time.time()
 
             betting_slip = self.model.bet_on_race_card(updated_race_card)
-            print(betting_slip)
-            if betting_slip.bets:
+            below_minimum_stakes_bet = [bet for bet in betting_slip.bets if bet.stakes_fraction * BET_LIMIT < 0.5]
+            if betting_slip.bets and len(below_minimum_stakes_bet) == 0:
                 self.controller.submit_betting_slip(betting_slip)
+                end_bet = time.time()
+                print(betting_slip)
+                print(f"time to execute on race odds:{end_bet - start_newest_info}")
+                # Quick and dirty security measure: could otherwise stick in an unsafe state regarding open betting slips
+                raise ValueError("Just restarting for security.")
             else:
                 print("No value found. Skipping race.")
 
@@ -70,10 +74,17 @@ class BetAgent:
 
 
 def main():
-    bettor = BetAgent()
-    bettor.run()
+    while True:
+        try:
+            bettor = BetAgent()
+            bettor.run()
+        except:
+            pass
+        else:
+            break
 
 
 if __name__ == '__main__':
-    main()
+    #main()
+    print(os.getcwd())
     print("finished")

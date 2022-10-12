@@ -11,7 +11,7 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.source = SpeedFiguresSource.get_feature_source()
+        self.source = SpeedFiguresSource.get_speed_figures_source()
 
     def get_name(self) -> str:
         return "Deviation_Speed_Figure"

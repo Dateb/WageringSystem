@@ -105,7 +105,7 @@ class BetModelConfigurationTuner:
                 print("New best Result:")
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
-                print(terminal_configuration.search_params)
+                print(terminal_configuration)
                 print(f"Score: {score}")
                 self.__max_score = score
                 return True

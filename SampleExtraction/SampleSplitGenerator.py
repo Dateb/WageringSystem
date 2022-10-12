@@ -50,7 +50,9 @@ class SampleSplitGenerator:
         return RaceCardsSample(first_df), RaceCardsSample(second_df)
 
     def get_last_n_races_sample(self, n: int) -> RaceCardsSample:
-        last_n_races_interval = [self.n_train_races - 1 - i for i in range(n)]
+        last_n_races_interval = [self.n_races - 1 - i for i in range(n)]
+        print(last_n_races_interval)
+        print(len(last_n_races_interval))
         races_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(last_n_races_interval)]
 
         return RaceCardsSample(races_df)

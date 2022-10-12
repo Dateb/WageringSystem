@@ -1,8 +1,4 @@
 from typing import Dict
-
-import numpy as np
-from numpy import cumsum
-
 from Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
 

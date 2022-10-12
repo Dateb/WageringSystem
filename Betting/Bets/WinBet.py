@@ -13,7 +13,7 @@ class WinBet(Bet):
         self.odds = predicted_horse_results[0].win_odds
 
     def is_won(self, race_result: RaceResult) -> bool:
-        result_of_predicted_winner = race_result.get_result_of_horse_id(self.predicted_horse_results[0].number)
+        result_of_predicted_winner = race_result.get_result_of_horse_number(self.predicted_horse_results[0].number)
         if result_of_predicted_winner is None:
             return False
 

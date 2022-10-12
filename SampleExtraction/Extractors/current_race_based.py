@@ -1,8 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
+from SampleExtraction.Extractors import feature_sources
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Sources import DrawBiasSource
-from SampleExtraction.Sources.FeatureSource import FeatureSource
 from util.category_encoder import get_category_encoding
 
 
@@ -127,17 +126,12 @@ class DrawBias(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.source = DrawBiasSource.get_feature_source()
 
     def get_name(self) -> str:
         return "Draw_Bias"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        draw_bias = self.source.draw_bias(race_card.track_name, horse.post_position)
+        draw_bias = feature_sources.draw_bias_source.draw_bias(race_card.track_name, horse.post_position)
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE
         return draw_bias
-
-    @property
-    def container(self) -> FeatureSource:
-        return self.source

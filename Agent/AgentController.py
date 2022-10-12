@@ -15,7 +15,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 
 class AgentController:
 
-    def __init__(self, bet_limit: float, post_race_start_wait: int = 5, submission_mode_on: bool = False):
+    def __init__(self, bet_limit: float, post_race_start_wait: int = 1, submission_mode_on: bool = False):
         self.driver = webdriver.Firefox()
         self.user_name = "Malfen"
         self.password = "Titctsat49_"
@@ -38,7 +38,7 @@ class AgentController:
         sleep(2)
 
     def open_race_card(self, race_card: RaceCard):
-        self.driver.get(f"https://www.racebets.de/de/pferdewetten/race/details/id/{race_card.race_id}/")
+        self.driver.get(f"https://m.racebets.de/race/details/id/{race_card.race_id}/")
         sleep(3)
 
     def wait_for_race_start(self, race_card: RaceCard):
@@ -48,8 +48,7 @@ class AgentController:
             sleep(max(0, time_until_race_start.seconds))
 
     def prepare_for_race_start(self):
-        if self.is_logged_out():
-            self.login()
+        self.relogin()
 
         print(f"Race starting every moment, delaying bet for {self.post_race_start_wait} seconds...")
         sleep(self.post_race_start_wait)
@@ -58,9 +57,24 @@ class AgentController:
         cookies_accept_button = self.driver.find_element(by=By.XPATH, value=f'//button[@id="onetrust-accept-btn-handler"]')
         cookies_accept_button.click()
 
-    def is_logged_out(self) -> bool:
+    def relogin(self) -> bool:
         self.driver.refresh()
-        return len(self.driver.find_elements(by=By.ID, value="m-accWidget--rightBar__inputUsername")) > 0
+        right_sidemenu_icon = self.driver.find_element(by=By.XPATH, value="//i[@data-right-sidemenu-icon='']")
+        is_logged_out = "key" in right_sidemenu_icon.get_attribute("class")
+        if is_logged_out:
+            right_sidemenu_icon.click()
+
+            username_input_field = self.driver.find_element(by=By.XPATH, value="//input[@data-username='']")
+            password_input_field = self.driver.find_element(by=By.XPATH, value="//input[@data-password='']")
+
+            username_input_field.send_keys(self.user_name)
+            password_input_field.send_keys(self.password)
+
+            submit_button = WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@id='submit']")))
+            submit_button.click()
+
+        return is_logged_out
 
     def __is_bet_closed(self) -> bool:
         stakes_change_buttons = self.driver.find_elements(by=By.XPATH, value="//*[contains(text(), 'Betrag ändern')]")
@@ -71,8 +85,8 @@ class AgentController:
         self.click_on_horses_in_betting_slip(betting_slip)
         self.click_on_betting_slip_icon()
         self.enter_bet_stakes(betting_slip)
-        sleep(20)
-        #self.click_on_submit_button()
+        if self.submission_mode_on:
+            self.click_on_submit_button()
 
     def click_on_horses_in_betting_slip(self, betting_slip: BettingSlip):
         created_betting_slip = False
@@ -84,11 +98,11 @@ class AgentController:
                     created_betting_slip = True
 
     def click_on_horse_fixed_odds_button(self, program_number: int):
-        horse_fixed_odds_button = self.driver.find_elements(by=By.XPATH, value="//div[@data-button-1='']")[program_number - 1]
+        horse_fixed_odds_button = self.driver.find_elements(by=By.XPATH, value="//div[@data-button-0='']")[program_number - 1]
         horse_fixed_odds_button.click()
 
     def click_on_append_to_betting_slip_button(self):
-        append_to_betting_slip_button = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Add to Betslip')]")))
+        append_to_betting_slip_button = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Zum Wettschein an')]")))
         append_to_betting_slip_button.click()
 
     def click_on_betting_slip_icon(self):
@@ -139,7 +153,8 @@ def main():
 
     print(dummy_betting_slip)
 
-    # agent_controller = AgentController(bet_limit=100)
+    agent_controller = AgentController(bet_limit=100)
+    agent_controller.relogin()
     # agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
 
 
