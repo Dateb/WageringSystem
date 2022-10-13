@@ -33,7 +33,7 @@ class RawRaceCardInjector:
 
         self.__load_win_info_of_race_date(race_date)
 
-        track_name = past_form_track_to_win_time_track(self.__race_card.track_name)
+        track_name = race_card_track_to_win_time_track(self.__race_card.track_name)
         race_number = self.__race_card.race_number
         win_time_info = self.get_win_time_info(race_date, track_name, race_number)
         if win_time_info is not None:
@@ -73,7 +73,7 @@ class RawRaceCardInjector:
 
     def get_win_time_info(self, race_date: str, track_name: str, race_number: int) -> dict:
         win_time_info_of_date = self.__win_times[race_date]
-        track_name = past_form_track_to_win_time_track(track_name)
+        track_name = race_card_track_to_win_time_track(track_name)
         if track_name in win_time_info_of_date:
             race_number = str(race_number)
             if race_number in win_time_info_of_date[track_name]:
@@ -98,7 +98,7 @@ class RawRaceCardInjector:
         return self.__race_card.raw_race_card
 
 
-def past_form_track_to_win_time_track(track_name: str) -> str:
+def race_card_track_to_win_time_track(track_name: str) -> str:
     if track_name == "Epsom":
         return "Epsom Downs"
     if track_name == "Bangor":
@@ -113,29 +113,23 @@ def past_form_track_to_win_time_track(track_name: str) -> str:
         return "Perth"
     if track_name == "Ascot Champions Day":
         return "Ascot"
-    if track_name == "Newcastle PMU":
-        return "Newcastle"
-    if track_name == "Newmarket PMU":
-        return "Newmarket"
-    if track_name == "Chelmsford City PMU":
-        return "Chelmsford City"
     if track_name == "Chelmsford PMU":
         return "Chelmsford City"
-    if track_name == "Kempton PMU":
-        return "Kempton"
-    if track_name == "Lingfield PMU":
-        return "Lingfield"
+    if track_name == "Carlise PMU":
+        return "Carlisle"
+    if "PMU" in track_name:
+        return track_name[:-4]
     return track_name
 
 
 def main():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="train_race_cards")
+    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
 
     for race_cards in race_cards_persistence:
         print(list(race_cards.keys())[0])
         for date_time in race_cards:
             injector = RawRaceCardInjector(race_cards[date_time])
-            injector.update_win_times()
+            injector.inject_win_time_to_race_card()
 
         race_cards_persistence.save(list(race_cards.values()))
 

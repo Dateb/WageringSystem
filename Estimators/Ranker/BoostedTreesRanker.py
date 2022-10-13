@@ -56,7 +56,7 @@ class BoostedTreesRanker(Ranker):
             self.parameter_set,
             train_set=dataset,
             categorical_feature=self.categorical_feature_names,
-            num_boost_round=500,
+            num_boost_round=1000,
         )
 
     def transform(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:

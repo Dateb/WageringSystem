@@ -5,7 +5,7 @@ from typing import List
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from DataAbstraction.RawRaceCardInjector import past_form_track_to_win_time_track
+from DataAbstraction.RawRaceCardInjector import race_card_track_to_win_time_track
 from Persistence.JSONPersistence import JSONPersistence
 from util.nested_dict import nested_dict
 
@@ -51,7 +51,10 @@ class WinRateSource(FeatureSource):
             for win_rate_attribute_group in self.win_rate_attribute_groups:
                 win_rate_total_key = ""
                 for win_rate_attribute in win_rate_attribute_group:
-                    win_rate_key = getattr(horse, win_rate_attribute)
+                    if win_rate_attribute in horse.__dict__:
+                        win_rate_key = getattr(horse, win_rate_attribute)
+                    else:
+                        win_rate_key = getattr(race_card, win_rate_attribute)
                     win_rate_total_key += f"{win_rate_key}_"
 
                 win_rate_total_key = win_rate_total_key[:-1]
@@ -164,7 +167,7 @@ class SpeedFiguresSource(FeatureSource):
         track_figure_biases = []
 
         # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
-        track_name = past_form_track_to_win_time_track(track_name)
+        track_name = race_card_track_to_win_time_track(track_name)
 
         for race in self.win_times[date][track_name]:
             race_distance = str(self.win_times[date][track_name][race]["distance"])
@@ -191,6 +194,7 @@ class SpeedFiguresSource(FeatureSource):
             return 0
 
     def get_lengths_per_second(self, race_card: RaceCard) -> float:
+        track_name = race_card_track_to_win_time_track(race_card.track_name)
         if race_card.race_type == "G":
             if race_card.surface == "TRF":
                 if race_card.going <= 3:
@@ -198,12 +202,13 @@ class SpeedFiguresSource(FeatureSource):
                 if race_card.going >= 4:
                     return 5
             if race_card.surface == "EQT":
-                if race_card.track_name in ["Kempton", "Lingfield", "Wolverhampton", "Newcastle", "Chelmsford", "Chelmsford City"]:
+                if track_name in ["Kempton", "Lingfield", "Wolverhampton", "Newcastle", "Chelmsford", "Chelmsford City"]:
                     return 6
-                if race_card.track_name in ["Southwell"]:
+                if track_name in ["Southwell"]:
                     return 5
                 # TODO: Chelmsford and Chelmsford are in the data
-                print(race_card.track_name)
+                print("length conversion failed:")
+                print(track_name)
                 print(race_card.race_id)
         if race_card.race_type == "J":
             if race_card.going <= 3:

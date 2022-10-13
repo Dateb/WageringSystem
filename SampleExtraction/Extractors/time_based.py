@@ -5,6 +5,7 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 
 HOUR_MAX = 24
+MINUTE_MAX = 60
 MONTH_MAX = 12
 WEEKDAY_MAX = 7
 
@@ -31,6 +32,30 @@ class HourSinExtractor(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * race_card.datetime.hour / HOUR_MAX)
+
+
+class MinuteCosExtractor(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Minute_Cos"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return np.cos(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
+
+
+class MinuteSinExtractor(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_name(self) -> str:
+        return "Minute_Sin"
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return np.sin(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
 
 
 class MonthCosExtractor(FeatureExtractor):

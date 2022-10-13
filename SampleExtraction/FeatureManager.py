@@ -24,9 +24,11 @@ from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import MonthCosExtractor, WeekDaySinExtractor, MonthSinExtractor, \
-    WeekDayCosExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime
+    WeekDayCosExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime, MinuteCosExtractor, MinuteSinExtractor
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
-    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate
+    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate, DamWinRate, \
+    DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
+    JockeyTrackWinRate, TrainerTrackWinRate
 
 
 class FeatureManager:
@@ -45,6 +47,7 @@ class FeatureManager:
             MonthCosExtractor(), MonthSinExtractor(),
             WeekDayCosExtractor(), WeekDaySinExtractor(),
             HourCosExtractor(), HourSinExtractor(),
+            MinuteCosExtractor(), MinuteSinExtractor(),
 
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
@@ -81,8 +84,11 @@ class FeatureManager:
             Gender(),
 
             HorseWinRate(), JockeyWinRate(), TrainerWinRate(),
-            BreederWinRate(), OwnerWinRate(), SireWinRate(),
+            BreederWinRate(), OwnerWinRate(), SireWinRate(), DamWinRate(), DamSireWinRate(),
             HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
+
+            # JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(),
+            # TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
 
             DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
 
