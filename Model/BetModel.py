@@ -19,8 +19,8 @@ class BetModel:
         self.estimator = estimator
         self.bettor = bettor
 
-    def fit_estimator(self, train_samples: DataFrame):
-        self.estimator.fit(train_samples)
+    def fit_estimator(self, train_samples: DataFrame, num_boost_round: int):
+        self.estimator.fit(train_samples, num_boost_round)
 
     def bet_on_race_cards_sample(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
         estimated_race_cards_sample = self.estimator.transform(race_cards_sample)

@@ -77,7 +77,7 @@ class Horse:
     def set_relevance(self, race_distance: float):
         if self.horse_distance >= 0:
             percentage_behind_winner = self.horse_distance * 2.4 / race_distance
-            self.relevance = max(3 - ceil(percentage_behind_winner * 200), 0)
+            self.relevance = max(30 - ceil(percentage_behind_winner * 1000), 0)
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 

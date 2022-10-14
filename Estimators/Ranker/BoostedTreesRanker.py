@@ -19,7 +19,6 @@ class BoostedTreesRanker(Ranker):
         "boosting_type": "gbdt",
         "objective": "lambdarank",
         "metric": "ndcg",
-        "learning_rate": 0.01,
         "verbose": -1,
         "deterministic": True,
         "force_row_wise": True,
@@ -40,7 +39,7 @@ class BoostedTreesRanker(Ranker):
         self.set_parameter_set(search_params)
         self.booster = None
 
-    def fit(self, samples_train: pd.DataFrame):
+    def fit(self, samples_train: pd.DataFrame, num_boost_round: int):
         input_data = samples_train[self.feature_names]
         label = samples_train[self.label_name].astype(dtype="int")
         group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
@@ -56,7 +55,7 @@ class BoostedTreesRanker(Ranker):
             self.parameter_set,
             train_set=dataset,
             categorical_feature=self.categorical_feature_names,
-            num_boost_round=1000,
+            num_boost_round=num_boost_round,
         )
 
     def transform(self, race_cards_sample: RaceCardsSample) -> RaceCardsSample:

@@ -11,7 +11,7 @@ from DataCollection.RaceCardsCollector import RaceCardsCollector
 from DataAbstraction.Present.RaceCard import RaceCard
 
 CONTROLLER_SUBMISSION_MODE_ON = True
-BET_LIMIT = 60
+BET_LIMIT = 30
 
 
 class BetAgent:

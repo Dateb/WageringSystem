@@ -87,8 +87,8 @@ class FeatureManager:
             BreederWinRate(), OwnerWinRate(), SireWinRate(), DamWinRate(), DamSireWinRate(),
             HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
 
-            # JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(),
-            # TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
+            JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(),
+            TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
 
             DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
 

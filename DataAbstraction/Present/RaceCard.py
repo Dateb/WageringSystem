@@ -98,9 +98,6 @@ class RaceCard:
     def attributes(self) -> List[str]:
         return list(self.__base_attributes.keys()) + self.horses[0].attributes
 
-    def set_odds_of_horse(self, horse_id: str, odds: float):
-        self.horses[horse_id].current_win_odds = odds
-
     def __set_head_to_head_horses(self, race: dict):
         self.__head_to_head_horses = []
 
@@ -109,73 +106,14 @@ class RaceCard:
             for head_to_head_race in head_to_head_races:
                 self.__head_to_head_horses += head_to_head_race["runners"]
 
-    def purse_history_of_horse_and_jockey(self, horse_id: str, current_jockey_last_name: str) -> List[float]:
-        form_table = self.form_table_of_horse(horse_id)
-        for past_race in form_table:
-            name_split = past_race["jockey"].split()
-            past_race["jockeyLastName"] = "" if len(name_split) == 0 else name_split[-1]
-        past_races_of_jockey = [
-            past_race for past_race in form_table if past_race["jockeyLastName"] == current_jockey_last_name
-        ]
-
-        purse_history = []
-        for past_race in past_races_of_jockey:
-            purse_history.append(self.purse_to_value(past_race["purse"]))
-
-        return purse_history
-
-    def purse_history_of_horse_by_track(self, horse: str) -> List[float]:
-        purse_history = []
-        track_name = self.__event["title"]
-        for past_race in self.form_table_of_horse(horse):
-            if past_race["trackName"] == track_name:
-                purse_history.append(self.purse_to_value(past_race["purse"]))
-
-        return purse_history
-
-    def subject_to_horse_id(self, subject_id: str) -> str:
-        return str(self.get_data_of_subject(subject_id)["idRunner"])
-
     @property
     def name(self) -> str:
         return f"{self.track_name} {self.race_number}"
-
-    @property
-    def start_time(self):
-        return self.__event["firstStart"]
-
-    @property
-    def race(self) -> dict:
-        return self.__race
 
     @property
     def runner_ids(self):
         return [horse_id for horse_id in self.horses]
 
     @property
-    def horse_names(self) -> List[str]:
-        return [self.horses[horse_id]['name'] for horse_id in self.horses]
-
-    @property
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
-
-    @property
-    def subject_ids(self):
-        return [self.horses[horse_id]["idSubject"] for horse_id in self.horses]
-
-    @property
-    def is_final(self):
-        return self.__race["raceStatus"] == "FNL"
-
-    @property
-    def jockey_names(self) -> List[str]:
-        first_names = [self.horses[horse_id]['jockey']['firstName'] for horse_id in self.horses]
-        last_names = [self.horses[horse_id]['jockey']['lastName'] for horse_id in self.horses]
-        return [f"{first_names[i]} {last_names[i]}" for i in range(len(first_names))]
-
-    @property
-    def trainer_names(self) -> List[str]:
-        first_names = [self.horses[horse_id]['trainer']['firstName'] for horse_id in self.horses]
-        last_names = [self.horses[horse_id]['trainer']['lastName'] for horse_id in self.horses]
-        return [f"{first_names[i]} {last_names[i]}" for i in range(len(first_names))]

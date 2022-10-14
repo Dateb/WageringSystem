@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 12
-N_SAMPLE_MONTHS = 40
+N_CONTAINER_MONTHS = 2
+N_SAMPLE_MONTHS = 56
 
 
 class BetModelTuner:
@@ -27,8 +27,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_train_races=18000,
-            n_races_per_fold=7000,
+            n_train_races=27000,
+            n_races_per_fold=10000,
             n_folds=1,
         )
         self.model_evaluator = model_evaluator
@@ -40,7 +40,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=100)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=300)
 
         return bet_model_configuration
 
@@ -91,6 +91,11 @@ def optimize_model_configuration():
 
     tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample, model_evaluator)
     bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
+
+    for i in range(10):
+        fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
+        print(f"Result {i + 1}: {fund_history_summary.validation_score}")
+
     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
 
     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:

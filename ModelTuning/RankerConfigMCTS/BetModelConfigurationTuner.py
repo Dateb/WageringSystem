@@ -97,7 +97,6 @@ class BetModelConfigurationTuner:
 
             results = self.__simulate(terminal_configuration)
             score = mean(list(results.values()))
-            self.feature_scorer.update_feature_scores(score, terminal_configuration.selected_search_features)
             self.__backup(front_node, score)
 
             if score > self.__max_score:

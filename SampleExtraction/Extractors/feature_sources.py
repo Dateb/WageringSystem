@@ -156,10 +156,14 @@ class SpeedFiguresSource(FeatureSource):
         points_per_second = self.base_times[str(race_card.distance)]["points per second"]
 
         track_variant = self.get_track_variant(str(race_card.date), race_card.track_name)
-        if abs(track_variant) > 60:
-            return None
 
         horse_speed_figure = self.BASE_SPEED + seconds_difference * points_per_second + track_variant
+
+        if horse_speed_figure >= 250:
+            horse_speed_figure = 250
+
+        if horse_speed_figure <= -250:
+            horse_speed_figure = -250
 
         return horse_speed_figure
 
