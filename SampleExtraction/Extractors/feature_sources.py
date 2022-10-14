@@ -13,7 +13,7 @@ from util.nested_dict import nested_dict
 class FeatureSource:
 
     def __init__(self):
-        pass
+        self.fading_factor = 0.1
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -30,7 +30,7 @@ class FeatureSource:
             category["last_obs_date"] = new_obs_date
         else:
             n_days_since_last_obs = (new_obs_date - category["last_obs_date"]).days
-            average_fade_factor = 0.1 * log(0.1 * n_days_since_last_obs) if n_days_since_last_obs > 10 else 0
+            average_fade_factor = self.fading_factor * log(self.fading_factor * n_days_since_last_obs) if n_days_since_last_obs > (1 / self.fading_factor) else 0
 
             alpha = base_alpha + average_fade_factor
 
@@ -119,7 +119,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def compute_points_per_second(self):
         for distance in self.base_times:
-            self.base_times[distance]["points per second"] = (1 / self.base_times[distance]["avg"]) * 100 * 10
+            self.base_times[distance]["points per second"] = 1000 / self.base_times[distance]["avg"]
 
     def compute_par_figures(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time

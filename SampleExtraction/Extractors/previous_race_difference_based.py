@@ -37,7 +37,6 @@ class HasJockeyChanged(FeatureExtractor):
         if not previous_form.jockey_name:
             return self.PLACEHOLDER_VALUE
 
-        # TODO: Why?
         if len(previous_form.jockey_name.split(" ")) < 2:
             return self.PLACEHOLDER_VALUE
 

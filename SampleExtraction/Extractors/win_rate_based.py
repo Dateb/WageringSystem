@@ -157,6 +157,17 @@ class JockeyTrackWinRate(FeatureExtractor):
         return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.track_name}")
 
 
+class JockeyClassWinRate(FeatureExtractor):
+
+    win_rate_source.win_rate_attribute_groups.append(["jockey_name", "race_class"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.race_class}")
+
+
 class TrainerDistanceWinRate(FeatureExtractor):
 
     win_rate_source.win_rate_attribute_groups.append(["trainer_name", "distance"])
@@ -188,6 +199,17 @@ class TrainerTrackWinRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.trainer_name}_{race_card.track_name}")
+
+
+class TrainerClassWinRate(FeatureExtractor):
+
+    win_rate_source.win_rate_attribute_groups.append(["trainer_name", "race_class"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return get_win_rate_of_name(f"{horse.trainer_name}_{race_card.race_class}")
 
 
 def get_win_rate_of_name(name: str) -> float:

@@ -1,9 +1,6 @@
 from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Extractors.AveragePlaceLifetime import AveragePlaceLifetimeExtractor
-from SampleExtraction.Extractors.AveragePlaceSurfaceExtractor import AveragePlaceSurfaceExtractor
-from SampleExtraction.Extractors.AveragePlaceTrackExtractor import AveragePlaceTrackExtractor
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
     CurrentRaceTypeDetail, DrawBias
@@ -13,7 +10,6 @@ from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowan
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
     HasVeryLongBreak, HasWonAfterLongBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
@@ -27,7 +23,7 @@ from SampleExtraction.Extractors.time_based import MonthCos, WeekDaySin, MonthSi
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
     JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate, DamWinRate, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
-    JockeyTrackWinRate, TrainerTrackWinRate
+    JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate
 
 
 class FeatureManager:
@@ -86,18 +82,13 @@ class FeatureManager:
             BreederWinRate(), OwnerWinRate(), SireWinRate(), DamWinRate(), DamSireWinRate(),
             HorseJockeyWinRate(), HorseTrainerWinRate(), HorseBreederWinRate(),
 
-            JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(),
-            TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
+            JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(), JockeyClassWinRate(),
+            TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(), TrainerClassWinRate(),
 
             RaceClassDifference(), HasJockeyChanged(),
 
-            PurseExtractor(),
-            AveragePlaceLifetimeExtractor(),
-            AveragePlaceTrackExtractor(),
-
             JockeyWeight(), WeightAllowanceExtractor(),
             MaxPastRatingExtractor(),
-            AveragePlaceSurfaceExtractor(),
         ]
 
         return default_features
