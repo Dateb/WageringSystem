@@ -10,9 +10,6 @@ class HasOptimalBreak(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_name(self) -> str:
-        return "Has_Optimal_Break"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.form_table.past_forms:
             return self.PLACEHOLDER_VALUE
@@ -24,9 +21,6 @@ class HasLongBreak(FeatureExtractor):
     def __init__(self):
         super().__init__()
         self.is_categorical = True
-
-    def get_name(self) -> str:
-        return "Has_Long_Break"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.form_table.past_forms:
@@ -40,9 +34,6 @@ class HasVeryLongBreak(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_name(self) -> str:
-        return "Has_Very_Long_Break"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.form_table.past_forms:
             return self.PLACEHOLDER_VALUE
@@ -54,9 +45,6 @@ class HasWonAfterLongBreak(FeatureExtractor):
     def __init__(self):
         super().__init__()
         self.is_categorical = True
-
-    def get_name(self) -> str:
-        return "Has_Won_After_Long_Break"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         n_past_forms = len(horse.form_table.past_forms)

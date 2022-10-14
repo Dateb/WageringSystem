@@ -15,6 +15,8 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class BoostedTreesRanker(Ranker):
 
+    ranking_seed = 30
+
     _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
         "objective": "lambdarank",
@@ -24,6 +26,14 @@ class BoostedTreesRanker(Ranker):
         "force_row_wise": True,
         "n_jobs": -1,
         "device": "gpu",
+
+        "seed": ranking_seed,
+        "data_random_seed": ranking_seed,
+        "feature_fraction_seed": ranking_seed,
+        "objective_seed": ranking_seed,
+        "bagging_seed": ranking_seed,
+        "extra_seed": ranking_seed,
+        "drop_seed": ranking_seed,
     }
 
     def __init__(self, features: List[FeatureExtractor], search_params: dict):

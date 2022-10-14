@@ -10,9 +10,6 @@ class AveragePlaceLifetimeExtractor(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Average_Place_Lifetime"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         past_forms = horse.form_table.past_forms
 

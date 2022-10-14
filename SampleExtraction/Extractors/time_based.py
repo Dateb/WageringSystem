@@ -10,97 +10,73 @@ MONTH_MAX = 12
 WEEKDAY_MAX = 7
 
 
-class HourCosExtractor(FeatureExtractor):
+class HourCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Hour_Cos"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.cos(2 * np.pi * race_card.datetime.hour / HOUR_MAX)
 
 
-class HourSinExtractor(FeatureExtractor):
+class HourSin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Hour_Sin"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * race_card.datetime.hour / HOUR_MAX)
 
 
-class MinuteCosExtractor(FeatureExtractor):
+class MinuteCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Minute_Cos"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.cos(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
 
 
-class MinuteSinExtractor(FeatureExtractor):
+class MinuteSin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Minute_Sin"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
 
 
-class MonthCosExtractor(FeatureExtractor):
+class MonthCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Month_Cos"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.cos(2 * np.pi * (race_card.datetime.month - 1) / MONTH_MAX)
 
 
-class MonthSinExtractor(FeatureExtractor):
+class MonthSin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Month_Sin"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * (race_card.datetime.month - 1) / MONTH_MAX)
 
 
-class WeekDayCosExtractor(FeatureExtractor):
+class WeekDayCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Week_Day_Cos"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.cos(2 * np.pi * race_card.datetime.weekday() / WEEKDAY_MAX)
 
 
-class WeekDaySinExtractor(FeatureExtractor):
+class WeekDaySin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Week_Day_Sin"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return np.sin(2 * np.pi * race_card.datetime.weekday() / WEEKDAY_MAX)
@@ -110,9 +86,6 @@ class AbsoluteTime(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Absolute_Time"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return race_card.date_raw

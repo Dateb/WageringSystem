@@ -21,7 +21,8 @@ class WinBetGenerator(BetGenerator):
         sample_df = race_cards_sample.race_cards_dataframe
 
         sample_df.loc[:, Horse.BASE_EXPECTED_VALUE_KEY] = \
-            sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY] * sample_df.loc[:, Horse.WIN_PROBABILITY_KEY]
+            sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY] * sample_df.loc[:, Horse.WIN_PROBABILITY_KEY]\
+            - (1 + Bet.BET_TAX)
 
     def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
         self.add_expected_values(race_cards_sample)
@@ -48,9 +49,12 @@ class WinBetGenerator(BetGenerator):
 
         for i in range(len(horse_numbers)):
             betting_slip = betting_slips[str(race_date_times[i])]
+            ev = betting_slip.conditional_ev + single_ev[i]
 
-            if single_ev[i] > (betting_slip.reserve_rate + Bet.BET_TAX + self.additional_ev_threshold):
-                stakes_fraction = win_probabilities[i] - (betting_slip.reserve_rate / odds[i])
+            if ev > (0.0 + self.additional_ev_threshold):
+                numerator = ev
+                denominator = betting_slip.conditional_odds + odds[i] - (1 + Bet.BET_TAX)
+                stakes_fraction = numerator / denominator
 
                 predicted_horse_result = HorseResult(
                     number=horse_numbers[i],

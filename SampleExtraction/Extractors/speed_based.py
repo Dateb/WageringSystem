@@ -9,9 +9,6 @@ class CurrentSpeedFigure(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Current_Speed_Figure"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         current_speed_figure = speed_figures_source.get_current_speed_figure(horse)
         if current_speed_figure == -1:

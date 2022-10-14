@@ -16,9 +16,8 @@ class FeatureExtractor(ABC):
     def __str__(self) -> str:
         return self.get_name()
 
-    @abstractmethod
     def get_name(self) -> str:
-        pass
+        return type(self).__name__
 
     @abstractmethod
     def get_value(self, race_card: RaceCard, horse: Horse) -> Any:

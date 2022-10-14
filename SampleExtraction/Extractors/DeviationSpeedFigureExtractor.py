@@ -13,9 +13,6 @@ class DeviationSpeedFigureExtractor(FeatureExtractor):
         super().__init__()
         self.source = SpeedFiguresSource.get_speed_figures_source()
 
-    def get_name(self) -> str:
-        return "Deviation_Speed_Figure"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         form_table = horse.form_table
         n_past_forms = len(form_table.past_forms)

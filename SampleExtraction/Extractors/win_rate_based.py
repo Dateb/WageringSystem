@@ -11,9 +11,6 @@ class HorseWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Horse_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.name)
 
@@ -24,9 +21,6 @@ class JockeyWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Jockey_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.jockey_name)
@@ -39,9 +33,6 @@ class TrainerWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Trainer_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.trainer_name)
 
@@ -53,9 +44,6 @@ class HorseJockeyWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Horse_Jockey_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.name}_{horse.jockey_name}")
 
@@ -65,9 +53,6 @@ class HorseTrainerWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Horse_Trainer_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.name}_{horse.trainer_name}")
@@ -80,9 +65,6 @@ class HorseBreederWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Horse_Breeder_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.name}_{horse.breeder}")
 
@@ -93,9 +75,6 @@ class BreederWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Breeder_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.breeder)
@@ -108,9 +87,6 @@ class OwnerWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Owner_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.owner)
 
@@ -121,9 +97,6 @@ class SireWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Sire_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.sire)
@@ -136,9 +109,6 @@ class DamWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Dam_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.dam)
 
@@ -149,9 +119,6 @@ class DamSireWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Dam_Sire_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(horse.dam_sire)
@@ -164,9 +131,6 @@ class JockeyDistanceWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Jockey_Distance_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.distance}")
 
@@ -177,9 +141,6 @@ class JockeySurfaceWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Jockey_Surface_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
@@ -192,9 +153,6 @@ class JockeyTrackWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Jockey_Track_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.track_name}")
 
@@ -205,9 +163,6 @@ class TrainerDistanceWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Trainer_Distance_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.trainer_name}_{race_card.distance}")
@@ -220,9 +175,6 @@ class TrainerSurfaceWinRate(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Trainer_Surface_Win_Rate"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.trainer_name}_{race_card.surface}")
 
@@ -233,9 +185,6 @@ class TrainerTrackWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Trainer_Track_Win_Rate"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_win_rate_of_name(f"{horse.trainer_name}_{race_card.track_name}")

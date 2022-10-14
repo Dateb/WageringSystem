@@ -8,9 +8,6 @@ class MaxPastRatingExtractor(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Max_Past_Rating"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         past_ratings = [past_form.rating for past_form in horse.form_table.past_forms if past_form.rating != -1]
 

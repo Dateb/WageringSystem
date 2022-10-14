@@ -9,22 +9,21 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
     CurrentRaceTypeDetail, DrawBias
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker
-from SampleExtraction.Extractors.jockey_based import JockeyWeight
+from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
     HasVeryLongBreak, HasWonAfterLongBreak
-from SampleExtraction.Extractors.MaxPastRatingExtractor import MaxPastRatingExtractor
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.PurseExtractor import PurseExtractor
-from SampleExtraction.Extractors.WeightAllowanceExtractor import WeightAllowanceExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
-from SampleExtraction.Extractors.previous_race_difference_based import DistanceDifference, RaceClassDifference, \
-    HasJockeyChanged
+from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
+from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
+    HasJockeyChanged, DistanceDifference
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
-from SampleExtraction.Extractors.time_based import MonthCosExtractor, WeekDaySinExtractor, MonthSinExtractor, \
-    WeekDayCosExtractor, HourCosExtractor, HourSinExtractor, AbsoluteTime, MinuteCosExtractor, MinuteSinExtractor
+from SampleExtraction.Extractors.time_based import MonthCos, WeekDaySin, MonthSin, \
+    WeekDayCos, HourCos, HourSin, AbsoluteTime, MinuteCos, MinuteSin
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
     JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate, DamWinRate, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
@@ -44,10 +43,10 @@ class FeatureManager:
             CurrentOdds(),
             CurrentSpeedFigure(),
 
-            MonthCosExtractor(), MonthSinExtractor(),
-            WeekDayCosExtractor(), WeekDaySinExtractor(),
-            HourCosExtractor(), HourSinExtractor(),
-            MinuteCosExtractor(), MinuteSinExtractor(),
+            MonthCos(), MonthSin(),
+            WeekDayCos(), WeekDaySin(),
+            HourCos(), HourSin(),
+            MinuteCos(), MinuteSin(),
 
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
@@ -90,15 +89,14 @@ class FeatureManager:
             JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(),
             TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
 
-            DistanceDifference(), RaceClassDifference(), HasJockeyChanged(),
+            RaceClassDifference(), HasJockeyChanged(),
 
             PurseExtractor(),
             AveragePlaceLifetimeExtractor(),
             AveragePlaceTrackExtractor(),
 
-            JockeyWeight(),
+            JockeyWeight(), WeightAllowanceExtractor(),
             MaxPastRatingExtractor(),
-            WeightAllowanceExtractor(),
             AveragePlaceSurfaceExtractor(),
         ]
 

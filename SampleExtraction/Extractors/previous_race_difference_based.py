@@ -8,9 +8,6 @@ class DistanceDifference(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Distance_Difference"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         # TODO: differs by -1 for some reason
         return get_difference_of_current_and_previous_attribute_value(race_card, horse, "distance")
@@ -21,9 +18,6 @@ class RaceClassDifference(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_name(self) -> str:
-        return "Class_Difference"
-
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_difference_of_current_and_previous_attribute_value(race_card, horse, "race_class")
 
@@ -32,9 +26,6 @@ class HasJockeyChanged(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-
-    def get_name(self) -> str:
-        return "Has_Jockey_Changed"
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         current_jockey_last_name = horse.jockey.last_name
@@ -46,6 +37,7 @@ class HasJockeyChanged(FeatureExtractor):
         if not previous_form.jockey_name:
             return self.PLACEHOLDER_VALUE
 
+        # TODO: Why?
         if len(previous_form.jockey_name.split(" ")) < 2:
             return self.PLACEHOLDER_VALUE
 
