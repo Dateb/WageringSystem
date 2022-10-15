@@ -99,20 +99,18 @@ class RawRaceCardInjector:
 
 
 def race_card_track_to_win_time_track(track_name: str) -> str:
-    if track_name == "Epsom":
+    if "Ascot" in track_name:
+        return "Ascot"
+    if "Epsom" in track_name:
         return "Epsom Downs"
     if track_name == "Bangor":
         return "Bangor-On-Dee"
-    if track_name == "Royal Ascot":
-        return "Ascot"
     if track_name == "Chelmsford":
         return "Chelmsford City"
     if track_name == "Glorious Goodwood":
         return "Goodwood"
     if track_name == "Perth Hunt":
         return "Perth"
-    if track_name == "Ascot Champions Day":
-        return "Ascot"
     if track_name == "Chelmsford PMU":
         return "Chelmsford City"
     if track_name == "Carlise PMU":
