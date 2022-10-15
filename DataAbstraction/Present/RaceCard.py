@@ -5,6 +5,7 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
+from util.speed_calculator import compute_speed_figure
 
 
 class RaceCard:
@@ -69,7 +70,19 @@ class RaceCard:
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
         for horse in self.horses:
-            horse.set_relevance(self.distance)
+            speed_figure = compute_speed_figure(
+                str(self.date),
+                str(self.track_name),
+                str(self.distance),
+                str(self.race_class),
+                self.race_result.win_time,
+                horse.horse_distance,
+                str(self.race_type),
+                str(self.surface),
+                self.going,
+            )
+            horse.set_relevance(speed_figure)
+        print("---------------------------------------------------------------------------------")
 
     def __extract_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

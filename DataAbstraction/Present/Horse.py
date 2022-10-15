@@ -1,9 +1,14 @@
-from math import ceil
+from collections import deque
+from math import floor
 from typing import List
+
+from scipy.stats import stats
 
 from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
+
+speed_dist = deque(maxlen=10000)
 
 
 class Horse:
@@ -74,10 +79,15 @@ class Horse:
 
         self.__features = {}
 
-    def set_relevance(self, race_distance: float):
-        if self.horse_distance >= 0:
-            percentage_behind_winner = self.horse_distance * 2.4 / race_distance
-            self.relevance = max(30 - ceil(percentage_behind_winner * 1000), 0)
+    def set_relevance(self, speed_figure: float):
+        if speed_figure:
+            score_percentile = stats.percentileofscore(speed_dist, speed_figure) / 100
+
+            self.relevance = floor(score_percentile * 29) + self.has_won
+            print("-------------------")
+            print(self.place)
+            print(self.relevance)
+            print("-------------------")
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 

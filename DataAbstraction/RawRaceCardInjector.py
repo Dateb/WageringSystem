@@ -6,6 +6,7 @@ from DataCollection.FormGuide import FormGuide
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from Persistence.JSONPersistence import JSONPersistence
 from Persistence.RaceCardPersistence import RaceCardsPersistence
+from util.speed_calculator import race_card_track_to_win_time_track
 
 
 class RawRaceCardInjector:
@@ -96,28 +97,6 @@ class RawRaceCardInjector:
     @property
     def raw_race_card(self):
         return self.__race_card.raw_race_card
-
-
-def race_card_track_to_win_time_track(track_name: str) -> str:
-    if "Ascot" in track_name:
-        return "Ascot"
-    if "Epsom" in track_name:
-        return "Epsom Downs"
-    if track_name == "Bangor":
-        return "Bangor-On-Dee"
-    if track_name == "Chelmsford":
-        return "Chelmsford City"
-    if track_name == "Glorious Goodwood":
-        return "Goodwood"
-    if track_name == "Perth Hunt":
-        return "Perth"
-    if track_name == "Chelmsford PMU":
-        return "Chelmsford City"
-    if track_name == "Carlise PMU":
-        return "Carlisle"
-    if "PMU" in track_name:
-        return track_name[:-4]
-    return track_name
 
 
 def main():

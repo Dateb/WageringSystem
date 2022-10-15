@@ -3,11 +3,9 @@ from math import log
 from sqlite3 import Date
 from typing import List
 
-from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.Horse import Horse, speed_dist
 from DataAbstraction.Present.RaceCard import RaceCard
-from DataAbstraction.RawRaceCardInjector import race_card_track_to_win_time_track
-from Persistence.JSONPersistence import JSONPersistence
-from util.speed_calculator import get_base_time, compute_speed_figure
+from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track
 from util.nested_dict import nested_dict
 
 
@@ -128,6 +126,7 @@ class SpeedFiguresSource(FeatureSource):
             )
 
             if speed_figure is not None:
+                speed_dist.append(speed_figure)
                 self.update_average(
                     category=self.speed_figures[horse.name],
                     new_obs=speed_figure,
