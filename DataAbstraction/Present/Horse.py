@@ -79,15 +79,15 @@ class Horse:
 
         self.__features = {}
 
+    def set_win_odds(self, new_odds: float):
+        self.current_win_odds = new_odds
+        self.__base_attributes[self.CURRENT_WIN_ODDS_KEY] = new_odds
+
     def set_relevance(self, speed_figure: float):
         if speed_figure:
             score_percentile = stats.percentileofscore(speed_dist, speed_figure) / 100
 
             self.relevance = floor(score_percentile * 29) + self.has_won
-            print("-------------------")
-            print(self.place)
-            print(self.relevance)
-            print("-------------------")
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 

@@ -13,6 +13,7 @@ class RaceCard:
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
     N_HORSES_KEY: str = "n_runners"
+    PLACE_NUM_KEY: str = "place_num"
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
@@ -29,12 +30,18 @@ class RaceCard:
         self.winner_id = -1
         self.race_result = None
         raw_result = raw_race_card["result"]
+        self.has_results = False
         if raw_result:
+            self.has_results = True
             self.race_result: RaceResult = RaceResult(raw_result)
 
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
         self.track_id = event["idTrack"]
+        if "placesNum" not in race:
+            self.place_num = 1
+        else:
+            self.place_num = race["placesNum"]
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
         self.going = race["trackGoing"]
@@ -54,6 +61,7 @@ class RaceCard:
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
             self.N_HORSES_KEY: self.n_horses,
+            self.PLACE_NUM_KEY: self.place_num,
         }
 
         # TODO: there some border cases here. Would need a fix.
@@ -70,19 +78,19 @@ class RaceCard:
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
         for horse in self.horses:
-            speed_figure = compute_speed_figure(
-                str(self.date),
-                str(self.track_name),
-                str(self.distance),
-                str(self.race_class),
-                self.race_result.win_time,
-                horse.horse_distance,
-                str(self.race_type),
-                str(self.surface),
-                self.going,
-            )
-            horse.set_relevance(speed_figure)
-        print("---------------------------------------------------------------------------------")
+            if self.race_result:
+                speed_figure = compute_speed_figure(
+                    str(self.date),
+                    str(self.track_name),
+                    str(self.distance),
+                    str(self.race_class),
+                    self.race_result.win_time,
+                    horse.horse_distance,
+                    str(self.race_type),
+                    str(self.surface),
+                    self.going,
+                )
+                horse.set_relevance(speed_figure)
 
     def __extract_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

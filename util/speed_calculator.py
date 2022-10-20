@@ -29,10 +29,7 @@ def compute_speed_figure(
     if distance not in __base_times[track_name]:
         return None
 
-    seconds_behind_winner = ((1 / get_lengths_per_second(track_name, race_type, surface, going)) * horse_distance)
-
-    horse_time = win_time + seconds_behind_winner
-
+    horse_time = get_horse_time(win_time, track_name, race_type, surface, going, horse_distance)
     track_variant = get_track_variant_time(date, distance, race_class, track_name)
     seconds_difference = (1 - track_variant) * (base_time - horse_time)
 
@@ -41,6 +38,12 @@ def compute_speed_figure(
     horse_speed_figure = seconds_difference * points_per_second
 
     return horse_speed_figure
+
+
+def get_horse_time(win_time: float, track_name: str, race_type: str, surface: str, going: float, horse_distance: float):
+    seconds_behind_winner = ((1 / get_lengths_per_second(track_name, race_type, surface, going)) * horse_distance)
+
+    return win_time + seconds_behind_winner
 
 
 def get_track_variant_time(date: str, distance: str, race_class: str, track_name: str):

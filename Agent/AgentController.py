@@ -16,14 +16,21 @@ from DataAbstraction.Present.RaceCard import RaceCard
 class AgentController:
 
     def __init__(self, bet_limit: float, post_race_start_wait: int = 1, submission_mode_on: bool = False):
-        self.driver = webdriver.Firefox()
+        self.driver = None
+        self.open_connection()
         self.user_name = "Malfen"
         self.password = "Titctsat49_"
         self.bet_limit = bet_limit
         self.post_race_start_wait = post_race_start_wait
         self.submission_mode_on = submission_mode_on
 
+    def open_connection(self):
+        self.driver = webdriver.Firefox()
         self.driver.get("https://m.racebets.de/")
+
+    def restart_driver(self):
+        self.driver.close()
+        self.open_connection()
         sleep(4)
         self.accept_cookies()
         self.driver.implicitly_wait(5)
@@ -39,7 +46,6 @@ class AgentController:
 
     def open_race_card(self, race_card: RaceCard):
         self.driver.get(f"https://m.racebets.de/race/details/id/{race_card.race_id}/")
-        sleep(3)
 
     def wait_for_race_start(self, race_card: RaceCard):
         time_until_race_start = race_card.datetime - datetime.now()
@@ -75,11 +81,6 @@ class AgentController:
             submit_button.click()
 
         return is_logged_out
-
-    def __is_bet_closed(self) -> bool:
-        stakes_change_buttons = self.driver.find_elements(by=By.XPATH, value="//*[contains(text(), 'Betrag ändern')]")
-
-        return len(stakes_change_buttons) == 0
 
     def submit_betting_slip(self, betting_slip: BettingSlip):
         self.click_on_horses_in_betting_slip(betting_slip)

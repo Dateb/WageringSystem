@@ -40,13 +40,13 @@ class SimulateThread(threading.Thread):
         fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_samples)
 
         # just test difference in scores for different settings
-        train_samples, test_samples = self.race_cards_splitter.get_train_test_split(0)
-
-        bet_model = self.bet_model_configuration.create_bet_model(train_samples)
-
-        test_fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
-
-        print(f"Difference in score: {fund_history_summary.validation_score - test_fund_history_summary.validation_score}")
+        # train_samples, test_samples = self.race_cards_splitter.get_train_test_split(0)
+        #
+        # bet_model = self.bet_model_configuration.create_bet_model(train_samples)
+        #
+        # test_fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+        #
+        # print(f"Difference in score: {fund_history_summary.validation_score - test_fund_history_summary.validation_score}")
 
         self.scores[self.validation_fold_idx] = fund_history_summary.validation_score
 

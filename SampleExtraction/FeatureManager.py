@@ -14,7 +14,7 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference
+    HasJockeyChanged
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
@@ -111,9 +111,12 @@ class FeatureManager:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
                 horse.set_feature_value(feature_extractor.get_name(), feature_value)
 
+    def update_feature_sources(self, race_cards: List[RaceCard]) -> None:
         feature_sources = get_feature_sources()
-        for feature_source in feature_sources:
-            feature_source.update(race_card)
+        for race_card in race_cards:
+            if race_card.has_results:
+                for feature_source in feature_sources:
+                    feature_source.update(race_card)
 
     def __report_if_feature_missing(self, horse: Horse, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

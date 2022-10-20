@@ -19,6 +19,8 @@ class RaceCardsArrayFactory:
         self.__race_cards_loader = race_cards_loader
         self.feature_manager = feature_manager
         self.__model_evaluator = model_evaluator
+        self.current_day = None
+        self.current_day_race_cards = []
 
     def race_card_file_to_array(self, race_cards_file_name: str) -> ndarray:
         sample_race_cards = self.__race_cards_loader.load_race_card_files_non_writable([race_cards_file_name])
@@ -36,7 +38,13 @@ class RaceCardsArrayFactory:
         return race_card_arr
 
     def get_values_of_race_card(self, race_card: RaceCard) -> List[List[Any]]:
+        if race_card.date != self.current_day:
+            self.feature_manager.update_feature_sources(self.current_day_race_cards)
+            self.current_day = race_card.date
+            self.current_day_race_cards = []
+
         self.feature_manager.set_features([race_card])
+        self.current_day_race_cards.append(race_card)
 
         horse_values_of_race_card = []
         for horse in race_card.horses:

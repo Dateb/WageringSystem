@@ -50,9 +50,6 @@ class AgentModel:
         train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
 
         self.bet_model = bet_model_configuration.create_bet_model(train_sample)
-        print(f"thresh:{bet_model_configuration.expected_value_additional_threshold}")
-        print(f"search_params:{bet_model_configuration.search_params}")
-        print(f"features:{bet_model_configuration.feature_subset}")
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
         sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
@@ -60,6 +57,7 @@ class AgentModel:
         sample_encoder.add_race_cards_arr(race_card_arr)
 
         race_card_sample = sample_encoder.get_race_cards_sample()
+        race_card_sample.race_cards_dataframe.to_csv(f"../data/production_race_{race_card.race_id}.csv")
         betting_slips = self.bet_model.bet_on_race_cards_sample(race_card_sample)
 
         return betting_slips[race_card_sample.race_keys[0]]

@@ -1,4 +1,6 @@
 from typing import Dict
+
+from Betting.BetGenerators.PlaceBetGenerator import PlaceBetGenerator
 from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
 from Betting.BettingSlip import BettingSlip
 from Betting.Bettor import Bettor

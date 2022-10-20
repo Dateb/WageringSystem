@@ -5,7 +5,7 @@ from typing import List
 
 from DataAbstraction.Present.Horse import Horse, speed_dist
 from DataAbstraction.Present.RaceCard import RaceCard
-from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track
+from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track, get_horse_time
 from util.nested_dict import nested_dict
 
 
@@ -61,7 +61,7 @@ class WinRateSource(FeatureSource):
 
     def get_win_rate_of_name(self, name: str) -> float:
         win_rate = self.win_rates[name]
-        if "avg" in win_rate: #and win_rate["count"] >= 5:
+        if "avg" in win_rate:
             return win_rate["avg"]
         return -1
 
@@ -101,8 +101,17 @@ class SpeedFiguresSource(FeatureSource):
             win_time = race_card.race_result.win_time
 
             if win_time > 0:
-                self.update_average(category=base_time, new_obs=win_time, new_obs_date=race_card.date)
-                base_time["points per second"] = 1000 / base_time["avg"]
+                for horse in race_card.horses:
+                    horse_time = get_horse_time(
+                        win_time,
+                        track_name,
+                        str(race_card.race_type),
+                        str(race_card.surface),
+                        race_card.going,
+                        horse.horse_distance,
+                    )
+                    self.update_average(category=base_time, new_obs=horse_time, new_obs_date=race_card.date, base_alpha=0.01)
+                    base_time["points per second"] = 1000 / base_time["avg"]
             self.compute_speed_figures(race_card)
 
     def get_current_speed_figure(self, horse: Horse):

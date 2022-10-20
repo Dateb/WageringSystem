@@ -18,26 +18,27 @@ class BetAgent:
 
     def __init__(self):
         self.model = AgentModel()
+        self.controller = AgentController(bet_limit=BET_LIMIT, submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
 
         self.today_race_cards: List[RaceCard] = []
         self.today_race_cards_factory = RaceCardFactory(collect_results=False)
         self.day_collector = DayCollector()
         self.race_cards_collector = RaceCardsCollector()
 
-        today = datetime.today().date()
-        race_ids_today = self.day_collector.get_open_race_ids_of_day(today)
-        print("Initialising races:")
-        self.__init_races(race_ids_today)
-        self.controller = AgentController(bet_limit=BET_LIMIT, submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
-        self.controller.relogin()
-
-    def __init_races(self, race_ids: List[str]):
+    def init_races(self, race_ids: List[str]):
         base_race_cards = self.race_cards_collector.collect_base_race_cards_from_race_ids(race_ids)
 
         base_race_cards.sort(key=lambda x: x.datetime)
         self.today_race_cards = base_race_cards
 
     def run(self):
+        today = datetime.today().date()
+        race_ids_today = self.day_collector.get_open_race_ids_of_day(today)
+        print("Initialising races:")
+        self.init_races(race_ids_today)
+        self.controller.restart_driver()
+        self.controller.relogin()
+
         for race_card in self.today_race_cards:
             print("Loading full version of race card...")
             full_race_card = self.today_race_cards_factory.run(race_card.race_id)
@@ -66,7 +67,7 @@ class BetAgent:
         # TODO: implement this update less naively
         for horse in race_card.horses:
             horse_with_updated_odds = [updated_horse for updated_horse in updated_race_card.horses if updated_horse.horse_id == horse.horse_id][0]
-            horse.current_win_odds = horse_with_updated_odds.current_win_odds
+            horse.set_win_odds(horse_with_updated_odds.current_win_odds)
             if horse_with_updated_odds.is_scratched:
                 race_card.horses.remove(horse)
 
@@ -74,17 +75,16 @@ class BetAgent:
 
 
 def main():
+    bettor = BetAgent()
     while True:
         try:
-            bettor = BetAgent()
             bettor.run()
-        except:
-            pass
+        except Exception as e:
+            print(f"Agent crashed. Causing error: {str(e)}")
         else:
             break
 
 
 if __name__ == '__main__':
-    #main()
-    print(os.getcwd())
+    main()
     print("finished")
