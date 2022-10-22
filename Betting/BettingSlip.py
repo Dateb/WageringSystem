@@ -22,7 +22,8 @@ class BettingSlip:
         self.loss += bet.loss
 
     def update_win(self, bet: Bet):
-        self.win += bet.potential_win
+        bet.win = bet.potential_win
+        self.win += bet.win
 
     def __str__(self) -> str:
         betting_slip_str = ""

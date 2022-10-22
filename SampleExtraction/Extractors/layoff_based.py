@@ -4,40 +4,32 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.time_calculation import get_day_difference
 
 
-class HasOptimalBreak(FeatureExtractor):
+class Layoff(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.form_table.past_forms:
             return self.PLACEHOLDER_VALUE
-        return 30 <= get_day_difference(race_card, horse, -1, 0) <= 60
+        return get_day_difference(race_card, horse, -1, 0)
 
 
-class HasLongBreak(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-        self.is_categorical = True
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        if not horse.form_table.past_forms:
-            return self.PLACEHOLDER_VALUE
-        return get_day_difference(race_card, horse, -1, 0) > 90
-
-
-class HasVeryLongBreak(FeatureExtractor):
+class ComingFromLayoff(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        if not horse.form_table.past_forms:
+        if len(horse.form_table.past_forms) < 2:
             return self.PLACEHOLDER_VALUE
-        return get_day_difference(race_card, horse, -1, 0) > 180
+
+        today_previous_day_difference = get_day_difference(race_card, horse, -1, 0)
+        previous_to_penultimate_day_difference = get_day_difference(race_card, horse, 0, 1)
+
+        had_layoff = previous_to_penultimate_day_difference >= 90
+        lost_layoff = today_previous_day_difference < 90
+        return int(had_layoff and lost_layoff)
 
 
 class HasWonAfterLongBreak(FeatureExtractor):

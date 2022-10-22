@@ -81,6 +81,24 @@ class CurrentGoing(FeatureExtractor):
         return get_category_encoding("going", str(race_card.going))
 
 
+class AgeFrom(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return race_card.age_from
+
+
+class AgeTo(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return race_card.age_to
+
+
 class HasTrainerMultipleHorses(FeatureExtractor):
 
     def __init__(self):

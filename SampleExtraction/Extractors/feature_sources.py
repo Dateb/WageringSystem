@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from math import log
 from sqlite3 import Date
 from typing import List
@@ -9,7 +9,7 @@ from util.speed_calculator import get_base_time, compute_speed_figure, race_card
 from util.nested_dict import nested_dict
 
 
-class FeatureSource:
+class FeatureSource(ABC):
 
     def __init__(self):
         self.fading_factor = 0.1
@@ -37,33 +37,66 @@ class FeatureSource:
             category["count"] += 1
             category["last_obs_date"] = new_obs_date
 
+    def update_max(self, category: dict, new_obs: float) -> None:
+        if not category["max"] or new_obs > category["max"]:
+            category["max"] = new_obs
 
-class WinRateSource(FeatureSource):
+
+class CategoryAverageSource(FeatureSource, ABC):
+    def __init__(self):
+        super().__init__()
+        self.averages = nested_dict()
+        self.average_attribute_groups = []
+
+    def insert_value_into_avg(self, race_card: RaceCard, horse: Horse, value):
+        for win_rate_attribute_group in self.average_attribute_groups:
+            win_rate_total_key = ""
+            for win_rate_attribute in win_rate_attribute_group:
+                if win_rate_attribute in horse.__dict__:
+                    win_rate_key = getattr(horse, win_rate_attribute)
+                else:
+                    win_rate_key = getattr(race_card, win_rate_attribute)
+                win_rate_total_key += f"{win_rate_key}_"
+
+            win_rate_total_key = win_rate_total_key[:-1]
+            self.update_average(self.averages[win_rate_total_key], value, race_card.date)
+
+    def get_average_of_name(self, name: str) -> float:
+        average_elem = self.averages[name]
+        if "avg" in average_elem:
+            return average_elem["avg"]
+        return -1
+
+
+class WinRateSource(CategoryAverageSource):
 
     def __init__(self):
         super().__init__()
-        self.win_rates = nested_dict()
-        self.win_rate_attribute_groups = []
 
     def update(self, race_card: RaceCard):
         for horse in race_card.horses:
-            for win_rate_attribute_group in self.win_rate_attribute_groups:
-                win_rate_total_key = ""
-                for win_rate_attribute in win_rate_attribute_group:
-                    if win_rate_attribute in horse.__dict__:
-                        win_rate_key = getattr(horse, win_rate_attribute)
-                    else:
-                        win_rate_key = getattr(race_card, win_rate_attribute)
-                    win_rate_total_key += f"{win_rate_key}_"
+            self.insert_value_into_avg(race_card, horse, horse.has_won)
 
-                win_rate_total_key = win_rate_total_key[:-1]
-                self.update_average(self.win_rates[win_rate_total_key], horse.has_won, race_card.date)
 
-    def get_win_rate_of_name(self, name: str) -> float:
-        win_rate = self.win_rates[name]
-        if "avg" in win_rate:
-            return win_rate["avg"]
-        return -1
+class ShowRateSource(CategoryAverageSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            show_indicator = int(1 <= horse.place <= 3)
+            self.insert_value_into_avg(race_card, horse, show_indicator)
+
+
+class PurseRateSource(CategoryAverageSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            self.insert_value_into_avg(race_card, horse, horse.purse)
 
 
 class DrawBiasSource(FeatureSource):
@@ -114,11 +147,17 @@ class SpeedFiguresSource(FeatureSource):
                     base_time["points per second"] = 1000 / base_time["avg"]
             self.compute_speed_figures(race_card)
 
-    def get_current_speed_figure(self, horse: Horse):
-        if horse.name not in self.speed_figures:
+    def get_current_speed_figure(self, category: str):
+        if category not in self.speed_figures:
             return -1
 
-        return self.speed_figures[horse.name]["avg"]
+        return self.speed_figures[category]["avg"]
+
+    def get_max_speed_figure(self, category: str):
+        if category not in self.speed_figures:
+            return -1
+
+        return self.speed_figures[category]["max"]
 
     def compute_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
@@ -139,16 +178,22 @@ class SpeedFiguresSource(FeatureSource):
                 self.update_average(
                     category=self.speed_figures[horse.name],
                     new_obs=speed_figure,
-                    new_obs_date=race_card.date
+                    new_obs_date=race_card.date,
+                )
+                self.update_max(
+                    category=self.speed_figures[horse.name],
+                    new_obs=speed_figure,
                 )
 
 
 win_rate_source: WinRateSource = WinRateSource()
+show_rate_source: ShowRateSource = ShowRateSource()
+purse_rate_source: PurseRateSource = PurseRateSource()
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
-        win_rate_source, speed_figures_source, draw_bias_source
+        win_rate_source, show_rate_source, purse_rate_source, speed_figures_source, draw_bias_source
     ]

@@ -6,7 +6,7 @@ from SampleExtraction.Extractors.feature_sources import win_rate_source
 
 class HorseWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["name"])
+    win_rate_source.average_attribute_groups.append(["name"])
 
     def __init__(self):
         super().__init__()
@@ -17,7 +17,7 @@ class HorseWinRate(FeatureExtractor):
 
 class JockeyWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["jockey_name"])
+    win_rate_source.average_attribute_groups.append(["jockey_name"])
 
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class JockeyWinRate(FeatureExtractor):
 
 class TrainerWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["trainer_name"])
+    win_rate_source.average_attribute_groups.append(["trainer_name"])
 
     def __init__(self):
         super().__init__()
@@ -39,7 +39,7 @@ class TrainerWinRate(FeatureExtractor):
 
 class HorseJockeyWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["name", "jockey_name"])
+    win_rate_source.average_attribute_groups.append(["name", "jockey_name"])
 
     def __init__(self):
         super().__init__()
@@ -49,7 +49,7 @@ class HorseJockeyWinRate(FeatureExtractor):
 
 
 class HorseTrainerWinRate(FeatureExtractor):
-    win_rate_source.win_rate_attribute_groups.append(["name", "trainer_name"])
+    win_rate_source.average_attribute_groups.append(["name", "trainer_name"])
 
     def __init__(self):
         super().__init__()
@@ -60,7 +60,7 @@ class HorseTrainerWinRate(FeatureExtractor):
 
 class HorseBreederWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["name", "breeder"])
+    win_rate_source.average_attribute_groups.append(["name", "breeder"])
 
     def __init__(self):
         super().__init__()
@@ -71,7 +71,7 @@ class HorseBreederWinRate(FeatureExtractor):
 
 class BreederWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["breeder"])
+    win_rate_source.average_attribute_groups.append(["breeder"])
 
     def __init__(self):
         super().__init__()
@@ -82,7 +82,7 @@ class BreederWinRate(FeatureExtractor):
 
 class OwnerWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["owner"])
+    win_rate_source.average_attribute_groups.append(["owner"])
 
     def __init__(self):
         super().__init__()
@@ -93,7 +93,7 @@ class OwnerWinRate(FeatureExtractor):
 
 class SireWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["sire"])
+    win_rate_source.average_attribute_groups.append(["sire"])
 
     def __init__(self):
         super().__init__()
@@ -104,7 +104,7 @@ class SireWinRate(FeatureExtractor):
 
 class DamWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["dam"])
+    win_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
         super().__init__()
@@ -115,7 +115,7 @@ class DamWinRate(FeatureExtractor):
 
 class DamSireWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["dam_sire"])
+    win_rate_source.average_attribute_groups.append(["dam_sire"])
 
     def __init__(self):
         super().__init__()
@@ -126,7 +126,7 @@ class DamSireWinRate(FeatureExtractor):
 
 class JockeyDistanceWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["jockey_name", "distance"])
+    win_rate_source.average_attribute_groups.append(["jockey_name", "distance"])
 
     def __init__(self):
         super().__init__()
@@ -137,7 +137,7 @@ class JockeyDistanceWinRate(FeatureExtractor):
 
 class JockeySurfaceWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["jockey_name", "surface"])
+    win_rate_source.average_attribute_groups.append(["jockey_name", "surface"])
 
     def __init__(self):
         super().__init__()
@@ -148,7 +148,7 @@ class JockeySurfaceWinRate(FeatureExtractor):
 
 class JockeyTrackWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["jockey_name", "track_name"])
+    win_rate_source.average_attribute_groups.append(["jockey_name", "track_name"])
 
     def __init__(self):
         super().__init__()
@@ -159,7 +159,7 @@ class JockeyTrackWinRate(FeatureExtractor):
 
 class JockeyClassWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["jockey_name", "race_class"])
+    win_rate_source.average_attribute_groups.append(["jockey_name", "race_class"])
 
     def __init__(self):
         super().__init__()
@@ -170,7 +170,7 @@ class JockeyClassWinRate(FeatureExtractor):
 
 class TrainerDistanceWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["trainer_name", "distance"])
+    win_rate_source.average_attribute_groups.append(["trainer_name", "distance"])
 
     def __init__(self):
         super().__init__()
@@ -181,7 +181,7 @@ class TrainerDistanceWinRate(FeatureExtractor):
 
 class TrainerSurfaceWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["trainer_name", "surface"])
+    win_rate_source.average_attribute_groups.append(["trainer_name", "surface"])
 
     def __init__(self):
         super().__init__()
@@ -192,7 +192,7 @@ class TrainerSurfaceWinRate(FeatureExtractor):
 
 class TrainerTrackWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["trainer_name", "track_name"])
+    win_rate_source.average_attribute_groups.append(["trainer_name", "track_name"])
 
     def __init__(self):
         super().__init__()
@@ -203,7 +203,7 @@ class TrainerTrackWinRate(FeatureExtractor):
 
 class TrainerClassWinRate(FeatureExtractor):
 
-    win_rate_source.win_rate_attribute_groups.append(["trainer_name", "race_class"])
+    win_rate_source.average_attribute_groups.append(["trainer_name", "race_class"])
 
     def __init__(self):
         super().__init__()
@@ -213,7 +213,7 @@ class TrainerClassWinRate(FeatureExtractor):
 
 
 def get_win_rate_of_name(name: str) -> float:
-    win_rate = win_rate_source.get_win_rate_of_name(name)
+    win_rate = win_rate_source.get_average_of_name(name)
     if win_rate == -1:
         return float('NaN')
     return win_rate

@@ -14,8 +14,9 @@ class Bet(ABC):
         self.stakes_fraction = stakes_fraction
         self.success_probability = success_probability
 
-        self.loss = stakes_fraction * (1 + self.BET_TAX)
         self.potential_win = 0
+        self.win = 0
+        self.loss = stakes_fraction * (1 + self.BET_TAX)
         self.odds = 0
 
     @abstractmethod

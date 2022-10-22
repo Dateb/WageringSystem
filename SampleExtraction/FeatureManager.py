@@ -3,19 +3,27 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias
+    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
-from SampleExtraction.Extractors.layoff_based import HasOptimalBreak, HasLongBreak, \
-    HasVeryLongBreak, HasWonAfterLongBreak
+from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, Layoff, ComingFromLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged
-from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
+from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
+    BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
+    HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
+    JockeySurfacePurseRate, TrainerSurfacePurseRate, JockeyTrackPurseRate, TrainerTrackPurseRate, JockeyClassPurseRate, \
+    TrainerClassPurseRate
+from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeyShowRate, TrainerShowRate, BreederShowRate, \
+    OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
+    HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
+    TrainerDistanceShowRate, TrainerSurfaceShowRate, TrainerTrackShowRate, TrainerClassShowRate
+from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import MonthCos, WeekDaySin, MonthSin, \
@@ -38,6 +46,7 @@ class FeatureManager:
         self.base_features = [
             CurrentOdds(),
             CurrentSpeedFigure(),
+            BestLifeTimeSpeedFigure(),
 
             MonthCos(), MonthSin(),
             WeekDayCos(), WeekDaySin(),
@@ -60,13 +69,12 @@ class FeatureManager:
         default_features = [
             Age(), CurrentRating(), DrawBias(),
             HasTrainerMultipleHorses(),
-            HasBlinker(),
+            HasBlinker(), AgeFrom(), AgeTo(),
 
             AbsoluteTime(),
 
-            HasOptimalBreak(),
-            HasLongBreak(),
-            HasVeryLongBreak(),
+            Layoff(),
+            ComingFromLayoff(),
             HasWonAfterLongBreak(),
 
             LifeTimeStartCount(),
@@ -84,6 +92,20 @@ class FeatureManager:
 
             JockeyDistanceWinRate(), JockeySurfaceWinRate(), JockeyTrackWinRate(), JockeyClassWinRate(),
             TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(), TrainerClassWinRate(),
+
+            HorseShowRate(), JockeyShowRate(), TrainerShowRate(),
+            BreederShowRate(), OwnerShowRate(), SireShowRate(), DamShowRate(), DamSireShowRate(),
+            HorseJockeyShowRate(), HorseTrainerShowRate(), HorseBreederShowRate(),
+
+            JockeyDistanceShowRate(), JockeySurfaceShowRate(), JockeyTrackShowRate(), JockeyClassShowRate(),
+            TrainerDistanceShowRate(), TrainerSurfaceShowRate(), TrainerTrackShowRate(), TrainerClassShowRate(),
+
+            HorsePurseRate(), JockeyPurseRate(), TrainerPurseRate(),
+            BreederPurseRate(), OwnerPurseRate(), SirePurseRate(), DamPurseRate(), DamSirePurseRate(),
+            HorseJockeyPurseRate(), HorseTrainerPurseRate(), HorseBreederPurseRate(),
+
+            JockeyDistancePurseRate(), JockeySurfacePurseRate(), JockeyTrackPurseRate(), JockeyClassPurseRate(),
+            TrainerDistancePurseRate(), TrainerSurfacePurseRate(), TrainerTrackPurseRate(), TrainerClassPurseRate(),
 
             RaceClassDifference(), HasJockeyChanged(),
 

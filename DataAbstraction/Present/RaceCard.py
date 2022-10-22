@@ -50,6 +50,9 @@ class RaceCard:
         self.race_type_detail = race["raceTypeDetail"]
         self.race_class = race["categoryLetter"]
         self.surface = race["trackSurface"]
+        self.age_from = race["ageFrom"]
+        self.age_to = race["ageTo"]
+        self.purse = race["purseDetails"]
 
         self.__extract_horses(raw_race_card["runners"]["data"])
         if self.remove_non_starters:
@@ -91,6 +94,7 @@ class RaceCard:
                     self.going,
                 )
                 horse.set_relevance(speed_figure)
+                horse.set_purse(self.purse)
 
     def __extract_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

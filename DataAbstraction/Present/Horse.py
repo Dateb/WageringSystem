@@ -91,6 +91,12 @@ class Horse:
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 
+    def set_purse(self, purse: List[int]):
+        self.purse = 0
+        purse_idx = self.place - 1
+        if len(purse) > purse_idx >= 0:
+            self.purse = purse[purse_idx]
+
     def __extract_place(self, raw_data: dict):
         if raw_data["scratched"]:
             return -1
