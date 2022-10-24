@@ -31,7 +31,6 @@ class AgentController:
     def restart_driver(self):
         self.driver.close()
         self.open_connection()
-        sleep(4)
         self.accept_cookies()
         self.driver.implicitly_wait(5)
 
@@ -42,7 +41,6 @@ class AgentController:
         login_name_field.send_keys(self.user_name)
         login_password_field.send_keys(self.password)
         login_button.click()
-        sleep(2)
 
     def open_race_card(self, race_card: RaceCard):
         self.driver.get(f"https://m.racebets.de/race/details/id/{race_card.race_id}/")
@@ -65,7 +63,8 @@ class AgentController:
 
     def relogin(self) -> bool:
         self.driver.refresh()
-        right_sidemenu_icon = self.driver.find_element(by=By.XPATH, value="//i[@data-right-sidemenu-icon='']")
+        right_sidemenu_icon = WebDriverWait(self.driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//i[@data-right-sidemenu-icon='']")))
         is_logged_out = "key" in right_sidemenu_icon.get_attribute("class")
         if is_logged_out:
             right_sidemenu_icon.click()
@@ -122,6 +121,11 @@ class AgentController:
         submit_button = self.driver.find_element(by=By.XPATH, value="//input[@data-place-bet='']")
         submit_button.click()
 
+    def read_wealth(self) -> float:
+        wealth_element = WebDriverWait(self.driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[@data-user-balance='']")))
+        return float(wealth_element.text.split(sep=" ")[0].replace(",", "."))
+
 
 def main():
     first_predicted_horse_result = HorseResult(
@@ -156,6 +160,8 @@ def main():
 
     agent_controller = AgentController(bet_limit=100)
     agent_controller.relogin()
+    current_wealth = agent_controller.read_wealth()
+    print(current_wealth)
     # agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
 
 

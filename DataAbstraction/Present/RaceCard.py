@@ -81,6 +81,7 @@ class RaceCard:
     def __extract_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
         for horse in self.horses:
+            horse.set_purse(self.purse)
             if self.race_result:
                 speed_figure = compute_speed_figure(
                     str(self.date),
@@ -94,7 +95,6 @@ class RaceCard:
                     self.going,
                 )
                 horse.set_relevance(speed_figure)
-                horse.set_purse(self.purse)
 
     def __extract_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

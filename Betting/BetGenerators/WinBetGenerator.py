@@ -53,7 +53,7 @@ class WinBetGenerator(BetGenerator):
             betting_slip = betting_slips[str(race_date_times[i])]
             ev = betting_slip.conditional_ev + single_ev[i]
 
-            if ev > (0.0 + self.additional_ev_threshold):
+            if ev > (0.0 + self.additional_ev_threshold) and (win_probabilities[i] < 0.5 or win_probabilities[i] > 0.75):
                 numerator = ev
                 denominator = betting_slip.conditional_odds + win_odds[i] - (1 + Bet.BET_TAX)
                 stakes_fraction = numerator / denominator
