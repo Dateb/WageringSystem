@@ -7,8 +7,10 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class BetGenerator(ABC):
 
-    def __init__(self, additional_ev_threshold: float):
+    def __init__(self, additional_ev_threshold: float, lower_win_prob_threshold: float, upper_win_prob_threshold: float):
         self.additional_ev_threshold = additional_ev_threshold
+        self.lower_win_prob_threshold = lower_win_prob_threshold
+        self.upper_win_prob_threshold = upper_win_prob_threshold
 
     @abstractmethod
     def add_single_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:

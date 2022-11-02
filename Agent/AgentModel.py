@@ -57,7 +57,7 @@ class AgentModel:
         sample_encoder.add_race_cards_arr(race_card_arr)
 
         race_card_sample = sample_encoder.get_race_cards_sample()
-        race_card_sample.race_cards_dataframe.to_csv(f"../data/production_race_{race_card.race_id}.csv")
+        race_card_sample.race_cards_dataframe.to_csv(f"../data/production_race_cards/production_race_{race_card.race_id}.csv")
         betting_slips = self.bet_model.bet_on_race_cards_sample(race_card_sample)
 
         return betting_slips[race_card_sample.race_keys[0]]

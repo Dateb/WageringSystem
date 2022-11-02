@@ -99,6 +99,20 @@ class PurseRateSource(CategoryAverageSource):
             self.insert_value_into_avg(race_card, horse, horse.purse)
 
 
+class PercentageBeatenSource(CategoryAverageSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update(self, race_card: RaceCard):
+        n_horses = race_card.n_horses
+        for horse in race_card.horses:
+            # TODO: n_horses is 1 sometimes. This should be looked into
+            if horse.place >= 1 and n_horses >= 2:
+                percentage_beaten = (n_horses - horse.place) / (n_horses - 1)
+                self.insert_value_into_avg(race_card, horse, percentage_beaten)
+
+
 class DrawBiasSource(FeatureSource):
 
     def __init__(self):
@@ -189,11 +203,12 @@ class SpeedFiguresSource(FeatureSource):
 win_rate_source: WinRateSource = WinRateSource()
 show_rate_source: ShowRateSource = ShowRateSource()
 purse_rate_source: PurseRateSource = PurseRateSource()
+percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
-        win_rate_source, show_rate_source, purse_rate_source, speed_figures_source, draw_bias_source
+        win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source, speed_figures_source, draw_bias_source
     ]

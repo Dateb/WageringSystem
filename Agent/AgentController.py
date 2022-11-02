@@ -3,9 +3,12 @@ from datetime import datetime
 from time import sleep
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
 
 from Betting.Bets.WinBet import WinBet
 from Betting.BettingSlip import BettingSlip
@@ -25,8 +28,14 @@ class AgentController:
         self.submission_mode_on = submission_mode_on
 
     def open_connection(self):
-        self.driver = webdriver.Firefox()
-        self.driver.get("https://m.racebets.de/")
+        options = Options()
+        options.add_argument("disable-infobars")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--remote-debugging-port=9222")
+        self.driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
+        self.driver.get("https://m.racebets.de")
 
     def restart_driver(self):
         self.driver.close()
@@ -58,7 +67,8 @@ class AgentController:
         sleep(self.post_race_start_wait)
 
     def accept_cookies(self):
-        cookies_accept_button = self.driver.find_element(by=By.XPATH, value=f'//button[@id="onetrust-accept-btn-handler"]')
+        cookies_accept_button = WebDriverWait(self.driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[@id="onetrust-accept-btn-handler"]')))
         cookies_accept_button.click()
 
     def relogin(self) -> bool:
@@ -111,7 +121,7 @@ class AgentController:
 
     def enter_bet_stakes(self, betting_slip: BettingSlip):
         for bet_idx, bet in enumerate(betting_slip.bets):
-            self.enter_stakes(input_idx=bet_idx, stakes=bet.stakes_fraction * self.bet_limit)
+            self.enter_stakes(input_idx=bet_idx, stakes=round(bet.stakes_fraction * self.bet_limit))
 
     def enter_stakes(self, input_idx: int, stakes: float):
         stakes_input_field = self.driver.find_elements(by=By.XPATH, value="//input[@data-unit='']")[input_idx]
@@ -124,7 +134,9 @@ class AgentController:
     def read_wealth(self) -> float:
         wealth_element = WebDriverWait(self.driver, 20).until(
             EC.element_to_be_clickable((By.XPATH, "//span[@data-user-balance='']")))
-        return float(wealth_element.text.split(sep=" ")[0].replace(",", "."))
+        current_wealth = float(wealth_element.text.split(sep=" ")[0].replace(",", "."))
+        self.bet_limit = current_wealth / 3
+        return current_wealth
 
 
 def main():

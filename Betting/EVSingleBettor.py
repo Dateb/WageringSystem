@@ -9,8 +9,13 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class EVSingleBettor(Bettor):
 
-    def __init__(self, additional_ev_threshold: float):
-        bet_generators = [WinBetGenerator(additional_ev_threshold)]
+    def __init__(
+            self,
+            additional_ev_threshold: float,
+            lower_win_prob_threshold: float,
+            upper_win_prob_threshold: float,
+    ):
+        bet_generators = [WinBetGenerator(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)]
         super().__init__(bet_generators)
 
     def bet(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:

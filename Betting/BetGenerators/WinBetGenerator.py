@@ -14,14 +14,19 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class WinBetGenerator(BetGenerator):
 
-    def __init__(self, additional_ev_threshold: float):
-        super().__init__(additional_ev_threshold)
+    def __init__(
+            self,
+            additional_ev_threshold: float,
+            lower_win_prob_threshold: float,
+            upper_win_prob_threshold: float,
+    ):
+        super().__init__(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)
 
     def add_expected_values(self, race_cards_sample: RaceCardsSample):
         sample_df = race_cards_sample.race_cards_dataframe
 
         sample_df.loc[:, Horse.BASE_EXPECTED_VALUE_KEY] = \
-            sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY] * sample_df.loc[:, Horse.WIN_PROBABILITY_KEY]\
+            (sample_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY] * (1 - Bet.WIN_COMMISION)) * sample_df.loc[:, Horse.WIN_PROBABILITY_KEY]\
             - (1 + Bet.BET_TAX)
 
     def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
@@ -52,18 +57,23 @@ class WinBetGenerator(BetGenerator):
         for i in range(len(horse_numbers)):
             betting_slip = betting_slips[str(race_date_times[i])]
             ev = betting_slip.conditional_ev + single_ev[i]
+            win_prob = win_probabilities[i]
 
-            if ev > (0.0 + self.additional_ev_threshold) and (win_probabilities[i] < 0.5 or win_probabilities[i] > 0.75):
-                numerator = ev
-                denominator = betting_slip.conditional_odds + win_odds[i] - (1 + Bet.BET_TAX)
-                stakes_fraction = numerator / denominator
+            is_win_prob_in_between = self.lower_win_prob_threshold < win_prob < self.upper_win_prob_threshold
+            is_win_prob_on_lower_end = win_prob < self.upper_win_prob_threshold < self.lower_win_prob_threshold
+            is_win_prob_on_higher_end = self.upper_win_prob_threshold < self.lower_win_prob_threshold < win_prob
+            if is_win_prob_in_between or is_win_prob_on_lower_end or is_win_prob_on_higher_end:
+                if ev > (0.0 + self.additional_ev_threshold):
+                    numerator = ev
+                    denominator = betting_slip.conditional_odds + win_odds[i] - (1 + Bet.BET_TAX)
+                    stakes_fraction = numerator / denominator
 
-                predicted_horse_result = HorseResult(
-                    number=horse_numbers[i],
-                    position=1,
-                    win_odds=win_odds[i],
-                    place_odds=place_odds[i],
-                )
-                new_bet = WinBet([predicted_horse_result], stakes_fraction, win_probabilities[i])
+                    predicted_horse_result = HorseResult(
+                        number=horse_numbers[i],
+                        position=1,
+                        win_odds=win_odds[i],
+                        place_odds=place_odds[i],
+                    )
+                    new_bet = WinBet([predicted_horse_result], stakes_fraction, win_probabilities[i])
 
-                betting_slip.add_bet(new_bet)
+                    betting_slip.add_bet(new_bet)

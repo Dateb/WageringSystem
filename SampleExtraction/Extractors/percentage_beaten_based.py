@@ -4,7 +4,7 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.feature_sources import percentage_beaten_source
 
 
-class HorsePurseRate(FeatureExtractor):
+class HorsePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["name"])
 
@@ -12,10 +12,10 @@ class HorsePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.name)
+        return get_percentage_beaten_of_name(horse.name)
 
 
-class JockeyPurseRate(FeatureExtractor):
+class JockeyPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["jockey_name"])
 
@@ -23,10 +23,10 @@ class JockeyPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.jockey_name)
+        return get_percentage_beaten_of_name(horse.jockey_name)
 
 
-class TrainerPurseRate(FeatureExtractor):
+class TrainerPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["trainer_name"])
 
@@ -34,10 +34,10 @@ class TrainerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.trainer_name)
+        return get_percentage_beaten_of_name(horse.trainer_name)
 
 
-class HorseJockeyPurseRate(FeatureExtractor):
+class HorseJockeyPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["name", "jockey_name"])
 
@@ -45,10 +45,10 @@ class HorseJockeyPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.jockey_name}")
+        return get_percentage_beaten_of_name(f"{horse.name}_{horse.jockey_name}")
 
 
-class HorseTrainerPurseRate(FeatureExtractor):
+class HorseTrainerPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["name", "trainer_name"])
 
@@ -56,10 +56,10 @@ class HorseTrainerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.trainer_name}")
+        return get_percentage_beaten_of_name(f"{horse.name}_{horse.trainer_name}")
 
 
-class HorseBreederPurseRate(FeatureExtractor):
+class HorseBreederPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["name", "breeder"])
 
@@ -67,10 +67,10 @@ class HorseBreederPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.breeder}")
+        return get_percentage_beaten_of_name(f"{horse.name}_{horse.breeder}")
 
 
-class BreederPurseRate(FeatureExtractor):
+class BreederPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["breeder"])
 
@@ -78,10 +78,10 @@ class BreederPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.breeder)
+        return get_percentage_beaten_of_name(horse.breeder)
 
 
-class OwnerPurseRate(FeatureExtractor):
+class OwnerPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["owner"])
 
@@ -89,10 +89,10 @@ class OwnerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.owner)
+        return get_percentage_beaten_of_name(horse.owner)
 
 
-class SirePurseRate(FeatureExtractor):
+class SirePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["sire"])
 
@@ -100,10 +100,10 @@ class SirePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.sire)
+        return get_percentage_beaten_of_name(horse.sire)
 
 
-class DamPurseRate(FeatureExtractor):
+class DamPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["dam"])
 
@@ -111,10 +111,10 @@ class DamPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.dam)
+        return get_percentage_beaten_of_name(horse.dam)
 
 
-class DamSirePurseRate(FeatureExtractor):
+class DamSirePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["dam_sire"])
 
@@ -122,10 +122,10 @@ class DamSirePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.dam_sire)
+        return get_percentage_beaten_of_name(horse.dam_sire)
 
 
-class JockeyDistancePurseRate(FeatureExtractor):
+class JockeyDistancePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["jockey_name", "distance"])
 
@@ -133,10 +133,10 @@ class JockeyDistancePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.distance}")
+        return get_percentage_beaten_of_name(f"{horse.jockey_name}_{race_card.distance}")
 
 
-class JockeySurfacePurseRate(FeatureExtractor):
+class JockeySurfacePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["jockey_name", "surface"])
 
@@ -144,10 +144,10 @@ class JockeySurfacePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
+        return get_percentage_beaten_of_name(f"{horse.jockey_name}_{race_card.surface}")
 
 
-class JockeyTrackPurseRate(FeatureExtractor):
+class JockeyTrackPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["jockey_name", "track_name"])
 
@@ -155,10 +155,10 @@ class JockeyTrackPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.track_name}")
+        return get_percentage_beaten_of_name(f"{horse.jockey_name}_{race_card.track_name}")
 
 
-class JockeyClassPurseRate(FeatureExtractor):
+class JockeyClassPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["jockey_name", "race_class"])
 
@@ -166,10 +166,10 @@ class JockeyClassPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.race_class}")
+        return get_percentage_beaten_of_name(f"{horse.jockey_name}_{race_card.race_class}")
 
 
-class TrainerDistancePurseRate(FeatureExtractor):
+class TrainerDistancePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["trainer_name", "distance"])
 
@@ -177,10 +177,10 @@ class TrainerDistancePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.distance}")
+        return get_percentage_beaten_of_name(f"{horse.trainer_name}_{race_card.distance}")
 
 
-class TrainerSurfacePurseRate(FeatureExtractor):
+class TrainerSurfacePercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["trainer_name", "surface"])
 
@@ -188,10 +188,10 @@ class TrainerSurfacePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.surface}")
+        return get_percentage_beaten_of_name(f"{horse.trainer_name}_{race_card.surface}")
 
 
-class TrainerTrackPurseRate(FeatureExtractor):
+class TrainerTrackPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["trainer_name", "track_name"])
 
@@ -199,10 +199,10 @@ class TrainerTrackPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.track_name}")
+        return get_percentage_beaten_of_name(f"{horse.trainer_name}_{race_card.track_name}")
 
 
-class TrainerClassPurseRate(FeatureExtractor):
+class TrainerClassPercentageBeaten(FeatureExtractor):
 
     percentage_beaten_source.average_attribute_groups.append(["trainer_name", "race_class"])
 
@@ -210,10 +210,10 @@ class TrainerClassPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.race_class}")
+        return get_percentage_beaten_of_name(f"{horse.trainer_name}_{race_card.race_class}")
 
 
-def get_show_rate_of_name(name: str) -> float:
+def get_percentage_beaten_of_name(name: str) -> float:
     show_rate = percentage_beaten_source.get_average_of_name(name)
     if show_rate == -1:
         return float('NaN')
