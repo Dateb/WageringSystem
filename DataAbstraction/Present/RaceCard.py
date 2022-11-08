@@ -43,7 +43,7 @@ class RaceCard:
         else:
             self.place_num = race["placesNum"]
         self.race_number = race["raceNumber"]
-        self.distance = race["distance"]
+        self.distance = round(race["distance"] / 20) * 20
         self.going = race["trackGoing"]
         self.category = race["category"]
         self.race_type = race["raceType"]
@@ -86,11 +86,11 @@ class RaceCard:
                 speed_figure = compute_speed_figure(
                     str(self.date),
                     str(self.track_name),
-                    str(self.distance),
-                    str(self.race_class),
+                    self.distance,
                     self.race_result.win_time,
                     horse.horse_distance,
                     str(self.race_type),
+                    str(self.race_type_detail),
                     str(self.surface),
                     self.going,
                 )

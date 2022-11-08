@@ -1,14 +1,13 @@
-from collections import deque
+import math
 from math import floor
 from typing import List
 
+import scipy
 from scipy.stats import stats
 
 from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
-
-speed_dist = deque(maxlen=10000)
 
 
 class Horse:
@@ -85,8 +84,7 @@ class Horse:
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:
-            score_percentile = stats.percentileofscore(speed_dist, speed_figure) / 100
-
+            score_percentile = .5 * (math.erf(speed_figure / 2 ** .5) + 1)
             self.relevance = floor(score_percentile * 29) + self.has_won
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance

@@ -148,6 +148,10 @@ class FeatureManager:
 
     def update_feature_sources(self, race_cards: List[RaceCard]) -> None:
         feature_sources = get_feature_sources()
+
+        # for feature_source in feature_sources:
+        #     feature_source.preupdate(race_cards)
+
         for race_card in race_cards:
             if race_card.has_results:
                 for feature_source in feature_sources:

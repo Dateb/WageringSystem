@@ -40,6 +40,17 @@ class RawRaceCardInjector:
         if win_time_info is not None:
             result["winTimeSeconds"] = win_time_info["win_time"]
 
+    def inject_distance_to_race_card(self):
+        race_dict = self.__race_card.raw_race_card["race"]
+
+        race_date = str(self.__race_card.date)
+        track_name = race_card_track_to_win_time_track(self.__race_card.track_name)
+        race_number = self.__race_card.race_number
+        win_time_info = self.get_win_time_info(race_date, track_name, race_number)
+
+        if win_time_info is not None:
+            race_dict["distance"] = win_time_info["distance"]
+
     def inject_horse_distance_to_race_card(self, form_guides: List[FormGuide]):
         for form_guide in form_guides:
             if form_guide.current_race_form:
@@ -81,7 +92,7 @@ class RawRaceCardInjector:
                 return win_time_info_of_date[track_name][race_number]
 
         else:
-            print(f"track name not found: {track_name}, date: {date}")
+            print(f"track name not found: {track_name}, date: {race_date}")
 
     def __load_win_info_of_race_date(self, race_date: str):
         if race_date not in self.__win_times:
@@ -107,6 +118,7 @@ def main():
         for date_time in race_cards:
             injector = RawRaceCardInjector(race_cards[date_time])
             injector.inject_win_time_to_race_card()
+            injector.inject_distance_to_race_card()
 
         race_cards_persistence.save(list(race_cards.values()))
 
