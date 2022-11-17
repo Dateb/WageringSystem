@@ -53,6 +53,7 @@ class AgentController:
 
     def open_race_card(self, race_card: RaceCard):
         self.driver.get(f"https://m.racebets.de/race/details/id/{race_card.race_id}/")
+        self.driver.implicitly_wait(10)
 
     def wait_for_race_start(self, race_card: RaceCard):
         time_until_race_start = race_card.datetime - datetime.now()
@@ -108,7 +109,7 @@ class AgentController:
                     created_betting_slip = True
 
     def click_on_horse_fixed_odds_button(self, program_number: int):
-        horse_fixed_odds_button = self.driver.find_elements(by=By.XPATH, value="//div[@data-button-0='']")[program_number - 1]
+        horse_fixed_odds_button = self.driver.find_elements(by=By.XPATH, value="//div[@data-button-1='']")[program_number - 1]
         horse_fixed_odds_button.click()
 
     def click_on_append_to_betting_slip_button(self):
@@ -124,8 +125,7 @@ class AgentController:
             self.enter_stakes(input_idx=bet_idx, stakes=round(bet.stakes_fraction * self.bet_limit))
 
     def enter_stakes(self, input_idx: int, stakes: float):
-        stakes_input_field = self.driver.find_elements(by=By.XPATH, value="//input[@data-unit='']")[input_idx]
-        stakes_input_field.send_keys(stakes)
+        WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//input[@data-unit='']")))[input_idx].send_keys(stakes)
 
     def click_on_submit_button(self):
         submit_button = self.driver.find_element(by=By.XPATH, value="//input[@data-place-bet='']")
@@ -135,7 +135,7 @@ class AgentController:
         wealth_element = WebDriverWait(self.driver, 20).until(
             EC.element_to_be_clickable((By.XPATH, "//span[@data-user-balance='']")))
         current_wealth = float(wealth_element.text.split(sep=" ")[0].replace(",", "."))
-        self.bet_limit = current_wealth / 3
+        self.bet_limit = current_wealth * 0.7
         return current_wealth
 
 
@@ -164,17 +164,15 @@ def main():
         success_probability=0.12,
     )
 
-    dummy_betting_slip = BettingSlip(race_id="5419583")
+    dummy_betting_slip = BettingSlip(race_id="5515596")
     dummy_betting_slip.add_bet(first_bet)
     dummy_betting_slip.add_bet(second_bet)
 
     print(dummy_betting_slip)
 
-    agent_controller = AgentController(bet_limit=100)
+    agent_controller = AgentController(bet_limit=100, submission_mode_on=False)
     agent_controller.relogin()
-    current_wealth = agent_controller.read_wealth()
-    print(current_wealth)
-    # agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
+    agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)
 
 
 if __name__ == '__main__':

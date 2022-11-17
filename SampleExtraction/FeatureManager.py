@@ -5,7 +5,7 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
     CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import CurrentOdds, Age, Gender, CurrentRating, HasBlinker
+from SampleExtraction.Extractors.horse_attributes_based import OddsProbability, Age, Gender, CurrentRating, HasBlinker
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, Layoff, ComingFromLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -50,7 +50,7 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            CurrentOdds(),
+            OddsProbability(),
             CurrentSpeedFigure(),
             BestLifeTimeSpeedFigure(),
 

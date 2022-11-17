@@ -27,13 +27,15 @@ class Gender(FeatureExtractor):
             return 2
 
 
-class CurrentOdds(FeatureExtractor):
+class OddsProbability(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return horse.current_win_odds
+        if race_card.total_inverse_win_odds == 0:
+            return self.PLACEHOLDER_VALUE
+        return horse.inverse_win_odds / race_card.total_inverse_win_odds
 
 
 class CurrentRating(FeatureExtractor):

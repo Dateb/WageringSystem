@@ -2,9 +2,6 @@ import math
 from math import floor
 from typing import List
 
-import scipy
-from scipy.stats import stats
-
 from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
@@ -25,6 +22,8 @@ class Horse:
     ]
 
     def __init__(self, raw_data: dict):
+        self.__base_attributes = {}
+
         self.name = raw_data["name"]
         self.sire = raw_data["sire"]
         self.dam = raw_data["dam"]
@@ -40,7 +39,8 @@ class Horse:
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
-        self.current_win_odds = self.__extract_current_win_odds(raw_data)
+        self.set_win_odds(self.__extract_current_win_odds(raw_data))
+
         self.current_place_odds = self.__extract_current_place_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
@@ -81,6 +81,10 @@ class Horse:
     def set_win_odds(self, new_odds: float):
         self.current_win_odds = new_odds
         self.__base_attributes[self.CURRENT_WIN_ODDS_KEY] = new_odds
+
+        self.inverse_win_odds = 0
+        if self.current_win_odds != 0:
+            self.inverse_win_odds = 1 / self.current_win_odds
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:

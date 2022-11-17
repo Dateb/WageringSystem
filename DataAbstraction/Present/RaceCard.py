@@ -58,6 +58,10 @@ class RaceCard:
         if self.remove_non_starters:
             self.__remove_non_starters()
 
+        self.total_inverse_win_odds = 0
+        for horse in self.horses:
+            self.total_inverse_win_odds += horse.inverse_win_odds
+
         self.n_horses = len(self.horses)
 
         self.__base_attributes = {

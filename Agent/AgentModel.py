@@ -42,7 +42,6 @@ class AgentModel:
         race_cards_sample = sample_encoder.get_race_cards_sample()
         sample_split_generator = SampleSplitGenerator(
             race_cards_sample,
-            n_train_races=bet_model_configuration.n_train_races,
             n_races_per_fold=0,
             n_folds=0,
         )

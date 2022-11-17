@@ -245,7 +245,7 @@ class SpeedFiguresSource(FeatureSource):
                 track_name = race_card_track_to_win_time_track(race_card.track_name)
 
                 if track_name in self.track_variants:
-                    speed_figure = (1 - self.track_variants[track_name]["avg"]) * speed_figure
+                    speed_figure = speed_figure - self.track_variants[track_name]["avg"]
 
                 self.update_average(
                     category=self.speed_figures[horse.name],

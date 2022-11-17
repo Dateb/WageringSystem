@@ -8,18 +8,18 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class SampleSplitGenerator:
 
-    def __init__(self, race_card_samples: RaceCardsSample, n_train_races: int, n_races_per_fold: int, n_folds: int):
-        self.n_train_races = n_train_races
+    def __init__(self, race_card_samples: RaceCardsSample, n_races_per_fold: int, n_folds: int):
         self.n_races_per_fold = n_races_per_fold
         self.n_folds = n_folds
-        last_idx = n_train_races + 2 * n_folds * n_races_per_fold - 1
 
         race_cards_dataframe = race_card_samples.race_cards_dataframe
         self.race_ids = sorted(list(set(race_cards_dataframe[RaceCard.RACE_ID_KEY].values)))
         self.n_races = len(self.race_ids)
+        self.n_train_races = self.n_races - 2 * self.n_races_per_fold
+        print(self.n_train_races)
 
-        if last_idx >= len(self.race_ids):
-            print(f"Splits are requiring {last_idx + 1} races. Only got {len(self.race_ids)}")
+        if self.n_train_races < 1:
+            print(f"Chosen too many examples for validation/test set. No training examples left.")
             return -1
 
         race_number_df = pd.DataFrame(

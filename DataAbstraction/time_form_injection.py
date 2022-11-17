@@ -78,16 +78,18 @@ class TimeFormInjector:
         self.base_time_form_url = "https://www.timeform.com/horse-racing/result"
         self.current_track_name = ""
         self.current_race_number = 1
+        self.current_date = None
 
     def inject_time_form_attributes(self, race_card: WritableRaceCard) -> None:
         time_form_attributes = self.get_time_form_attributes(race_card)
         raw_race = race_card.raw_race_card["race"]
         raw_result = race_card.raw_race_card["result"]
 
-        old_win_time = raw_result["winTimeSeconds"]
-        new_win_time = time_form_attributes["result"]["winTimeSeconds"]
-        if old_win_time != new_win_time:
-            print(f"changed time: {old_win_time} -> {new_win_time}")
+        if "winTimeSeconds" in raw_result:
+            old_win_time = raw_result["winTimeSeconds"]
+            new_win_time = time_form_attributes["result"]["winTimeSeconds"]
+            if old_win_time != new_win_time:
+                print(f"changed time: {old_win_time} -> {new_win_time}")
         raw_result["winTimeSeconds"] = time_form_attributes["result"]["winTimeSeconds"]
         raw_race["distance"] = time_form_attributes["race"]["distance"]
         raw_race["timeFormInjected"] = True
@@ -107,8 +109,9 @@ class TimeFormInjector:
         time_form_url = self.base_time_form_url
         track_name = self.track_name_to_timeform_name(race_card.track_name)
 
-        if track_name != self.current_track_name:
+        if self.has_race_series_changed(race_card):
             self.current_track_name = track_name
+            self.current_date = race_card.date
             self.current_race_number = 1
 
         time_form_url += f"/{track_name}"
@@ -126,7 +129,10 @@ class TimeFormInjector:
         return BeautifulSoup(result_doc, 'html.parser')
 
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
-        win_time = time_form_soup.select_one('span:-soup-contains("Time:")').find_next_sibling(text=True).text
+        time_text_elem = time_form_soup.select_one('span:-soup-contains("Time:")')
+        if not time_text_elem:
+            return -1
+        win_time = time_text_elem.find_next_sibling(text=True).text
         end_of_time_pos = win_time.find("\r")
         win_time = win_time[:end_of_time_pos]
         return self.win_time_to_seconds(win_time)
@@ -177,11 +183,13 @@ class TimeFormInjector:
 
     def get_code_of_track_name(self, track_name: str, day_of_race: date) -> int:
         track_code = self.time_form_track_name_code[track_name]
-        if track_name == "newmarket" and day_of_race.month == 6:
+        if track_name == "newmarket" and day_of_race.month in [6, 7, 8]:
             track_code = 60
         return track_code
 
     def track_name_to_timeform_name(self, track_name: str) -> str:
+        if "PMU" in track_name:
+            track_name = track_name[:-4]
         if track_name == "Lingfield":
             track_name = "Lingfield-Park"
         if track_name == "Kempton" or track_name == "Kempton PMU":
@@ -192,9 +200,9 @@ class TimeFormInjector:
             track_name = "Sandown-Park"
         if track_name == "Fontwell":
             track_name = "Fontwell-Park"
-        if track_name == "Catterick":
+        if track_name in ["Catterick", "Catterrick"]:
             track_name = "Catterick-Bridge"
-        if track_name == "Chelmsford City" or track_name == "Chelmsford PMU":
+        if track_name in ["Chelmsford City", "Chelmsford", "Chelmsford PMU"]:
             track_name = "chelmsford-city"
         if track_name == "Market Rasen":
             track_name = "market-rasen"
@@ -212,9 +220,16 @@ class TimeFormInjector:
             track_name = "Hamilton-Park"
         if track_name == "Royal Ascot":
             track_name = "Ascot"
-        if "PMU" in track_name:
-            track_name = track_name[:-4]
+        if track_name == "Carlise":
+            track_name = "Carlisle"
+        if track_name == "Glorious Goodwood":
+            track_name = "Goodwood"
         return track_name.lower()
+
+    def has_race_series_changed(self, race_card: WritableRaceCard):
+        track_name = self.track_name_to_timeform_name(race_card.track_name)
+        return track_name != self.current_track_name or race_card.date != self.current_date
+
 
 
 def main():
@@ -226,8 +241,11 @@ def main():
         for race_card in race_cards.values():
             raw_race = race_card.raw_race_card["race"]
             if "timeFormInjected" not in raw_race or not raw_race["timeFormInjected"]:
+                if time_form_injector.has_race_series_changed(race_card):
+                    race_cards_persistence.save(list(race_cards.values()))
                 time_form_injector.inject_time_form_attributes(race_card)
-                race_cards_persistence.save(list(race_cards.values()))
+
+        race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':
