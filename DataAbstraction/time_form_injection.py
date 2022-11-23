@@ -218,7 +218,7 @@ class TimeFormInjector:
             track_name = "epsom-downs"
         if track_name == "Hamilton":
             track_name = "Hamilton-Park"
-        if track_name == "Royal Ascot":
+        if track_name in ["Royal Ascot", "Ascot Champions Day"]:
             track_name = "Ascot"
         if track_name == "Carlise":
             track_name = "Carlisle"
@@ -231,21 +231,23 @@ class TimeFormInjector:
         return track_name != self.current_track_name or race_card.date != self.current_date
 
 
-
 def main():
     race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
 
     time_form_injector = TimeFormInjector()
     for race_cards in race_cards_persistence:
+        is_injection_executed = False
         print(list(race_cards.keys())[0])
         for race_card in race_cards.values():
             raw_race = race_card.raw_race_card["race"]
             if "timeFormInjected" not in raw_race or not raw_race["timeFormInjected"]:
+                is_injection_executed = True
                 if time_form_injector.has_race_series_changed(race_card):
                     race_cards_persistence.save(list(race_cards.values()))
                 time_form_injector.inject_time_form_attributes(race_card)
 
-        race_cards_persistence.save(list(race_cards.values()))
+        if is_injection_executed:
+            race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':

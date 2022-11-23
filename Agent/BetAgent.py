@@ -4,8 +4,8 @@ import traceback
 from datetime import datetime, date
 from typing import List
 
-from Agent.AgentController import AgentController
 from Agent.AgentModel import AgentModel
+from Agent.SeleniumAgentController import SeleniumAgentController
 from DataCollection.DayCollector import DayCollector
 from DataAbstraction.RaceCardFactory import RaceCardFactory
 from DataCollection.RaceCardsCollector import RaceCardsCollector
@@ -22,7 +22,7 @@ class BetAgent:
         self.collect_race_cards_until_today()
 
         self.model = AgentModel()
-        self.controller = AgentController(bet_limit=0, submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
+        self.controller = SeleniumAgentController(submission_mode_on=CONTROLLER_SUBMISSION_MODE_ON)
 
         self.today_race_cards: List[RaceCard] = []
         self.today_race_cards_factory = RaceCardFactory(collect_results=False)

@@ -1,6 +1,6 @@
 import math
 from abc import abstractmethod, ABC
-from math import log, sqrt
+from math import sqrt
 from sqlite3 import Date
 from typing import List
 
@@ -8,12 +8,18 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track, get_horse_time
 from util.nested_dict import nested_dict
+from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
+
+
+CATEGORY_AVERAGE_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
+BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.001, fading_factor=0.1)
+SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
 
 
 class FeatureSource(ABC):
 
     def __init__(self):
-        self.fading_factor = 0.1
+        pass
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -26,27 +32,29 @@ class FeatureSource(ABC):
     def update(self, race_card: RaceCard):
         pass
 
-    def update_average(self, category: dict, new_obs: float, new_obs_date: Date, base_alpha=0.125, use_fading: bool = True) -> None:
+    def update_average(self, category: dict, new_obs: float, new_obs_date: Date, online_calculator: OnlineCalculator) -> None:
         if not category["avg"]:
+            category["prev_avg"] = 0
             category["avg"] = new_obs
             category["count"] = 1
             category["last_obs_date"] = new_obs_date
         else:
             n_days_since_last_obs = (new_obs_date - category["last_obs_date"]).days
 
-            average_fade_factor = 0
-            if use_fading:
-                average_fade_factor = self.fading_factor * log(self.fading_factor * n_days_since_last_obs) if n_days_since_last_obs > (1 / self.fading_factor) else 0
-
-            alpha = base_alpha + average_fade_factor
-
-            category["avg"] = alpha * new_obs + (1 - alpha) * category["avg"]
+            category["prev_avg"] = category["avg"]
+            category["avg"] = online_calculator.calculate_average(
+                old_average=category["avg"],
+                new_obs=new_obs,
+                count=category["count"],
+                n_days_since_last_obs=n_days_since_last_obs,
+            )
             category["count"] += 1
             category["last_obs_date"] = new_obs_date
 
     def update_variance(self, category: dict, new_obs: float):
         if not category["count"]:
             category["variance"] = 0
+            category["std"] = 0
         else:
             n = category["count"]
 
@@ -55,9 +63,10 @@ class FeatureSource(ABC):
                 old_variance = category["variance"]
                 variance += (n - 2) * old_variance / (n - 1)
 
-            variance += (1 / n) * (new_obs - category["avg"]) * (new_obs - category["avg"])
+            variance += (1 / n) * (new_obs - category["prev_avg"]) * (new_obs - category["prev_avg"])
 
             category["variance"] = variance
+            category["std"] = sqrt(category["variance"])
 
     def update_max(self, category: dict, new_obs: float) -> None:
         if not category["max"] or new_obs > category["max"]:
@@ -81,7 +90,12 @@ class CategoryAverageSource(FeatureSource, ABC):
                 win_rate_total_key += f"{win_rate_key}_"
 
             win_rate_total_key = win_rate_total_key[:-1]
-            self.update_average(self.averages[win_rate_total_key], value, race_card.date)
+            self.update_average(
+                self.averages[win_rate_total_key],
+                value,
+                race_card.date,
+                CATEGORY_AVERAGE_CALCULATOR,
+            )
 
     def get_average_of_name(self, name: str) -> float:
         average_elem = self.averages[name]
@@ -145,7 +159,12 @@ class DrawBiasSource(FeatureSource):
         for horse in race_card.horses:
             post_position = str(horse.post_position)
             if post_position != "-1":
-                self.update_average(self.__draw_bias[race_card.track_name][post_position], horse.has_won, race_card.date)
+                self.update_average(
+                    self.__draw_bias[race_card.track_name][post_position],
+                    horse.has_won,
+                    race_card.date,
+                    ExponentialOnlineCalculator(fading_factor=0.1),
+                )
 
     def draw_bias(self, track_name: str, post_position: int):
         if track_name not in self.__draw_bias or str(post_position) not in self.__draw_bias[track_name]:
@@ -211,8 +230,14 @@ class SpeedFiguresSource(FeatureSource):
                         race_card.going,
                         horse.horse_distance,
                     )
-                    self.update_average(category=base_time, new_obs=horse_time, new_obs_date=race_card.date, base_alpha=0.0001, use_fading=False)
+                    self.update_average(
+                        category=base_time,
+                        new_obs=horse_time,
+                        new_obs_date=race_card.date,
+                        online_calculator=BASE_TIME_CALCULATOR,
+                    )
                     self.update_variance(category=base_time, new_obs=horse_time)
+
             self.compute_speed_figures(race_card)
 
     def get_current_speed_figure(self, category: str):
@@ -251,6 +276,7 @@ class SpeedFiguresSource(FeatureSource):
                     category=self.speed_figures[horse.name],
                     new_obs=speed_figure,
                     new_obs_date=race_card.date,
+                    online_calculator=SPEED_CALCULATOR,
                 )
                 self.update_max(
                     category=self.speed_figures[horse.name],

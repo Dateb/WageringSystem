@@ -58,8 +58,8 @@ def main():
 
     query_date = date(
         year=2018,
-        month=5,
-        day=21,
+        month=12,
+        day=26,
     )
 
     #train_data_collector.collect(query_date)

@@ -3,7 +3,7 @@ import os
 import requests
 import time
 import random
-from requests import Session
+from requests import Session, Response
 from requests_ip_rotator import ApiGateway
 
 
@@ -24,10 +24,10 @@ class Scraper:
         )
         self.__session = requests.Session()
 
+        api_token = self.__get_api_token("https://www.racebets.de/de/pferdewetten/race/details/id/4347262")
         self.__headers = {
-            self.header_token_key: self.__get_api_token(
-                "https://www.racebets.de/de/pferdewetten/race/details/id/4347262"
-            ),
+            self.header_token_key: api_token,
+            self.cookie_token_key: api_token,
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -70,6 +70,10 @@ class Scraper:
             self.__wait_random_amount_of_seconds(10.0)
             if response.status_code == 200:
                 return response.text
+
+    def post_payload(self, url: str, payload: dict) -> Response:
+        post_response = self.__session.post(url, json=payload, headers=self.__headers)
+        return post_response
 
     def __wait_random_amount_of_seconds(self, average_seconds_to_wait: float):
         lowest_waiting_time = average_seconds_to_wait * 0.9

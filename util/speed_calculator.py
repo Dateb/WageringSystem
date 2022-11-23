@@ -40,12 +40,12 @@ def compute_speed_figure(
     horse_time = get_horse_time(win_time, win_times_track_name, race_type, surface, going, horse_distance)
 
     time_avg = __base_times[win_times_track_name][str(distance)][race_type_detail]["avg"]
-    time_variance = __base_times[win_times_track_name][str(distance)][race_type_detail]["variance"]
+    time_std = __base_times[win_times_track_name][str(distance)][race_type_detail]["std"]
 
-    if time_variance == 0:
+    if time_std == 0:
         horse_speed_figure = 0
     else:
-        horse_speed_figure = (time_avg - horse_time) / sqrt(time_variance)
+        horse_speed_figure = (time_avg - horse_time) / time_std
 
     if horse_speed_figure < -300:
         print(date)

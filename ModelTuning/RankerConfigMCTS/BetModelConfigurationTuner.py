@@ -39,15 +39,6 @@ class SimulateThread(threading.Thread):
 
         fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_samples)
 
-        # just test difference in scores for different settings
-        # train_samples, test_samples = self.race_cards_splitter.get_train_test_split(0)
-        #
-        # bet_model = self.bet_model_configuration.create_bet_model(train_samples)
-        #
-        # test_fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
-        #
-        # print(f"Difference in score: {fund_history_summary.validation_score - test_fund_history_summary.validation_score}")
-
         self.scores[self.validation_fold_idx] = fund_history_summary.validation_score
 
 
@@ -83,8 +74,7 @@ class BetModelConfigurationTuner:
         )
 
         self.tree = BetModelConfigurationTree(root_node)
-        self.feature_scorer = FeatureScorer()
-        self.n_runs = 0
+        self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=25)
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
         while self.__improve_ranker_config(max_iter_without_improvement):
@@ -107,6 +97,8 @@ class BetModelConfigurationTuner:
             results = self.__simulate(terminal_configuration)
             score = mean(list(results.values()))
             self.__backup(front_node, score)
+
+            self.feature_scorer.update_feature_scores(score, terminal_configuration.selected_search_features)
 
             if score > self.__max_score:
                 self.__best_configuration = terminal_configuration
