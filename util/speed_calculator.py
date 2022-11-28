@@ -1,17 +1,10 @@
-from math import sqrt
-
-from Persistence.JSONPersistence import JSONPersistence
 from util.nested_dict import nested_dict
 
 __base_times = nested_dict()
-__win_times = JSONPersistence("win_times_contextualized").load()
-
-LOWER_KM_PER_HOUR_LIMIT = 35
-UPPER_KM_PER_HOUR_LIMIT = 50
 
 
-def get_base_time(track_name: str, distance: str, race_type_detail: str) -> dict:
-    return __base_times[track_name][distance][race_type_detail]
+def get_base_time(track_name: str, distance: str, race_type: str, race_type_detail: str) -> dict:
+    return __base_times[track_name][distance][race_type][race_type_detail]
 
 
 def compute_speed_figure(
@@ -27,20 +20,17 @@ def compute_speed_figure(
 ) -> float:
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
     win_times_track_name = race_card_track_to_win_time_track(track_name)
-    base_time = __base_times[win_times_track_name][str(distance)][race_type_detail]["avg"]
-    if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(base_time, float):
+    base_time = get_base_time(win_times_track_name, str(distance), race_type, race_type_detail)
+    time_avg = base_time["avg"]
+    if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(time_avg, float):
         return None
 
     if str(distance) not in __base_times[win_times_track_name]:
         return None
 
-    if not win_time_feasible(win_time, distance):
-        return None
-
     horse_time = get_horse_time(win_time, win_times_track_name, race_type, surface, going, horse_distance)
 
-    time_avg = __base_times[win_times_track_name][str(distance)][race_type_detail]["avg"]
-    time_std = __base_times[win_times_track_name][str(distance)][race_type_detail]["std"]
+    time_std = base_time["std"]
 
     if time_std == 0:
         horse_speed_figure = 0
@@ -56,15 +46,6 @@ def compute_speed_figure(
         print("-------------------------")
 
     return horse_speed_figure
-
-
-def win_time_feasible(win_time, distance) -> bool:
-    distance_km = distance / 1000
-    km_per_second = distance_km / win_time
-    km_per_hour = km_per_second * 3600
-    if LOWER_KM_PER_HOUR_LIMIT < km_per_hour < UPPER_KM_PER_HOUR_LIMIT:
-        return True
-    return False
 
 
 def get_horse_time(win_time: float, track_name: str, race_type: str, surface: str, going: float, horse_distance: float):

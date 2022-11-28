@@ -43,7 +43,7 @@ class RaceCard:
         else:
             self.place_num = race["placesNum"]
         self.race_number = race["raceNumber"]
-        self.distance = round(race["distance"] / 20) * 20
+        self.distance = race["distance"]
         self.going = race["trackGoing"]
         self.category = race["category"]
         self.race_type = race["raceType"]

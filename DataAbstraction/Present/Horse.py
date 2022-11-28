@@ -89,7 +89,7 @@ class Horse:
     def set_relevance(self, speed_figure: float):
         if speed_figure:
             score_percentile = .5 * (math.erf(speed_figure / 2 ** .5) + 1)
-            self.relevance = floor(score_percentile * 29) + self.has_won
+            self.relevance = floor(score_percentile * 14) + 16 * self.has_won
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 

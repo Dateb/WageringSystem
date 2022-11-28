@@ -62,7 +62,7 @@ class WinBetGenerator(BetGenerator):
             is_win_prob_in_between = self.lower_win_prob_threshold < win_prob < self.upper_win_prob_threshold
             is_win_prob_on_lower_end = win_prob < self.upper_win_prob_threshold < self.lower_win_prob_threshold
             is_win_prob_on_higher_end = self.upper_win_prob_threshold < self.lower_win_prob_threshold < win_prob
-            if win_prob < 1.0 or win_prob > 0.0:
+            if is_win_prob_in_between or is_win_prob_on_lower_end or is_win_prob_on_higher_end:
                 if ev > (0.0 + self.additional_ev_threshold):
                     numerator = ev
                     denominator = betting_slip.conditional_odds + win_odds[i] - (1 + Bet.BET_TAX)

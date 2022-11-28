@@ -4,7 +4,7 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.time_calculation import get_day_difference
 
 
-class Layoff(FeatureExtractor):
+class HasOptimalBreak(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
@@ -12,7 +12,7 @@ class Layoff(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.form_table.past_forms:
             return self.PLACEHOLDER_VALUE
-        return get_day_difference(race_card, horse, -1, 0)
+        return 30 <= get_day_difference(race_card, horse, -1, 0) <= 60
 
 
 class ComingFromLayoff(FeatureExtractor):

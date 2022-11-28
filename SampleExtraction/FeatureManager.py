@@ -7,7 +7,7 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import OddsProbability, Age, Gender, CurrentRating, HasBlinker
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
-from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, Layoff, ComingFromLayoff
+from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin
@@ -52,7 +52,6 @@ class FeatureManager:
         self.base_features = [
             OddsProbability(),
             CurrentSpeedFigure(),
-            BestLifeTimeSpeedFigure(),
 
             MonthCos(), MonthSin(),
             WeekDayCos(), WeekDaySin(),
@@ -79,7 +78,9 @@ class FeatureManager:
 
             AbsoluteTime(),
 
-            Layoff(),
+            BestLifeTimeSpeedFigure(),
+
+            HasOptimalBreak(),
             ComingFromLayoff(),
             HasWonAfterLongBreak(),
 

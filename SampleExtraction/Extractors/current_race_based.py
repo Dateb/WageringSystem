@@ -119,7 +119,7 @@ class DrawBias(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        draw_bias = feature_sources.draw_bias_source.draw_bias(race_card.track_name, horse.post_position)
+        draw_bias = feature_sources.draw_bias_source.get_draw_bias(race_card.track_name, horse.post_position)
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE
         return draw_bias

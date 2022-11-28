@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 3
-N_SAMPLE_MONTHS = 83
+N_CONTAINER_MONTHS = 10
+N_SAMPLE_MONTHS = 74
 
 
 class BetModelTuner:
@@ -39,7 +39,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=80)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=1000)
 
         return bet_model_configuration
 
