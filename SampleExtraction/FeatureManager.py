@@ -4,8 +4,10 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
     CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo
+from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
+    HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import OddsProbability, Age, Gender, CurrentRating, HasBlinker
+from SampleExtraction.Extractors.horse_attributes_based import OddsProbability, Age, Gender, CurrentRating
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -74,7 +76,9 @@ class FeatureManager:
         default_features = [
             Age(), CurrentRating(), DrawBias(),
             HasTrainerMultipleHorses(),
-            HasBlinker(), AgeFrom(), AgeTo(),
+            AgeFrom(), AgeTo(),
+
+            HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
 
             AbsoluteTime(),
 
@@ -149,9 +153,6 @@ class FeatureManager:
 
     def update_feature_sources(self, race_cards: List[RaceCard]) -> None:
         feature_sources = get_feature_sources()
-
-        # for feature_source in feature_sources:
-        #     feature_source.preupdate(race_cards)
 
         for race_card in race_cards:
             if race_card.has_results:

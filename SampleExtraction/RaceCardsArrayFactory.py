@@ -44,6 +44,7 @@ class RaceCardsArrayFactory:
             self.current_day_race_cards = []
 
         self.feature_manager.set_features([race_card])
+        race_card.set_horse_relevance()
         self.current_day_race_cards.append(race_card)
 
         horse_values_of_race_card = []

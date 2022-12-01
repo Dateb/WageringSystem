@@ -57,9 +57,9 @@ def main():
     train_data_collector = TrainDataCollector(file_name="race_cards")
 
     query_date = date(
-        year=2018,
-        month=12,
-        day=26,
+        year=2016,
+        month=9,
+        day=24,
     )
 
     #train_data_collector.collect(query_date)

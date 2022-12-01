@@ -1,4 +1,8 @@
+from math import log
 from typing import Dict
+
+import numpy as np
+
 from Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
 
@@ -21,7 +25,11 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        self.validation_score = (sum(payout_percentages) / len(betting_slips)) * 1000
+        current_wealth = 1
+        for i in range(len(self.snapshots)):
+            betting_limit = current_wealth * 0.33
+            current_wealth += self.snapshots[i].payout_percentages * betting_limit
+        self.validation_score = log(current_wealth)
 
     @property
     def bet_rate(self):

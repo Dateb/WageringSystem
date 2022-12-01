@@ -22,7 +22,7 @@ class RaceCard:
         self.__extract_attributes(raw_race_card)
 
     def __extract_attributes(self, raw_race_card: dict):
-        self.__extract_date(raw_race_card)
+        self.set_date(raw_race_card)
 
         event = raw_race_card["event"]
         race = raw_race_card["race"]
@@ -54,7 +54,7 @@ class RaceCard:
         self.age_to = race["ageTo"]
         self.purse = race["purseDetails"]
 
-        self.__extract_horses(raw_race_card["runners"]["data"])
+        self.set_horses(raw_race_card["runners"]["data"])
         if self.remove_non_starters:
             self.__remove_non_starters()
 
@@ -82,11 +82,15 @@ class RaceCard:
         #         if len(previous_race_ids) != len(set(previous_race_ids)):
         #             print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
 
-    def __extract_horses(self, raw_horses: dict):
+    def set_horses(self, raw_horses: dict):
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
-        for horse in self.horses:
-            horse.set_purse(self.purse)
-            if self.race_result:
+        if self.race_result:
+            for horse in self.horses:
+                horse.set_purse(self.purse)
+
+    def set_horse_relevance(self):
+        if self.race_result:
+            for horse in self.horses:
                 speed_figure = compute_speed_figure(
                     str(self.date),
                     str(self.track_name),
@@ -100,7 +104,7 @@ class RaceCard:
                 )
                 horse.set_relevance(speed_figure)
 
-    def __extract_date(self, raw_race_card: dict):
+    def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
@@ -115,9 +119,13 @@ class RaceCard:
             total_values.append(values)
         return total_values
 
-    def get_horse_with_id(self, horse_id: str) -> Horse:
+    def get_horse_by_id(self, horse_id: str) -> Horse:
         horse_with_id = [horse for horse in self.horses if horse.horse_id == horse_id][0]
         return horse_with_id
+
+    def get_horse_by_number(self, horse_number: int) -> Horse:
+        horse_with_number = [horse for horse in self.horses if horse.number == horse_number][0]
+        return horse_with_number
 
     @property
     def values(self) -> List:

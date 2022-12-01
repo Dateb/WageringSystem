@@ -6,6 +6,7 @@ from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
 
+equip_set = []
 
 class Horse:
 
@@ -36,6 +37,16 @@ class Horse:
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.rating = raw_data["rating"]
+
+        self.equipments = []
+        if "equipCode" in raw_data and raw_data["equipCode"]:
+            self.equipments = raw_data["equipCode"].split("+")
+
+        for equip in self.equipments:
+            if equip not in equip_set:
+                equip_set.append(equip)
+                print(equip_set)
+
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
@@ -45,7 +56,6 @@ class Horse:
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
 
-        self.has_blinkers = raw_data["blinkers"]
         self.jockey = Jockey(raw_data["jockey"])
 
         jockey_first_name = raw_data["jockey"]["firstName"]

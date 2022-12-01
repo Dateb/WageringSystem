@@ -7,14 +7,16 @@ from typing import List
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track, get_horse_time
+from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track, \
+    get_horse_time, get_speed
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
 
 CATEGORY_AVERAGE_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
 BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
-SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
+HORSE_SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
+TRACK_SPEED_CALCULATOR = SimpleOnlineCalculator()
 DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.001, fading_factor=0.1)
 
 
@@ -219,26 +221,28 @@ class SpeedFiguresSource(FeatureSource):
 
     def update(self, race_card: RaceCard):
         if race_card.race_result is not None:
+            self.update_track_speed(race_card)
             self.update_base_time(race_card)
             self.update_speed_figures(race_card)
 
     def update_base_time(self, race_card: RaceCard):
         track_name = race_card_track_to_win_time_track(race_card.track_name)
         distance = str(race_card.distance)
-        race_type = str(race_card.race_type)
+        track_surface = race_card.surface
+        going = str(race_card.going)
         race_type_detail = str(race_card.race_type_detail)
 
-        base_time = get_base_time(track_name, distance, race_type, race_type_detail)
+        base_time = get_base_time(distance, track_surface, going, race_type_detail)
 
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
-                track_name,
-                str(race_card.race_type),
-                str(race_card.surface),
-                race_card.going,
+                distance,
+                track_surface,
+                going,
+                race_type_detail,
                 horse.horse_distance,
             ) for horse in race_card.horses if horse.horse_distance >= 0]
             if horse_times:
@@ -250,6 +254,24 @@ class SpeedFiguresSource(FeatureSource):
                     online_calculator=BASE_TIME_CALCULATOR,
                 )
                 self.update_variance(category=base_time, new_obs=mean_horse_time)
+
+    def update_track_speed(self, race_card: RaceCard):
+        distance = str(race_card.distance)
+        track_surface = race_card.surface
+        going = str(race_card.going)
+        race_type_detail = str(race_card.race_type_detail)
+
+        track_speed = get_speed(distance, track_surface, going, race_type_detail)
+
+        win_time = race_card.race_result.win_time
+
+        if win_time > 0:
+            self.update_average(
+                category=track_speed,
+                new_obs=win_time,
+                new_obs_date=race_card.date,
+                online_calculator=TRACK_SPEED_CALCULATOR,
+            )
 
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
@@ -275,7 +297,7 @@ class SpeedFiguresSource(FeatureSource):
                     category=self.speed_figures[horse.name],
                     new_obs=speed_figure,
                     new_obs_date=race_card.date,
-                    online_calculator=SPEED_CALCULATOR,
+                    online_calculator=HORSE_SPEED_CALCULATOR,
                 )
                 self.update_max(
                     category=self.speed_figures[horse.name],
@@ -287,10 +309,6 @@ class SpeedFiguresSource(FeatureSource):
             return -1
 
         current_speed_figure = self.speed_figures[category]["avg"]
-        if current_speed_figure < -5:
-            current_speed_figure = -5
-        if current_speed_figure > 5:
-            current_speed_figure = 5
         return current_speed_figure
 
     def get_max_speed_figure(self, category: str):

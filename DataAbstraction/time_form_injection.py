@@ -2,7 +2,6 @@ import math
 from datetime import date
 
 from bs4 import BeautifulSoup
-
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -92,17 +91,40 @@ class TimeFormInjector:
                 print(f"changed time: {old_win_time} -> {new_win_time}")
         raw_result["winTimeSeconds"] = time_form_attributes["result"]["winTimeSeconds"]
         raw_race["distance"] = time_form_attributes["race"]["distance"]
+
+        for horse_number in time_form_attributes["runners"]:
+            horse = race_card.get_horse_by_number(horse_number)
+            prev_rating = int(float(horse.rating))
+
+            horse.raw_data["equipCode"] = time_form_attributes["runners"][horse_number]["equipCode"]
+            horse.raw_data["rating"] = time_form_attributes["runners"][horse_number]["rating"]
+
+            new_rating = horse.raw_data["rating"]
+            if prev_rating != new_rating:
+                print(f"Change OR (number {horse_number}): {prev_rating} -> {new_rating}")
+
         raw_race["timeFormInjected"] = True
 
     def get_time_form_attributes(self, race_card: WritableRaceCard):
         time_form_attributes = {
             "race": {},
-            "runners": {"data": {}},
+            "runners": {},
             "result": {},
         }
         time_form_soup = self.get_time_form_soup(race_card)
         time_form_attributes["result"]["winTimeSeconds"] = self.get_win_time(time_form_soup)
         time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
+
+        for horse_row in self.get_horse_rows(time_form_soup):
+            horse_number = self.get_horse_number(horse_row)
+            equip_code = self.get_equip_code(horse_row)
+            rating = self.get_rating(horse_row)
+
+            time_form_attributes["runners"][horse_number] = {
+                "equipCode": equip_code,
+                "rating": rating,
+            }
+
         return time_form_attributes
 
     def get_time_form_soup(self, race_card: WritableRaceCard):
@@ -127,6 +149,21 @@ class TimeFormInjector:
         result_doc = self.scraper.request_html(time_form_url)
 
         return BeautifulSoup(result_doc, 'html.parser')
+
+    def get_horse_rows(self, time_form_soup: BeautifulSoup):
+        return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
+
+    def get_horse_number(self, horse_row: BeautifulSoup) -> int:
+        return int(horse_row.find("a", {"class": "rp-horse"}).text.split(".")[0])
+
+    def get_equip_code(self, horse_row: BeautifulSoup) -> str:
+        return horse_row.find_all("td", {"class": "rp-ageequip-hide"})[2].text[1:-1]
+
+    def get_rating(self, horse_row: BeautifulSoup) -> int:
+        rating = horse_row.find_all("td", {"class": "rp-ageequip-hide"})[3].text[1:-1]
+        if not rating:
+            rating = -1
+        return int(rating)
 
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         time_text_elem = time_form_soup.select_one('span:-soup-contains("Time:")')
@@ -183,7 +220,7 @@ class TimeFormInjector:
 
     def get_code_of_track_name(self, track_name: str, day_of_race: date) -> int:
         track_code = self.time_form_track_name_code[track_name]
-        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year in [2018, 2020, 2021, 2022]:
+        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year in [2015, 2016, 2017, 2018, 2020, 2021, 2022]:
             track_code = 60
         return track_code
 
@@ -248,6 +285,19 @@ def main():
 
         if is_injection_executed:
             race_cards_persistence.save(list(race_cards.values()))
+
+
+def reset_injection_flag():
+    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+
+    for race_cards in race_cards_persistence:
+        print(list(race_cards.keys())[0])
+        for race_card in race_cards.values():
+            raw_race = race_card.raw_race_card["race"]
+            if "timeFormInjected" in raw_race or not raw_race["timeFormInjected"]:
+                raw_race["timeFormInjected"] = False
+
+        race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':
