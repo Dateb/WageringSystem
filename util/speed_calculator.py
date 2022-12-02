@@ -5,12 +5,12 @@ __speed = nested_dict()
 __base_speed_category = __speed["1609"]["TRF"]["4"]["FLT"]
 
 
-def get_base_time(distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
-    return __base_times[distance][track_surface][going][race_type_detail]
+def get_base_time(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
+    return __base_times[track_name][distance][track_surface][going][race_type_detail]
 
 
-def get_speed(distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
-    return __speed[distance][track_surface][going][race_type_detail]
+def get_speed(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
+    return __speed[track_name][distance][track_surface][going][race_type_detail]
 
 
 def compute_speed_figure(
@@ -25,7 +25,8 @@ def compute_speed_figure(
         going: float,
 ) -> float:
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
-    base_time = get_base_time(str(distance), surface, str(going), race_type_detail)
+    win_time_track = race_card_track_to_win_time_track(track_name)
+    base_time = get_base_time(win_time_track, str(distance), surface, str(going), race_type_detail)
     time_avg = base_time["avg"]
     if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(time_avg, float):
         return None
@@ -33,7 +34,7 @@ def compute_speed_figure(
     if str(distance) not in __base_times:
         return None
 
-    horse_time = get_horse_time(win_time, str(distance), surface, str(going), race_type_detail, horse_distance)
+    horse_time = get_horse_time(win_time, win_time_track, str(distance), surface, str(going), race_type_detail, horse_distance)
 
     time_std = base_time["std"]
 
@@ -57,17 +58,17 @@ def compute_speed_figure(
     return horse_speed_figure
 
 
-def get_horse_time(win_time: float, distance: str, track_surface: str, going: str, race_type_detail: str, horse_distance: float):
-    seconds_behind_winner = ((1 / get_lengths_per_second(distance, track_surface, going, race_type_detail)) * horse_distance)
+def get_horse_time(win_time: float, track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str, horse_distance: float):
+    seconds_behind_winner = ((1 / get_lengths_per_second(track_name, distance, track_surface, going, race_type_detail)) * horse_distance)
 
     return win_time + seconds_behind_winner
 
 
-def get_lengths_per_second(distance: str, track_surface: str, going: str, race_type_detail: str) -> float:
+def get_lengths_per_second(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> float:
     if "avg" not in __base_speed_category:
         return 5
     base_speed = __base_speed_category["avg"]
-    category_speed = get_speed(distance, track_surface, going, race_type_detail)["avg"]
+    category_speed = get_speed(track_name, distance, track_surface, going, race_type_detail)["avg"]
 
     distance_modifier = category_speed / base_speed
     lengths_per_second = 5 * distance_modifier

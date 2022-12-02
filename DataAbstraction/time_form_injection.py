@@ -76,7 +76,6 @@ class TimeFormInjector:
         self.scraper = get_scraper()
         self.base_time_form_url = "https://www.timeform.com/horse-racing/result"
         self.current_track_name = ""
-        self.current_race_number = 1
         self.current_date = None
 
     def inject_time_form_attributes(self, race_card: WritableRaceCard) -> None:
@@ -134,15 +133,12 @@ class TimeFormInjector:
         if self.has_race_series_changed(race_card):
             self.current_track_name = track_name
             self.current_date = race_card.date
-            self.current_race_number = 1
 
         time_form_url += f"/{track_name}"
         time_form_url += f"/{race_card.date}"
         time_form_url += f"/{race_card.datetime.hour}{race_card.datetime.minute}"
         time_form_url += f"/{self.get_code_of_track_name(track_name, race_card.date)}"
-        time_form_url += f"/{self.current_race_number}"
-
-        self.current_race_number += 1
+        time_form_url += f"/{race_card.race_number}"
 
         print(time_form_url)
 

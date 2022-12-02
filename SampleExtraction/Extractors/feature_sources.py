@@ -29,9 +29,6 @@ class FeatureSource(ABC):
         for race_card in race_cards:
             self.update(race_card)
 
-    def preupdate(self, race_cards: List[RaceCard]):
-        pass
-
     @abstractmethod
     def update(self, race_card: RaceCard):
         pass
@@ -76,6 +73,9 @@ class FeatureSource(ABC):
         if not category["max"] or new_obs > category["max"]:
             category["max"] = new_obs
 
+    def update_previous(self, category: dict, new_obs: float) -> None:
+        category["previous"] = new_obs
+
 
 class CategoryAverageSource(FeatureSource, ABC):
     def __init__(self):
@@ -84,18 +84,18 @@ class CategoryAverageSource(FeatureSource, ABC):
         self.average_attribute_groups = []
 
     def insert_value_into_avg(self, race_card: RaceCard, horse: Horse, value):
-        for win_rate_attribute_group in self.average_attribute_groups:
-            win_rate_total_key = ""
-            for win_rate_attribute in win_rate_attribute_group:
-                if win_rate_attribute in horse.__dict__:
-                    win_rate_key = getattr(horse, win_rate_attribute)
+        for attribute_group in self.average_attribute_groups:
+            attribute_group_key = ""
+            for attribute in attribute_group:
+                if attribute in horse.__dict__:
+                    attribute_key = getattr(horse, attribute)
                 else:
-                    win_rate_key = getattr(race_card, win_rate_attribute)
-                win_rate_total_key += f"{win_rate_key}_"
+                    attribute_key = getattr(race_card, attribute)
+                attribute_group_key += f"{attribute_key}_"
 
-            win_rate_total_key = win_rate_total_key[:-1]
+            attribute_group_key = attribute_group_key[:-1]
             self.update_average(
-                self.averages[win_rate_total_key],
+                self.averages[attribute_group_key],
                 value,
                 race_card.date,
                 CATEGORY_AVERAGE_CALCULATOR,
@@ -106,6 +106,45 @@ class CategoryAverageSource(FeatureSource, ABC):
         if "avg" in average_elem:
             return average_elem["avg"]
         return -1
+
+
+class PreviousValueSource(FeatureSource, ABC):
+    def __init__(self):
+        super().__init__()
+        self.previous_values = nested_dict()
+        self.previous_value_attribute_groups = []
+
+    def insert_previous_value(self, race_card: RaceCard, horse: Horse, value):
+        for attribute_group in self.previous_value_attribute_groups:
+            attribute_group_key = ""
+            for attribute in attribute_group:
+                if attribute in horse.__dict__:
+                    attribute_key = getattr(horse, attribute)
+                else:
+                    attribute_key = getattr(race_card, attribute)
+                attribute_group_key += f"{attribute_key}_"
+
+            attribute_group_key = attribute_group_key[:-1]
+            self.update_previous(
+                self.previous_values[attribute_group_key],
+                value,
+            )
+
+    def get_previous_of_name(self, name: str) -> float:
+        previous_elem = self.previous_values[name]
+        if "previous" in previous_elem:
+            return previous_elem["previous"]
+        return -1
+
+
+class PreviousDistanceSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            self.insert_previous_value(race_card, horse, race_card.distance)
 
 
 class WinRateSource(CategoryAverageSource):
@@ -188,37 +227,6 @@ class SpeedFiguresSource(FeatureSource):
         for race_card in race_cards:
             self.update(race_card)
 
-    def preupdate(self, race_cards: List[RaceCard]):
-        self.track_variants = nested_dict()
-        for race_card in race_cards:
-            track_name = race_card_track_to_win_time_track(race_card.track_name)
-            for horse in race_card.horses:
-                current_horse_speed = self.get_current_speed_figure(horse.name)
-                if current_horse_speed != -1:
-                    next_horse_speed = compute_speed_figure(
-                        str(race_card.date),
-                        str(race_card.track_name),
-                        race_card.distance,
-                        race_card.race_result.win_time,
-                        horse.horse_distance,
-                        str(race_card.race_type),
-                        str(race_card.race_type_detail),
-                        str(race_card.surface),
-                        race_card.going,
-                    )
-                    if next_horse_speed is not None:
-                        current_percentile = .5 * (math.erf(current_horse_speed / 2 ** .5) + 1)
-                        next_percentile = .5 * (math.erf(next_horse_speed / 2 ** .5) + 1)
-                        track_variant = next_percentile - current_percentile
-                        if "avg" in self.track_variants[track_name]:
-                            n = self.track_variants[track_name]["count"]
-                            old_avg = self.track_variants[track_name]["avg"]
-                            self.track_variants[track_name]["avg"] = (n * old_avg + track_variant) / (n + 1)
-                            self.track_variants[track_name]["count"] += 1
-                        else:
-                            self.track_variants[track_name]["avg"] = track_variant
-                            self.track_variants[track_name]["count"] = 1
-
     def update(self, race_card: RaceCard):
         if race_card.race_result is not None:
             self.update_track_speed(race_card)
@@ -226,19 +234,20 @@ class SpeedFiguresSource(FeatureSource):
             self.update_speed_figures(race_card)
 
     def update_base_time(self, race_card: RaceCard):
-        track_name = race_card_track_to_win_time_track(race_card.track_name)
+        win_time_track = race_card_track_to_win_time_track(race_card.track_name)
         distance = str(race_card.distance)
         track_surface = race_card.surface
         going = str(race_card.going)
         race_type_detail = str(race_card.race_type_detail)
 
-        base_time = get_base_time(distance, track_surface, going, race_type_detail)
+        base_time = get_base_time(win_time_track, distance, track_surface, going, race_type_detail)
 
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
+                win_time_track,
                 distance,
                 track_surface,
                 going,
@@ -256,12 +265,13 @@ class SpeedFiguresSource(FeatureSource):
                 self.update_variance(category=base_time, new_obs=mean_horse_time)
 
     def update_track_speed(self, race_card: RaceCard):
+        win_time_track = race_card_track_to_win_time_track(race_card.track_name)
         distance = str(race_card.distance)
         track_surface = race_card.surface
         going = str(race_card.going)
         race_type_detail = str(race_card.race_type_detail)
 
-        track_speed = get_speed(distance, track_surface, going, race_type_detail)
+        track_speed = get_speed(win_time_track, distance, track_surface, going, race_type_detail)
 
         win_time = race_card.race_result.win_time
 
@@ -318,15 +328,27 @@ class SpeedFiguresSource(FeatureSource):
         return self.speed_figures[category]["max"]
 
 
+# Average based sources:
 win_rate_source: WinRateSource = WinRateSource()
 show_rate_source: ShowRateSource = ShowRateSource()
 purse_rate_source: PurseRateSource = PurseRateSource()
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
+
+#Previous value based sources:
+previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
+
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
+
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
-        win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source, speed_figures_source, draw_bias_source
+        win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
+
+        previous_distance_source,
+
+        speed_figures_source,
+
+        draw_bias_source,
     ]

@@ -57,13 +57,13 @@ def main():
     train_data_collector = TrainDataCollector(file_name="race_cards")
 
     query_date = date(
-        year=2016,
-        month=9,
-        day=24,
+        year=2022,
+        month=11,
+        day=30,
     )
 
-    #train_data_collector.collect(query_date)
-    train_data_collector.collect_day(query_date)
+    train_data_collector.collect(query_date)
+    #train_data_collector.collect_day(query_date)
 
 
 if __name__ == '__main__':
