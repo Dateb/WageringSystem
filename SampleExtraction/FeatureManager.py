@@ -34,8 +34,8 @@ from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeySho
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
-from SampleExtraction.Extractors.time_based import MonthCos, WeekDaySin, MonthSin, \
-    WeekDayCos, HourCos, HourSin, AbsoluteTime, MinuteCos, MinuteSin
+from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
+    AbsoluteTime
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
     JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate, DamWinRate, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
@@ -55,10 +55,9 @@ class FeatureManager:
             OddsProbability(),
             CurrentSpeedFigure(),
 
-            MonthCos(), MonthSin(),
+            DayOfYearCos(), DayOfYearSin(),
             WeekDayCos(), WeekDaySin(),
-            HourCos(), HourSin(),
-            MinuteCos(), MinuteSin(),
+            MinutesIntoDay(),
 
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),

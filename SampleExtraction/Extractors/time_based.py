@@ -1,3 +1,5 @@
+import datetime
+
 import numpy as np
 
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -7,61 +9,47 @@ from DataAbstraction.Present.Horse import Horse
 HOUR_MAX = 24
 MINUTE_MAX = 60
 MONTH_MAX = 12
+
+DAY_OF_YEAR_MAX = 367
 WEEKDAY_MAX = 7
 
 
-class HourCos(FeatureExtractor):
+class DayOfYearCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.cos(2 * np.pi * race_card.datetime.hour / HOUR_MAX)
+        day_of_year = race_card.date.timetuple().tm_yday
+        return np.cos(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
 
 
-class HourSin(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.sin(2 * np.pi * race_card.datetime.hour / HOUR_MAX)
-
-
-class MinuteCos(FeatureExtractor):
+class DayOfYearSin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.cos(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
+        day_of_year = race_card.date.timetuple().tm_yday
+        return np.sin(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
 
 
-class MinuteSin(FeatureExtractor):
-
+class MinutesIntoDay(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.sin(2 * np.pi * race_card.datetime.minute / MINUTE_MAX)
-
-
-class MonthCos(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.cos(2 * np.pi * (race_card.datetime.month - 1) / MONTH_MAX)
-
-
-class MonthSin(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return np.sin(2 * np.pi * (race_card.datetime.month - 1) / MONTH_MAX)
+        race_card_date_time = race_card.datetime
+        earliest_race_time = datetime.datetime(
+            year=race_card_date_time.year,
+            month=race_card_date_time.month,
+            day=race_card_date_time.day,
+            hour=12,
+            minute=0,
+            second=0,
+        )
+        minutes_into_day = (race_card_date_time - earliest_race_time).seconds / 60
+        return minutes_into_day
 
 
 class WeekDayCos(FeatureExtractor):

@@ -25,11 +25,7 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        current_wealth = 1
-        for i in range(len(self.snapshots)):
-            betting_limit = current_wealth * 0.33
-            current_wealth += self.snapshots[i].payout_percentages * betting_limit
-        self.validation_score = log(current_wealth)
+        self.validation_score = (sum(payout_percentages) / len(betting_slips)) * 1000
 
     @property
     def bet_rate(self):

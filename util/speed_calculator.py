@@ -2,7 +2,8 @@ from util.nested_dict import nested_dict
 
 __base_times = nested_dict()
 __speed = nested_dict()
-__base_speed_category = __speed["1609"]["TRF"]["4"]["FLT"]
+__base_speed_category = __speed["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
+BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.25
 
 
 def get_base_time(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
@@ -29,9 +30,6 @@ def compute_speed_figure(
     base_time = get_base_time(win_time_track, str(distance), surface, str(going), race_type_detail)
     time_avg = base_time["avg"]
     if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(time_avg, float):
-        return None
-
-    if str(distance) not in __base_times:
         return None
 
     horse_time = get_horse_time(win_time, win_time_track, str(distance), surface, str(going), race_type_detail, horse_distance)
@@ -71,7 +69,7 @@ def get_lengths_per_second(track_name: str, distance: str, track_surface: str, g
     category_speed = get_speed(track_name, distance, track_surface, going, race_type_detail)["avg"]
 
     distance_modifier = category_speed / base_speed
-    lengths_per_second = 5 * distance_modifier
+    lengths_per_second = BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND * distance_modifier
     return lengths_per_second
 
 
