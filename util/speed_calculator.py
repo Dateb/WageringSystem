@@ -1,9 +1,16 @@
+from collections import deque
+
 from util.nested_dict import nested_dict
 
 __base_times = nested_dict()
 __speed = nested_dict()
 __base_speed_category = __speed["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
 BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.25
+__speed_figures_distribution = deque(maxlen=10000)
+
+
+def get_speed_figures_distribution() -> deque:
+    return __speed_figures_distribution
 
 
 def get_base_time(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
@@ -41,10 +48,10 @@ def compute_speed_figure(
     else:
         horse_speed_figure = (time_avg - horse_time) / time_std
 
-    if horse_speed_figure < -4:
-        horse_speed_figure = -4
-    if horse_speed_figure > 4:
-        horse_speed_figure = 4
+    if horse_speed_figure < -3:
+        horse_speed_figure = -3
+    if horse_speed_figure > 3:
+        horse_speed_figure = 3
 
     if horse_speed_figure < -300:
         print(date)
@@ -53,6 +60,7 @@ def compute_speed_figure(
         print(horse_distance)
         print("-------------------------")
 
+    get_speed_figures_distribution().append(horse_speed_figure)
     return horse_speed_figure
 
 

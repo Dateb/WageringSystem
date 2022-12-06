@@ -2,9 +2,12 @@ import math
 from math import floor
 from typing import List
 
+from scipy.stats import percentileofscore
+
 from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
+from util.speed_calculator import get_speed_figures_distribution
 
 equip_set = []
 
@@ -98,8 +101,8 @@ class Horse:
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:
-            score_percentile = .5 * (math.erf(speed_figure / 2 ** .5) + 1)
-            self.relevance = floor(score_percentile * 14) + 16 * self.has_won
+            score_percentile = percentileofscore(get_speed_figures_distribution(), speed_figure) / 100
+            self.relevance = floor(score_percentile * 29) + self.has_won
 
         self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
 
