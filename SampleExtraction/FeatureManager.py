@@ -78,7 +78,7 @@ class FeatureManager:
             AgeFrom(), AgeTo(),
             CurrentRating(),
 
-            # HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
+            HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
 
             AbsoluteTime(),
 

@@ -9,7 +9,6 @@ from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
 from util.speed_calculator import get_speed_figures_distribution
 
-equip_set = []
 
 class Horse:
 
@@ -44,11 +43,6 @@ class Horse:
         self.equipments = []
         if "equipCode" in raw_data and raw_data["equipCode"]:
             self.equipments = raw_data["equipCode"].split("+")
-
-        for equip in self.equipments:
-            if equip not in equip_set:
-                equip_set.append(equip)
-                print(equip_set)
 
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)

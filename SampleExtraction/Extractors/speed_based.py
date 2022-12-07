@@ -10,7 +10,7 @@ class CurrentSpeedFigure(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        current_speed_figure = speed_figures_source.get_current_speed_figure(horse.name)
+        current_speed_figure = speed_figures_source.get_current_speed_figure(horse.subject_id)
         if current_speed_figure == -1:
             return self.PLACEHOLDER_VALUE
 
@@ -22,7 +22,7 @@ class BestLifeTimeSpeedFigure(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        max_speed_figure = speed_figures_source.get_max_speed_figure(horse.name)
+        max_speed_figure = speed_figures_source.get_max_speed_figure(horse.subject_id)
         if max_speed_figure == -1:
             return self.PLACEHOLDER_VALUE
 

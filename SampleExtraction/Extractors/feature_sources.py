@@ -7,7 +7,7 @@ from typing import List
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from util.speed_calculator import get_base_time, compute_speed_figure, race_card_track_to_win_time_track, \
+from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
     get_horse_time, get_speed
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
@@ -240,8 +240,6 @@ class SpeedFiguresSource(FeatureSource):
         going = str(race_card.going)
         race_type_detail = str(race_card.race_type_detail)
 
-        base_time = get_base_time(win_time_track, distance, track_surface, going, race_type_detail)
-
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
@@ -257,12 +255,12 @@ class SpeedFiguresSource(FeatureSource):
             if horse_times:
                 mean_horse_time = mean(horse_times)
                 self.update_average(
-                    category=base_time,
+                    category=race_card.estimated_base_time,
                     new_obs=mean_horse_time,
                     new_obs_date=race_card.date,
                     online_calculator=BASE_TIME_CALCULATOR,
                 )
-                self.update_variance(category=base_time, new_obs=mean_horse_time)
+                self.update_variance(category=race_card.estimated_base_time, new_obs=mean_horse_time)
 
     def update_track_speed(self, race_card: RaceCard):
         win_time_track = race_card_track_to_win_time_track(race_card.track_name)
@@ -286,6 +284,7 @@ class SpeedFiguresSource(FeatureSource):
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = compute_speed_figure(
+                race_card.estimated_base_time,
                 str(race_card.date),
                 str(race_card.track_name),
                 race_card.distance,
@@ -304,13 +303,13 @@ class SpeedFiguresSource(FeatureSource):
                 #     speed_figure = speed_figure - self.track_variants[track_name]["avg"]
 
                 self.update_average(
-                    category=self.speed_figures[horse.name],
+                    category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
                     new_obs_date=race_card.date,
                     online_calculator=HORSE_SPEED_CALCULATOR,
                 )
                 self.update_max(
-                    category=self.speed_figures[horse.name],
+                    category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
                 )
 

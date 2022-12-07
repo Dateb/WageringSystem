@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 from typing import List
 
@@ -5,6 +6,7 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
+from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
 
@@ -14,6 +16,8 @@ class RaceCard:
     RACE_ID_KEY: str = "race_id"
     N_HORSES_KEY: str = "n_runners"
     PLACE_NUM_KEY: str = "place_num"
+
+    base_times: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
@@ -92,6 +96,7 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 speed_figure = compute_speed_figure(
+                    self.estimated_base_time,
                     str(self.date),
                     str(self.track_name),
                     self.distance,
@@ -154,3 +159,7 @@ class RaceCard:
     @property
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
+
+    @property
+    def estimated_base_time(self) -> dict:
+        return RaceCard.base_times[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]

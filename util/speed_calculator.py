@@ -2,7 +2,6 @@ from collections import deque
 
 from util.nested_dict import nested_dict
 
-__base_times = nested_dict()
 __speed = nested_dict()
 __base_speed_category = __speed["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
 BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.25
@@ -13,15 +12,12 @@ def get_speed_figures_distribution() -> deque:
     return __speed_figures_distribution
 
 
-def get_base_time(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
-    return __base_times[track_name][distance][track_surface][going][race_type_detail]
-
-
 def get_speed(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
     return __speed[track_name][distance][track_surface][going][race_type_detail]
 
 
 def compute_speed_figure(
+        estimated_base_time: dict,
         date: str,
         track_name: str,
         distance: float,
@@ -34,14 +30,13 @@ def compute_speed_figure(
 ) -> float:
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
     win_time_track = race_card_track_to_win_time_track(track_name)
-    base_time = get_base_time(win_time_track, str(distance), surface, str(going), race_type_detail)
-    time_avg = base_time["avg"]
+    time_avg = estimated_base_time["avg"]
     if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(time_avg, float):
         return None
 
     horse_time = get_horse_time(win_time, win_time_track, str(distance), surface, str(going), race_type_detail, horse_distance)
 
-    time_std = base_time["std"]
+    time_std = estimated_base_time["std"]
 
     if time_std == 0:
         horse_speed_figure = 0
