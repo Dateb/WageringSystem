@@ -18,6 +18,7 @@ class RaceCard:
     PLACE_NUM_KEY: str = "place_num"
 
     base_times: defaultdict = nested_dict()
+    length_modifier: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
@@ -96,16 +97,12 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 speed_figure = compute_speed_figure(
-                    self.estimated_base_time,
-                    str(self.date),
-                    str(self.track_name),
-                    self.distance,
+                    self.estimated_base_time["avg"],
+                    self.estimated_base_time["std"],
+                    self.estimated_length_modifier["avg"],
+                    self.estimated_base_length_modifier,
                     self.race_result.win_time,
                     horse.horse_distance,
-                    str(self.race_type),
-                    str(self.race_type_detail),
-                    str(self.surface),
-                    self.going,
                 )
                 horse.set_relevance(speed_figure)
 
@@ -163,3 +160,11 @@ class RaceCard:
     @property
     def estimated_base_time(self) -> dict:
         return RaceCard.base_times[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]
+
+    @property
+    def estimated_length_modifier(self) -> dict:
+        return RaceCard.length_modifier[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]
+
+    @property
+    def estimated_base_length_modifier(self) -> float:
+        return RaceCard.length_modifier["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]

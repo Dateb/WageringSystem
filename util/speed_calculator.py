@@ -1,9 +1,5 @@
 from collections import deque
 
-from util.nested_dict import nested_dict
-
-__speed = nested_dict()
-__base_speed_category = __speed["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
 BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.25
 __speed_figures_distribution = deque(maxlen=10000)
 
@@ -12,66 +8,42 @@ def get_speed_figures_distribution() -> deque:
     return __speed_figures_distribution
 
 
-def get_speed(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> dict:
-    return __speed[track_name][distance][track_surface][going][race_type_detail]
-
-
 def compute_speed_figure(
-        estimated_base_time: dict,
-        date: str,
-        track_name: str,
-        distance: float,
+        base_time_mean: float,
+        base_time_std: float,
+        length_modifier: float,
+        base_length_modifier: float,
         win_time: float,
         horse_distance: float,
-        race_type: str,
-        race_type_detail: str,
-        surface: str,
-        going: float,
 ) -> float:
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
-    win_time_track = race_card_track_to_win_time_track(track_name)
-    time_avg = estimated_base_time["avg"]
-    if horse_distance < 0 or distance <= 0 or win_time <= 0 or not isinstance(time_avg, float):
+    if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0:
         return None
 
-    horse_time = get_horse_time(win_time, win_time_track, str(distance), surface, str(going), race_type_detail, horse_distance)
+    horse_time = get_horse_time(win_time, length_modifier, base_length_modifier, horse_distance)
 
-    time_std = estimated_base_time["std"]
+    speed_figure = (base_time_mean - horse_time) / base_time_std
 
-    if time_std == 0:
-        horse_speed_figure = 0
-    else:
-        horse_speed_figure = (time_avg - horse_time) / time_std
+    if speed_figure < -5:
+        speed_figure = -5
+    if speed_figure > 5:
+        speed_figure = 5
 
-    if horse_speed_figure < -3:
-        horse_speed_figure = -3
-    if horse_speed_figure > 3:
-        horse_speed_figure = 3
-
-    if horse_speed_figure < -300:
-        print(date)
-        print(distance)
-        print(win_time)
-        print(horse_distance)
-        print("-------------------------")
-
-    get_speed_figures_distribution().append(horse_speed_figure)
-    return horse_speed_figure
+    get_speed_figures_distribution().append(speed_figure)
+    return speed_figure
 
 
-def get_horse_time(win_time: float, track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str, horse_distance: float):
-    seconds_behind_winner = ((1 / get_lengths_per_second(track_name, distance, track_surface, going, race_type_detail)) * horse_distance)
+def get_horse_time(win_time: float, length_modifier: float, base_length_modifier: float, horse_distance: float):
+    seconds_behind_winner = ((1 / get_lengths_per_second(length_modifier, base_length_modifier)) * horse_distance)
 
     return win_time + seconds_behind_winner
 
 
-def get_lengths_per_second(track_name: str, distance: str, track_surface: str, going: str, race_type_detail: str) -> float:
-    if "avg" not in __base_speed_category:
+def get_lengths_per_second(length_modifier: float, base_length_modifier: float) -> float:
+    if not length_modifier or not base_length_modifier:
         return 5
-    base_speed = __base_speed_category["avg"]
-    category_speed = get_speed(track_name, distance, track_surface, going, race_type_detail)["avg"]
 
-    distance_modifier = category_speed / base_speed
+    distance_modifier = length_modifier / base_length_modifier
     lengths_per_second = BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND * distance_modifier
     return lengths_per_second
 

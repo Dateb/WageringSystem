@@ -8,7 +8,7 @@ from typing import List
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_speed
+    get_horse_time
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
@@ -229,27 +229,18 @@ class SpeedFiguresSource(FeatureSource):
 
     def update(self, race_card: RaceCard):
         if race_card.race_result is not None:
-            self.update_track_speed(race_card)
+            self.update_length_modifier(race_card)
             self.update_base_time(race_card)
             self.update_speed_figures(race_card)
 
     def update_base_time(self, race_card: RaceCard):
-        win_time_track = race_card_track_to_win_time_track(race_card.track_name)
-        distance = str(race_card.distance)
-        track_surface = race_card.surface
-        going = str(race_card.going)
-        race_type_detail = str(race_card.race_type_detail)
-
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
-                win_time_track,
-                distance,
-                track_surface,
-                going,
-                race_type_detail,
+                race_card.estimated_length_modifier["avg"],
+                race_card.estimated_base_length_modifier,
                 horse.horse_distance,
             ) for horse in race_card.horses if horse.horse_distance >= 0]
             if horse_times:
@@ -262,20 +253,12 @@ class SpeedFiguresSource(FeatureSource):
                 )
                 self.update_variance(category=race_card.estimated_base_time, new_obs=mean_horse_time)
 
-    def update_track_speed(self, race_card: RaceCard):
-        win_time_track = race_card_track_to_win_time_track(race_card.track_name)
-        distance = str(race_card.distance)
-        track_surface = race_card.surface
-        going = str(race_card.going)
-        race_type_detail = str(race_card.race_type_detail)
-
-        track_speed = get_speed(win_time_track, distance, track_surface, going, race_type_detail)
-
+    def update_length_modifier(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
             self.update_average(
-                category=track_speed,
+                category=race_card.estimated_length_modifier,
                 new_obs=win_time,
                 new_obs_date=race_card.date,
                 online_calculator=TRACK_SPEED_CALCULATOR,
@@ -284,16 +267,12 @@ class SpeedFiguresSource(FeatureSource):
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = compute_speed_figure(
-                race_card.estimated_base_time,
-                str(race_card.date),
-                str(race_card.track_name),
-                race_card.distance,
+                race_card.estimated_base_time["avg"],
+                race_card.estimated_base_time["std"],
+                race_card.estimated_length_modifier["avg"],
+                race_card.estimated_base_length_modifier,
                 race_card.race_result.win_time,
                 horse.horse_distance,
-                str(race_card.race_type),
-                str(race_card.race_type_detail),
-                str(race_card.surface),
-                race_card.going,
             )
 
             if speed_figure is not None:

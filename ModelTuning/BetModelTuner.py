@@ -17,7 +17,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 5
-N_SAMPLE_MONTHS = 45
+N_SAMPLE_MONTHS = 10
 
 
 class BetModelTuner:
@@ -27,7 +27,7 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_races_per_fold=5000,
+            n_races_per_fold=500,
             n_folds=1,
         )
         self.model_evaluator = model_evaluator
