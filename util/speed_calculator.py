@@ -15,12 +15,14 @@ def compute_speed_figure(
         base_length_modifier: float,
         win_time: float,
         horse_distance: float,
+        track_variant: float,
 ) -> float:
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
-    if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0:
+    if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0 or not track_variant:
         return None
 
     horse_time = get_horse_time(win_time, length_modifier, base_length_modifier, horse_distance)
+    horse_time = (1 - track_variant) * horse_time
 
     speed_figure = (base_time_mean - horse_time) / base_time_std
 

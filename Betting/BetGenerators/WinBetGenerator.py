@@ -56,6 +56,8 @@ class WinBetGenerator(BetGenerator):
 
         for i in range(len(horse_numbers)):
             betting_slip = betting_slips[str(race_date_times[i])]
+            if betting_slip.conditional_ev > 0:
+                print(f"it danger: {betting_slip.conditional_ev}")
             ev = betting_slip.conditional_ev + single_ev[i]
             win_prob = win_probabilities[i]
 

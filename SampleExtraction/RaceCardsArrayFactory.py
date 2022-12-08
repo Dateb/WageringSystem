@@ -28,8 +28,20 @@ class RaceCardsArrayFactory:
         self.__model_evaluator.add_results_from_race_cards(sample_race_cards)
         sample_values = []
         for datetime in sorted(sample_race_cards):
-            horse_values_of_race_card = self.get_values_of_race_card(sample_race_cards[datetime])
-            sample_values += horse_values_of_race_card
+            next_race_card = sample_race_cards[datetime]
+            if next_race_card.date != self.current_day:
+                for race_card in self.current_day_race_cards:
+                    self.feature_manager.set_features([race_card])
+                    race_card.set_horse_relevance()
+                    horse_values_of_race_card = self.get_values_of_race_card(race_card)
+                    sample_values += horse_values_of_race_card
+
+                self.feature_manager.post_update_feature_sources(self.current_day_race_cards)
+                self.current_day = next_race_card.date
+                self.current_day_race_cards = []
+
+            self.feature_manager.pre_update_feature_sources(next_race_card)
+            self.current_day_race_cards.append(next_race_card)
 
         return np.array(sample_values)
 
@@ -38,15 +50,6 @@ class RaceCardsArrayFactory:
         return race_card_arr
 
     def get_values_of_race_card(self, race_card: RaceCard) -> List[List[Any]]:
-        if race_card.date != self.current_day:
-            self.feature_manager.update_feature_sources(self.current_day_race_cards)
-            self.current_day = race_card.date
-            self.current_day_race_cards = []
-
-        self.feature_manager.set_features([race_card])
-        race_card.set_horse_relevance()
-        self.current_day_race_cards.append(race_card)
-
         horse_values_of_race_card = []
         for horse in race_card.horses:
             horse_values_of_race_card.append(race_card.values + horse.values)

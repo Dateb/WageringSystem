@@ -25,10 +25,7 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        positive_payouts = len([payout for payout in payout_percentages if payout > 0])
-        negative_payouts = len([payout for payout in payout_percentages if payout < 0])
-        self.validation_score = positive_payouts / (positive_payouts + negative_payouts)
-        print(f"Payout: {(sum(payout_percentages) / len(betting_slips)) * 1000}")
+        self.validation_score = (sum(payout_percentages) / len(betting_slips)) * 1000
 
     @property
     def bet_rate(self):

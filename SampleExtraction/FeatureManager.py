@@ -76,9 +76,9 @@ class FeatureManager:
             Age(), DrawBias(),
             HasTrainerMultipleHorses(),
             AgeFrom(), AgeTo(),
-            CurrentRating(),
+            #CurrentRating(),
 
-            HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
+            #HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
 
             AbsoluteTime(),
 
@@ -151,13 +151,20 @@ class FeatureManager:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
                 horse.set_feature_value(feature_extractor.get_name(), feature_value)
 
-    def update_feature_sources(self, race_cards: List[RaceCard]) -> None:
+    def pre_update_feature_sources(self, race_card: RaceCard) -> None:
+        feature_sources = get_feature_sources()
+
+        if race_card.has_results:
+            for feature_source in feature_sources:
+                feature_source.pre_update(race_card)
+
+    def post_update_feature_sources(self, race_cards: List[RaceCard]) -> None:
         feature_sources = get_feature_sources()
 
         for race_card in race_cards:
             if race_card.has_results:
                 for feature_source in feature_sources:
-                    feature_source.update(race_card)
+                    feature_source.post_update(race_card)
 
     def __report_if_feature_missing(self, horse: Horse, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

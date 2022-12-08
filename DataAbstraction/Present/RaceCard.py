@@ -19,6 +19,8 @@ class RaceCard:
 
     base_times: defaultdict = nested_dict()
     length_modifier: defaultdict = nested_dict()
+    par_time: defaultdict = nested_dict()
+    track_variant: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
         self.race_id = race_id
@@ -97,12 +99,13 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 speed_figure = compute_speed_figure(
-                    self.estimated_base_time["avg"],
-                    self.estimated_base_time["std"],
-                    self.estimated_length_modifier["avg"],
+                    self.base_time_estimate["avg"],
+                    self.base_time_estimate["std"],
+                    self.length_modifier_estimate["avg"],
                     self.estimated_base_length_modifier,
                     self.race_result.win_time,
                     horse.horse_distance,
+                    self.track_variant_estimate["avg"],
                 )
                 horse.set_relevance(speed_figure)
 
@@ -158,13 +161,21 @@ class RaceCard:
         return self.__head_to_head_horses
 
     @property
-    def estimated_base_time(self) -> dict:
-        return RaceCard.base_times[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]
+    def base_time_estimate(self) -> dict:
+        return RaceCard.base_times[self.distance][self.race_type_detail]
 
     @property
-    def estimated_length_modifier(self) -> dict:
+    def length_modifier_estimate(self) -> dict:
         return RaceCard.length_modifier[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]
+
+    @property
+    def par_time_estimate(self) -> dict:
+        return RaceCard.par_time[self.distance][self.race_class][self.race_type_detail]
 
     @property
     def estimated_base_length_modifier(self) -> float:
         return RaceCard.length_modifier["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
+
+    @property
+    def track_variant_estimate(self) -> dict:
+        return RaceCard.track_variant[self.track_name]

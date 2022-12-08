@@ -10,7 +10,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
-    num_boost_round_values = [600, 800, 1000]
+    num_boost_round_values = [400, 600]
     expected_value_additional_threshold_values = [0.0]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]

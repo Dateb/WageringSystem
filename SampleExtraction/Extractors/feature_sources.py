@@ -16,7 +16,8 @@ from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, Expo
 CATEGORY_AVERAGE_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
 BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
 HORSE_SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
-TRACK_SPEED_CALCULATOR = SimpleOnlineCalculator()
+LENGTH_MODIFIER_CALCULATOR = SimpleOnlineCalculator()
+PAR_TIME_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.01, fading_factor=0.1)
 DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.001, fading_factor=0.1)
 
 
@@ -27,10 +28,13 @@ class FeatureSource(ABC):
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
-            self.update(race_card)
+            self.post_update(race_card)
+
+    def pre_update(self, race_card: RaceCard):
+        pass
 
     @abstractmethod
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         pass
 
     def update_average(self, category: dict, new_obs: float, new_obs_date: Date, online_calculator: OnlineCalculator) -> None:
@@ -142,7 +146,7 @@ class PreviousDistanceSource(PreviousValueSource):
     def __init__(self):
         super().__init__()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             self.insert_previous_value(race_card, horse, race_card.distance)
 
@@ -152,7 +156,7 @@ class WinRateSource(CategoryAverageSource):
     def __init__(self):
         super().__init__()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             self.insert_value_into_avg(race_card, horse, horse.has_won)
 
@@ -162,7 +166,7 @@ class ShowRateSource(CategoryAverageSource):
     def __init__(self):
         super().__init__()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             show_indicator = int(1 <= horse.place <= 3)
             self.insert_value_into_avg(race_card, horse, show_indicator)
@@ -173,7 +177,7 @@ class PurseRateSource(CategoryAverageSource):
     def __init__(self):
         super().__init__()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             self.insert_value_into_avg(race_card, horse, horse.purse)
 
@@ -183,7 +187,7 @@ class PercentageBeatenSource(CategoryAverageSource):
     def __init__(self):
         super().__init__()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         n_horses = race_card.n_horses
         for horse in race_card.horses:
             # TODO: n_horses is 1 sometimes. This should be looked into
@@ -198,7 +202,7 @@ class DrawBiasSource(FeatureSource):
         super().__init__()
         self.draw_bias = nested_dict()
 
-    def update(self, race_card: RaceCard):
+    def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             track_name = race_card_track_to_win_time_track(race_card.track_name)
             post_position = str(horse.post_position)
@@ -222,16 +226,40 @@ class SpeedFiguresSource(FeatureSource):
         super().__init__()
         self.speed_figures = nested_dict()
         self.track_variants = nested_dict()
+        self.is_first_pre_update = True
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
-            self.update(race_card)
+            self.post_update(race_card)
 
-    def update(self, race_card: RaceCard):
+    def pre_update(self, race_card: RaceCard) -> None:
+        if self.is_first_pre_update:
+            self.track_variants = nested_dict()
+            self.is_first_pre_update = False
+
+        if race_card.race_result is not None:
+            self.update_track_variant(race_card)
+
+    def post_update(self, race_card: RaceCard) -> None:
+        self.is_first_pre_update = True
         if race_card.race_result is not None:
             self.update_length_modifier(race_card)
-            self.update_base_time(race_card)
             self.update_speed_figures(race_card)
+            self.update_base_time(race_card)
+            self.update_par_time(race_card)
+
+    def update_track_variant(self, race_card: RaceCard) -> None:
+        par_time = race_card.par_time_estimate["avg"]
+        win_time = race_card.race_result.win_time
+
+        if par_time:
+            track_variant = (win_time - par_time) / par_time
+            self.update_average(
+                category=race_card.track_variant_estimate,
+                new_obs=track_variant,
+                new_obs_date=race_card.date,
+                online_calculator=SimpleOnlineCalculator(),
+            )
 
     def update_base_time(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
@@ -239,48 +267,44 @@ class SpeedFiguresSource(FeatureSource):
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
-                race_card.estimated_length_modifier["avg"],
+                race_card.length_modifier_estimate["avg"],
                 race_card.estimated_base_length_modifier,
                 horse.horse_distance,
             ) for horse in race_card.horses if horse.horse_distance >= 0]
             if horse_times:
                 mean_horse_time = mean(horse_times)
                 self.update_average(
-                    category=race_card.estimated_base_time,
+                    category=race_card.base_time_estimate,
                     new_obs=mean_horse_time,
                     new_obs_date=race_card.date,
                     online_calculator=BASE_TIME_CALCULATOR,
                 )
-                self.update_variance(category=race_card.estimated_base_time, new_obs=mean_horse_time)
+                self.update_variance(category=race_card.base_time_estimate, new_obs=mean_horse_time)
 
     def update_length_modifier(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
             self.update_average(
-                category=race_card.estimated_length_modifier,
+                category=race_card.length_modifier_estimate,
                 new_obs=win_time,
                 new_obs_date=race_card.date,
-                online_calculator=TRACK_SPEED_CALCULATOR,
+                online_calculator=LENGTH_MODIFIER_CALCULATOR,
             )
 
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = compute_speed_figure(
-                race_card.estimated_base_time["avg"],
-                race_card.estimated_base_time["std"],
-                race_card.estimated_length_modifier["avg"],
+                race_card.base_time_estimate["avg"],
+                race_card.base_time_estimate["std"],
+                race_card.length_modifier_estimate["avg"],
                 race_card.estimated_base_length_modifier,
                 race_card.race_result.win_time,
                 horse.horse_distance,
+                race_card.track_variant_estimate["avg"],
             )
 
             if speed_figure is not None:
-                # track_name = race_card_track_to_win_time_track(race_card.track_name)
-
-                # if track_name in self.track_variants:
-                #     speed_figure = speed_figure - self.track_variants[track_name]["avg"]
-
                 self.update_average(
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
@@ -291,6 +315,17 @@ class SpeedFiguresSource(FeatureSource):
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
                 )
+
+    def update_par_time(self, race_card: RaceCard):
+        win_time = race_card.race_result.win_time
+
+        if win_time > 0:
+            self.update_average(
+                category=race_card.par_time_estimate,
+                new_obs=win_time,
+                new_obs_date=race_card.date,
+                online_calculator=PAR_TIME_CALCULATOR,
+            )
 
     def get_current_speed_figure(self, category: str):
         if category not in self.speed_figures:
