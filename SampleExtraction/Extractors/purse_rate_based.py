@@ -1,12 +1,12 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import percentage_beaten_source
+from SampleExtraction.Extractors.feature_sources import purse_rate_source
 
 
 class HorsePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["name"])
+    purse_rate_source.average_attribute_groups.append(["name"])
 
     def __init__(self):
         super().__init__()
@@ -17,7 +17,7 @@ class HorsePurseRate(FeatureExtractor):
 
 class JockeyPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["jockey_name"])
+    purse_rate_source.average_attribute_groups.append(["jockey_name"])
 
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class JockeyPurseRate(FeatureExtractor):
 
 class TrainerPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["trainer_name"])
+    purse_rate_source.average_attribute_groups.append(["trainer_name"])
 
     def __init__(self):
         super().__init__()
@@ -39,7 +39,7 @@ class TrainerPurseRate(FeatureExtractor):
 
 class HorseJockeyPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["name", "jockey_name"])
+    purse_rate_source.average_attribute_groups.append(["name", "jockey_name"])
 
     def __init__(self):
         super().__init__()
@@ -50,7 +50,7 @@ class HorseJockeyPurseRate(FeatureExtractor):
 
 class HorseTrainerPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["name", "trainer_name"])
+    purse_rate_source.average_attribute_groups.append(["name", "trainer_name"])
 
     def __init__(self):
         super().__init__()
@@ -61,7 +61,7 @@ class HorseTrainerPurseRate(FeatureExtractor):
 
 class HorseBreederPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["name", "breeder"])
+    purse_rate_source.average_attribute_groups.append(["name", "breeder"])
 
     def __init__(self):
         super().__init__()
@@ -72,7 +72,7 @@ class HorseBreederPurseRate(FeatureExtractor):
 
 class BreederPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["breeder"])
+    purse_rate_source.average_attribute_groups.append(["breeder"])
 
     def __init__(self):
         super().__init__()
@@ -83,7 +83,7 @@ class BreederPurseRate(FeatureExtractor):
 
 class OwnerPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["owner"])
+    purse_rate_source.average_attribute_groups.append(["owner"])
 
     def __init__(self):
         super().__init__()
@@ -94,7 +94,7 @@ class OwnerPurseRate(FeatureExtractor):
 
 class SirePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["sire"])
+    purse_rate_source.average_attribute_groups.append(["sire"])
 
     def __init__(self):
         super().__init__()
@@ -105,7 +105,7 @@ class SirePurseRate(FeatureExtractor):
 
 class DamPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["dam"])
+    purse_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
         super().__init__()
@@ -116,7 +116,7 @@ class DamPurseRate(FeatureExtractor):
 
 class DamSirePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["dam_sire"])
+    purse_rate_source.average_attribute_groups.append(["dam_sire"])
 
     def __init__(self):
         super().__init__()
@@ -127,7 +127,7 @@ class DamSirePurseRate(FeatureExtractor):
 
 class JockeyDistancePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["jockey_name", "distance"])
+    purse_rate_source.average_attribute_groups.append(["jockey_name", "distance"])
 
     def __init__(self):
         super().__init__()
@@ -138,7 +138,7 @@ class JockeyDistancePurseRate(FeatureExtractor):
 
 class JockeySurfacePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["jockey_name", "surface"])
+    purse_rate_source.average_attribute_groups.append(["jockey_name", "surface"])
 
     def __init__(self):
         super().__init__()
@@ -149,7 +149,7 @@ class JockeySurfacePurseRate(FeatureExtractor):
 
 class JockeyTrackPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["jockey_name", "track_name"])
+    purse_rate_source.average_attribute_groups.append(["jockey_name", "track_name"])
 
     def __init__(self):
         super().__init__()
@@ -160,7 +160,7 @@ class JockeyTrackPurseRate(FeatureExtractor):
 
 class JockeyClassPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["jockey_name", "race_class"])
+    purse_rate_source.average_attribute_groups.append(["jockey_name", "race_class"])
 
     def __init__(self):
         super().__init__()
@@ -171,7 +171,7 @@ class JockeyClassPurseRate(FeatureExtractor):
 
 class TrainerDistancePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["trainer_name", "distance"])
+    purse_rate_source.average_attribute_groups.append(["trainer_name", "distance"])
 
     def __init__(self):
         super().__init__()
@@ -182,7 +182,7 @@ class TrainerDistancePurseRate(FeatureExtractor):
 
 class TrainerSurfacePurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["trainer_name", "surface"])
+    purse_rate_source.average_attribute_groups.append(["trainer_name", "surface"])
 
     def __init__(self):
         super().__init__()
@@ -193,7 +193,7 @@ class TrainerSurfacePurseRate(FeatureExtractor):
 
 class TrainerTrackPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["trainer_name", "track_name"])
+    purse_rate_source.average_attribute_groups.append(["trainer_name", "track_name"])
 
     def __init__(self):
         super().__init__()
@@ -204,7 +204,7 @@ class TrainerTrackPurseRate(FeatureExtractor):
 
 class TrainerClassPurseRate(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["trainer_name", "race_class"])
+    purse_rate_source.average_attribute_groups.append(["trainer_name", "race_class"])
 
     def __init__(self):
         super().__init__()
@@ -214,7 +214,7 @@ class TrainerClassPurseRate(FeatureExtractor):
 
 
 def get_show_rate_of_name(name: str) -> float:
-    show_rate = percentage_beaten_source.get_average_of_name(name)
+    show_rate = purse_rate_source.get_average_of_name(name)
     if show_rate == -1:
         return float('NaN')
     return show_rate
