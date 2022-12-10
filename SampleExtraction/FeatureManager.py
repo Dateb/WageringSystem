@@ -133,12 +133,6 @@ class FeatureManager:
 
         return default_features
 
-    def warmup_feature_sources(self, race_cards: List[RaceCard]):
-        feature_sources = get_feature_sources()
-        print(f"Feature sources: {feature_sources}")
-        for feature_source in feature_sources:
-            feature_source.warmup(race_cards)
-
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
             self.__set_features_of_race_card(race_card)

@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 20
-N_SAMPLE_MONTHS = 43
+N_CONTAINER_MONTHS = 10
+N_SAMPLE_MONTHS = 53
 
 
 class BetModelTuner:
@@ -61,19 +61,20 @@ def optimize_model_configuration():
     feature_manager = FeatureManager()
 
     race_cards_loader = RaceCardsPersistence("race_cards")
+    model_evaluator = ModelEvaluator()
+    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
+
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
     container_race_cards = list(container_race_cards.values())
-    feature_manager.warmup_feature_sources(container_race_cards)
+    for race_card_file_name in tqdm(container_race_card_file_names):
+        race_cards_array_factory.race_card_file_to_array(race_card_file_name)
 
     if N_SAMPLE_MONTHS == -1:
         last_sample_container_idx = len(race_cards_loader.race_card_file_names)
     else:
         last_sample_container_idx = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
-
-    model_evaluator = ModelEvaluator()
-    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
 
     # features not known from the container race card
     # TODO: this throws an indexerror when containers are none
