@@ -12,6 +12,7 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfi
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
+from util.stats_calculator import ExponentialOnlineCalculator
 
 
 class SimulateThread(threading.Thread):
@@ -69,7 +70,7 @@ class BetModelConfigurationTuner:
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
-                n_train_races=self.sample_split_generator.n_train_races,
+                n_train_races=self.sample_split_generator.n_train_validation_races,
             ),
         )
 
@@ -91,23 +92,33 @@ class BetModelConfigurationTuner:
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
-                self.sample_split_generator.n_train_races,
+                self.sample_split_generator.n_train_validation_races,
             )
 
             results = self.__simulate(terminal_configuration)
-            score = mean(list(results.values()))
-            self.__backup(front_node, score)
 
-            self.feature_scorer.update_feature_scores(score, terminal_configuration.selected_search_features)
+            #exp_calculator = ExponentialOnlineCalculator(base_alpha=0.5)
+            total_score = mean(list(results.values()))
+            # for score in list(results.values()):
+            #     total_score = exp_calculator.calculate_average(
+            #         old_average=total_score,
+            #         new_obs=score,
+            #         count=0,
+            #         n_days_since_last_obs=0,
+            #     )
 
-            if score > self.__max_score:
+            self.__backup(front_node, total_score)
+
+            self.feature_scorer.update_feature_scores(total_score, terminal_configuration.selected_search_features)
+
+            if total_score > self.__max_score:
                 self.__best_configuration = terminal_configuration
                 print("New best Result:")
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
                 print(terminal_configuration)
-                print(f"Score: {score}")
-                self.__max_score = score
+                print(f"Score: {total_score}")
+                self.__max_score = total_score
                 return True
 
         return False
@@ -129,7 +140,7 @@ class BetModelConfigurationTuner:
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
-            self.sample_split_generator.n_train_races,
+            self.sample_split_generator.n_train_validation_races,
         )
 
         new_node = BetModelConfigurationNode(
@@ -148,9 +159,10 @@ class BetModelConfigurationTuner:
         ]
         for simulation_thread in simulation_threads:
             simulation_thread.start()
-
-        for simulation_thread in simulation_threads:
             simulation_thread.join()
+
+        # for simulation_thread in simulation_threads:
+        #     simulation_thread.join()
 
         return results
 

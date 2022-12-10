@@ -9,6 +9,8 @@ from DataAbstraction.Present.RaceResult import RaceResult
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
+track_name_set = []
+
 
 class RaceCard:
 
@@ -44,6 +46,10 @@ class RaceCard:
 
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
+        if self.track_name not in track_name_set:
+            track_name_set.append(self.track_name)
+            print(track_name_set)
+
         self.track_id = event["idTrack"]
         if "placesNum" not in race:
             self.place_num = 1
@@ -179,3 +185,7 @@ class RaceCard:
     @property
     def track_variant_estimate(self) -> dict:
         return RaceCard.track_variant[self.track_name]
+
+    @staticmethod
+    def reset_track_variant_estimate() -> None:
+        RaceCard.track_variant = nested_dict()

@@ -225,7 +225,6 @@ class SpeedFiguresSource(FeatureSource):
     def __init__(self):
         super().__init__()
         self.speed_figures = nested_dict()
-        self.track_variants = nested_dict()
         self.is_first_pre_update = True
 
     def warmup(self, race_cards: List[RaceCard]):
@@ -234,7 +233,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def pre_update(self, race_card: RaceCard) -> None:
         if self.is_first_pre_update:
-            self.track_variants = nested_dict()
+            RaceCard.reset_track_variant_estimate()
             self.is_first_pre_update = False
 
         if race_card.race_result is not None:

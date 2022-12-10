@@ -76,9 +76,9 @@ class FeatureManager:
             Age(), DrawBias(),
             HasTrainerMultipleHorses(),
             AgeFrom(), AgeTo(),
-            #CurrentRating(),
+            CurrentRating(),
 
-            #HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
+            HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
 
             AbsoluteTime(),
 

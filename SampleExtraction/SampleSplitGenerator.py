@@ -14,12 +14,17 @@ class SampleSplitGenerator:
 
         race_cards_dataframe = race_card_samples.race_cards_dataframe
         self.race_ids = sorted(list(set(race_cards_dataframe[RaceCard.RACE_ID_KEY].values)))
-        self.n_races = len(self.race_ids)
-        self.n_train_races = self.n_races - 2 * self.n_races_per_fold
-        print(self.n_train_races)
 
-        if self.n_train_races < 1:
-            print(f"Chosen too many examples for validation/test set. No training examples left.")
+        self.n_races = len(self.race_ids)
+        self.n_validation_races = self.n_races_per_fold
+        self.n_test_races = self.n_races_per_fold
+        self.n_train_validation_races = self.n_races - self.n_test_races
+
+        print(self.n_train_validation_races)
+
+        if self.n_train_validation_races < self.n_races_per_fold * self.n_folds:
+            print(f"Train/Validation pool of size {self.n_train_validation_races} too small. "
+                  f"Needs at least size of {self.n_races_per_fold * self.n_folds}.")
             return -1
 
         race_number_df = pd.DataFrame(
@@ -32,14 +37,21 @@ class SampleSplitGenerator:
         self.race_cards_dataframe = race_cards_dataframe.merge(right=race_number_df, on=RaceCard.RACE_ID_KEY, how="inner").sort_values(by="race_number")
 
     def get_train_validation_split(self, nth_validation_fold: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        train_interval = [i + (self.n_races_per_fold * nth_validation_fold) for i in range(self.n_train_races)]
-        validation_interval = [i + train_interval[-1] + 1 for i in range(self.n_races_per_fold)]
+        left_train_end = self.n_train_validation_races - self.n_races_per_fold * (nth_validation_fold + 1)
+        train_idx_left = [i for i in range(0, left_train_end)]
 
-        return self.__split(train_interval, validation_interval)
+        right_train_begin = self.n_train_validation_races - self.n_races_per_fold * nth_validation_fold
+        train_idx_right = [i for i in range(right_train_begin, self.n_train_validation_races)]
+
+        train_idx = train_idx_left + train_idx_right
+
+        validation_idx = [i for i in range(left_train_end, right_train_begin)]
+
+        return self.__split(train_idx, validation_idx)
 
     def get_train_test_split(self, nth_test_fold: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        train_interval = [i + (self.n_races_per_fold * (self.n_folds + nth_test_fold)) for i in range(self.n_train_races)]
-        test_interval = [i + train_interval[-1] + 1 for i in range(self.n_races_per_fold)]
+        train_interval = [i for i in range(0, self.n_train_validation_races)]
+        test_interval = [i for i in range(self.n_train_validation_races, self.n_races)]
 
         return self.__split(train_interval, test_interval)
 
