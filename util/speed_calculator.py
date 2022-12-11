@@ -1,6 +1,6 @@
 from collections import deque
 
-BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.25
+BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.77
 __speed_figures_distribution = deque(maxlen=10000)
 
 

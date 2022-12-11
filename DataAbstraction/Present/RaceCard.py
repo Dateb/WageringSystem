@@ -6,6 +6,7 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
+from util.base_lengths_per_second_estimation import BaseLengthEstimator
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
@@ -46,9 +47,9 @@ class RaceCard:
 
         self.__set_head_to_head_horses(race)
         self.track_name = event["title"]
-        if self.track_name not in track_name_set:
-            track_name_set.append(self.track_name)
-            print(track_name_set)
+        # if self.track_name not in track_name_set:
+        #     track_name_set.append(self.track_name)
+        #     print(track_name_set)
 
         self.track_id = event["idTrack"]
         if "placesNum" not in race:
@@ -84,6 +85,12 @@ class RaceCard:
             self.PLACE_NUM_KEY: self.place_num,
         }
 
+        BaseLengthEstimator.update_lengths_per_second(
+            self.length_modifier_estimate,
+            self.distance,
+            self.race_result.win_time
+        )
+
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
         #     if horse.n_past_races >= 1:
@@ -108,7 +115,7 @@ class RaceCard:
                     self.base_time_estimate["avg"],
                     self.base_time_estimate["std"],
                     self.length_modifier_estimate["avg"],
-                    self.estimated_base_length_modifier,
+                    self.estimated_base_length_modifier["avg"],
                     self.race_result.win_time,
                     horse.horse_distance,
                     self.track_variant_estimate["avg"],
@@ -172,15 +179,15 @@ class RaceCard:
 
     @property
     def length_modifier_estimate(self) -> dict:
-        return RaceCard.length_modifier[self.track_name][self.distance][self.surface][self.going][self.race_type_detail]
+        return RaceCard.length_modifier[self.distance][self.race_type_detail]
 
     @property
     def par_time_estimate(self) -> dict:
         return RaceCard.par_time[self.distance][self.race_class][self.race_type_detail]
 
     @property
-    def estimated_base_length_modifier(self) -> float:
-        return RaceCard.length_modifier["Wolverhampton"]["1437"]["EQT"]["0"]["FLT"]
+    def estimated_base_length_modifier(self) -> dict:
+        return RaceCard.length_modifier[1437]["FLT"]
 
     @property
     def track_variant_estimate(self) -> dict:

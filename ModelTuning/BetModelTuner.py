@@ -17,7 +17,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 10
-N_SAMPLE_MONTHS = 53
+N_SAMPLE_MONTHS = 63
 
 
 class BetModelTuner:
@@ -27,8 +27,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_races_per_fold=2000,
-            n_folds=5,
+            n_races_per_fold=6000,
+            n_folds=1,
         )
         self.model_evaluator = model_evaluator
 
@@ -39,7 +39,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=30)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
 
         return bet_model_configuration
 
@@ -64,20 +64,17 @@ def optimize_model_configuration():
     model_evaluator = ModelEvaluator()
     race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
 
+    n_months = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
-    container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
-    container_race_cards = list(container_race_cards.values())
+    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:n_months]
+    print(sample_race_card_file_names[0])
     for race_card_file_name in tqdm(container_race_card_file_names):
         race_cards_array_factory.race_card_file_to_array(race_card_file_name)
 
-    if N_SAMPLE_MONTHS == -1:
-        last_sample_container_idx = len(race_cards_loader.race_card_file_names)
-    else:
-        last_sample_container_idx = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
-    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:last_sample_container_idx]
-
     # features not known from the container race card
     # TODO: this throws an indexerror when containers are none
+    container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
+    container_race_cards = list(container_race_cards.values())
     columns = container_race_cards[0].attributes + feature_manager.feature_names
     sample_encoder = SampleEncoder(feature_manager.features, columns)
 

@@ -7,7 +7,7 @@ from DataAbstraction.Present.RaceResult import RaceResult
 
 class Bet(ABC):
 
-    BET_TAX: float = 0.05
+    BET_TAX: float = 0.00
     WIN_COMMISION: float = 0.00
 
     def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float, success_probability: float):
