@@ -11,8 +11,7 @@ def get_speed_figures_distribution() -> deque:
 def compute_speed_figure(
         base_time_mean: float,
         base_time_std: float,
-        length_modifier: float,
-        base_length_modifier: float,
+        lengths_per_second: float,
         win_time: float,
         horse_distance: float,
         track_variant: float,
@@ -21,7 +20,7 @@ def compute_speed_figure(
     if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0 or not track_variant:
         return None
 
-    horse_time = get_horse_time(win_time, length_modifier, base_length_modifier, horse_distance)
+    horse_time = get_horse_time(win_time, lengths_per_second, horse_distance)
     horse_time = (1 - track_variant) * horse_time
 
     speed_figure = (base_time_mean - horse_time) / base_time_std
@@ -35,19 +34,13 @@ def compute_speed_figure(
     return speed_figure
 
 
-def get_horse_time(win_time: float, length_modifier: float, base_length_modifier: float, horse_distance: float):
-    seconds_behind_winner = ((1 / get_lengths_per_second(length_modifier, base_length_modifier)) * horse_distance)
+def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):
+    if not lengths_per_second:
+        lengths_per_second = 5
+
+    seconds_behind_winner = ((1 / lengths_per_second) * horse_distance)
 
     return win_time + seconds_behind_winner
-
-
-def get_lengths_per_second(length_modifier: float, base_length_modifier: float) -> float:
-    if not length_modifier or not base_length_modifier:
-        return 5
-
-    distance_modifier = length_modifier / base_length_modifier
-    lengths_per_second = BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND * distance_modifier
-    return lengths_per_second
 
 
 def race_card_track_to_win_time_track(track_name: str) -> str:

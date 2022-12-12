@@ -6,7 +6,6 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
-from util.base_lengths_per_second_estimation import BaseLengthEstimator
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
@@ -85,12 +84,6 @@ class RaceCard:
             self.PLACE_NUM_KEY: self.place_num,
         }
 
-        BaseLengthEstimator.update_lengths_per_second(
-            self.length_modifier_estimate,
-            self.distance,
-            self.race_result.win_time
-        )
-
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
         #     if horse.n_past_races >= 1:
@@ -114,8 +107,7 @@ class RaceCard:
                 speed_figure = compute_speed_figure(
                     self.base_time_estimate["avg"],
                     self.base_time_estimate["std"],
-                    self.length_modifier_estimate["avg"],
-                    self.estimated_base_length_modifier["avg"],
+                    self.lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     horse.horse_distance,
                     self.track_variant_estimate["avg"],
@@ -178,16 +170,12 @@ class RaceCard:
         return RaceCard.base_times[self.distance][self.race_type_detail]
 
     @property
-    def length_modifier_estimate(self) -> dict:
+    def lengths_per_second_estimate(self) -> dict:
         return RaceCard.length_modifier[self.distance][self.race_type_detail]
 
     @property
     def par_time_estimate(self) -> dict:
         return RaceCard.par_time[self.distance][self.race_class][self.race_type_detail]
-
-    @property
-    def estimated_base_length_modifier(self) -> dict:
-        return RaceCard.length_modifier[1437]["FLT"]
 
     @property
     def track_variant_estimate(self) -> dict:

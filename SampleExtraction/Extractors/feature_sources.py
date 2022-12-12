@@ -221,6 +221,8 @@ class DrawBiasSource(FeatureSource):
 
 class SpeedFiguresSource(FeatureSource):
 
+    METERS_PER_LENGTH: float = 2.4
+
     def __init__(self):
         super().__init__()
         self.speed_figures = nested_dict()
@@ -244,7 +246,7 @@ class SpeedFiguresSource(FeatureSource):
             self.update_speed_figures(race_card)
             self.update_base_time(race_card)
             self.update_par_time(race_card)
-            self.update_length_modifier(race_card)
+            self.update_lengths_per_second(race_card)
 
     def update_track_variant(self, race_card: RaceCard) -> None:
         par_time = race_card.par_time_estimate["avg"]
@@ -265,8 +267,7 @@ class SpeedFiguresSource(FeatureSource):
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
-                race_card.length_modifier_estimate["avg"],
-                race_card.estimated_base_length_modifier["avg"],
+                race_card.lengths_per_second_estimate["avg"],
                 horse.horse_distance,
             ) for horse in race_card.horses if horse.horse_distance >= 0]
             if horse_times:
@@ -279,13 +280,16 @@ class SpeedFiguresSource(FeatureSource):
                 )
                 self.update_variance(category=race_card.base_time_estimate, new_obs=mean_horse_time)
 
-    def update_length_modifier(self, race_card: RaceCard):
+    def update_lengths_per_second(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
+            meters_per_second = race_card.distance / win_time
+            lengths_per_second = meters_per_second / self.METERS_PER_LENGTH
+
             self.update_average(
-                category=race_card.length_modifier_estimate,
-                new_obs=win_time,
+                category=race_card.lengths_per_second_estimate,
+                new_obs=lengths_per_second,
                 new_obs_date=race_card.date,
                 online_calculator=LENGTH_MODIFIER_CALCULATOR,
             )
@@ -295,8 +299,7 @@ class SpeedFiguresSource(FeatureSource):
             speed_figure = compute_speed_figure(
                 race_card.base_time_estimate["avg"],
                 race_card.base_time_estimate["std"],
-                race_card.length_modifier_estimate["avg"],
-                race_card.estimated_base_length_modifier["avg"],
+                race_card.lengths_per_second_estimate["avg"],
                 race_card.race_result.win_time,
                 horse.horse_distance,
                 race_card.track_variant_estimate["avg"],
