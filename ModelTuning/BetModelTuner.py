@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 10
-N_SAMPLE_MONTHS = 67
+N_CONTAINER_MONTHS = 12
+N_SAMPLE_MONTHS = 75
 
 
 class BetModelTuner:

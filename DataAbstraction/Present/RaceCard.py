@@ -9,8 +9,6 @@ from DataAbstraction.Present.RaceResult import RaceResult
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
-track_name_set = []
-
 
 class RaceCard:
 
@@ -45,16 +43,13 @@ class RaceCard:
             self.race_result: RaceResult = RaceResult(raw_result)
 
         self.__set_head_to_head_horses(race)
-        self.track_name = event["title"]
-        # if self.track_name not in track_name_set:
-        #     track_name_set.append(self.track_name)
-        #     print(track_name_set)
+        self.set_track_name(raw_race_card)
 
         self.track_id = event["idTrack"]
         if "placesNum" not in race:
-            self.place_num = 1
+            self.places_num = 1
         else:
-            self.place_num = race["placesNum"]
+            self.places_num = race["placesNum"]
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
         self.going = race["trackGoing"]
@@ -81,7 +76,7 @@ class RaceCard:
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
             self.N_HORSES_KEY: self.n_horses,
-            self.PLACE_NUM_KEY: self.place_num,
+            self.PLACE_NUM_KEY: self.places_num,
         }
 
         # TODO: there some border cases here. Would need a fix.
@@ -118,6 +113,20 @@ class RaceCard:
         self.date_raw = raw_race_card["race"]["postTime"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
+
+    def set_track_name(self, raw_race_card: dict):
+        self.track_name = raw_race_card["event"]["title"]
+        if "Chelmsford" in self.track_name:
+            self.track_name = "Chelmsford"
+        if "Bangor" in self.track_name:
+            self.track_name = "Bangor"
+        if "Ascot" in self.track_name:
+            self.track_name = "Ascot"
+        if "Goodwood" in self.track_name:
+            self.track_name = "Goodwood"
+
+        if "PMU" in self.track_name:
+            self.track_name = self.track_name[:-4]
 
     def __remove_non_starters(self):
         self.horses = [horse for horse in self.horses if not horse.is_scratched]
