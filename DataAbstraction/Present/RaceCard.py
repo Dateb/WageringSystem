@@ -104,6 +104,7 @@ class RaceCard:
                     self.base_time_estimate["std"],
                     self.lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
+                    self.distance,
                     horse.horse_distance,
                     self.track_variant_estimate["avg"],
                 )

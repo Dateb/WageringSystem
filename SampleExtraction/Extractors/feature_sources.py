@@ -7,7 +7,7 @@ from typing import List
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time
+    get_horse_time, get_lengths_per_second, is_horse_distance_too_far_from_winner
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
@@ -106,7 +106,7 @@ class CategoryAverageSource(FeatureSource, ABC):
 
     def get_average_of_name(self, name: str) -> float:
         average_elem = self.averages[name]
-        if "avg" in average_elem:
+        if "avg" in average_elem and average_elem["count"] >= 3:
             return average_elem["avg"]
         return -1
 
@@ -148,6 +148,15 @@ class PreviousDistanceSource(PreviousValueSource):
     def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
             self.insert_previous_value(race_card, horse, race_card.distance)
+
+
+class PreviousTrainerSource(PreviousValueSource):
+    def __init__(self):
+        super().__init__()
+
+    def post_update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            self.insert_previous_value(race_card, horse, horse.trainer_name)
 
 
 class WinRateSource(CategoryAverageSource):
@@ -221,8 +230,6 @@ class DrawBiasSource(FeatureSource):
 
 class SpeedFiguresSource(FeatureSource):
 
-    METERS_PER_LENGTH: float = 2.4
-
     def __init__(self):
         super().__init__()
         self.speed_figures = nested_dict()
@@ -269,7 +276,9 @@ class SpeedFiguresSource(FeatureSource):
                 win_time,
                 race_card.lengths_per_second_estimate["avg"],
                 horse.horse_distance,
-            ) for horse in race_card.horses if horse.horse_distance >= 0]
+            ) for horse in race_card.horses if horse.horse_distance >= 0
+              and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance)
+            ]
             if horse_times:
                 mean_horse_time = mean(horse_times)
                 self.update_average(
@@ -284,8 +293,7 @@ class SpeedFiguresSource(FeatureSource):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
-            meters_per_second = race_card.distance / win_time
-            lengths_per_second = meters_per_second / self.METERS_PER_LENGTH
+            lengths_per_second = get_lengths_per_second(race_card.distance, win_time)
 
             self.update_average(
                 category=race_card.lengths_per_second_estimate,
@@ -301,6 +309,7 @@ class SpeedFiguresSource(FeatureSource):
                 race_card.base_time_estimate["std"],
                 race_card.lengths_per_second_estimate["avg"],
                 race_card.race_result.win_time,
+                race_card.distance,
                 horse.horse_distance,
                 race_card.track_variant_estimate["avg"],
             )
@@ -350,6 +359,7 @@ percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 
 #Previous value based sources:
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
+previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 
@@ -360,7 +370,7 @@ def get_feature_sources() -> List[FeatureSource]:
     return [
         win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
 
-        previous_distance_source,
+        previous_distance_source, previous_trainer_source,
 
         speed_figures_source,
 

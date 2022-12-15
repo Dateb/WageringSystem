@@ -1,6 +1,6 @@
 from collections import deque
 
-BASE_SPEED_CATEGORY_LENGTHS_PER_SECOND = 6.77
+METERS_PER_LENGTH: float = 2.4
 __speed_figures_distribution = deque(maxlen=10000)
 
 
@@ -13,9 +13,13 @@ def compute_speed_figure(
         base_time_std: float,
         lengths_per_second: float,
         win_time: float,
+        distance: float,
         horse_distance: float,
         track_variant: float,
 ) -> float:
+    if is_horse_distance_too_far_from_winner(distance, horse_distance):
+        return None
+
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
     if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0 or not track_variant:
         return None
@@ -41,6 +45,17 @@ def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: f
     seconds_behind_winner = ((1 / lengths_per_second) * horse_distance)
 
     return win_time + seconds_behind_winner
+
+
+def get_lengths_per_second(distance: float, win_time: float) -> float:
+    meters_per_second = distance / win_time
+    lengths_per_second = meters_per_second / METERS_PER_LENGTH
+
+    return lengths_per_second
+
+
+def is_horse_distance_too_far_from_winner(race_distance: float, horse_distance: float) -> bool:
+    return ((horse_distance * METERS_PER_LENGTH) / race_distance) > 0.01
 
 
 def race_card_track_to_win_time_track(track_name: str) -> str:
