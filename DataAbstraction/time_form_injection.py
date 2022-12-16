@@ -80,34 +80,41 @@ class TimeFormInjector:
 
     def inject_time_form_attributes(self, race_card: WritableRaceCard) -> None:
         time_form_attributes = self.get_time_form_attributes(race_card)
-        raw_race = race_card.raw_race_card["race"]
+        self.write_race_results(race_card, time_form_attributes)
+        self.write_race_attributes(race_card, time_form_attributes)
+        self.write_horse_attributes(race_card, time_form_attributes)
+
+    def write_race_results(self, race_card: WritableRaceCard, time_form_attributes: dict):
         raw_result = race_card.raw_race_card["result"]
+        for result_attribute in time_form_attributes["result"]:
+            old_value = None
+            if result_attribute in raw_result:
+                old_value = raw_result[result_attribute]
 
-        if "winTimeSeconds" in raw_result:
-            old_win_time = raw_result["winTimeSeconds"]
-            new_win_time = time_form_attributes["result"]["winTimeSeconds"]
-            if old_win_time != new_win_time:
-                print(f"changed time: {old_win_time} -> {new_win_time}")
-        raw_result["winTimeSeconds"] = time_form_attributes["result"]["winTimeSeconds"]
-        raw_race["distance"] = time_form_attributes["race"]["distance"]
+            new_value = time_form_attributes["result"][result_attribute]
+            raw_result[result_attribute] = new_value
 
-        for horse_number in time_form_attributes["runners"]:
-            horse = race_card.get_horse_by_number(horse_number)
-            prev_rating = int(float(horse.rating))
+            if old_value != new_value:
+                print(f"Changed attribute {result_attribute}: {old_value} -> {new_value}")
 
-            horse.raw_data["equipCode"] = time_form_attributes["runners"][horse_number]["equipCode"]
-            horse.raw_data["rating"] = time_form_attributes["runners"][horse_number]["rating"]
-
-            new_rating = horse.raw_data["rating"]
-            if prev_rating != new_rating:
-                print(f"Change OR (number {horse_number}): {prev_rating} -> {new_rating}")
+    def write_race_attributes(self, race_card: WritableRaceCard, time_form_attributes: dict):
+        raw_race = race_card.raw_race_card["race"]
+        for race_attribute in time_form_attributes["race"]:
+            new_value = time_form_attributes["race"][race_attribute]
+            raw_race[race_attribute] = new_value
 
         raw_race["timeFormInjected"] = True
+
+    def write_horse_attributes(self, race_card: WritableRaceCard, time_form_attributes: dict):
+        for horse_number in time_form_attributes["horses"]:
+            horse = race_card.get_horse_by_number(horse_number)
+            for horse_attribute in time_form_attributes["horses"][horse_number]:
+                horse.raw_data[horse_attribute] = time_form_attributes["horses"][horse_number][horse_attribute]
 
     def get_time_form_attributes(self, race_card: WritableRaceCard):
         time_form_attributes = {
             "race": {},
-            "runners": {},
+            "horses": {},
             "result": {},
         }
         time_form_soup = self.get_time_form_soup(race_card)
@@ -119,7 +126,7 @@ class TimeFormInjector:
             equip_code = self.get_equip_code(horse_row)
             rating = self.get_rating(horse_row)
 
-            time_form_attributes["runners"][horse_number] = {
+            time_form_attributes["horses"][horse_number] = {
                 "equipCode": equip_code,
                 "rating": rating,
             }

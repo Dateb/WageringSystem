@@ -1,8 +1,4 @@
-from math import log
 from typing import Dict
-
-import numpy as np
-
 from Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
 
