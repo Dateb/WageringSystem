@@ -1,8 +1,9 @@
-from DataAbstraction.time_form_injection import TimeFormInjector
 from DataCollection.FormGuideFactory import FormGuideFactory
 from DataAbstraction.RawRaceCardInjector import RawRaceCardInjector
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
+from DataCollection.Timeform.fetch import ResultTimeformFetcher
+from DataCollection.Timeform.inject import TimeFormInjector
 
 
 class RaceCardFactory:
@@ -13,7 +14,7 @@ class RaceCardFactory:
         self.base_api_url = 'https://www.racebets.de/ajax/races/details/id/'
         self.remove_non_starters = remove_non_starters
         self.collect_results = collect_results
-        self.time_form_injector = TimeFormInjector()
+        self.time_form_injector = TimeFormInjector(ResultTimeformFetcher())
 
     def run(self, base_race_id: str) -> WritableRaceCard:
         race_card = self.get_race_card(base_race_id)
