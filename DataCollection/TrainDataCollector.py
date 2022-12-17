@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from DataCollection.DayCollector import DayCollector
-from DataCollection.RaceCardsCollector import RaceCardsCollector
+from DataCollection.race_cards.full import FullRaceCardsCollector
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
@@ -14,7 +14,7 @@ class TrainDataCollector:
         initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
         self.collected_days = {initial_race_cards[datetime].date for datetime in initial_race_cards}
 
-        self.__race_cards_collector = RaceCardsCollector()
+        self.__race_cards_collector = FullRaceCardsCollector()
         self.__day_collector = DayCollector()
 
     def collect(self, query_date: date):
@@ -46,7 +46,7 @@ class TrainDataCollector:
     def collect_day(self, race_date: date):
         print(f"Currently collecting:{race_date}")
         race_ids = self.__day_collector.get_closed_race_ids_of_day(race_date)
-        new_race_cards = self.__race_cards_collector.collect_full_race_cards_from_race_ids(race_ids)
+        new_race_cards = self.__race_cards_collector.collect_race_cards_from_race_ids(race_ids)
         self.collected_days.add(race_date)
 
         if len(race_ids) > 0:
