@@ -1,10 +1,12 @@
 import time
 import traceback
+from datetime import datetime, date
 from typing import List
 
 from Agent.AgentModel import AgentModel
 from Agent.SeleniumAgentController import SeleniumAgentController
 from DataAbstraction.Present.RaceCard import RaceCard
+from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher
 from DataCollection.current_races.inject import TodayRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
@@ -15,6 +17,7 @@ class BetAgent:
     CONTROLLER_SUBMISSION_MODE_ON = False
 
     def __init__(self):
+        self.collect_race_cards_until_today()
         self.model = AgentModel()
         self.controller = SeleniumAgentController(submission_mode_on=self.CONTROLLER_SUBMISSION_MODE_ON)
 
@@ -53,6 +56,13 @@ class BetAgent:
                 raise ValueError("Just restarting for security.")
             else:
                 print("No value found. Skipping race.")
+
+    def collect_race_cards_until_today(self):
+        train_data_collector = TrainDataCollector(file_name="race_cards")
+        query_date = date(year=2022, month=1, day=1)
+
+        newest_date = datetime.today().date()
+        train_data_collector.collect_forward_until_newest_date(query_date=query_date, newest_date=newest_date)
 
 
 def main():
