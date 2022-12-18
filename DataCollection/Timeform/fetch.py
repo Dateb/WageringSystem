@@ -277,16 +277,29 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
         return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
 
     def get_horse_number(self, horse_row: BeautifulSoup) -> int:
-        return int(horse_row.find("a", {"class": "rp-horse"}).text.split(".")[0])
+        return int(horse_row.find("span", {"class": "rp-entry-number"}).text)
 
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:
-        return horse_row.find_all("td", {"class": "rp-ageequip-hide"})[2].text[1:-1]
+        equip_cell = horse_row.find("td", {"class": "rp-td-horse-equipment"}).find("span")
+
+        equip_text = ""
+        if equip_cell:
+            equip_text = equip_cell.text
+
+        return equip_text[1:-1]
 
     def get_rating(self, horse_row: BeautifulSoup) -> int:
-        rating = horse_row.find_all("td", {"class": "rp-ageequip-hide"})[3].text[1:-1]
-        if not rating:
+        rating_cell = horse_row.find("td", {"class": "rp-td-horse-or"}).find("span")
+
+        rating_text = ""
+        if rating_cell:
+            rating_text = rating_cell.text
+
+        if not rating_text:
             rating = -1
-        return int(rating)
+        else:
+            rating = int(rating_text[1:-1])
+        return rating
 
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         return -1
@@ -296,7 +309,7 @@ def main():
     time_form_fetcher = RaceCardTimeformFetcher()
 
     today_race_card = TodayRaceCardsFetcher().fetch_today_race_cards()[0]
-    soup = time_form_fetcher.get_time_form_soup(today_race_card)
+    soup = time_form_fetcher.get_time_form_attributes(today_race_card)
     print(soup)
 
 
