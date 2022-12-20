@@ -17,25 +17,22 @@ class AgentModel:
     __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
     def __init__(self):
-        with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
-            bet_model_configuration: BetModelConfiguration = pickle.load(f)
-
+        bet_model_configuration = self.load_bet_model_configuration()
         self.feature_manager = FeatureManager(features=bet_model_configuration.feature_subset)
 
-        # extract training set all the way
-        race_cards_loader = RaceCardsPersistence("race_cards")
+        self.race_cards_loader = RaceCardsPersistence("race_cards")
 
         model_evaluator = ModelEvaluator()
-        self.race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, self.feature_manager, model_evaluator)
+        self.race_cards_array_factory = RaceCardsArrayFactory(
+            race_cards_loader=self.race_cards_loader,
+            feature_manager=self.feature_manager,
+            model_evaluator=model_evaluator
+        )
 
-        # We load a race cards dummy list to know the columns
-        dummy_race_cards = race_cards_loader.load_race_card_files_non_writable(
-            [race_cards_loader.race_card_file_names[0]])
-        dummy_race_cards = list(dummy_race_cards.values())
-        self.columns = dummy_race_cards[0].attributes + self.feature_manager.feature_names
-        sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+        self.sample_columns = self.get_sample_columns()
 
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
+        sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
+        for race_card_file_name in tqdm(self.race_cards_loader.race_card_file_names):
             arr_of_race_cards = self.race_cards_array_factory.race_card_file_to_array(race_card_file_name)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
@@ -51,7 +48,7 @@ class AgentModel:
         self.bet_model = bet_model_configuration.create_bet_model(train_sample)
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
-        sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+        sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
         race_card_arr = self.race_cards_array_factory.race_card_to_array(race_card)
         sample_encoder.add_race_cards_arr(race_card_arr)
 
@@ -60,3 +57,14 @@ class AgentModel:
         betting_slips = self.bet_model.bet_on_race_cards_sample(race_card_sample)
 
         return betting_slips[race_card_sample.race_keys[0]]
+
+    def load_bet_model_configuration(self) -> BetModelConfiguration:
+        with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
+            return pickle.load(f)
+
+    def get_sample_columns(self):
+        # We load a race cards dummy list to know the columns
+        dummy_race_cards = self.race_cards_loader.load_race_card_files_non_writable(
+            [self.race_cards_loader.race_card_file_names[0]])
+        dummy_race_cards = list(dummy_race_cards.values())
+        return dummy_race_cards[0].attributes + self.feature_manager.feature_names
