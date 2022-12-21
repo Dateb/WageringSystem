@@ -13,6 +13,7 @@ class EstimationResult:
 
         race_names = race_cards_dataframe[RaceCard.RACE_NAME_KEY].values
         race_date_times = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
+        horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
         win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
@@ -23,6 +24,7 @@ class EstimationResult:
                 race_name=race_names[i],
                 race_date_time=race_date_times[i],
                 number=horse_numbers[i],
+                name=horse_names[i],
                 position=1,
                 win_probability=win_probabilities[i],
                 win_odds=win_odds[i],
@@ -34,12 +36,14 @@ class EstimationResult:
     def json(self) -> dict:
         estimation_json = {
             "race": {
+                "id": self.race_ids[0],
                 "name": self.horse_results[0].race_name,
                 "date_time": self.horse_results[0].race_date_time,
             },
             "horses": [
                 {
                     "id": horse_result.number,
+                    "name": horse_result.name,
                     "win_probability": horse_result.win_probability,
                     "min_odds": 1 / horse_result.win_probability,
                  }

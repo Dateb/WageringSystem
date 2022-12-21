@@ -11,6 +11,7 @@ from util.speed_calculator import get_speed_figures_distribution
 
 class Horse:
 
+    NAME_KEY: str = "name"
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
     CURRENT_WIN_ODDS_KEY: str = "current_odds"
@@ -20,7 +21,7 @@ class Horse:
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        NUMBER_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY,
+        NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY,
     ]
 
     def __init__(self, raw_data: dict):
@@ -75,6 +76,7 @@ class Horse:
             self.form_table = FormTable([])
 
         self.__base_attributes = {
+            self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.current_win_odds,
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,

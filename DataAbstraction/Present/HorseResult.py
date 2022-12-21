@@ -7,6 +7,7 @@ class HorseResult:
     race_name: str
     race_date_time: str
     number: int
+    name: str
     position: int
     win_probability: float
     win_odds: float

@@ -5,7 +5,7 @@ from Agent.AgentModel import AgentModel
 from DataAbstraction.Present.RaceCard import RaceCard
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
-VALUE_MONITOR_DATA_PATH = "/home/daniel/PycharmProjects/horsacle/src/data/horse_data.json"
+VALUE_MONITOR_DATA_PATH = "/home/daniel/PycharmProjects/horsacle/src/data/race_ev.json"
 
 
 class ValueMonitor:
