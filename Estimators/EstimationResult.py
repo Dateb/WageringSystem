@@ -1,3 +1,5 @@
+from typing import List
+
 from pandas import DataFrame
 
 from DataAbstraction.Present.Horse import Horse
@@ -27,3 +29,12 @@ class EstimationResult:
                 place_odds=place_odds[i],
             ) for i in range(len(horse_numbers))
         ]
+
+    @property
+    def json(self) -> List[dict]:
+        estimation_json = [
+            {"id": horse_result.number, "win_prob": horse_result.win_probability}
+            for horse_result in self.horse_results
+        ]
+
+        return estimation_json

@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 from Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
+from Estimators.EstimationResult import EstimationResult
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -59,15 +60,18 @@ class AgentModel:
         self.bet_model = bet_model_configuration.create_bet_model(train_sample)
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
+        estimation_result = self.estimate_race_card(race_card)
+        betting_slips = self.bet_model.bettor.bet(estimation_result)
+
+        return list(betting_slips.values())[0]
+
+    def estimate_race_card(self, race_card: RaceCard) -> EstimationResult:
         sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
         race_card_arr = self.race_cards_array_factory.race_card_to_array(race_card)
         sample_encoder.add_race_cards_arr(race_card_arr)
 
         race_card_sample = sample_encoder.get_race_cards_sample()
-        race_card_sample.race_cards_dataframe.to_csv(f"../data/production_race_cards/production_race_{race_card.race_id}.csv")
-        betting_slips = self.bet_model.bet_on_race_cards_sample(race_card_sample)
-
-        return betting_slips[race_card_sample.race_keys[0]]
+        return self.bet_model.estimator.transform(race_card_sample)
 
     def load_bet_model_configuration(self) -> BetModelConfiguration:
         with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
