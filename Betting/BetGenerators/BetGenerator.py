@@ -1,8 +1,8 @@
 from abc import abstractmethod, ABC
-from typing import Dict
+from typing import Dict, List
 
 from Betting.BettingSlip import BettingSlip
-from SampleExtraction.RaceCardsSample import RaceCardsSample
+from DataAbstraction.Present.HorseResult import HorseResult
 
 
 class BetGenerator(ABC):
@@ -13,9 +13,5 @@ class BetGenerator(ABC):
         self.upper_win_prob_threshold = upper_win_prob_threshold
 
     @abstractmethod
-    def add_single_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
-        pass
-
-    @abstractmethod
-    def add_multiple_bets(self, race_cards_sample: RaceCardsSample, betting_slips: Dict[str, BettingSlip]) -> None:
+    def add_bets(self, horse_results: List[HorseResult], betting_slips: Dict[str, BettingSlip]) -> None:
         pass

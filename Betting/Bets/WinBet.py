@@ -7,8 +7,8 @@ from DataAbstraction.Present.RaceResult import RaceResult
 
 class WinBet(Bet):
 
-    def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float, success_probability: float):
-        super().__init__(predicted_horse_results, stakes_fraction, success_probability)
+    def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float):
+        super().__init__(predicted_horse_results, stakes_fraction)
         self.potential_win = predicted_horse_results[0].win_odds * stakes_fraction * (1 - Bet.WIN_COMMISION)
         self.odds = predicted_horse_results[0].win_odds
 
@@ -29,6 +29,6 @@ class WinBet(Bet):
         bet_str += f"Odds of horse: {self.predicted_horse_results[0].win_odds}\n"
         bet_str += f"(Fractional) stakes: {self.stakes_fraction}\n"
         bet_str += f"Potential win: {self.potential_win}\n"
-        bet_str += f"Estimated success probability: {self.success_probability}\n"
+        bet_str += f"Estimated success probability: {self.predicted_horse_results[0].win_probability}\n"
         bet_str += "---------------------------------------\n"
         return bet_str

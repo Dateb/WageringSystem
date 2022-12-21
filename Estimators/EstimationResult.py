@@ -1,0 +1,29 @@
+from pandas import DataFrame
+
+from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.HorseResult import HorseResult
+from DataAbstraction.Present.RaceCard import RaceCard
+
+
+class EstimationResult:
+
+    def __init__(self, race_cards_dataframe: DataFrame):
+        self.race_keys = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
+        self.race_ids = list(race_cards_dataframe[RaceCard.RACE_ID_KEY])
+
+        race_date_times = list(race_cards_dataframe["date_time"].astype(str).values)
+        horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
+        win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
+        place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
+        win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values
+
+        self.horse_results = [
+            HorseResult(
+                race_date_time=race_date_times[i],
+                number=horse_numbers[i],
+                position=1,
+                win_probability=win_probabilities[i],
+                win_odds=win_odds[i],
+                place_odds=place_odds[i],
+            ) for i in range(len(horse_numbers))
+        ]

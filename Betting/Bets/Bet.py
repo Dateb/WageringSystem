@@ -10,10 +10,10 @@ class Bet(ABC):
     BET_TAX: float = 0.00
     WIN_COMMISION: float = 0.00
 
-    def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float, success_probability: float):
+    def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float):
         self.predicted_horse_results = predicted_horse_results
         self.stakes_fraction = stakes_fraction
-        self.success_probability = success_probability
+        self.success_probability = predicted_horse_results[0].win_probability
 
         self.potential_win = 0
         self.win = 0

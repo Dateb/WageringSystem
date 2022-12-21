@@ -23,8 +23,8 @@ class BetModel:
         self.estimator.fit(train_samples, num_boost_round)
 
     def bet_on_race_cards_sample(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
-        estimated_race_cards_sample = self.estimator.transform(race_cards_sample)
-        return self.bettor.bet(estimated_race_cards_sample)
+        estimation_result = self.estimator.transform(race_cards_sample)
+        return self.bettor.bet(estimation_result)
 
     @property
     def features(self) -> List[FeatureExtractor]:

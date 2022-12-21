@@ -32,9 +32,20 @@ class AgentModel:
         self.sample_columns = self.get_sample_columns()
 
         sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
-        for race_card_file_name in tqdm(self.race_cards_loader.race_card_file_names):
-            arr_of_race_cards = self.race_cards_array_factory.race_card_file_to_array(race_card_file_name)
+
+        n_loaded_race_cards = 0
+        race_card_file_idx = 1
+
+        # TODO: some races are missing after loading (maybe the same race gets loaded twice?)
+        while n_loaded_race_cards < bet_model_configuration.n_train_races:
+            race_card_file_name = self.race_cards_loader.race_card_file_names[-race_card_file_idx]
+            race_cards = self.race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+            arr_of_race_cards = self.race_cards_array_factory.race_cards_to_array(race_cards)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
+
+            n_loaded_race_cards += len(race_cards)
+            race_card_file_idx += 1
+            print(f"Loaded {n_loaded_race_cards}/{bet_model_configuration.n_train_races} race cards.")
 
         race_cards_sample = sample_encoder.get_race_cards_sample()
         sample_split_generator = SampleSplitGenerator(
