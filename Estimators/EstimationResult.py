@@ -1,5 +1,3 @@
-from typing import List
-
 from pandas import DataFrame
 
 from DataAbstraction.Present.Horse import Horse
@@ -13,7 +11,8 @@ class EstimationResult:
         self.race_keys = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
         self.race_ids = list(race_cards_dataframe[RaceCard.RACE_ID_KEY])
 
-        race_date_times = list(race_cards_dataframe["date_time"].astype(str).values)
+        race_names = race_cards_dataframe[RaceCard.RACE_NAME_KEY].values
+        race_date_times = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
         win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
@@ -21,6 +20,7 @@ class EstimationResult:
 
         self.horse_results = [
             HorseResult(
+                race_name=race_names[i],
                 race_date_time=race_date_times[i],
                 number=horse_numbers[i],
                 position=1,
@@ -31,10 +31,20 @@ class EstimationResult:
         ]
 
     @property
-    def json(self) -> List[dict]:
-        estimation_json = [
-            {"id": horse_result.number, "win_prob": horse_result.win_probability}
-            for horse_result in self.horse_results
-        ]
+    def json(self) -> dict:
+        estimation_json = {
+            "race": {
+                "name": self.horse_results[0].race_name,
+                "date_time": self.horse_results[0].race_date_time,
+            },
+            "horses": [
+                {
+                    "id": horse_result.number,
+                    "win_probability": horse_result.win_probability,
+                    "min_odds": 1 / horse_result.win_probability,
+                 }
+                for horse_result in self.horse_results
+            ]
+        }
 
         return estimation_json

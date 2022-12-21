@@ -20,7 +20,7 @@ class ValueMonitor:
             json.dump(monitor_data, fp)
 
         print("changed monitor data")
-        time.sleep(5)
+        time.sleep(15)
 
 
 def main():

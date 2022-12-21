@@ -12,6 +12,7 @@ from util.speed_calculator import compute_speed_figure
 
 class RaceCard:
 
+    RACE_NAME_KEY: str = "race_name"
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
     N_HORSES_KEY: str = "n_runners"
@@ -73,6 +74,7 @@ class RaceCard:
         self.n_horses = len(self.horses)
 
         self.__base_attributes = {
+            self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
             self.N_HORSES_KEY: self.n_horses,
