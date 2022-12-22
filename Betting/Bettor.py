@@ -10,7 +10,8 @@ pd.options.mode.chained_assignment = None
 
 class Bettor(ABC):
 
-    def __init__(self, bet_generators: List[BetGenerator]):
+    def __init__(self, additional_ev_threshold: float, bet_generators: List[BetGenerator]):
+        self.additional_ev_threshold = additional_ev_threshold
         self.bet_generators = bet_generators
 
     @abstractmethod

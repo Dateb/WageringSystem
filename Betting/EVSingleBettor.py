@@ -15,7 +15,7 @@ class EVSingleBettor(Bettor):
             upper_win_prob_threshold: float,
     ):
         bet_generators = [WinBetGenerator(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)]
-        super().__init__(bet_generators)
+        super().__init__(additional_ev_threshold, bet_generators)
 
     def bet(self, estimation_result: EstimationResult) -> Dict[str, BettingSlip]:
         betting_slips = {}

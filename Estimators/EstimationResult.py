@@ -1,5 +1,6 @@
 from pandas import DataFrame
 
+from Betting.Bets.Bet import Bet
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -31,24 +32,3 @@ class EstimationResult:
                 place_odds=place_odds[i],
             ) for i in range(len(horse_numbers))
         ]
-
-    @property
-    def json(self) -> dict:
-        estimation_json = {
-            "race": {
-                "id": self.race_ids[0],
-                "name": self.horse_results[0].race_name,
-                "date_time": self.horse_results[0].race_date_time,
-            },
-            "horses": [
-                {
-                    "id": horse_result.number,
-                    "name": horse_result.name,
-                    "win_probability": horse_result.win_probability,
-                    "min_odds": 1 / horse_result.win_probability,
-                 }
-                for horse_result in self.horse_results
-            ]
-        }
-
-        return estimation_json
