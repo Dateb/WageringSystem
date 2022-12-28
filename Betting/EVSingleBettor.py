@@ -1,5 +1,6 @@
 from typing import Dict
 
+from Betting.BetGenerators.PlaceBetGenerator import PlaceBetGenerator
 from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
 from Betting.BettingSlip import BettingSlip
 from Betting.Bettor import Bettor
@@ -14,7 +15,7 @@ class EVSingleBettor(Bettor):
             lower_win_prob_threshold: float,
             upper_win_prob_threshold: float,
     ):
-        bet_generators = [WinBetGenerator(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)]
+        bet_generators = [PlaceBetGenerator(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)]
         super().__init__(additional_ev_threshold, bet_generators)
 
     def bet(self, estimation_result: EstimationResult) -> Dict[str, BettingSlip]:

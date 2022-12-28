@@ -95,35 +95,35 @@ class RequestsAgentController:
 
 
 def main():
-    first_predicted_horse_result = HorseResult(
-        number=3,
-        position=1,
-        win_odds=2.0,
-        place_odds=0.0,
-    )
-    first_bet = WinBet(
-        predicted_horse_results=[first_predicted_horse_result],
-        stakes_fraction=0.08,
-        success_probability=0.48,
-    )
-
-    second_predicted_horse_result = HorseResult(
-        number=1,
-        position=1,
-        win_odds=22.0,
-        place_odds=0.0,
-    )
-    second_bet = WinBet(
-        predicted_horse_results=[second_predicted_horse_result],
-        stakes_fraction=0.05,
-        success_probability=0.12,
-    )
-
+    # first_predicted_horse_result = HorseResult(
+    #     number=3,
+    #     position=1,
+    #     win_odds=2.0,
+    #     place_odds=0.0,
+    # )
+    # first_bet = WinBet(
+    #     predicted_horse_results=[first_predicted_horse_result],
+    #     stakes_fraction=0.08,
+    #     success_probability=0.48,
+    # )
+    #
+    # second_predicted_horse_result = HorseResult(
+    #     number=1,
+    #     position=1,
+    #     win_odds=22.0,
+    #     place_odds=0.0,
+    # )
+    # second_bet = WinBet(
+    #     predicted_horse_results=[second_predicted_horse_result],
+    #     stakes_fraction=0.05,
+    #     success_probability=0.12,
+    # )
+    #
     dummy_betting_slip = BettingSlip(race_id="5515596")
-    dummy_betting_slip.add_bet(first_bet)
-    dummy_betting_slip.add_bet(second_bet)
-
-    print(dummy_betting_slip)
+    # dummy_betting_slip.add_bet(first_bet)
+    # dummy_betting_slip.add_bet(second_bet)
+    #
+    # print(dummy_betting_slip)
 
     agent_controller = RequestsAgentController(bet_limit=100, submission_mode_on=False)
     agent_controller.submit_betting_slip(betting_slip=dummy_betting_slip)

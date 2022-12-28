@@ -308,7 +308,7 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
 def main():
     time_form_fetcher = RaceCardTimeformFetcher()
 
-    today_race_card = TodayRaceCardsFetcher().fetch_today_race_cards()[0]
+    today_race_card = TodayRaceCardsFetcher().fetch_race_cards()[0]
     soup = time_form_fetcher.get_time_form_attributes(today_race_card)
     print(soup)
 

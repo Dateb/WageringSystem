@@ -12,7 +12,18 @@ class RaceResult:
             position = position_dict["position"]
 
             # TODO: proper extraction of odds (after odds are fixed from the api, its kinda broken now)
-            self.horse_results[str(horse_number)] = HorseResult("", "", horse_number, "", position, 0, 0, 0)
+            self.horse_results[str(horse_number)] = HorseResult(
+                race_name="",
+                race_date_time="",
+                number=horse_number,
+                name="",
+                position=position,
+                win_probability=0,
+                place_probability=0,
+                win_odds=0,
+                place_odds=0,
+                place_num=0,
+            )
 
         # TODO: Needs refactoring
         self.exacta_odds = 0

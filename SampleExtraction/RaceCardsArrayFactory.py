@@ -45,7 +45,6 @@ class RaceCardsArrayFactory:
     def race_card_to_array(self, race_card: RaceCard) -> ndarray:
         self.feature_manager.set_features([race_card])
         race_card_arr = np.array(self.get_values_of_race_card(race_card))
-        print(race_card_arr.shape)
         return race_card_arr
 
     def get_values_of_race_card(self, race_card: RaceCard) -> List[List[Any]]:

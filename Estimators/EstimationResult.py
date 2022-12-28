@@ -16,9 +16,14 @@ class EstimationResult:
         race_date_times = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
         horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
+
         win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
+
         win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values
+        place_probabilities = race_cards_dataframe.loc[:, "place_probability"].values
+
+        place_nums = race_cards_dataframe.loc[:, RaceCard.PLACE_NUM_KEY].values
 
         self.horse_results = [
             HorseResult(
@@ -28,7 +33,9 @@ class EstimationResult:
                 name=horse_names[i],
                 position=1,
                 win_probability=win_probabilities[i],
+                place_probability=place_probabilities[i],
                 win_odds=win_odds[i],
                 place_odds=place_odds[i],
+                place_num=place_nums[i],
             ) for i in range(len(horse_numbers))
         ]

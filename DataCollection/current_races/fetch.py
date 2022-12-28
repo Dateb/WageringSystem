@@ -1,4 +1,5 @@
-from datetime import datetime
+import datetime
+from abc import ABC
 from typing import List
 
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
@@ -6,14 +7,27 @@ from DataCollection.DayCollector import DayCollector
 from DataCollection.race_cards.base import BaseRaceCardsCollector
 
 
-class TodayRaceCardsFetcher:
+class CurrentRaceCardsFetcher(ABC):
 
     def __init__(self):
-        self.today = datetime.today().date()
+        self.date = datetime.date.today()
 
-    def fetch_today_race_cards(self) -> List[WritableRaceCard]:
-        race_ids_today = DayCollector().get_open_race_ids_of_day(self.today)
-        today_race_cards = BaseRaceCardsCollector().collect_race_cards_from_race_ids(race_ids_today)
-        today_race_cards.sort(key=lambda x: x.datetime)
+    def fetch_race_cards(self) -> List[WritableRaceCard]:
+        race_ids = DayCollector().get_open_race_ids_of_day(self.date)
+        race_cards = BaseRaceCardsCollector().collect_race_cards_from_race_ids(race_ids)
+        race_cards.sort(key=lambda x: x.datetime)
 
-        return today_race_cards
+        return race_cards
+
+
+class TodayRaceCardsFetcher(CurrentRaceCardsFetcher):
+
+    def __init__(self):
+        super().__init__()
+
+
+class TomorrowRaceCardsFetcher(CurrentRaceCardsFetcher):
+
+    def __init__(self):
+        super().__init__()
+        self.date = datetime.date.today() + datetime.timedelta(days=1)

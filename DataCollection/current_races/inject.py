@@ -2,7 +2,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.race_cards.base import BaseRaceCardsCollector
 
 
-class TodayRaceCardsInjector:
+class CurrentRaceCardsInjector:
 
     def __init__(self):
         self.today_race_cards_factory = BaseRaceCardsCollector()

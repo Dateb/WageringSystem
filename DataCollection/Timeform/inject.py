@@ -10,6 +10,7 @@ class TimeFormInjector:
 
     def inject_time_form_attributes(self, race_card: WritableRaceCard) -> None:
         time_form_attributes = self.time_form_collector.get_time_form_attributes(race_card)
+        print(time_form_attributes)
         self.write_race_results(race_card, time_form_attributes)
         self.write_race_attributes(race_card, time_form_attributes)
         self.write_horse_attributes(race_card, time_form_attributes)
