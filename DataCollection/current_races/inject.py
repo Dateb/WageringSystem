@@ -19,4 +19,5 @@ class CurrentRaceCardsInjector:
             else:
                 race_card.total_inverse_win_odds += horse.inverse_win_odds
 
+        race_card.is_open = updated_race_card.is_open
         return race_card

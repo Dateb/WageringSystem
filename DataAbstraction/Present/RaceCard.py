@@ -62,6 +62,7 @@ class RaceCard:
         self.age_from = race["ageFrom"]
         self.age_to = race["ageTo"]
         self.purse = race["purseDetails"]
+        self.is_open = race["raceStatus"] == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
         if self.remove_non_starters:

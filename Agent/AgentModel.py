@@ -34,7 +34,7 @@ class AgentModel:
 
         sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
 
-        for race_card_file_name in tqdm(self.race_cards_loader.race_card_file_names):
+        for race_card_file_name in tqdm(self.race_cards_loader.race_card_file_names[0:1]):
             race_cards = self.race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
             arr_of_race_cards = self.race_cards_array_factory.race_cards_to_array(race_cards)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)

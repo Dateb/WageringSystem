@@ -30,6 +30,7 @@ class MonitorData:
                 "id": self.estimation_result.race_ids[0],
                 "name": self.estimation_result.horse_results[0].race_name,
                 "date_time": self.estimation_result.horse_results[0].race_date_time,
+                "time_until_start": str(datetime.datetime.strptime(self.estimation_result.horse_results[0].race_date_time, '%Y-%m-%d %H:%M:%S') - datetime.datetime.now())
             },
             "horses": [
                 {
@@ -57,14 +58,14 @@ class ValueMonitor:
 
     def run(self):
         while self.race_cards:
-            next_race_card = self.race_cards[1]
+            next_race_card = self.race_cards[0]
             full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(next_race_card.race_id)
 
             self.poll_race_card(full_race_card)
             self.race_cards.remove(next_race_card)
 
     def poll_race_card(self, race_card):
-        while datetime.datetime.now() <= race_card.datetime:
+        while race_card.is_open:
             updated_race_card = self.race_cards_injector.inject_newest_odds_into_horses(race_card)
             self.write_race_card(updated_race_card)
             time.sleep(2)
@@ -75,7 +76,7 @@ class ValueMonitor:
         with open(VALUE_MONITOR_DATA_PATH, 'w') as fp:
             json.dump(monitor_data.json, fp)
 
-        print(f"{race_card.datetime}: changed monitor data")
+        print(f"{datetime.datetime.now()}: changed monitor data")
 
     def collect_race_cards_until_today(self):
         train_data_collector = TrainDataCollector(file_name="race_cards")
