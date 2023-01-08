@@ -26,18 +26,14 @@ class WinBetGenerator(BetGenerator):
         for horse_result in horse_results:
             betting_slip = betting_slips[horse_result.race_date_time]
 
-            single_ev = horse_result.win_odds * (1 - Bet.WIN_COMMISION) * horse_result.win_probability - (1 + Bet.BET_TAX)
-            expected_value = betting_slip.conditional_ev + single_ev
+            expected_value = betting_slip.conditional_ev + horse_result.expected_value
 
-            is_win_prob_in_between = self.lower_win_prob_threshold < horse_result.win_probability < self.upper_win_prob_threshold
-            is_win_prob_on_lower_end = horse_result.win_probability < self.upper_win_prob_threshold < self.lower_win_prob_threshold
-            is_win_prob_on_higher_end = self.upper_win_prob_threshold < self.lower_win_prob_threshold < horse_result.win_probability
-            if is_win_prob_in_between or is_win_prob_on_lower_end or is_win_prob_on_higher_end:
-                if expected_value > (0.0 + self.additional_ev_threshold):
-                    numerator = expected_value
-                    denominator = betting_slip.conditional_odds + horse_result.win_odds - (1 + Bet.BET_TAX)
-                    stakes_fraction = numerator / denominator
+            if expected_value > (0.0 + self.additional_ev_threshold):
+                numerator = expected_value - self.additional_ev_threshold
+                denominator = betting_slip.conditional_odds + horse_result.win_odds - \
+                              (1 + Bet.BET_TAX + self.additional_ev_threshold)
+                stakes_fraction = numerator / denominator
 
-                    new_bet = WinBet([horse_result], stakes_fraction)
+                new_bet = WinBet([horse_result], stakes_fraction)
 
-                    betting_slip.add_bet(new_bet)
+                betting_slip.add_bet(new_bet)

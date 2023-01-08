@@ -23,6 +23,7 @@ class RaceResult:
                 win_odds=0,
                 place_odds=0,
                 place_num=0,
+                expected_value=0,
             )
 
         # TODO: Needs refactoring

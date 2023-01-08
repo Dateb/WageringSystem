@@ -13,13 +13,15 @@ class BettingSlip:
 
         self.conditional_ev = 0
         self.conditional_odds = 0
+        self.success_probability = 0
 
     def add_bet(self, bet: Bet):
         self.bets.append(bet)
-        self.conditional_ev += bet.success_probability * bet.odds - (1 + Bet.BET_TAX)
+        self.conditional_ev += bet.success_probability * bet.odds * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
         self.conditional_odds += bet.odds - (1 + Bet.BET_TAX)
 
         self.loss += bet.loss
+        self.success_probability += bet.success_probability
 
     def update_win(self, bet: Bet):
         bet.win = bet.potential_win

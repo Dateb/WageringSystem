@@ -25,6 +25,8 @@ class EstimationResult:
 
         place_nums = race_cards_dataframe.loc[:, RaceCard.PLACE_NUM_KEY].values
 
+        expected_values = race_cards_dataframe.loc[:, "expected_value"].values
+
         self.horse_results = [
             HorseResult(
                 race_name=race_names[i],
@@ -37,5 +39,8 @@ class EstimationResult:
                 win_odds=win_odds[i],
                 place_odds=place_odds[i],
                 place_num=place_nums[i],
+                expected_value=expected_values[i]
             ) for i in range(len(horse_numbers))
         ]
+
+        self.horse_results = sorted(self.horse_results, key=lambda x: x.expected_value, reverse=True)

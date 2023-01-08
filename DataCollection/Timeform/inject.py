@@ -16,17 +16,19 @@ class TimeFormInjector:
         self.write_horse_attributes(race_card, time_form_attributes)
 
     def write_race_results(self, race_card: WritableRaceCard, time_form_attributes: dict):
-        raw_result = race_card.raw_race_card["result"]
-        for result_attribute in time_form_attributes["result"]:
-            old_value = None
-            if result_attribute in raw_result:
-                old_value = raw_result[result_attribute]
+        if race_card.has_results:
+            raw_result = race_card.raw_race_card["result"]
 
-            new_value = time_form_attributes["result"][result_attribute]
-            raw_result[result_attribute] = new_value
+            for result_attribute in time_form_attributes["result"]:
+                old_value = None
+                if result_attribute in raw_result:
+                    old_value = raw_result[result_attribute]
 
-            if old_value != new_value:
-                print(f"Changed attribute {result_attribute}: {old_value} -> {new_value}")
+                new_value = time_form_attributes["result"][result_attribute]
+                raw_result[result_attribute] = new_value
+
+                if old_value != new_value:
+                    print(f"Changed attribute {result_attribute}: {old_value} -> {new_value}")
 
     def write_race_attributes(self, race_card: WritableRaceCard, time_form_attributes: dict):
         raw_race = race_card.raw_race_card["race"]

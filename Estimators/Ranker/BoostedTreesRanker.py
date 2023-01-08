@@ -6,6 +6,7 @@ import pandas as pd
 from lightgbm import Dataset
 from numpy import ndarray
 
+from Betting.Bets.Bet import Bet
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.EstimationResult import EstimationResult
@@ -81,7 +82,11 @@ class BoostedTreesRanker(Ranker):
         race_cards_dataframe.loc[:, "score"] = scores
 
         race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe)
-        race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
+        race_cards_dataframe["place_probability"] = "0"
+
+        race_cards_dataframe["expected_value"] = race_cards_dataframe["win_probability"]\
+                                                 * race_cards_dataframe[Horse.CURRENT_WIN_ODDS_KEY]\
+                                                 * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
 
         return EstimationResult(race_cards_dataframe)
 
