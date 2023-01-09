@@ -1,35 +1,70 @@
 import json
+from typing import Dict
 
 import websocket
-import _thread
-import time
-import rel
-from websocket import ABNF
+
+from DataCollection.Scraper import get_scraper
 
 
-def on_message(ws: websocket.WebSocketApp, message):
-    print(message)
-    if message == "o":
+class ExchangeOddsRequester:
+
+    def __init__(self, event_id: str, market_id: str):
+        websocket.enableTrace(True)
+        self.web_socket = websocket.WebSocket()
+        self.scraper = get_scraper()
+
+        self.event_id = event_id
+        self.market_id = market_id
+
+    def get_odds_from_exchange(self) -> Dict[str, float]:
+        current_odds_data = self.get_current_odds_data()
+        odds_by_internal_id = self.extract_odds_by_internal_id(current_odds_data)
+
+        market_data = self.get_market_data()
+        number_by_internal_id = self.extract_number_by_internal_id(market_data)
+
+        exchange_odds = {
+            number_by_internal_id[internal_id]: odds_by_internal_id[internal_id] for internal_id in odds_by_internal_id
+        }
+
+        return exchange_odds
+
+    def get_current_odds_data(self) -> dict:
+        self.web_socket.connect(url="wss://exch.piwi247.com/customer/ws/market-prices/223/hsosmrv2/websocket")
+        self.web_socket.recv()
+
         request = '["{\\"eventId\\":\\"32009630\\",\\"marketId\\":\\"1.208383769\\",\\"applicationType\\":\\"WEB\\"}"]'
-        ws.send(request)
+        self.web_socket.send(request)
 
-def on_error(ws, error):
-    print(error)
+        raw_odds_message = self.web_socket.recv()
+        self.web_socket.close()
 
-def on_close(ws, close_status_code, close_msg):
-    print("### closed ###")
+        print(raw_odds_message)
+        current_odds_data = json.loads(json.loads(raw_odds_message[2:-1]))
 
-def on_open(ws):
-    pass
+        return current_odds_data
+
+    def extract_odds_by_internal_id(self, current_odds_data: dict) -> dict:
+        odds_by_internal_id = {}
+        for horse_data in current_odds_data["rc"]:
+            odds_by_internal_id[horse_data["id"]] = horse_data["bdatb"][0]["odds"]
+
+        return odds_by_internal_id
+
+    def get_market_data(self) -> dict:
+        return self.scraper.request_data(
+            url="https://exch.piwi247.com/customer/api/market/1.208383769?showGroups=true"
+        )
+
+    def extract_number_by_internal_id(self, market_data: dict) -> dict:
+        number_by_internal_id = {}
+        for horse_data in market_data["runners"]:
+            number_by_internal_id[horse_data["selectionId"]] = horse_data["metadata"]["CLOTH_NUMBER_ALPHA"]
+
+        return number_by_internal_id
+
 
 if __name__ == "__main__":
-    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://exch.piwi247.com/customer/ws/market-prices/223/hsosmrv2/websocket",
-                                on_open=on_open,
-                                on_message=on_message,
-                                on_error=on_error,
-                                on_close=on_close,
-                            )
-    ws.run_forever(dispatcher=rel, reconnect=5)  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
-    rel.signal(2, rel.abort)  # Keyboard Interrupt
-    rel.dispatch()
+    ex_odds_requester = ExchangeOddsRequester()
+    odds = ex_odds_requester.get_odds_from_exchange()
+    print(odds)
