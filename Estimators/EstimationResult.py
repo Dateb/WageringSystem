@@ -17,7 +17,7 @@ class EstimationResult:
         horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
 
-        win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
+        win_betting_odds = race_cards_dataframe.loc[:, Horse.CURRENT_BETTING_WIN_ODDS_KEY].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
 
         win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values
@@ -36,7 +36,7 @@ class EstimationResult:
                 position=1,
                 win_probability=win_probabilities[i],
                 place_probability=place_probabilities[i],
-                win_odds=win_odds[i],
+                win_betting_odds=win_betting_odds[i],
                 place_odds=place_odds[i],
                 place_num=place_nums[i],
                 expected_value=expected_values[i]

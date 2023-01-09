@@ -24,7 +24,7 @@ class ExchangeOddsRequester:
         number_by_internal_id = self.extract_number_by_internal_id(market_data)
 
         exchange_odds = {
-            number_by_internal_id[internal_id]: odds_by_internal_id[internal_id] for internal_id in odds_by_internal_id
+            number_by_internal_id[internal_id]: odds_by_internal_id[internal_id] for internal_id in number_by_internal_id
         }
 
         return exchange_odds
@@ -33,13 +33,16 @@ class ExchangeOddsRequester:
         self.web_socket.connect(url="wss://exch.piwi247.com/customer/ws/market-prices/223/hsosmrv2/websocket")
         self.web_socket.recv()
 
-        request = '["{\\"eventId\\":\\"32009630\\",\\"marketId\\":\\"1.208383769\\",\\"applicationType\\":\\"WEB\\"}"]'
+        request = '["{\\"eventId\\":\\"'
+        request += self.event_id
+        request += '\\",\\"marketId\\":\\"'
+        request += self.market_id
+        request += '\\",\\"applicationType\\":\\"WEB\\"}"]'
         self.web_socket.send(request)
 
         raw_odds_message = self.web_socket.recv()
         self.web_socket.close()
 
-        print(raw_odds_message)
         current_odds_data = json.loads(json.loads(raw_odds_message[2:-1]))
 
         return current_odds_data
@@ -53,7 +56,7 @@ class ExchangeOddsRequester:
 
     def get_market_data(self) -> dict:
         return self.scraper.request_data(
-            url="https://exch.piwi247.com/customer/api/market/1.208383769?showGroups=true"
+            url=f"https://exch.piwi247.com/customer/api/market/{self.market_id}?showGroups=true"
         )
 
     def extract_number_by_internal_id(self, market_data: dict) -> dict:
@@ -65,6 +68,9 @@ class ExchangeOddsRequester:
 
 
 if __name__ == "__main__":
-    ex_odds_requester = ExchangeOddsRequester()
+    ex_odds_requester = ExchangeOddsRequester(
+        event_id="32009638",
+        market_id="1.208384078"
+    )
     odds = ex_odds_requester.get_odds_from_exchange()
     print(odds)

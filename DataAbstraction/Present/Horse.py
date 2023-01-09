@@ -14,14 +14,18 @@ class Horse:
     NAME_KEY: str = "name"
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
-    CURRENT_WIN_ODDS_KEY: str = "current_odds"
+    CURRENT_ESTIMATION_WIN_ODDS_KEY: str = "current_estimation_odds"
+    CURRENT_BETTING_WIN_ODDS_KEY: str = "current_betting_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     RELEVANCE_KEY: str = "relevance"
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY, CURRENT_PLACE_ODDS_KEY, PLACE_KEY, RELEVANCE_KEY,
+        NAME_KEY, NUMBER_KEY,
+        CURRENT_ESTIMATION_WIN_ODDS_KEY, CURRENT_BETTING_WIN_ODDS_KEY,
+        CURRENT_PLACE_ODDS_KEY,
+        PLACE_KEY, RELEVANCE_KEY,
     ]
 
     def __init__(self, raw_data: dict):
@@ -47,7 +51,7 @@ class Horse:
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
-        self.set_win_odds(self.__extract_current_win_odds(raw_data))
+        self.set_estimation_win_odds(self.__extract_current_win_odds(raw_data))
 
         self.current_place_odds = self.__extract_current_place_odds(raw_data)
         self.post_position = self.__extract_post_position(raw_data)
@@ -78,7 +82,8 @@ class Horse:
         self.__base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_WIN_ODDS_KEY: self.current_win_odds,
+            self.CURRENT_ESTIMATION_WIN_ODDS_KEY: self.current_win_odds,
+            self.CURRENT_BETTING_WIN_ODDS_KEY: self.current_win_odds,
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,
@@ -86,13 +91,16 @@ class Horse:
 
         self.__features = {}
 
-    def set_win_odds(self, new_odds: float):
+    def set_estimation_win_odds(self, new_odds: float):
         self.current_win_odds = new_odds
-        self.__base_attributes[self.CURRENT_WIN_ODDS_KEY] = new_odds
+        self.__base_attributes[self.CURRENT_ESTIMATION_WIN_ODDS_KEY] = new_odds
 
         self.inverse_win_odds = 0
         if self.current_win_odds != 0:
             self.inverse_win_odds = 1 / self.current_win_odds
+
+    def set_betting_win_odds(self, new_odds: float):
+        self.__base_attributes[self.CURRENT_BETTING_WIN_ODDS_KEY] = new_odds
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:

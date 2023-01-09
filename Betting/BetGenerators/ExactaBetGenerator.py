@@ -35,7 +35,7 @@ class ExactaBetGenerator(BetGenerator):
 
             exacta_probabilities = np.outer(place_1_probabilities, place_2_probabilities)
 
-            win_odds = race_df.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
+            win_odds = race_df.loc[:, Horse.CURRENT_ESTIMATION_WIN_ODDS_KEY].values
 
             exacta_odds = np.outer(win_odds, win_odds) * 0.5
             expected_values = exacta_probabilities * exacta_odds
@@ -53,13 +53,13 @@ class ExactaBetGenerator(BetGenerator):
                             place_1_prediction = HorseResult(
                                 number=horse_ids[i],
                                 position=1,
-                                win_odds=0,
+                                win_betting_odds=0,
                                 place_odds=0,
                             )
                             place_2_prediction = HorseResult(
                                 number=horse_ids[j],
                                 position=2,
-                                win_odds=0,
+                                win_betting_odds=0,
                                 place_odds=0,
                             )
                             new_bet = ExactaBet([place_1_prediction, place_2_prediction], stakes)

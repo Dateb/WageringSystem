@@ -20,7 +20,7 @@ class RaceResult:
                 position=position,
                 win_probability=0,
                 place_probability=0,
-                win_odds=0,
+                win_betting_odds=0,
                 place_odds=0,
                 place_num=0,
                 expected_value=0,

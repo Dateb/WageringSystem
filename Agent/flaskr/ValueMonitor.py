@@ -33,8 +33,8 @@ class MonitorData:
                     "name": horse_result.name,
                     "win_probability": horse_result.win_probability,
                     "min_odds": (1 + self.bettor.additional_ev_threshold) / (horse_result.win_probability * (1 - Bet.WIN_COMMISION)),
-                    "racebets_odds": horse_result.win_odds,
-                    "racebets_stakes": (horse_result.win_odds * horse_result.win_probability - 1) / (horse_result.win_odds - 1)
+                    "racebets_odds": horse_result.win_betting_odds,
+                    "racebets_stakes": (horse_result.win_betting_odds * horse_result.win_probability - 1) / (horse_result.win_betting_odds - 1)
                  }
                 for horse_result in self.estimation_result.horse_results
             ]

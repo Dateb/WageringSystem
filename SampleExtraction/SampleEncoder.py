@@ -30,7 +30,7 @@ class SampleEncoder:
         race_cards_dataframe[self.__feature_names] = \
             race_cards_dataframe[self.__feature_names].apply(pd.to_numeric, errors="coerce")
 
-        race_cards_dataframe[Horse.CURRENT_WIN_ODDS_KEY] = \
-            race_cards_dataframe[Horse.CURRENT_WIN_ODDS_KEY].apply(pd.to_numeric, errors="coerce")
+        race_cards_dataframe[Horse.CURRENT_ESTIMATION_WIN_ODDS_KEY] = \
+            race_cards_dataframe[Horse.CURRENT_ESTIMATION_WIN_ODDS_KEY].apply(pd.to_numeric, errors="coerce")
 
         return RaceCardsSample(race_cards_dataframe)
