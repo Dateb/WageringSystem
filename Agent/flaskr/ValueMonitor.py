@@ -2,46 +2,12 @@ import datetime
 from typing import List
 
 from Agent.AgentModel import AgentModel
-from Betting.Bets.Bet import Bet
 from Betting.BettingSlip import BettingSlip
-from Betting.Bettor import Bettor
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.current_races.fetch import TomorrowRaceCardsFetcher, TodayRaceCardsFetcher
 from DataCollection.current_races.inject import CurrentRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Estimators.EstimationResult import EstimationResult
-
-
-class MonitorData:
-
-    def __init__(self, estimation_result: EstimationResult, bettor: Bettor):
-        self.estimation_result = estimation_result
-        self.bettor = bettor
-
-    @property
-    def json(self) -> dict:
-        estimation_json = {
-            "race": {
-                "id": self.estimation_result.race_ids[0],
-                "name": self.estimation_result.horse_results[0].race_name,
-                "date_time": self.estimation_result.horse_results[0].race_date_time,
-                "time_until_start": str(datetime.datetime.strptime(self.estimation_result.horse_results[0].race_date_time, '%Y-%m-%d %H:%M:%S') - datetime.datetime.now())
-            },
-            "horses": [
-                {
-                    "id": horse_result.number,
-                    "name": horse_result.name,
-                    "win_probability": horse_result.win_probability,
-                    "min_odds": (1 + self.bettor.additional_ev_threshold) / (horse_result.win_probability * (1 - Bet.WIN_COMMISION)),
-                    "racebets_odds": horse_result.win_betting_odds,
-                    "racebets_stakes": (horse_result.win_betting_odds * horse_result.win_probability - 1) / (horse_result.win_betting_odds - 1)
-                 }
-                for horse_result in self.estimation_result.horse_results
-            ]
-        }
-
-        return estimation_json
 
 
 class ValueMonitor:

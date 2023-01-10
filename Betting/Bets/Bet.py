@@ -23,3 +23,12 @@ class Bet(ABC):
     @abstractmethod
     def is_won(self, race_result: RaceResult) -> bool:
         pass
+
+    @property
+    def json(self) -> dict:
+        return {
+            "horse_number": self.predicted_horse_results[0].number,
+            "horse_name": self.predicted_horse_results[0].name,
+            "stakes_fraction": self.stakes_fraction,
+            "win_betting_odds": self.predicted_horse_results[0].win_betting_odds,
+        }
