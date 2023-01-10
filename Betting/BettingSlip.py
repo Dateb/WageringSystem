@@ -39,5 +39,11 @@ class BettingSlip:
         return betting_slip_str
 
     @property
+    def json(self) -> dict:
+        betting_slip_json = {}
+
+        return betting_slip_json
+
+    @property
     def payout_percentage(self) -> float:
         return self.win - self.loss

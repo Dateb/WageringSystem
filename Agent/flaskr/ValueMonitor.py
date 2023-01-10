@@ -3,6 +3,7 @@ from typing import List
 
 from Agent.AgentModel import AgentModel
 from Betting.Bets.Bet import Bet
+from Betting.BettingSlip import BettingSlip
 from Betting.Bettor import Bettor
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -53,15 +54,16 @@ class ValueMonitor:
 
         self.next_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(self.race_cards[0].race_id)
 
-    def serve_monitor_data(self) -> MonitorData:
+    def serve_betting_slip(self) -> BettingSlip:
         if not self.next_race_card.is_open and len(self.race_cards) >= 2:
             self.skip_race()
 
         updated_race_card = self.race_cards_injector.inject_newest_odds_into_horses(self.next_race_card)
         estimation_result = self.model.estimate_race_card(updated_race_card)
+        betting_slip = self.model.bet_model.bettor.bet(estimation_result)
 
-        print(f"{datetime.datetime.now()}: Served monitor data")
-        return MonitorData(estimation_result, self.model.bet_model.bettor)
+        print(f"{datetime.datetime.now()}: Served betting slip")
+        return list(betting_slip.values())[0]
 
     def skip_race(self) -> None:
         self.race_cards.pop(0)

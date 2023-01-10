@@ -10,9 +10,9 @@ def create_app(test_config=None):
     value_monitor = ValueMonitor()
 
     @app.route("/next_race")
-    def serve_monitor_data():
-        monitor_data = value_monitor.serve_monitor_data()
-        return monitor_data.json
+    def serve_betting_slip():
+        betting_slip = value_monitor.serve_betting_slip()
+        return betting_slip.json
 
     @app.route("/skip_race")
     def skip_race():

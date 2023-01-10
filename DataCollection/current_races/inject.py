@@ -9,8 +9,8 @@ class CurrentRaceCardsInjector:
     def __init__(self):
         self.today_race_cards_factory = BaseRaceCardsCollector()
         self.exchange_odds_requester = ExchangeOddsRequester(
-            event_id="32009638",
-            market_id="1.208384078"
+            event_id="32012570",
+            market_id="1.208427018"
         )
 
     def inject_newest_odds_into_horses(self, race_card: RaceCard) -> RaceCard:
