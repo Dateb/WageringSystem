@@ -30,5 +30,6 @@ class Bet(ABC):
             "horse_number": self.predicted_horse_results[0].number,
             "horse_name": self.predicted_horse_results[0].name,
             "stakes_fraction": self.stakes_fraction,
-            "win_betting_odds": self.predicted_horse_results[0].win_betting_odds,
+            "win_betting_odds": self.predicted_horse_results[0].betting_odds,
+            "potential_win": self.potential_win,
         }

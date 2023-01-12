@@ -39,8 +39,20 @@ class BettingSlip:
         return betting_slip_str
 
     @property
-    def json(self) -> List[dict]:
-        return [bet.json for bet in self.bets]
+    def json(self) -> dict:
+        betting_slip_json = {
+            "bets": [{"message": "No bets found"}]
+        }
+        if not self.bets:
+            return betting_slip_json
+
+        betting_slip_json = {
+            "race_id": self.race_id,
+            "bets": [bet.json for bet in self.bets],
+            "loss": self.loss
+        }
+
+        return betting_slip_json
 
     @property
     def payout_percentage(self) -> float:

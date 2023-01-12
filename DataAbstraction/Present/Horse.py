@@ -15,7 +15,7 @@ class Horse:
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
     CURRENT_ESTIMATION_WIN_ODDS_KEY: str = "current_estimation_odds"
-    CURRENT_BETTING_WIN_ODDS_KEY: str = "current_betting_odds"
+    CURRENT_BETTING_ODDS_KEY: str = "current_betting_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     RELEVANCE_KEY: str = "relevance"
@@ -23,7 +23,7 @@ class Horse:
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
         NAME_KEY, NUMBER_KEY,
-        CURRENT_ESTIMATION_WIN_ODDS_KEY, CURRENT_BETTING_WIN_ODDS_KEY,
+        CURRENT_ESTIMATION_WIN_ODDS_KEY, CURRENT_BETTING_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
         PLACE_KEY, RELEVANCE_KEY,
     ]
@@ -83,7 +83,7 @@ class Horse:
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
             self.CURRENT_ESTIMATION_WIN_ODDS_KEY: self.current_win_odds,
-            self.CURRENT_BETTING_WIN_ODDS_KEY: self.current_win_odds,
+            self.CURRENT_BETTING_ODDS_KEY: self.current_win_odds,
             self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,
@@ -99,8 +99,8 @@ class Horse:
         if self.current_win_odds != 0:
             self.inverse_win_odds = 1 / self.current_win_odds
 
-    def set_betting_win_odds(self, new_odds: float):
-        self.__base_attributes[self.CURRENT_BETTING_WIN_ODDS_KEY] = new_odds
+    def set_betting_odds(self, new_odds: float):
+        self.__base_attributes[self.CURRENT_BETTING_ODDS_KEY] = new_odds
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:

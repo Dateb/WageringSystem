@@ -53,13 +53,13 @@ class ExactaBetGenerator(BetGenerator):
                             place_1_prediction = HorseResult(
                                 number=horse_ids[i],
                                 position=1,
-                                win_betting_odds=0,
+                                betting_odds=0,
                                 place_odds=0,
                             )
                             place_2_prediction = HorseResult(
                                 number=horse_ids[j],
                                 position=2,
-                                win_betting_odds=0,
+                                betting_odds=0,
                                 place_odds=0,
                             )
                             new_bet = ExactaBet([place_1_prediction, place_2_prediction], stakes)

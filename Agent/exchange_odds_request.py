@@ -16,12 +16,14 @@ class ExchangeOddsRequester:
         self.event_id = event_id
         self.market_id = market_id
 
-    def get_odds_from_exchange(self) -> Dict[str, float]:
-        current_odds_data = self.get_current_odds_data()
-        odds_by_internal_id = self.extract_odds_by_internal_id(current_odds_data)
+        self.current_odds_data = self.get_current_odds_data()
+        self.market_data = self.get_market_data()
 
-        market_data = self.get_market_data()
-        number_by_internal_id = self.extract_number_by_internal_id(market_data)
+        self.current_odds = self.get_odds_from_exchange()
+
+    def get_odds_from_exchange(self) -> Dict[str, float]:
+        odds_by_internal_id = self.extract_odds_by_internal_id(self.current_odds_data)
+        number_by_internal_id = self.extract_number_by_internal_id(self.market_data)
 
         exchange_odds = {
             number_by_internal_id[internal_id]: odds_by_internal_id[internal_id] for internal_id in number_by_internal_id

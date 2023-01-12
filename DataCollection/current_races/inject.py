@@ -6,12 +6,9 @@ from DataCollection.race_cards.base import BaseRaceCardsCollector
 
 class CurrentRaceCardsInjector:
 
-    def __init__(self):
+    def __init__(self, exchange_odds_requester: ExchangeOddsRequester):
         self.today_race_cards_factory = BaseRaceCardsCollector()
-        self.exchange_odds_requester = ExchangeOddsRequester(
-            event_id="32012570",
-            market_id="1.208427018"
-        )
+        self.exchange_odds_requester = exchange_odds_requester
 
     def inject_newest_odds_into_horses(self, race_card: RaceCard) -> RaceCard:
         race_card = self.inject_newest_estimation_odds_into_horses(race_card)
@@ -37,5 +34,5 @@ class CurrentRaceCardsInjector:
     def inject_newest_betting_odds_into_horses(self, race_card) -> RaceCard:
         exchange_odds = self.exchange_odds_requester.get_odds_from_exchange()
         for horse in race_card.horses:
-            horse.set_betting_win_odds(exchange_odds[str(horse.number)])
+            horse.set_betting_odds(exchange_odds[str(horse.number)])
         return race_card
