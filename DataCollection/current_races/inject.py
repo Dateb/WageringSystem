@@ -1,14 +1,13 @@
-from Agent.exchange_odds_request import ExchangeOddsRequester
-from DataAbstraction.Present.Horse import Horse
+from typing import Dict
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.race_cards.base import BaseRaceCardsCollector
 
 
 class CurrentRaceCardsInjector:
 
-    def __init__(self, exchange_odds_requester: ExchangeOddsRequester):
+    def __init__(self, newest_betting_odds: Dict[str, float]):
         self.today_race_cards_factory = BaseRaceCardsCollector()
-        self.exchange_odds_requester = exchange_odds_requester
+        self.newest_betting_odds = newest_betting_odds
 
     def inject_newest_odds_into_horses(self, race_card: RaceCard) -> RaceCard:
         race_card = self.inject_newest_estimation_odds_into_horses(race_card)
@@ -32,7 +31,6 @@ class CurrentRaceCardsInjector:
         return race_card
 
     def inject_newest_betting_odds_into_horses(self, race_card) -> RaceCard:
-        exchange_odds = self.exchange_odds_requester.get_odds_from_exchange()
         for horse in race_card.horses:
-            horse.set_betting_odds(exchange_odds[str(horse.number)])
+            horse.set_betting_odds(self.newest_betting_odds[str(horse.number)])
         return race_card

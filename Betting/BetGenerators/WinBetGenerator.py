@@ -34,6 +34,7 @@ class WinBetGenerator(BetGenerator):
                               (1 + Bet.BET_TAX + self.additional_ev_threshold)
                 stakes_fraction = numerator / denominator
 
-                new_bet = WinBet([horse_result], stakes_fraction)
+                if stakes_fraction >= 0.006:
+                    new_bet = WinBet([horse_result], stakes_fraction)
 
-                betting_slip.add_bet(new_bet)
+                    betting_slip.add_bet(new_bet)

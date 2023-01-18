@@ -27,8 +27,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_races_per_fold=10000,
-            n_folds=5,
+            n_races_per_fold=4000,
+            n_folds=2,
         )
         self.model_evaluator = model_evaluator
 
@@ -39,7 +39,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=40)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
 
         return bet_model_configuration
 

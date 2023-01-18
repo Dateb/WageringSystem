@@ -41,12 +41,6 @@ class BettingSlip:
     @property
     def json(self) -> dict:
         betting_slip_json = {
-            "bets": [{"message": "No bets found"}]
-        }
-        if not self.bets:
-            return betting_slip_json
-
-        betting_slip_json = {
             "race_id": self.race_id,
             "bets": [bet.json for bet in self.bets],
             "loss": self.loss

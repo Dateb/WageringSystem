@@ -21,16 +21,15 @@ class PlaceBetGenerator(BetGenerator):
         for horse_result in horse_results:
             betting_slip = betting_slips[horse_result.race_date_time]
 
-            if not betting_slip.bets:
-                single_ev = horse_result.place_odds * (1 - Bet.WIN_COMMISION) * horse_result.place_probability - (1 + Bet.BET_TAX)
-                expected_value = betting_slip.conditional_ev + single_ev
+            expected_value = betting_slip.conditional_ev + horse_result.expected_value
 
-                if expected_value > (0.0 + self.additional_ev_threshold):
-                    # numerator = expected_value
-                    # denominator = betting_slip.conditional_odds + horse_result.place_odds - (1 + Bet.BET_TAX)
-                    # stakes_fraction = numerator / denominator
-                    stakes_fraction = 0.07
+            if expected_value > (0.0 + self.additional_ev_threshold):
+                numerator = expected_value - self.additional_ev_threshold
+                denominator = betting_slip.conditional_odds + horse_result.betting_odds - \
+                              (1 + Bet.BET_TAX + self.additional_ev_threshold)
+                stakes_fraction = numerator / denominator
 
+                if stakes_fraction >= 0.006:
                     new_bet = PlaceBet([horse_result], stakes_fraction)
 
                     betting_slip.add_bet(new_bet)

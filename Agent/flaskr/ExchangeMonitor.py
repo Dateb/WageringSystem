@@ -35,37 +35,37 @@ class ExchangeMonitor:
 
         self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(self.race_cards[0].race_id)
 
-    def serve_monitor_data(self, event_id: str, market_id: str) -> MonitorData:
-        exchange_odds_requester = ExchangeOddsRequester(
+        self.exchange_odds_requester: ExchangeOddsRequester = None
+
+    def open_race(self, event_id: str, market_id: str) -> None:
+        if self.exchange_odds_requester is not None:
+            self.exchange_odds_requester.close_race_connection()
+
+        self.exchange_odds_requester = ExchangeOddsRequester(
             event_id=event_id,
-            market_id=market_id
+            market_id=market_id,
         )
 
-        next_race_card_id = self.get_requested_race_card_id(exchange_odds_requester)
+        next_race_card_id = self.get_requested_race_card_id()
 
-        if self.current_full_race_card.race_id != next_race_card_id:
-            print(next_race_card_id)
-            self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(next_race_card_id)
+        self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(next_race_card_id)
 
-        race_cards_injector = CurrentRaceCardsInjector(exchange_odds_requester)
-        updated_race_card = race_cards_injector.inject_newest_odds_into_horses(self.current_full_race_card)
-        estimation_result = self.model.estimate_race_card(updated_race_card)
-        betting_slip = self.model.bet_model.bettor.bet(estimation_result)
+    def serve_monitor_data(self) -> MonitorData:
+        if self.exchange_odds_requester is not None:
+            race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_odds_from_exchange())
+            updated_race_card = race_cards_injector.inject_newest_odds_into_horses(self.current_full_race_card)
+            estimation_result = self.model.estimate_race_card(updated_race_card)
+            betting_slip = self.model.bet_model.bettor.bet(estimation_result)
 
-        print(self.current_full_race_card.race_id)
-        print(f"{datetime.datetime.now()}: Served betting slip")
-        return MonitorData(estimation_result, list(betting_slip.values())[0])
+            print(self.current_full_race_card.race_id)
+            print(f"{datetime.datetime.now()}: Served betting slip")
+            return MonitorData(estimation_result, list(betting_slip.values())[0])
 
-    def get_requested_race_card_id(self, exchange_odds_requester: ExchangeOddsRequester) -> str:
-        market_date_raw = str(exchange_odds_requester.market_data["marketStartTime"])[:-3]
+    def get_requested_race_card_id(self) -> str:
+        market_date_raw = str(self.exchange_odds_requester.market_data["marketStartTime"])[:-3]
         for race_card in self.race_cards:
             if market_date_raw == str(race_card.date_raw):
                 return race_card.race_id
-
-    def skip_race(self) -> None:
-        self.race_cards.pop(0)
-
-        self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(self.race_cards[0].race_id)
 
     def collect_race_cards_until_today(self):
         train_data_collector = TrainDataCollector(file_name="race_cards")

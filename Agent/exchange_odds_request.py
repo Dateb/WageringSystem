@@ -8,6 +8,8 @@ from DataCollection.Scraper import get_scraper
 
 class ExchangeOddsRequester:
 
+    CUSTOMER_ID: str = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NzM5ODY4MzEsImlhdCI6MTY3Mzk1MDgzMSwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.opmfMgyGixGpqx7QKIAWEZLrmDVfIO6yHZl6232zdOw"
+
     def __init__(self, event_id: str, market_id: str):
         websocket.enableTrace(True)
         self.web_socket = websocket.WebSocket()
@@ -16,23 +18,30 @@ class ExchangeOddsRequester:
         self.event_id = event_id
         self.market_id = market_id
 
-        self.current_odds_data = self.get_current_odds_data()
         self.market_data = self.get_market_data()
+        self.horse_number_by_exchange_id = self.extract_number_by_internal_id(self.market_data)
 
-        self.current_odds = self.get_odds_from_exchange()
+        self.current_odds_data = {}
+        self.current_odds = {}
+        self.open_race_connection()
 
     def get_odds_from_exchange(self) -> Dict[str, float]:
+        self.open_race_connection()
+        self.close_race_connection()
         odds_by_internal_id = self.extract_odds_by_internal_id(self.current_odds_data)
-        number_by_internal_id = self.extract_number_by_internal_id(self.market_data)
 
         exchange_odds = {
-            number_by_internal_id[internal_id]: odds_by_internal_id[internal_id] for internal_id in number_by_internal_id
+            self.horse_number_by_exchange_id[internal_id]: odds_by_internal_id[internal_id]
+            for internal_id in self.horse_number_by_exchange_id
         }
 
         return exchange_odds
 
-    def get_current_odds_data(self) -> dict:
-        self.web_socket.connect(url="wss://exch.piwi247.com/customer/ws/market-prices/223/hsosmrv2/websocket")
+    def open_race_connection(self):
+        self.web_socket.connect(
+            url="wss://exch.piwi247.com/customer/ws/market-prices/485/vewdhysm/websocket",
+            cookie=f"BIAB_CUSTOMER={self.CUSTOMER_ID}",
+        )
         self.web_socket.recv()
 
         request = '["{\\"eventId\\":\\"'
@@ -41,11 +50,18 @@ class ExchangeOddsRequester:
         request += self.market_id
         request += '\\",\\"applicationType\\":\\"WEB\\"}"]'
         self.web_socket.send(request)
+        self.current_odds_data = self.get_current_odds_data()
 
-        raw_odds_message = self.web_socket.recv()
+    def close_race_connection(self):
         self.web_socket.close()
 
-        current_odds_data = json.loads(json.loads(raw_odds_message[2:-1]))
+    def get_current_odds_data(self) -> dict:
+        message = self.web_socket.recv()
+
+        if message == "h":
+            return self.current_odds_data
+
+        current_odds_data = json.loads(json.loads(message[2:-1]))
 
         return current_odds_data
 

@@ -194,6 +194,12 @@ class RaceCard:
     def track_variant_estimate(self) -> dict:
         return RaceCard.track_variant[self.track_name]
 
+    @property
+    def json(self) -> dict:
+        return {
+            "name": self.name
+        }
+
     @staticmethod
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = nested_dict()
