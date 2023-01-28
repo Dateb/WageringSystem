@@ -9,9 +9,9 @@ def create_app(test_config=None):
     CORS(app)
     exchange_monitor = ExchangeMonitor()
 
-    @app.route("/open_race/<event_id>/<market_id>")
-    def serve_betting_slip(event_id: str, market_id: str):
-        exchange_monitor.open_race(event_id, market_id)
+    @app.route("/open_race/<customer_id>/<event_id>/<market_id>")
+    def open_race(customer_id, event_id: str, market_id: str):
+        exchange_monitor.open_race(customer_id, event_id, market_id)
         return exchange_monitor.current_full_race_card.json
 
     @app.route("/get_monitor_data/")

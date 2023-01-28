@@ -62,7 +62,14 @@ class AgentModel:
         sample_encoder.add_race_cards_arr(race_card_arr)
 
         race_card_sample = sample_encoder.get_race_cards_sample()
-        return self.bet_model.estimator.transform(race_card_sample)
+
+        race_card_sample.race_cards_dataframe.to_csv(
+            path_or_buf=f"../data/logs/samples/real_time_{race_card.race_id}"
+        )
+
+        estimation_result = self.bet_model.estimator.transform(race_card_sample)
+
+        return estimation_result
 
     def load_bet_model_configuration(self) -> BetModelConfiguration:
         with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:

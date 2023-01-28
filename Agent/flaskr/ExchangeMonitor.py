@@ -37,11 +37,12 @@ class ExchangeMonitor:
 
         self.exchange_odds_requester: ExchangeOddsRequester = None
 
-    def open_race(self, event_id: str, market_id: str) -> None:
+    def open_race(self, customer_id, event_id: str, market_id: str) -> None:
         if self.exchange_odds_requester is not None:
             self.exchange_odds_requester.close_race_connection()
 
         self.exchange_odds_requester = ExchangeOddsRequester(
+            customer_id=customer_id,
             event_id=event_id,
             market_id=market_id,
         )

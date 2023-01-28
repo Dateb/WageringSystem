@@ -51,6 +51,10 @@ class RaceCard:
             self.places_num = 1
         else:
             self.places_num = race["placesNum"]
+
+        if "promotions" in race and len(race["promotions"]) > 0 and race["promotions"][0]["promotionType"] == "enhanced-place":
+            self.places_num = 3
+
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
         self.going = race["trackGoing"]

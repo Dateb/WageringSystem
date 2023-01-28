@@ -29,7 +29,8 @@ class Bet(ABC):
         return {
             "horse_number": self.predicted_horse_results[0].number,
             "horse_name": self.predicted_horse_results[0].name,
+            "win_probability": self.predicted_horse_results[0].win_probability,
             "stakes_fraction": self.stakes_fraction,
-            "win_betting_odds": self.predicted_horse_results[0].betting_odds,
+            "betting_odds": self.predicted_horse_results[0].betting_odds,
             "potential_win": self.potential_win,
         }

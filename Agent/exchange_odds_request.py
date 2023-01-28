@@ -8,13 +8,12 @@ from DataCollection.Scraper import get_scraper
 
 class ExchangeOddsRequester:
 
-    CUSTOMER_ID: str = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NzM5ODY4MzEsImlhdCI6MTY3Mzk1MDgzMSwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.opmfMgyGixGpqx7QKIAWEZLrmDVfIO6yHZl6232zdOw"
-
-    def __init__(self, event_id: str, market_id: str):
+    def __init__(self, customer_id: str, event_id: str, market_id: str):
         websocket.enableTrace(True)
         self.web_socket = websocket.WebSocket()
         self.scraper = get_scraper()
 
+        self.customer_id = customer_id
         self.event_id = event_id
         self.market_id = market_id
 
@@ -40,7 +39,7 @@ class ExchangeOddsRequester:
     def open_race_connection(self):
         self.web_socket.connect(
             url="wss://exch.piwi247.com/customer/ws/market-prices/485/vewdhysm/websocket",
-            cookie=f"BIAB_CUSTOMER={self.CUSTOMER_ID}",
+            cookie=f"BIAB_CUSTOMER={self.customer_id}",
         )
         self.web_socket.recv()
 
