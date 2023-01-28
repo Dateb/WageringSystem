@@ -1,12 +1,15 @@
 import math
+import time
 from abc import abstractmethod, ABC
 from datetime import date
 
+import requests
 from bs4 import BeautifulSoup
 
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
-from DataCollection.current_races.fetch import TodayRaceCardsFetcher
+from DataCollection.current_races.fetch import TodayRaceCardsFetcher, TomorrowRaceCardsFetcher
+from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
 class TimeFormFetcher(ABC):
@@ -75,10 +78,44 @@ class TimeFormFetcher(ABC):
     }
 
     def __init__(self):
-        self.scraper = get_scraper()
+        self.session = requests.Session()
+
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+        }
+
         self.base_time_form_url = "https://www.timeform.com/horse-racing"
         self.current_track_name = ""
         self.current_date = None
+
+        self.login()
+
+    def login(self):
+        cookies = {
+            "__RequestVerificationToken_L2hvcnNlLXJhY2luZw2": "owJ64-4957DPl9614pDtfNekriUcqG98dgHYazcBqdxeKbT-TKgfmNFE2EtpXFPtk8Y6_MBj3Ho3V15Fa3l_P3VjVK01",
+            "_hjSessionUser_1506705": "eyJpZCI6Ijc4ODJkMjA2LTVkOTUtNWJhZC1hMzk4LWU5ZjJlNjRlMTA3YSIsImNyZWF0ZWQiOjE2NjM4ODc0NzE3MzMsImV4aXN0aW5nIjp0cnVlfQ=="
+        }
+
+        url = "https://www.timeform.com/horse-racing/account/sign-in?returnUrl=/horse-racing/"
+        login_doc = self.session.get(url, headers=self.headers, cookies=cookies).text
+
+        login_soup = BeautifulSoup(login_doc, 'html.parser')
+
+        login_token = login_soup.find("form", {"id": "signinform"}).find("input", {"name": "__RequestVerificationToken"})["value"]
+
+        login_url = "https://www.timeform.com/horse-racing/account/handlelogin?returnUrl=/horse-racing/"
+        login_payload = {
+            "__RequestVerificationToken": login_token,
+            "EmailAddress": "daniel.tebart@googlemail.com",
+            "Password": "titctsat49_",
+            "RememberMe": "false"
+        }
+
+        print(login_token)
+        self.session.post(login_url, login_payload, headers=self.headers, cookies=cookies)
 
     def get_time_form_attributes(self, race_card: WritableRaceCard):
         time_form_attributes = {
@@ -92,12 +129,12 @@ class TimeFormFetcher(ABC):
 
         for horse_row in self.get_horse_rows(time_form_soup):
             horse_number = self.get_horse_number(horse_row)
-            equip_code = self.get_equip_code(horse_row)
-            rating = self.get_rating(horse_row)
 
             time_form_attributes["horses"][horse_number] = {
-                "equipCode": equip_code,
-                "rating": rating,
+                "equipCode": self.get_equip_code(horse_row),
+                "rating": self.get_rating(horse_row),
+                "bsp_win": self.get_bsp_win(horse_row),
+                "bsp_place": self.get_bsp_place(horse_row),
             }
 
         return time_form_attributes
@@ -117,10 +154,13 @@ class TimeFormFetcher(ABC):
         time_form_url += f"/{race_card.race_number}"
 
         print(time_form_url)
+        response = self.session.get(time_form_url, headers=self.headers)
+        time.sleep(1.5)
+        while not response.status_code == 200:
+            response = self.session.get(time_form_url, headers=self.headers)
+            time.sleep(1.5)
 
-        result_doc = self.scraper.request_html(time_form_url)
-
-        return BeautifulSoup(result_doc, 'html.parser')
+        return BeautifulSoup(response.text, 'html.parser')
 
     def win_time_to_seconds(self, win_time: str) -> float:
         if not win_time:
@@ -232,6 +272,14 @@ class TimeFormFetcher(ABC):
         pass
 
     @abstractmethod
+    def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
+        pass
+
+    @abstractmethod
+    def get_bsp_place(self, horse_row: BeautifulSoup) -> float:
+        pass
+
+    @abstractmethod
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         pass
 
@@ -256,6 +304,24 @@ class ResultTimeformFetcher(TimeFormFetcher):
         if not rating:
             rating = -1
         return int(rating)
+
+    def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
+        bsp_win = float(horse_row.find("td", {"title": "Betfair Win SP", "class": "rp-result-bsp-show"}).text)
+
+        return bsp_win
+
+    def get_bsp_place(self, horse_row: BeautifulSoup) -> float:
+        bsp_place = horse_row.find("td", {"title": "Betfair Place SP", "class": "rp-result-sp"}).text
+
+        start_of_bsp_place_pos = bsp_place.find("(") + 1
+        end_of_bsp_place_pos = bsp_place.find(")")
+
+        bsp_place = bsp_place[start_of_bsp_place_pos:end_of_bsp_place_pos]
+
+        if not bsp_place:
+            return 0
+
+        return float(bsp_place)
 
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         time_text_elem = time_form_soup.select_one('span:-soup-contains("Time:")')
@@ -301,16 +367,23 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
             rating = int(rating_text[1:-1])
         return rating
 
+    def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
+        return 0
+
+    def get_bsp_place(self, horse_row: BeautifulSoup) -> float:
+        return 0
+
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         return -1
 
 
 def main():
-    time_form_fetcher = RaceCardTimeformFetcher()
+    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
 
-    today_race_card = TodayRaceCardsFetcher().fetch_race_cards()[0]
-    soup = time_form_fetcher.get_time_form_attributes(today_race_card)
-    print(soup)
+    time_form_fetcher = ResultTimeformFetcher()
+    dummy_race_card = list(race_cards_persistence.load_first_month_writable().values())[0]
+    time_form_attributes = time_form_fetcher.get_time_form_attributes(dummy_race_card)
+    print(time_form_attributes)
 
 
 if __name__ == '__main__':

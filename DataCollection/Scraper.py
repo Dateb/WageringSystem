@@ -1,5 +1,3 @@
-import os
-
 import requests
 import time
 import random
@@ -63,16 +61,22 @@ class Scraper:
 
         return result
 
-    def request_html(self, url: str) -> str:
+    def request_html(self, url: str, cookies=None) -> str:
         while True:
-            response = self.__session.get(url=url, headers=self.__headers)
+            if cookies is None:
+                response = self.__session.get(url=url, headers=self.__headers)
+            else:
+                response = self.__session.get(url, headers=self.__headers, cookies=cookies)
             print(response)
             self.__wait_random_amount_of_seconds(10.0)
             if response.status_code == 200:
                 return response.text
 
-    def post_payload(self, url: str, payload: dict) -> Response:
-        post_response = self.__session.post(url, json=payload, headers=self.__headers)
+    def post_payload(self, url: str, payload: dict, cookies=None) -> Response:
+        if cookies is None:
+            post_response = self.__session.post(url, json=payload, headers=self.__headers)
+        else:
+            post_response = self.__session.post(url, json=payload, headers=self.__headers, cookies=cookies)
         return post_response
 
     def __wait_random_amount_of_seconds(self, average_seconds_to_wait: float):

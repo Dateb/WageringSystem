@@ -1,13 +1,15 @@
 import json
 import os
+import pathlib
 from typing import List, Dict
 from DataAbstraction.Present.WritableRaceCard import RaceCard, WritableRaceCard
 
 
 class RaceCardsPersistence:
     def __init__(self, data_dir_name: str):
+        path_of_this_file = pathlib.Path(__file__).parent.resolve()
         self.__data_dir_name = data_dir_name
-        self.__dir_path = f"../data/{self.__data_dir_name}"
+        self.__dir_path = f"{str(path_of_this_file)}/../data/{self.__data_dir_name}"
         if os.path.isdir(self.__dir_path):
             self.race_card_file_names = sorted(os.listdir(self.__dir_path))
         else:
@@ -76,7 +78,7 @@ class RaceCardsPersistence:
         return total_race_cards
 
     def __load_race_cards_of_file(self, file_name: str, race_card_creation):
-        file_path = f"../data/{self.__data_dir_name}/{file_name}"
+        file_path = f"{self.__dir_path}/{file_name}"
         with open(file_path, "r") as f:
             raw_races = json.load(f)
 

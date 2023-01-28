@@ -80,4 +80,5 @@ def reset_injection_flag():
 
 if __name__ == '__main__':
     main()
+    # reset_injection_flag()
     print('finished')
