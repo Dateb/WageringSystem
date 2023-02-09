@@ -21,7 +21,7 @@ class CurrentRaceCardsInjector:
         race_card.total_inverse_win_odds = 0
         for horse in race_card.horses:
             horse_with_updated_odds = [updated_horse for updated_horse in updated_race_card.horses if updated_horse.horse_id == horse.horse_id][0]
-            horse.set_estimation_win_odds(horse_with_updated_odds.current_win_odds)
+            horse.set_estimation_win_odds(horse_with_updated_odds.betfair_win_sp)
             if horse_with_updated_odds.is_scratched:
                 race_card.horses.remove(horse)
             else:

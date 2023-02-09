@@ -5,6 +5,15 @@ from DataAbstraction.Present.Horse import Horse
 from util.category_encoder import get_category_encoding
 
 
+class CurrentHorseCount(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return race_card.n_horses
+
+
 class CurrentDistance(FeatureExtractor):
 
     def __init__(self):

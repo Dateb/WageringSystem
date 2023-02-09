@@ -39,7 +39,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=10)
 
         return bet_model_configuration
 
@@ -95,10 +95,8 @@ def optimize_model_configuration():
         fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
         print(f"Result {i + 1}: {fund_history_summary.validation_score}")
 
-    fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
-
-    with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
-        pickle.dump(fund_history_summary, f)
+        with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
+            pickle.dump(fund_history_summary, f)
 
     with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
         pickle.dump(bet_model_configuration, f)

@@ -47,13 +47,6 @@ class RaceCard:
         self.set_track_name(raw_race_card)
 
         self.track_id = event["idTrack"]
-        if "placesNum" not in race:
-            self.places_num = 1
-        else:
-            self.places_num = race["placesNum"]
-
-        if "promotions" in race and len(race["promotions"]) > 0 and race["promotions"][0]["promotionType"] == "enhanced-place":
-            self.places_num = 3
 
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
@@ -72,11 +65,15 @@ class RaceCard:
         if self.remove_non_starters:
             self.__remove_non_starters()
 
-        self.total_inverse_win_odds = 0
-        for horse in self.horses:
-            self.total_inverse_win_odds += horse.inverse_win_odds
-
         self.n_horses = len(self.horses)
+
+        self.places_num = 1
+        if 5 <= self.n_horses <= 7:
+            self.places_num = 2
+        if 8 <= self.n_horses:
+            self.places_num = 3
+        if 16 <= self.n_horses and self.category == "HCP":
+            self.places_num = 4
 
         self.__base_attributes = {
             self.RACE_NAME_KEY: self.name,

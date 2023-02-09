@@ -12,7 +12,7 @@ class PlaceBet(Bet):
         self.success_probability = predicted_horse_results[0].place_probability
         self.place_num = self.predicted_horse_results[0].place_num
         self.winning_positions = [i + 1 for i in range(self.place_num)]
-        self.odds = predicted_horse_results[0].place_odds
+        self.odds = predicted_horse_results[0].betting_odds
         self.potential_win = self.odds * stakes_fraction * (1 - Bet.WIN_COMMISION)
 
     def is_won(self, race_result: RaceResult) -> bool:

@@ -3,16 +3,17 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo
+    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import OddsProbability, Age, Gender, CurrentRating
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.odds_based import HighestOddsWin
+from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
+    BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -52,7 +53,8 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            OddsProbability(),
+            # RacebetsWinProbability(),
+            BetfairWinMarketWinProbability(),
             CurrentSpeedFigure(),
 
             DayOfYearCos(), DayOfYearSin(),

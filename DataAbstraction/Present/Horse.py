@@ -14,16 +14,14 @@ class Horse:
     NAME_KEY: str = "name"
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
-    CURRENT_ESTIMATION_WIN_ODDS_KEY: str = "current_estimation_odds"
-    CURRENT_WIN_BETTING_ODDS_KEY: str = "current_betting_odds"
+    CURRENT_BETTING_ODDS_KEY: str = "current_betting_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     RELEVANCE_KEY: str = "relevance"
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        NAME_KEY, NUMBER_KEY,
-        CURRENT_ESTIMATION_WIN_ODDS_KEY, CURRENT_WIN_BETTING_ODDS_KEY,
+        NAME_KEY, NUMBER_KEY, CURRENT_BETTING_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
         PLACE_KEY, RELEVANCE_KEY,
     ]
@@ -51,9 +49,11 @@ class Horse:
         self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
-        self.set_estimation_win_odds(self.__extract_current_win_odds(raw_data))
 
-        self.current_place_odds = self.__extract_current_place_odds(raw_data)
+        self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
+        self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
+        self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
+
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
 
@@ -82,22 +82,13 @@ class Horse:
         self.__base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_ESTIMATION_WIN_ODDS_KEY: self.current_win_odds,
-            self.CURRENT_WIN_BETTING_ODDS_KEY: self.current_win_odds,
-            self.CURRENT_PLACE_ODDS_KEY: self.current_place_odds,
+            self.CURRENT_BETTING_ODDS_KEY: self.betfair_place_sp,
+            self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,
         }
 
         self.__features = {}
-
-    def set_estimation_win_odds(self, new_odds: float):
-        self.current_win_odds = new_odds
-        self.__base_attributes[self.CURRENT_ESTIMATION_WIN_ODDS_KEY] = new_odds
-
-        self.inverse_win_odds = 0
-        if self.current_win_odds != 0:
-            self.inverse_win_odds = 1 / self.current_win_odds
 
     def set_betting_odds(self, new_odds: float):
         self.__base_attributes[self.CURRENT_PLACE_ODDS_KEY] = new_odds
@@ -133,15 +124,21 @@ class Horse:
 
         return -1
 
-    def __extract_current_win_odds(self, raw_data: dict):
+    def __extract_racebets_win_odds(self, raw_data: dict):
         odds_of_horse = raw_data["odds"]
         if odds_of_horse["FXW"] == 0:
             return float(odds_of_horse["PRC"])
         return float(odds_of_horse["FXW"])
 
-    def __extract_current_place_odds(self, raw_data: dict):
-        odds_of_horse = raw_data["odds"]
-        return odds_of_horse["FXP"]
+    def __extract_betfair_win_odds(self, raw_data: dict) -> float:
+        if "bsp_win" not in raw_data:
+            return 0
+        return raw_data["bsp_win"]
+
+    def __extract_betfair_place_odds(self, raw_data: dict):
+        if "bsp_place" not in raw_data:
+            return 0
+        return raw_data["bsp_place"]
 
     def __extract_post_position(self, raw_data: dict) -> int:
         if "postPosition" in raw_data:

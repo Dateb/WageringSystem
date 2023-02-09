@@ -26,14 +26,6 @@ class RaceResult:
                 expected_value=0,
             )
 
-        # TODO: Needs refactoring
-        self.exacta_odds = 0
-        odds = raw_result["odds"]
-        if "other" in odds:
-            other_odds = odds["other"]
-            if "EXA" in other_odds[0]:
-                self.exacta_odds = float(list(other_odds[0]["EXA"].keys())[0])
-
         self.win_time = -1
         if "winTimeSeconds" in raw_result:
             self.win_time = raw_result["winTimeSeconds"]

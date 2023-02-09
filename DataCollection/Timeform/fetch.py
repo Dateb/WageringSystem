@@ -88,6 +88,7 @@ class TimeFormFetcher(ABC):
         }
 
         self.base_time_form_url = "https://www.timeform.com/horse-racing"
+
         self.current_track_name = ""
         self.current_date = None
 
@@ -124,18 +125,20 @@ class TimeFormFetcher(ABC):
             "result": {},
         }
         time_form_soup = self.get_time_form_soup(race_card)
-        time_form_attributes["result"]["winTimeSeconds"] = self.get_win_time(time_form_soup)
-        time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
+        if time_form_soup is not None:
+            time_form_attributes["result"]["winTimeSeconds"] = self.get_win_time(time_form_soup)
+            time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
 
-        for horse_row in self.get_horse_rows(time_form_soup):
-            horse_number = self.get_horse_number(horse_row)
+            for horse_row in self.get_horse_rows(time_form_soup):
+                horse_number = self.get_horse_number(horse_row)
 
-            time_form_attributes["horses"][horse_number] = {
-                "equipCode": self.get_equip_code(horse_row),
-                "rating": self.get_rating(horse_row),
-                "bsp_win": self.get_bsp_win(horse_row),
-                "bsp_place": self.get_bsp_place(horse_row),
-            }
+                if horse_number:
+                    time_form_attributes["horses"][horse_number] = {
+                        "equipCode": self.get_equip_code(horse_row),
+                        "rating": self.get_rating(horse_row),
+                        "bsp_win": self.get_bsp_win(horse_row),
+                        "bsp_place": self.get_bsp_place(horse_row),
+                    }
 
         return time_form_attributes
 
@@ -155,10 +158,14 @@ class TimeFormFetcher(ABC):
 
         print(time_form_url)
         response = self.session.get(time_form_url, headers=self.headers)
-        time.sleep(1.5)
+
+        if response.history:
+            return None
+
+        time.sleep(2.5)
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
-            time.sleep(1.5)
+            time.sleep(20)
 
         return BeautifulSoup(response.text, 'html.parser')
 
@@ -294,7 +301,11 @@ class ResultTimeformFetcher(TimeFormFetcher):
         return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
 
     def get_horse_number(self, horse_row: BeautifulSoup) -> int:
-        return int(horse_row.find("a", {"class": "rp-horse"}).text.split(".")[0])
+        horse_number = horse_row.find("a", {"class": "rp-horse"}).text.split(".")[0]
+
+        if horse_number.isnumeric():
+            return int(horse_number)
+        return None
 
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:
         return horse_row.find_all("td", {"class": "rp-ageequip-hide"})[2].text[1:-1]
@@ -306,9 +317,12 @@ class ResultTimeformFetcher(TimeFormFetcher):
         return int(rating)
 
     def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
-        bsp_win = float(horse_row.find("td", {"title": "Betfair Win SP", "class": "rp-result-bsp-show"}).text)
+        bsp_win = horse_row.find("td", {"title": "Betfair Win SP", "class": "rp-result-bsp-show"}).text
 
-        return bsp_win
+        if not bsp_win:
+            return 0
+
+        return float(bsp_win)
 
     def get_bsp_place(self, horse_row: BeautifulSoup) -> float:
         bsp_place = horse_row.find("td", {"title": "Betfair Place SP", "class": "rp-result-sp"}).text

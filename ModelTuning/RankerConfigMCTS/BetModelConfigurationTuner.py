@@ -98,7 +98,7 @@ class BetModelConfigurationTuner:
             results = self.__simulate(terminal_configuration)
 
             #exp_calculator = ExponentialOnlineCalculator(base_alpha=0.5)
-            total_score = mean(list(results.values()))
+            total_score = min(list(results.values()))
             # for score in list(results.values()):
             #     total_score = exp_calculator.calculate_average(
             #         old_average=total_score,

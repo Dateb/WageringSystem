@@ -23,13 +23,12 @@ class PlaceBetGenerator(BetGenerator):
 
             expected_value = betting_slip.conditional_ev + horse_result.expected_value
 
-            if expected_value > (0.0 + self.additional_ev_threshold):
+            if expected_value > (0.0 + self.additional_ev_threshold) and not betting_slip.bets:
                 numerator = expected_value - self.additional_ev_threshold
                 denominator = betting_slip.conditional_odds + horse_result.betting_odds - \
                               (1 + Bet.BET_TAX + self.additional_ev_threshold)
                 stakes_fraction = numerator / denominator
 
-                if stakes_fraction >= 0.006:
-                    new_bet = PlaceBet([horse_result], stakes_fraction)
+                new_bet = PlaceBet([horse_result], stakes_fraction)
 
-                    betting_slip.add_bet(new_bet)
+                betting_slip.add_bet(new_bet)
