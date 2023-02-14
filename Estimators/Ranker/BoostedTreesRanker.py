@@ -11,6 +11,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Estimators.EstimationResult import EstimationResult
 from Estimators.Ranker.Ranker import Ranker
+from Estimators.place_calculation import compute_place_probabilities
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -82,10 +83,10 @@ class BoostedTreesRanker(Ranker):
         race_cards_dataframe.loc[:, "score"] = scores
 
         race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe)
-        race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
-        # race_cards_dataframe["place_probability"] = "0"
+        race_cards_dataframe["place_probability"] = "0"
+        # race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
 
-        race_cards_dataframe["expected_value"] = race_cards_dataframe["place_probability"]\
+        race_cards_dataframe["expected_value"] = race_cards_dataframe[Horse.WIN_PROBABILITY_KEY]\
                                                  * race_cards_dataframe[Horse.CURRENT_BETTING_ODDS_KEY]\
                                                  * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
 
@@ -102,48 +103,16 @@ class BoostedTreesRanker(Ranker):
         return race_cards_dataframe
 
     def set_place_probabilities(self, race_cards_dataframe: pd.DataFrame) -> pd.DataFrame:
-        race_cards_dataframe_prob_copy = race_cards_dataframe[[RaceCard.RACE_ID_KEY, Horse.NUMBER_KEY, "win_probability"]]
-        race_cards_2_dataframe = pd.merge(
-            left=race_cards_dataframe,
-            right=race_cards_dataframe_prob_copy,
-            how="outer",
-            on=RaceCard.RACE_ID_KEY,
-            suffixes=("", "_second"),
-        )
-        race_cards_2_dataframe = race_cards_2_dataframe[race_cards_2_dataframe[Horse.NUMBER_KEY] != race_cards_2_dataframe["number_second"]]
-        race_cards_2_dataframe["place_2_probability"] = race_cards_2_dataframe["win_probability_second"] \
-                                                      * race_cards_2_dataframe[Horse.WIN_PROBABILITY_KEY] / (1 - race_cards_2_dataframe["win_probability_second"])
-        place_2_probabilities = race_cards_2_dataframe.groupby([RaceCard.RACE_ID_KEY, Horse.NUMBER_KEY]).agg(place_2_probability=("place_2_probability", "sum"))
-        race_cards_dataframe = race_cards_dataframe.merge(
-            right=place_2_probabilities,
-            on=[RaceCard.RACE_ID_KEY, Horse.NUMBER_KEY],
-            how="inner"
-        )
+        grouped_win_information = race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[["win_probability", RaceCard.PLACE_NUM_KEY]].agg({
+            "win_probability": lambda x: list(x),
+            RaceCard.PLACE_NUM_KEY: "first"
+        })
 
-        race_cards_3_dataframe = pd.merge(
-            left=race_cards_2_dataframe,
-            right=race_cards_dataframe_prob_copy,
-            how="outer",
-            on=RaceCard.RACE_ID_KEY,
-            suffixes=("", "_third"),
-        )
+        win_information = [tuple(row) for row in grouped_win_information.values]
+        place_probabilities = compute_place_probabilities(win_information)
 
-        race_cards_3_dataframe = race_cards_3_dataframe[race_cards_3_dataframe[Horse.NUMBER_KEY] != race_cards_3_dataframe["number_third"]]
-        race_cards_3_dataframe = race_cards_3_dataframe[race_cards_3_dataframe["number_second"] != race_cards_3_dataframe["number_third"]]
-        race_cards_3_dataframe["place_3_probability"] = race_cards_3_dataframe["win_probability_third"] * \
-                                                        (race_cards_3_dataframe["win_probability_second"] / (1 - race_cards_3_dataframe["win_probability_third"])) * \
-                                                        (race_cards_3_dataframe[Horse.WIN_PROBABILITY_KEY] / (1 - race_cards_3_dataframe["win_probability_third"] - race_cards_3_dataframe["win_probability_second"]))
+        flattened_place_probabilities = [item for sublist in place_probabilities for item in sublist]
 
-        place_3_probabilities = race_cards_3_dataframe.groupby([RaceCard.RACE_ID_KEY, Horse.NUMBER_KEY]).agg(place_3_probability=("place_3_probability", "sum"))
-
-        race_cards_dataframe = race_cards_dataframe.merge(
-            right=place_3_probabilities,
-            on=[RaceCard.RACE_ID_KEY, Horse.NUMBER_KEY],
-            how="inner"
-        )
-
-        race_cards_dataframe["place_probability"] = race_cards_dataframe["win_probability"] \
-                                                    + race_cards_dataframe["place_2_probability"] * (race_cards_dataframe[RaceCard.PLACE_NUM_KEY] >= 2) \
-                                                    + race_cards_dataframe["place_3_probability"] * (race_cards_dataframe[RaceCard.PLACE_NUM_KEY] >= 3)
+        race_cards_dataframe["place_probability"] = flattened_place_probabilities
 
         return race_cards_dataframe

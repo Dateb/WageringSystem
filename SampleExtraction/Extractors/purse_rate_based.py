@@ -12,7 +12,7 @@ class HorsePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.name)
+        return get_purse_rate_of_name(horse.name)
 
 
 class JockeyPurseRate(FeatureExtractor):
@@ -23,7 +23,7 @@ class JockeyPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.jockey_name)
+        return get_purse_rate_of_name(horse.jockey_name)
 
 
 class TrainerPurseRate(FeatureExtractor):
@@ -34,7 +34,7 @@ class TrainerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.trainer_name)
+        return get_purse_rate_of_name(horse.trainer_name)
 
 
 class HorseJockeyPurseRate(FeatureExtractor):
@@ -45,7 +45,7 @@ class HorseJockeyPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.jockey_name}")
+        return get_purse_rate_of_name(f"{horse.name}_{horse.jockey_name}")
 
 
 class HorseTrainerPurseRate(FeatureExtractor):
@@ -56,7 +56,7 @@ class HorseTrainerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.trainer_name}")
+        return get_purse_rate_of_name(f"{horse.name}_{horse.trainer_name}")
 
 
 class HorseBreederPurseRate(FeatureExtractor):
@@ -67,7 +67,7 @@ class HorseBreederPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.breeder}")
+        return get_purse_rate_of_name(f"{horse.name}_{horse.breeder}")
 
 
 class BreederPurseRate(FeatureExtractor):
@@ -78,7 +78,7 @@ class BreederPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.breeder)
+        return get_purse_rate_of_name(horse.breeder)
 
 
 class OwnerPurseRate(FeatureExtractor):
@@ -89,7 +89,7 @@ class OwnerPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.owner)
+        return get_purse_rate_of_name(horse.owner)
 
 
 class SirePurseRate(FeatureExtractor):
@@ -100,7 +100,7 @@ class SirePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.sire)
+        return get_purse_rate_of_name(horse.sire)
 
 
 class DamPurseRate(FeatureExtractor):
@@ -111,7 +111,7 @@ class DamPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.dam)
+        return get_purse_rate_of_name(horse.dam)
 
 
 class DamSirePurseRate(FeatureExtractor):
@@ -122,7 +122,7 @@ class DamSirePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.dam_sire)
+        return get_purse_rate_of_name(horse.dam_sire)
 
 
 class JockeyDistancePurseRate(FeatureExtractor):
@@ -133,7 +133,7 @@ class JockeyDistancePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.distance}")
+        return get_purse_rate_of_name(f"{horse.jockey_name}_{race_card.distance}")
 
 
 class JockeySurfacePurseRate(FeatureExtractor):
@@ -144,7 +144,7 @@ class JockeySurfacePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
+        return get_purse_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
 
 
 class JockeyTrackPurseRate(FeatureExtractor):
@@ -155,7 +155,7 @@ class JockeyTrackPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.track_name}")
+        return get_purse_rate_of_name(f"{horse.jockey_name}_{race_card.track_name}")
 
 
 class JockeyClassPurseRate(FeatureExtractor):
@@ -166,7 +166,7 @@ class JockeyClassPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.jockey_name}_{race_card.race_class}")
+        return get_purse_rate_of_name(f"{horse.jockey_name}_{race_card.race_class}")
 
 
 class TrainerDistancePurseRate(FeatureExtractor):
@@ -177,7 +177,7 @@ class TrainerDistancePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.distance}")
+        return get_purse_rate_of_name(f"{horse.trainer_name}_{race_card.distance}")
 
 
 class TrainerSurfacePurseRate(FeatureExtractor):
@@ -188,7 +188,7 @@ class TrainerSurfacePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.surface}")
+        return get_purse_rate_of_name(f"{horse.trainer_name}_{race_card.surface}")
 
 
 class TrainerTrackPurseRate(FeatureExtractor):
@@ -199,7 +199,7 @@ class TrainerTrackPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.track_name}")
+        return get_purse_rate_of_name(f"{horse.trainer_name}_{race_card.track_name}")
 
 
 class TrainerClassPurseRate(FeatureExtractor):
@@ -210,10 +210,10 @@ class TrainerClassPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.trainer_name}_{race_card.race_class}")
+        return get_purse_rate_of_name(f"{horse.trainer_name}_{race_card.race_class}")
 
 
-def get_show_rate_of_name(name: str) -> float:
+def get_purse_rate_of_name(name: str) -> float:
     show_rate = purse_rate_source.get_average_of_name(name)
     if show_rate == -1:
         return float('NaN')

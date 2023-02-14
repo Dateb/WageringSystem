@@ -82,7 +82,7 @@ class Horse:
         self.__base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_BETTING_ODDS_KEY: self.betfair_place_sp,
+            self.CURRENT_BETTING_ODDS_KEY: self.betfair_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,

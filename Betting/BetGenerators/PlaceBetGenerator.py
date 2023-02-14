@@ -21,7 +21,7 @@ class PlaceBetGenerator(BetGenerator):
         for horse_result in horse_results:
             betting_slip = betting_slips[horse_result.race_date_time]
 
-            expected_value = betting_slip.conditional_ev + horse_result.expected_value
+            expected_value = horse_result.expected_value
 
             if expected_value > (0.0 + self.additional_ev_threshold) and not betting_slip.bets:
                 numerator = expected_value - self.additional_ev_threshold

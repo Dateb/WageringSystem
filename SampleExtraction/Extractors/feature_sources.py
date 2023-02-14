@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from collections import deque
 from math import sqrt
 from sqlite3 import Date
 from statistics import mean
@@ -78,6 +79,12 @@ class FeatureSource(ABC):
 
     def update_previous(self, category: dict, new_obs: float) -> None:
         category["previous"] = new_obs
+
+    def update_buffer(self, category: dict, new_obs: float) -> None:
+        if not category["buffer"]:
+            category["buffer"] = deque(maxlen=3)
+
+        category["buffer"].append(new_obs)
 
 
 class CategoryAverageSource(FeatureSource, ABC):
@@ -315,13 +322,11 @@ class SpeedFiguresSource(FeatureSource):
             )
 
             if speed_figure is not None:
-                self.update_average(
+                self.update_max(
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
-                    new_obs_date=race_card.date,
-                    online_calculator=HORSE_SPEED_CALCULATOR,
                 )
-                self.update_max(
+                self.update_buffer(
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
                 )
@@ -341,8 +346,17 @@ class SpeedFiguresSource(FeatureSource):
         if category not in self.speed_figures:
             return -1
 
-        current_speed_figure = self.speed_figures[category]["avg"]
-        return current_speed_figure
+        speed_figure_buffer = list(self.speed_figures[category]["buffer"])
+
+        if len(speed_figure_buffer) < 3:
+            return -1
+
+        min_speed_figure = min(speed_figure_buffer)
+        best_two_speed_figures = [
+            speed_figure for speed_figure in speed_figure_buffer if speed_figure > min_speed_figure
+        ]
+
+        return mean(best_two_speed_figures)
 
     def get_max_speed_figure(self, category: str):
         if category not in self.speed_figures:

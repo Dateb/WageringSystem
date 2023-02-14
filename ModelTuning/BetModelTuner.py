@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 12
-N_SAMPLE_MONTHS = 82
+N_CONTAINER_MONTHS = 2
+N_SAMPLE_MONTHS = 2
 
 
 class BetModelTuner:
@@ -27,8 +27,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_races_per_fold=4000,
-            n_folds=2,
+            n_races_per_fold=100,
+            n_folds=1,
         )
         self.model_evaluator = model_evaluator
 

@@ -13,7 +13,7 @@ from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, Comin
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
-    BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability
+    BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -55,7 +55,10 @@ class FeatureManager:
         self.base_features = [
             # RacebetsWinProbability(),
             BetfairWinMarketWinProbability(),
+            # BetfairPlaceMarketWinProbability(),
             CurrentSpeedFigure(),
+
+            IsFavorite(), IsUnderdog(),
 
             DayOfYearCos(), DayOfYearSin(),
             WeekDayCos(), WeekDaySin(),
