@@ -28,7 +28,7 @@ class WinBetGenerator(BetGenerator):
 
             expected_value = horse_result.expected_value
 
-            if expected_value > (0.0 + self.additional_ev_threshold) and not betting_slip.bets:
+            if expected_value > (0.0 + self.additional_ev_threshold):
                 numerator = expected_value - self.additional_ev_threshold
                 denominator = horse_result.betting_odds - \
                               (1 + Bet.BET_TAX + self.additional_ev_threshold)

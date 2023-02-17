@@ -1,7 +1,7 @@
 from collections import deque
 
 METERS_PER_LENGTH: float = 2.4
-__speed_figures_distribution = deque(maxlen=10000)
+__speed_figures_distribution = deque(maxlen=1000)
 
 
 def get_speed_figures_distribution() -> deque:
@@ -34,7 +34,6 @@ def compute_speed_figure(
     if speed_figure > 5:
         speed_figure = 5
 
-    get_speed_figures_distribution().append(speed_figure)
     return speed_figure
 
 

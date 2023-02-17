@@ -50,6 +50,9 @@ class RaceCard:
 
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
+
+        self.distance_category = self.get_distance_category()
+
         self.going = race["trackGoing"]
         self.category = race["category"]
         self.race_type = race["raceType"]
@@ -181,15 +184,15 @@ class RaceCard:
 
     @property
     def base_time_estimate(self) -> dict:
-        return RaceCard.base_times[self.distance][self.race_type_detail]
+        return RaceCard.base_times[self.distance_category][self.race_type_detail]
 
     @property
     def lengths_per_second_estimate(self) -> dict:
-        return RaceCard.length_modifier[self.distance][self.race_type_detail]
+        return RaceCard.length_modifier[self.distance_category][self.race_type_detail]
 
     @property
     def par_time_estimate(self) -> dict:
-        return RaceCard.par_time[self.distance][self.race_class][self.race_type_detail]
+        return RaceCard.par_time[self.distance_category][self.race_class][self.race_type_detail]
 
     @property
     def track_variant_estimate(self) -> dict:
@@ -204,3 +207,7 @@ class RaceCard:
     @staticmethod
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = nested_dict()
+
+    def get_distance_category(self) -> float:
+        distance_increment = max(int(self.distance / 1000) * 100, 50)
+        return round(self.distance / distance_increment) * distance_increment

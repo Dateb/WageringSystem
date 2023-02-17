@@ -72,7 +72,7 @@ class Horse:
         self.trainer_name = f"{trainer_first_name} {trainer_last_name}"
 
         self.is_scratched = raw_data["scratched"]
-        self.past_performance = raw_data["ppString"]
+        self.last_performance = raw_data["ppString"].split("-")[0]
 
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])
@@ -95,6 +95,8 @@ class Horse:
 
     def set_relevance(self, speed_figure: float):
         if speed_figure:
+            get_speed_figures_distribution().append(speed_figure)
+
             score_percentile = percentileofscore(get_speed_figures_distribution(), speed_figure) / 100
             self.relevance = floor(score_percentile * 29) + self.has_won
 

@@ -365,6 +365,24 @@ class SpeedFiguresSource(FeatureSource):
         return self.speed_figures[category]["max"]
 
 
+class HasFallenSource(FeatureSource):
+
+    def __init__(self):
+        super().__init__()
+        self.has_fallen = nested_dict()
+
+    def post_update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            if horse.last_performance == "UR":
+                self.has_fallen[horse.subject_id] = True
+
+    def get_has_fallen(self, horse: Horse) -> bool:
+        if horse.subject_id not in self.has_fallen:
+            self.has_fallen[horse.subject_id] = False
+            return False
+        return self.has_fallen[horse.subject_id]
+
+
 # Average based sources:
 win_rate_source: WinRateSource = WinRateSource()
 show_rate_source: ShowRateSource = ShowRateSource()
@@ -379,6 +397,8 @@ speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
+has_fallen_source: HasFallenSource = HasFallenSource()
+
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
@@ -389,4 +409,6 @@ def get_feature_sources() -> List[FeatureSource]:
         speed_figures_source,
 
         draw_bias_source,
+
+        has_fallen_source,
     ]

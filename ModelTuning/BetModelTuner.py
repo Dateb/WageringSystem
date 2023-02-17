@@ -16,8 +16,8 @@ from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 2
-N_SAMPLE_MONTHS = 2
+N_CONTAINER_MONTHS = 12
+N_SAMPLE_MONTHS = 82
 
 
 class BetModelTuner:
@@ -27,8 +27,8 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.sample_split_generator = SampleSplitGenerator(
             self.race_cards_sample,
-            n_races_per_fold=100,
-            n_folds=1,
+            n_races_per_fold=2000,
+            n_folds=5,
         )
         self.model_evaluator = model_evaluator
 
@@ -39,7 +39,7 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=10)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
 
         return bet_model_configuration
 
@@ -67,7 +67,8 @@ def optimize_model_configuration():
     n_months = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
     sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:n_months]
-    print(sample_race_card_file_names[0])
+    print(container_race_card_file_names)
+    print(sample_race_card_file_names)
     for race_card_file_name in tqdm(container_race_card_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
         race_cards_array_factory.race_cards_to_array(race_cards)
