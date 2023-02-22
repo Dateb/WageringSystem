@@ -55,9 +55,14 @@ class RaceCard:
 
         self.going = race["trackGoing"]
         self.category = race["category"]
+
         self.race_type = race["raceType"]
         self.race_type_detail = race["raceTypeDetail"]
         self.race_class = race["categoryLetter"]
+
+        if self.race_class == "":
+            self.race_class = "1"
+
         self.surface = race["trackSurface"]
         self.age_from = race["ageFrom"]
         self.age_to = race["ageTo"]

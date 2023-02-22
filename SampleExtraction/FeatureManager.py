@@ -14,7 +14,7 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
     BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog
-from SampleExtraction.Extractors.past_performance_based import HasFallen
+from SampleExtraction.Extractors.past_performance_based import HasFallen, PulledUpPreviousRace
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -23,7 +23,7 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference, HasTrainerChanged
+    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged
 from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
@@ -33,7 +33,7 @@ from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeySho
     OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
     HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
     TrainerDistanceShowRate, TrainerSurfaceShowRate, TrainerTrackShowRate, TrainerClassShowRate
-from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure
+from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure, MeanSpeedDiff
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
@@ -58,6 +58,7 @@ class FeatureManager:
             BetfairWinMarketWinProbability(),
             # BetfairPlaceMarketWinProbability(),
             CurrentSpeedFigure(),
+            MeanSpeedDiff(),
 
             IsFavorite(), IsUnderdog(),
 
@@ -68,7 +69,7 @@ class FeatureManager:
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
 
-            HasFallen(),
+            HasFallen(), HasTrackChanged(), PulledUpPreviousRace(), JockeyWeight(),
         ]
 
         self.features = features
@@ -135,7 +136,7 @@ class FeatureManager:
 
             DistanceDifference(), RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
 
-            JockeyWeight(), WeightAllowanceExtractor(),
+            WeightAllowanceExtractor(),
             MaxPastRatingExtractor(),
         ]
 

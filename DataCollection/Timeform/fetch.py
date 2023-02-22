@@ -162,10 +162,10 @@ class TimeFormFetcher(ABC):
         if response.history:
             return None
 
-        time.sleep(2.5)
+        time.sleep(12.5)
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
-            time.sleep(20)
+            time.sleep(40)
 
         return BeautifulSoup(response.text, 'html.parser')
 

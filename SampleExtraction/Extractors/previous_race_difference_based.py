@@ -65,6 +65,23 @@ class HasJockeyChanged(FeatureExtractor):
         return previous_jockey_last_name != current_jockey_last_name
 
 
+class HasTrackChanged(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        form_table = horse.form_table
+
+        if not form_table.past_forms:
+            return self.PLACEHOLDER_VALUE
+
+        previous_track = form_table.past_forms[0].track_name
+        current_track = race_card.track_name
+
+        return int(previous_track != current_track)
+
+
 def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, horse: Horse, attribute_name: str):
     try:
         current_attribute_value = float(getattr(race_card, attribute_name))
@@ -77,10 +94,5 @@ def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, 
         previous_attribute_value = float(getattr(previous_form, attribute_name))
     except ValueError:
         return float('NaN')
-
-    # TODO: fix small distance differences
-    # if current_attribute_value - previous_attribute_value == -1 and attribute_name == "distance":
-    #     print(f"current:{current_attribute_value}")
-    #     print(f"previous:{previous_attribute_value}")
 
     return current_attribute_value - previous_attribute_value

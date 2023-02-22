@@ -50,7 +50,8 @@ class DayCollector:
         del calendar_data["calendarDates"]
         for race_series_key in calendar_data:
             race_series = calendar_data[race_series_key]
-            if race_series["country"] == "GB" and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"] and "PMU" not in race_series["title"]:
+            if race_series["country"] == "GB" and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"] and "PMU" not in race_series["title"]\
+                    and race_series["title"] != "Down Royal":
                 race_series_list.append(race_series)
 
         return race_series_list

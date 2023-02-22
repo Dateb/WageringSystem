@@ -64,10 +64,9 @@ class CurrentRaceClass(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return get_category_encoding("race_class", str(race_card.race_class))
+        return int(race_card.race_class)
 
 
 class CurrentRaceCategory(FeatureExtractor):

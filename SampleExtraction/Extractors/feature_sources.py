@@ -342,21 +342,11 @@ class SpeedFiguresSource(FeatureSource):
                 online_calculator=PAR_TIME_CALCULATOR,
             )
 
-    def get_current_speed_figure(self, category: str):
+    def get_speed_figures_buffer(self, category: str):
         if category not in self.speed_figures:
             return -1
 
-        speed_figure_buffer = list(self.speed_figures[category]["buffer"])
-
-        if len(speed_figure_buffer) < 3:
-            return -1
-
-        min_speed_figure = min(speed_figure_buffer)
-        best_two_speed_figures = [
-            speed_figure for speed_figure in speed_figure_buffer if speed_figure > min_speed_figure
-        ]
-
-        return mean(best_two_speed_figures)
+        return list(self.speed_figures[category]["buffer"])
 
     def get_max_speed_figure(self, category: str):
         if category not in self.speed_figures:
@@ -373,7 +363,7 @@ class HasFallenSource(FeatureSource):
 
     def post_update(self, race_card: RaceCard):
         for horse in race_card.horses:
-            if horse.last_performance == "UR":
+            if horse.previous_performance == "UR":
                 self.has_fallen[horse.subject_id] = True
 
     def get_has_fallen(self, horse: Horse) -> bool:
