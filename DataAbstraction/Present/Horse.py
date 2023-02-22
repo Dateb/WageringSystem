@@ -46,7 +46,6 @@ class Horse:
         if "equipCode" in raw_data and raw_data["equipCode"]:
             self.equipments = raw_data["equipCode"].split("+")
 
-        self.horse_distance = self.__extract_horse_distance(raw_data)
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
 
@@ -56,6 +55,7 @@ class Horse:
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
+        self.horse_distance = self.__extract_horse_distance(raw_data)
 
         self.jockey = Jockey(raw_data["jockey"])
 
@@ -118,6 +118,9 @@ class Horse:
         return -1
 
     def __extract_horse_distance(self, raw_data: dict):
+        if self.has_won:
+            return 0
+
         if raw_data["scratched"]:
             return -1
 

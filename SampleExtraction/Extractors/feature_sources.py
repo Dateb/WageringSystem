@@ -263,7 +263,7 @@ class SpeedFiguresSource(FeatureSource):
             self.update_lengths_per_second(race_card)
 
     def update_track_variant(self, race_card: RaceCard) -> None:
-        par_time = race_card.par_time_estimate["avg"]
+        par_time = race_card.get_par_time_estimate["avg"]
         win_time = race_card.race_result.win_time
 
         if par_time:
@@ -281,7 +281,7 @@ class SpeedFiguresSource(FeatureSource):
         if win_time > 0:
             horse_times = [get_horse_time(
                 win_time,
-                race_card.lengths_per_second_estimate["avg"],
+                race_card.get_lengths_per_second_estimate["avg"],
                 horse.horse_distance,
             ) for horse in race_card.horses if horse.horse_distance >= 0
               and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance)
@@ -289,12 +289,12 @@ class SpeedFiguresSource(FeatureSource):
             if horse_times:
                 mean_horse_time = mean(horse_times)
                 self.update_average(
-                    category=race_card.base_time_estimate,
+                    category=race_card.get_base_time_estimate,
                     new_obs=mean_horse_time,
                     new_obs_date=race_card.date,
                     online_calculator=BASE_TIME_CALCULATOR,
                 )
-                self.update_variance(category=race_card.base_time_estimate, new_obs=mean_horse_time)
+                self.update_variance(category=race_card.get_base_time_estimate, new_obs=mean_horse_time)
 
     def update_lengths_per_second(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
@@ -303,7 +303,7 @@ class SpeedFiguresSource(FeatureSource):
             lengths_per_second = get_lengths_per_second(race_card.distance, win_time)
 
             self.update_average(
-                category=race_card.lengths_per_second_estimate,
+                category=race_card.get_lengths_per_second_estimate,
                 new_obs=lengths_per_second,
                 new_obs_date=race_card.date,
                 online_calculator=LENGTH_MODIFIER_CALCULATOR,
@@ -312,9 +312,9 @@ class SpeedFiguresSource(FeatureSource):
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = compute_speed_figure(
-                race_card.base_time_estimate["avg"],
-                race_card.base_time_estimate["std"],
-                race_card.lengths_per_second_estimate["avg"],
+                race_card.get_base_time_estimate["avg"],
+                race_card.get_base_time_estimate["std"],
+                race_card.get_lengths_per_second_estimate["avg"],
                 race_card.race_result.win_time,
                 race_card.distance,
                 horse.horse_distance,
@@ -336,7 +336,7 @@ class SpeedFiguresSource(FeatureSource):
 
         if win_time > 0:
             self.update_average(
-                category=race_card.par_time_estimate,
+                category=race_card.get_par_time_estimate,
                 new_obs=win_time,
                 new_obs_date=race_card.date,
                 online_calculator=PAR_TIME_CALCULATOR,

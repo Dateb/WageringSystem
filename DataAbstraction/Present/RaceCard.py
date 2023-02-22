@@ -112,9 +112,9 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 speed_figure = compute_speed_figure(
-                    self.base_time_estimate["avg"],
-                    self.base_time_estimate["std"],
-                    self.lengths_per_second_estimate["avg"],
+                    self.get_base_time_estimate["avg"],
+                    self.get_base_time_estimate["std"],
+                    self.get_lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     self.distance,
                     horse.horse_distance,
@@ -188,15 +188,15 @@ class RaceCard:
         return self.__head_to_head_horses
 
     @property
-    def base_time_estimate(self) -> dict:
+    def get_base_time_estimate(self) -> dict:
         return RaceCard.base_times[self.distance_category][self.race_type_detail]
 
     @property
-    def lengths_per_second_estimate(self) -> dict:
+    def get_lengths_per_second_estimate(self) -> dict:
         return RaceCard.length_modifier[self.distance_category][self.race_type_detail]
 
     @property
-    def par_time_estimate(self) -> dict:
+    def get_par_time_estimate(self) -> dict:
         return RaceCard.par_time[self.distance_category][self.race_class][self.race_type_detail]
 
     @property
