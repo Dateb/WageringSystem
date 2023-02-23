@@ -84,8 +84,7 @@ class BetModelConfiguration:
 
         bettor = EVSingleBettor(
             self.expected_value_additional_threshold,
-            self.lower_win_prob_threshold,
-            self.upper_win_prob_threshold,
+            self.probabilizer,
         )
 
         bet_model = BetModel(estimator, self.probabilizer, bettor)

@@ -3,8 +3,10 @@ import pandas as pd
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.Bets.Bet import Bet
+from Model.Betting.Bets.WinBet import WinBet
 from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 from Model.Probabilizing.Probabilizer import Probabilizer
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -37,3 +39,6 @@ class WinProbabilizer(Probabilizer):
             race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"]
 
         return race_cards_dataframe
+
+    def create_bet(self, horse_result: HorseResult, stakes_fraction: float) -> Bet:
+        return WinBet([horse_result], stakes_fraction)
