@@ -2,9 +2,9 @@ from typing import Dict
 
 import numpy as np
 
-from Betting.BetGenerators.BetGenerator import BetGenerator
-from Betting.Bets.ExactaBet import ExactaBet
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BetGenerators.BetGenerator import BetGenerator
+from Model.Betting.Bets.ExactaBet import ExactaBet
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard

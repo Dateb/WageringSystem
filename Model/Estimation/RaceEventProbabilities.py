@@ -1,12 +1,11 @@
 from pandas import DataFrame
 
-from Betting.Bets.Bet import Bet
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
 
 
-class EstimationResult:
+class RaceEventProbabilities:
 
     def __init__(self, race_cards_dataframe: DataFrame):
         self.race_keys = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
@@ -17,7 +16,7 @@ class EstimationResult:
         horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
 
-        betting_odds = race_cards_dataframe.loc[:, Horse.CURRENT_BETTING_ODDS_KEY].values
+        betting_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
 
         win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values

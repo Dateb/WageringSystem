@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Dict, List
 
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.HorseResult import HorseResult
 
 

@@ -1,5 +1,5 @@
 from typing import Dict
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
 
 

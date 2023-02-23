@@ -1,10 +1,9 @@
 from typing import Dict
 
-from Betting.BetGenerators.PlaceBetGenerator import PlaceBetGenerator
-from Betting.BetGenerators.WinBetGenerator import WinBetGenerator
-from Betting.BettingSlip import BettingSlip
-from Betting.Bettor import Bettor
-from Estimators.EstimationResult import EstimationResult
+from Model.Betting.BetGenerators.WinBetGenerator import WinBetGenerator
+from Model.Betting.BettingSlip import BettingSlip
+from Model.Betting.Bettor import Bettor
+from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 
 
 class EVSingleBettor(Bettor):
@@ -18,7 +17,7 @@ class EVSingleBettor(Bettor):
         bet_generators = [WinBetGenerator(additional_ev_threshold, lower_win_prob_threshold, upper_win_prob_threshold)]
         super().__init__(additional_ev_threshold, bet_generators)
 
-    def bet(self, estimation_result: EstimationResult) -> Dict[str, BettingSlip]:
+    def bet(self, estimation_result: RaceEventProbabilities) -> Dict[str, BettingSlip]:
         betting_slips = {}
         for i in range(len(estimation_result.race_keys)):
             betting_slips[estimation_result.race_keys[i]] = BettingSlip(estimation_result.race_ids[i])

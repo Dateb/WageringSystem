@@ -4,6 +4,7 @@ from statistics import mean
 import numpy as np
 from tqdm import trange
 
+from Model.Probabilizing.Probabilizer import Probabilizer
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
@@ -51,12 +52,14 @@ class BetModelConfigurationTuner:
             feature_manager: FeatureManager,
             sample_split_generator: SampleSplitGenerator,
             model_evaluator: ModelEvaluator,
+            probabilizer: Probabilizer,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
 
         self.sample_split_generator = sample_split_generator
         self.model_evaluator = model_evaluator
+        self.probabilizer = probabilizer
 
         self.__best_configuration: BetModelConfiguration = None
         self.__max_score = -np.Inf
@@ -71,6 +74,7 @@ class BetModelConfigurationTuner:
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
                 n_train_races=self.sample_split_generator.n_train_validation_races,
+                probabilizer=self.probabilizer,
             ),
         )
 
@@ -93,19 +97,12 @@ class BetModelConfigurationTuner:
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
                 self.sample_split_generator.n_train_validation_races,
+                self.probabilizer,
             )
 
             results = self.__simulate(terminal_configuration)
 
-            #exp_calculator = ExponentialOnlineCalculator(base_alpha=0.5)
             total_score = min(list(results.values()))
-            # for score in list(results.values()):
-            #     total_score = exp_calculator.calculate_average(
-            #         old_average=total_score,
-            #         new_obs=score,
-            #         count=0,
-            #         n_days_since_last_obs=0,
-            #     )
 
             self.__backup(front_node, total_score)
 
@@ -141,6 +138,7 @@ class BetModelConfigurationTuner:
             self.feature_manager.base_features,
             self.feature_manager.search_features,
             self.sample_split_generator.n_train_validation_races,
+            self.probabilizer,
         )
 
         new_node = BetModelConfigurationNode(

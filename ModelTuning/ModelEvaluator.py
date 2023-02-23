@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Dict
 
-from Betting.BetEvaluator import BetEvaluator
+from Model.Betting.BetEvaluator import BetEvaluator
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.RaceResult import RaceResult
 from Experiments.FundHistorySummary import FundHistorySummary

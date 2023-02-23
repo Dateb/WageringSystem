@@ -6,12 +6,12 @@ import pandas as pd
 from lightgbm import Dataset
 from numpy import ndarray
 
-from Betting.Bets.Bet import Bet
+from Model.Betting.Bets.Bet import Bet
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from Estimators.EstimationResult import EstimationResult
-from Estimators.Ranker.Ranker import Ranker
-from Estimators.place_calculation import compute_place_probabilities
+from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
+from Model.Estimation.Ranker.Ranker import Ranker
+from Model.Probabilizing.place_calculation import compute_place_probabilities
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -71,36 +71,12 @@ class BoostedTreesRanker(Ranker):
             num_boost_round=num_boost_round,
         )
 
-    def transform(self, race_cards_sample: RaceCardsSample) -> EstimationResult:
+    def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
         X = race_cards_dataframe[self.feature_names]
         scores = self.booster.predict(X)
 
-        return self.set_probabilities(race_cards_sample, scores)
-
-    def set_probabilities(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
-        race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        race_cards_dataframe.loc[:, "score"] = scores
-
-        race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe)
-        race_cards_dataframe["place_probability"] = "0"
-        # race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
-
-        race_cards_dataframe["expected_value"] = race_cards_dataframe[Horse.WIN_PROBABILITY_KEY]\
-                                                 * race_cards_dataframe[Horse.CURRENT_BETTING_ODDS_KEY]\
-                                                 * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
-
-        return EstimationResult(race_cards_dataframe)
-
-    def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame) -> pd.DataFrame:
-        race_cards_dataframe.loc[:, "exp_score"] = np.exp(race_cards_dataframe.loc[:, "score"])
-        score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
-        race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
-
-        race_cards_dataframe.loc[:, "win_probability"] = \
-            race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"]
-
-        return race_cards_dataframe
+        return scores
 
     def set_place_probabilities(self, race_cards_dataframe: pd.DataFrame) -> pd.DataFrame:
         grouped_win_information = race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[["win_probability", RaceCard.PLACE_NUM_KEY]].agg({

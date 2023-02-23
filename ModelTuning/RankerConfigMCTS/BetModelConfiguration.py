@@ -2,9 +2,11 @@ import random
 from copy import copy
 from typing import List
 
-from Betting.EVSingleBettor import EVSingleBettor
-from Estimators.Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Model.Betting.EVSingleBettor import EVSingleBettor
+from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
+from Model.Probabilizing.Probabilizer import Probabilizer
+from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -26,6 +28,7 @@ class BetModelConfiguration:
             base_features: List[FeatureExtractor],
             search_features: List[FeatureExtractor],
             n_train_races: int,
+            probabilizer: Probabilizer,
     ):
         self.num_boost_round = 0
         self.expected_value_additional_threshold = 0.0
@@ -49,6 +52,8 @@ class BetModelConfiguration:
         if len(decisions) == len(self.n_decision_list):
             self.is_terminal = True
             self.__init_config()
+
+        self.probabilizer = probabilizer
 
     def __init_config(self):
         for i, decision_idx in enumerate(self.decisions):
@@ -83,7 +88,7 @@ class BetModelConfiguration:
             self.upper_win_prob_threshold,
         )
 
-        bet_model = BetModel(estimator, bettor)
+        bet_model = BetModel(estimator, self.probabilizer, bettor)
         bet_model.fit_estimator(train_samples.race_cards_dataframe, self.num_boost_round)
 
         return bet_model

@@ -1,6 +1,6 @@
 from typing import Dict
 
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceResult import RaceResult
 
 

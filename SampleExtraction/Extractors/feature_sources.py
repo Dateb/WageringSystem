@@ -279,22 +279,21 @@ class SpeedFiguresSource(FeatureSource):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
-            horse_times = [get_horse_time(
-                win_time,
-                race_card.get_lengths_per_second_estimate["avg"],
-                horse.horse_distance,
-            ) for horse in race_card.horses if horse.horse_distance >= 0
-              and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance)
-            ]
-            if horse_times:
-                mean_horse_time = mean(horse_times)
-                self.update_average(
-                    category=race_card.get_base_time_estimate,
-                    new_obs=mean_horse_time,
-                    new_obs_date=race_card.date,
-                    online_calculator=BASE_TIME_CALCULATOR,
-                )
-                self.update_variance(category=race_card.get_base_time_estimate, new_obs=mean_horse_time)
+            for horse in race_card.horses:
+                if horse.horse_distance >= 0 and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance):
+                    horse_time = get_horse_time(
+                        win_time,
+                        race_card.get_lengths_per_second_estimate["avg"],
+                        horse.horse_distance,
+                    )
+                    base_time_category = race_card.get_base_time_estimate(horse)
+                    self.update_average(
+                        category=base_time_category,
+                        new_obs=horse_time,
+                        new_obs_date=race_card.date,
+                        online_calculator=BASE_TIME_CALCULATOR,
+                    )
+                    self.update_variance(category=base_time_category, new_obs=horse_time)
 
     def update_lengths_per_second(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
@@ -312,8 +311,8 @@ class SpeedFiguresSource(FeatureSource):
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             speed_figure = compute_speed_figure(
-                race_card.get_base_time_estimate["avg"],
-                race_card.get_base_time_estimate["std"],
+                race_card.get_base_time_estimate(horse)["avg"],
+                race_card.get_base_time_estimate(horse)["std"],
                 race_card.get_lengths_per_second_estimate["avg"],
                 race_card.race_result.win_time,
                 race_card.distance,

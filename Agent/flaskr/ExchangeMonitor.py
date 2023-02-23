@@ -3,18 +3,18 @@ from typing import List
 
 from Agent.AgentModel import AgentModel
 from Agent.exchange_odds_request import ExchangeOddsRequester
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
-from DataCollection.current_races.fetch import TomorrowRaceCardsFetcher, TodayRaceCardsFetcher
+from DataCollection.current_races.fetch import TodayRaceCardsFetcher
 from DataCollection.current_races.inject import CurrentRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Estimators.EstimationResult import EstimationResult
+from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 
 
 class MonitorData:
 
-    def __init__(self, estimation_result: EstimationResult, betting_slip: BettingSlip):
+    def __init__(self, estimation_result: RaceEventProbabilities, betting_slip: BettingSlip):
         self.estimation_result = estimation_result
         self.betting_slip = betting_slip
 

@@ -1,15 +1,10 @@
 from typing import Dict, List
 
-from pandas import DataFrame
-
-from Betting.BetGenerators.BetGenerator import BetGenerator
-from Betting.Bets.Bet import Bet
-from Betting.Bets.WinBet import WinBet
-from Betting.BettingSlip import BettingSlip
-from DataAbstraction.Present.Horse import Horse
+from Model.Betting.BetGenerators.BetGenerator import BetGenerator
+from Model.Betting.Bets.Bet import Bet
+from Model.Betting.Bets.WinBet import WinBet
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.HorseResult import HorseResult
-from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class WinBetGenerator(BetGenerator):

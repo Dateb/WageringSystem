@@ -33,7 +33,7 @@ from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeySho
     OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
     HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
     TrainerDistanceShowRate, TrainerSurfaceShowRate, TrainerTrackShowRate, TrainerClassShowRate
-from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure, MeanSpeedDiff
+from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure, MeanSpeedDiff, BaseTime
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
@@ -58,6 +58,7 @@ class FeatureManager:
             BetfairWinMarketWinProbability(),
             # BetfairPlaceMarketWinProbability(),
             CurrentSpeedFigure(),
+            # BaseTime(),
             MeanSpeedDiff(),
 
             IsFavorite(), IsUnderdog(),

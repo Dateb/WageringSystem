@@ -1,16 +1,12 @@
-import os
 import re
 from datetime import datetime
 from time import sleep
 
-import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from Betting.Bets.WinBet import WinBet
-from Betting.BettingSlip import BettingSlip
-from DataAbstraction.Present.HorseResult import HorseResult
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
 

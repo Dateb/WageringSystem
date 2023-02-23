@@ -33,6 +33,17 @@ class CurrentSpeedFigure(FeatureExtractor):
             return mean(best_two_speed_figures)
 
 
+class BaseTime(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        base_time_category = race_card.get_base_time_estimate(horse)
+
+        return base_time_category["avg"]
+
+
 class MeanSpeedDiff(FeatureExtractor):
 
     def __init__(self):

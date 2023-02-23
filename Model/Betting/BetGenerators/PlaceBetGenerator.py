@@ -1,9 +1,9 @@
 from typing import Dict, List
 
-from Betting.BetGenerators.BetGenerator import BetGenerator
-from Betting.Bets.Bet import Bet
-from Betting.Bets.PlaceBet import PlaceBet
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.BetGenerators.BetGenerator import BetGenerator
+from Model.Betting.Bets.Bet import Bet
+from Model.Betting.Bets.PlaceBet import PlaceBet
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.HorseResult import HorseResult
 
 

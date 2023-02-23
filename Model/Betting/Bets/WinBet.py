@@ -1,6 +1,6 @@
 from typing import List
 
-from Betting.Bets.Bet import Bet
+from Model.Betting.Bets.Bet import Bet
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceResult import RaceResult
 

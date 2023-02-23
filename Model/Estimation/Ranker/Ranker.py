@@ -19,7 +19,7 @@ class Ranker(ABC):
     def _fit(self, samples_train: pd.DataFrame):
         pass
 
-    def transform(self, samples: pd.DataFrame) -> pd.DataFrame:
+    def score_races(self, samples: pd.DataFrame) -> pd.DataFrame:
         pass
 
     def set_parameter_set(self, search_params: Dict):

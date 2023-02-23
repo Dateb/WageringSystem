@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from datetime import datetime
 from typing import List
@@ -112,8 +113,8 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 speed_figure = compute_speed_figure(
-                    self.get_base_time_estimate["avg"],
-                    self.get_base_time_estimate["std"],
+                    self.get_base_time_estimate(horse)["avg"],
+                    self.get_base_time_estimate(horse)["std"],
                     self.get_lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     self.distance,
@@ -187,9 +188,9 @@ class RaceCard:
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
 
-    @property
-    def get_base_time_estimate(self) -> dict:
-        return RaceCard.base_times[self.distance_category][self.race_type_detail]
+    def get_base_time_estimate(self, horse: Horse) -> dict:
+        weight_rounded = round(horse.jockey.weight / 2) * 2
+        return RaceCard.base_times[self.distance_category][self.race_type_detail][weight_rounded]
 
     @property
     def get_lengths_per_second_estimate(self) -> dict:

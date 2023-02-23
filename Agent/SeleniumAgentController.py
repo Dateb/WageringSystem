@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from time import sleep
 
@@ -9,8 +8,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-from Betting.Bets.WinBet import WinBet
-from Betting.BettingSlip import BettingSlip
+from Model.Betting.Bets.WinBet import WinBet
+from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
 

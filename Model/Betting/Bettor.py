@@ -1,8 +1,8 @@
 from abc import abstractmethod, ABC
 from typing import Dict, List
-from Betting.BetGenerators.BetGenerator import BetGenerator
-from Betting.BettingSlip import BettingSlip
-from Estimators.EstimationResult import EstimationResult
+from Model.Betting.BetGenerators.BetGenerator import BetGenerator
+from Model.Betting.BettingSlip import BettingSlip
+from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
@@ -15,5 +15,5 @@ class Bettor(ABC):
         self.bet_generators = bet_generators
 
     @abstractmethod
-    def bet(self, estimation_result: EstimationResult) -> Dict[str, BettingSlip]:
+    def bet(self, estimation_result: RaceEventProbabilities) -> Dict[str, BettingSlip]:
         pass

@@ -14,14 +14,14 @@ class Horse:
     NAME_KEY: str = "name"
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
-    CURRENT_BETTING_ODDS_KEY: str = "current_betting_odds"
+    CURRENT_WIN_ODDS_KEY: str = "current_betting_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     RELEVANCE_KEY: str = "relevance"
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
-        NAME_KEY, NUMBER_KEY, CURRENT_BETTING_ODDS_KEY,
+        NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
         PLACE_KEY, RELEVANCE_KEY,
     ]
@@ -82,7 +82,7 @@ class Horse:
         self.__base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_BETTING_ODDS_KEY: self.betfair_win_sp,
+            self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,
