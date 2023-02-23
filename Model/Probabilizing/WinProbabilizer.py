@@ -26,7 +26,7 @@ class WinProbabilizer(Probabilizer):
                                                  * race_cards_dataframe[Horse.CURRENT_WIN_ODDS_KEY] \
                                                  * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
 
-        return RaceEventProbabilities(race_cards_dataframe)
+        return RaceEventProbabilities(race_cards_dataframe, Horse.CURRENT_WIN_ODDS_KEY)
 
     def create_bet(self, horse_result: HorseResult, stakes_fraction: float) -> Bet:
         return WinBet([horse_result], stakes_fraction)

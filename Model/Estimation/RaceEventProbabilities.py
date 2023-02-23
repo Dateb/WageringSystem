@@ -7,7 +7,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 
 class RaceEventProbabilities:
 
-    def __init__(self, race_cards_dataframe: DataFrame):
+    def __init__(self, race_cards_dataframe: DataFrame, betting_odds_key: str):
         self.race_keys = list(race_cards_dataframe[RaceCard.DATETIME_KEY].astype(str).values)
         self.race_ids = list(race_cards_dataframe[RaceCard.RACE_ID_KEY])
 
@@ -16,7 +16,7 @@ class RaceEventProbabilities:
         horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
 
-        betting_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
+        betting_odds = race_cards_dataframe.loc[:, betting_odds_key].values
         place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
 
         win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values
