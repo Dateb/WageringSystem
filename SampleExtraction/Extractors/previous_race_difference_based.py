@@ -82,6 +82,30 @@ class HasTrackChanged(FeatureExtractor):
         return int(previous_track != current_track)
 
 
+class WeightDifference(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        current_weight = horse.jockey.weight
+
+        if current_weight == -1:
+            return self.PLACEHOLDER_VALUE
+
+        form_table = horse.form_table
+
+        if not form_table.past_forms:
+            return self.PLACEHOLDER_VALUE
+
+        previous_weight = form_table.past_forms[0].weight
+
+        if previous_weight == 0.0:
+            return self.PLACEHOLDER_VALUE
+
+        return current_weight / previous_weight
+
+
 def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, horse: Horse, attribute_name: str):
     try:
         current_attribute_value = float(getattr(race_card, attribute_name))

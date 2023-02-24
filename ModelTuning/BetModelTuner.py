@@ -44,7 +44,7 @@ class BetModelTuner:
             model_evaluator=self.model_evaluator,
             probabilizer=PROBABILIZER,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=40)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
 
         return bet_model_configuration
 

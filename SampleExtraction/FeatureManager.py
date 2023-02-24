@@ -23,7 +23,7 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged
+    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference
 from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
@@ -70,7 +70,8 @@ class FeatureManager:
             CurrentDistance(), CurrentRaceClass(), CurrentGoing(), CurrentRaceTrack(),
             CurrentRaceSurface(), CurrentRaceType(), CurrentRaceTypeDetail(), CurrentRaceCategory(),
 
-            HasFallen(), HasTrackChanged(), PulledUpPreviousRace(), JockeyWeight(),
+            HasFallen(), HasTrackChanged(), PulledUpPreviousRace(), JockeyWeight(), WeightDifference(),
+            DistanceDifference(), WeightAllowanceExtractor(),
         ]
 
         self.features = features
@@ -135,9 +136,8 @@ class FeatureManager:
             JockeyDistancePercentageBeaten(), JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(), JockeyClassPercentageBeaten(),
             TrainerDistancePercentageBeaten(), TrainerSurfacePercentageBeaten(), TrainerTrackPercentageBeaten(), TrainerClassPercentageBeaten(),
 
-            DistanceDifference(), RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
+            RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
 
-            WeightAllowanceExtractor(),
             MaxPastRatingExtractor(),
         ]
 
