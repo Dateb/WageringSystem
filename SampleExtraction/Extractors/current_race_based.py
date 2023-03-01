@@ -89,6 +89,18 @@ class CurrentGoing(FeatureExtractor):
         return get_category_encoding("going", str(race_card.going))
 
 
+class WeightAdvantage(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        horse_weight = horse.jockey.weight
+        if horse_weight == -1:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weight_category / horse_weight
+
+
 class AgeFrom(FeatureExtractor):
 
     def __init__(self):

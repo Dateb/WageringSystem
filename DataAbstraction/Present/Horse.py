@@ -1,12 +1,8 @@
-from math import floor
 from typing import List
-
-from scipy.stats import percentileofscore
 
 from DataAbstraction.Past.FormTable import FormTable
 from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.Trainer import Trainer
-from util.speed_calculator import get_speed_figures_distribution
 
 
 class Horse:
@@ -27,7 +23,7 @@ class Horse:
     ]
 
     def __init__(self, raw_data: dict):
-        self.__base_attributes = {}
+        self.base_attributes = {}
 
         self.name = raw_data["name"]
         self.sire = raw_data["sire"]
@@ -79,7 +75,7 @@ class Horse:
         else:
             self.form_table = FormTable([])
 
-        self.__base_attributes = {
+        self.base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
@@ -89,18 +85,10 @@ class Horse:
         }
 
         self.__features = {}
+        self.speed_figure = None
 
     def set_betting_odds(self, new_odds: float):
-        self.__base_attributes[self.CURRENT_PLACE_ODDS_KEY] = new_odds
-
-    def set_relevance(self, speed_figure: float):
-        if speed_figure:
-            get_speed_figures_distribution().append(speed_figure)
-
-            score_percentile = percentileofscore(get_speed_figures_distribution(), speed_figure) / 100
-            self.relevance = floor(score_percentile * 29) + self.has_won
-
-        self.__base_attributes[self.RELEVANCE_KEY] = self.relevance
+        self.base_attributes[self.CURRENT_PLACE_ODDS_KEY] = new_odds
 
     def set_purse(self, purse: List[int]):
         self.purse = 0
@@ -159,5 +147,5 @@ class Horse:
 
     @property
     def values(self) -> List:
-        self.__base_attributes.update(self.__features)
-        return list(self.__base_attributes.values())
+        self.base_attributes.update(self.__features)
+        return list(self.base_attributes.values())

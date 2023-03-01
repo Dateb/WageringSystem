@@ -1,12 +1,15 @@
 import math
 from collections import defaultdict
 from datetime import datetime
+from statistics import mean
 from typing import List
 
+import numpy as np
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
+from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
@@ -71,10 +74,15 @@ class RaceCard:
         self.is_open = race["raceStatus"] == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
+        self.n_horses = len(self.horses)
+
+        mean_horse_weight = mean([horse.jockey.weight for horse in self.horses if horse.jockey.weight > 0])
+        self.weight_category = round(mean_horse_weight / 4) * 4
+
+        self.set_horse_results()
+
         if self.remove_non_starters:
             self.__remove_non_starters()
-
-        self.n_horses = len(self.horses)
 
         self.places_num = 1
         if 5 <= self.n_horses <= 7:
@@ -103,25 +111,28 @@ class RaceCard:
         #         if len(previous_race_ids) != len(set(previous_race_ids)):
         #             print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
 
-    def set_horses(self, raw_horses: dict):
+    def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+
+    def set_horse_results(self) -> None:
         if self.race_result:
             for horse in self.horses:
                 horse.set_purse(self.purse)
-
-    def set_horse_relevance(self):
-        if self.race_result:
-            for horse in self.horses:
-                speed_figure = compute_speed_figure(
-                    self.get_base_time_estimate(horse)["avg"],
-                    self.get_base_time_estimate(horse)["std"],
+                horse.speed_figure = compute_speed_figure(
+                    self.base_time_estimate["avg"],
+                    self.base_time_estimate["std"],
                     self.get_lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     self.distance,
                     horse.horse_distance,
                     self.track_variant_estimate["avg"],
                 )
-                horse.set_relevance(speed_figure)
+
+    def set_horse_relevance(self) -> None:
+        if self.race_result:
+            for horse in self.horses:
+                horse.relevance = get_speed_figure_based_relevance(horse)
+                horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
 
     def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]
@@ -188,9 +199,9 @@ class RaceCard:
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
 
-    def get_base_time_estimate(self, horse: Horse) -> dict:
-        weight_rounded = round(horse.jockey.weight / 2) * 2
-        return RaceCard.base_times[self.distance_category][self.race_type_detail][weight_rounded]
+    @property
+    def base_time_estimate(self) -> dict:
+        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.weight_category]
 
     @property
     def get_lengths_per_second_estimate(self) -> dict:
@@ -205,6 +216,17 @@ class RaceCard:
         return RaceCard.track_variant[self.track_name]
 
     @property
+    def favorite(self) -> Horse:
+        min_odds = np.inf
+        favorite = None
+        for horse in self.horses:
+            if horse.betfair_win_sp < min_odds:
+                min_odds = horse.betfair_win_sp
+                favorite = horse
+
+        return favorite
+
+    @property
     def json(self) -> dict:
         return {
             "name": self.name
@@ -213,6 +235,7 @@ class RaceCard:
     @staticmethod
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = nested_dict()
+
 
     def get_distance_category(self) -> float:
         distance_increment = max(int(self.distance / 1000) * 100, 50)

@@ -3,7 +3,7 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount
+    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
@@ -72,6 +72,7 @@ class FeatureManager:
 
             HasFallen(), HasTrackChanged(), PulledUpPreviousRace(), JockeyWeight(), WeightDifference(),
             DistanceDifference(), WeightAllowanceExtractor(),
+            WeightAdvantage(),
         ]
 
         self.features = features

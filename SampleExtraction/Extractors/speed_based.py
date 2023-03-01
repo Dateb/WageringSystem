@@ -39,7 +39,7 @@ class BaseTime(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        base_time_category = race_card.get_base_time_estimate(horse)
+        base_time_category = race_card.base_time_estimate(horse)
 
         return base_time_category["avg"]
 
