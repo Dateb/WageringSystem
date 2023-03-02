@@ -28,9 +28,9 @@ class RaceCardsArrayFactory:
             next_race_card = sample_race_cards[datetime]
             if next_race_card.date != self.current_day:
                 for race_card in self.current_day_race_cards:
-                    self.feature_manager.set_features([race_card])
-                    race_card.set_horse_relevance()
-                    if not race_card.has_foreigners:
+                    if race_card.sample_validity:
+                        self.feature_manager.set_features([race_card])
+                        race_card.set_horse_relevance()
                         horse_values_of_race_card = self.get_values_of_race_card(race_card)
                         sample_values += horse_values_of_race_card
 

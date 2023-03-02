@@ -167,7 +167,7 @@ class FeatureManager:
         feature_sources = get_feature_sources()
 
         for race_card in race_cards:
-            if race_card.has_results:
+            if race_card.has_results and race_card.feature_source_validity:
                 for feature_source in feature_sources:
                     feature_source.post_update(race_card)
 

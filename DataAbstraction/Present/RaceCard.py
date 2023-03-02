@@ -28,6 +28,8 @@ class RaceCard:
     track_variant: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
+        self.sample_validity = True
+        self.feature_source_validity = True
         self.race_id = race_id
         self.remove_non_starters = remove_non_starters
 
@@ -100,6 +102,8 @@ class RaceCard:
             self.N_HORSES_KEY: self.n_horses,
             self.PLACE_NUM_KEY: self.places_num,
         }
+
+        self.set_validity()
 
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
@@ -247,3 +251,16 @@ class RaceCard:
     def get_distance_category(self) -> float:
         distance_increment = max(int(self.distance / 1000) * 100, 50)
         return round(self.distance / distance_increment) * distance_increment
+
+    def set_validity(self) -> None:
+        if len(self.horses) <= 1:
+            self.sample_validity = False
+            self.feature_source_validity = False
+
+        if self.has_foreigners:
+            self.sample_validity = False
+
+        for horse in self.horses:
+            if horse.betfair_win_sp == 0:
+                self.sample_validity = False
+

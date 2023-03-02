@@ -98,13 +98,11 @@ class Horse:
             self.purse = purse[purse_idx]
 
     def __extract_place(self, raw_data: dict):
-        if raw_data["scratched"]:
+        if raw_data["scratched"] or 'finalPosition' not in raw_data:
             return -1
 
         if 'finalPosition' in raw_data:
             return int(raw_data["finalPosition"])
-
-        return -1
 
     def __extract_horse_distance(self, raw_data: dict):
         if self.has_won:

@@ -24,10 +24,6 @@ class BetfairWinMarketWinProbability(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         inverse_odds = [1 / horse.betfair_win_sp for horse in race_card.horses if horse.betfair_win_sp > 0]
-        if len(inverse_odds) < race_card.n_horses:
-            print(f"odds missing: {race_card.race_id}")
-            return self.PLACEHOLDER_VALUE
-
         total_inverse_odds = sum(inverse_odds)
 
         if total_inverse_odds == 0 or horse.betfair_win_sp == 0:
