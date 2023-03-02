@@ -74,15 +74,16 @@ class RaceCard:
         self.is_open = race["raceStatus"] == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
+
+        if self.remove_non_starters:
+            self.__remove_non_starters()
+
         self.n_horses = len(self.horses)
 
         mean_horse_weight = mean([horse.jockey.weight for horse in self.horses if horse.jockey.weight > 0])
         self.weight_category = round(mean_horse_weight / 4) * 4
 
         self.set_horse_results()
-
-        if self.remove_non_starters:
-            self.__remove_non_starters()
 
         self.places_num = 1
         if 5 <= self.n_horses <= 7:
@@ -118,6 +119,10 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 horse.set_purse(self.purse)
+
+    def set_horse_relevance(self) -> None:
+        if self.race_result:
+            for horse in self.horses:
                 horse.speed_figure = compute_speed_figure(
                     self.base_time_estimate["avg"],
                     self.base_time_estimate["std"],
@@ -128,9 +133,6 @@ class RaceCard:
                     self.track_variant_estimate["avg"],
                 )
 
-    def set_horse_relevance(self) -> None:
-        if self.race_result:
-            for horse in self.horses:
                 horse.relevance = get_speed_figure_based_relevance(horse)
                 horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
 
@@ -225,6 +227,11 @@ class RaceCard:
                 favorite = horse
 
         return favorite
+
+    @property
+    def has_foreigners(self) -> bool:
+        foreigners = [1 for horse in self.horses if horse.homeland not in ["GB", None]]
+        return len(foreigners) > 0
 
     @property
     def json(self) -> dict:

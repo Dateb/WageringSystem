@@ -37,6 +37,7 @@ class Horse:
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.rating = raw_data["rating"]
+        self.homeland = raw_data["homeland"]
 
         self.equipments = []
         if "equipCode" in raw_data and raw_data["equipCode"]:
