@@ -98,7 +98,7 @@ class WeightAdvantage(FeatureExtractor):
         horse_weight = horse.jockey.weight
         if horse_weight == -1:
             return self.PLACEHOLDER_VALUE
-        return race_card.weight_category / horse_weight
+        return race_card.mean_horse_weight / horse_weight
 
 
 class AgeFrom(FeatureExtractor):

@@ -16,8 +16,8 @@ class BetModelConfiguration:
     expected_value_additional_threshold_values = [0.0]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
-    learning_rate_values = [0.1]
-    num_leaves_values = [5]
+    learning_rate_values = [0.2]
+    num_leaves_values = [15]
     min_child_samples_values = [200]
 
     n_decision_list: List[int]

@@ -1,4 +1,7 @@
 from datetime import date, timedelta
+
+from tqdm import tqdm
+
 from DataCollection.DayCollector import DayCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -10,9 +13,12 @@ class TrainDataCollector:
 
     def __init__(self, file_name: str):
         self.__race_cards_persistence = RaceCardsPersistence(file_name)
+        self.collected_days = set()
 
-        initial_race_cards = self.__race_cards_persistence.load_every_month_non_writable()
-        self.collected_days = {initial_race_cards[datetime].date for datetime in initial_race_cards}
+        for race_card_file_name in tqdm(self.__race_cards_persistence.race_card_file_names):
+            race_cards = self.__race_cards_persistence.load_race_card_files_non_writable([race_card_file_name])
+            for race_card in race_cards.values():
+                self.collected_days.add(race_card.date)
 
         self.__race_cards_collector = FullRaceCardsCollector()
         self.__day_collector = DayCollector()

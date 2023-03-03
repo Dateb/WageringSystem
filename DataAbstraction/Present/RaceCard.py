@@ -1,7 +1,7 @@
 import math
 from collections import defaultdict
 from datetime import datetime
-from statistics import mean
+from statistics import mean, median
 from typing import List
 
 import numpy as np
@@ -82,8 +82,8 @@ class RaceCard:
 
         self.n_horses = len(self.horses)
 
-        mean_horse_weight = mean([horse.jockey.weight for horse in self.horses if horse.jockey.weight > 0])
-        self.weight_category = round(mean_horse_weight / 4) * 4
+        self.mean_horse_weight = mean([horse.jockey.weight for horse in self.horses if horse.jockey.weight > 0])
+        self.weight_category = round(self.mean_horse_weight / 4) * 4
 
         self.set_horse_results()
 
