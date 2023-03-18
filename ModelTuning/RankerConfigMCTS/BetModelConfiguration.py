@@ -5,19 +5,21 @@ from typing import List
 from Model.Betting.EVSingleBettor import EVSingleBettor
 from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
-from Model.Probabilizing.Probabilizer import Probabilizer
+from Model.Probabilizing.PlaceProbabilizer import PlaceProbabilizer
+from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
+    probabilizer_values = [WinProbabilizer(), PlaceProbabilizer()]
     num_boost_round_values = [300, 500, 700]
     stakes_fraction_values = [0.33, 0.5, 1.0]
     expected_value_additional_threshold_values = [0.0, 0.1]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
     learning_rate_values = [0.05, 0.1, 0.15]
-    num_leaves_values = [2]
+    num_leaves_values = [2, 5, 10]
     min_child_samples_values = [50, 100, 200]
 
     n_decision_list: List[int]
@@ -28,8 +30,8 @@ class BetModelConfiguration:
             base_features: List[FeatureExtractor],
             search_features: List[FeatureExtractor],
             n_train_races: int,
-            probabilizer: Probabilizer,
     ):
+        self.probabilizer = None
         self.num_boost_round = 0
         self.stakes_fraction = 1.0
         self.expected_value_additional_threshold = 0.0
@@ -40,6 +42,7 @@ class BetModelConfiguration:
         self.selected_search_features = []
         self.n_decision_list = \
             [
+                len(BetModelConfiguration.probabilizer_values),
                 len(BetModelConfiguration.num_boost_round_values),
                 len(BetModelConfiguration.stakes_fraction_values),
                 len(BetModelConfiguration.expected_value_additional_threshold_values),
@@ -55,31 +58,31 @@ class BetModelConfiguration:
             self.is_terminal = True
             self.__init_config()
 
-        self.probabilizer = probabilizer
-
     def __init_config(self):
         for i, decision_idx in enumerate(self.decisions):
             self.__add_ith_decision(i, decision_idx)
 
     def __add_ith_decision(self, i: int, decision_idx: int):
         if i == 0:
-            self.num_boost_round = self.num_boost_round_values[decision_idx]
+            self.probabilizer = self.probabilizer_values[decision_idx]
         if i == 1:
-            self.stakes_fraction = self.stakes_fraction_values[decision_idx]
+            self.num_boost_round = self.num_boost_round_values[decision_idx]
         if i == 2:
-            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
+            self.stakes_fraction = self.stakes_fraction_values[decision_idx]
         if i == 3:
-            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
+            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
         if i == 4:
-            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
+            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
         if i == 5:
-            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
+            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
         if i == 6:
-            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
         if i == 7:
+            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+        if i == 8:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
-        if i >= 8 and decision_idx == 1:
-            selected_search_feature = self.search_features[i - 8]
+        if i >= 9 and decision_idx == 1:
+            selected_search_feature = self.search_features[i - 9]
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
 
@@ -112,7 +115,8 @@ class BetModelConfiguration:
         return full_decision_list
 
     def __str__(self) -> str:
-        config_str = f"fraction:{self.stakes_fraction}/"\
+        config_str = f"{type(self.probabilizer).__name__}/"\
+                     f"fraction:{self.stakes_fraction}/"\
                      f"ev_thresh:{self.expected_value_additional_threshold}/" \
                      f"boost_rounds:{self.num_boost_round}/search_params:{self.search_params}\n"
         return config_str

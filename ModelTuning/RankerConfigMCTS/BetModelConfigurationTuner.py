@@ -52,14 +52,12 @@ class BetModelConfigurationTuner:
             feature_manager: FeatureManager,
             sample_split_generator: SampleSplitGenerator,
             model_evaluator: ModelEvaluator,
-            probabilizer: Probabilizer,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
 
         self.sample_split_generator = sample_split_generator
         self.model_evaluator = model_evaluator
-        self.probabilizer = probabilizer
 
         self.__best_configuration: BetModelConfiguration = None
         self.__max_score = -np.Inf
@@ -74,7 +72,6 @@ class BetModelConfigurationTuner:
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
                 n_train_races=self.sample_split_generator.n_train_validation_races,
-                probabilizer=self.probabilizer,
             ),
         )
 
@@ -97,7 +94,6 @@ class BetModelConfigurationTuner:
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
                 self.sample_split_generator.n_train_validation_races,
-                self.probabilizer,
             )
 
             results = self.__simulate(terminal_configuration)
@@ -145,7 +141,6 @@ class BetModelConfigurationTuner:
             self.feature_manager.base_features,
             self.feature_manager.search_features,
             self.sample_split_generator.n_train_validation_races,
-            self.probabilizer,
         )
 
         new_node = BetModelConfigurationNode(
