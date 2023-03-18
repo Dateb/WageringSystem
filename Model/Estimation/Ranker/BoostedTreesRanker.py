@@ -18,8 +18,8 @@ class BoostedTreesRanker(Ranker):
 
     _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "lambdarank",
-        "metric": "ndcg",
+        "objective": "rank_xendcg",
+        "metric": "rank_xendcg",
         "verbose": -1,
         "deterministic": True,
         "force_row_wise": True,
@@ -49,22 +49,35 @@ class BoostedTreesRanker(Ranker):
         self.booster = None
 
     def fit(self, samples_train: pd.DataFrame, num_boost_round: int):
+        self.booster = lightgbm.train(
+            self.parameter_set,
+            train_set=self.get_dataset(samples_train),
+            categorical_feature=self.categorical_feature_names,
+            num_boost_round=num_boost_round,
+        )
+
+    def cross_validate(self, samples_train: pd.DataFrame, num_boost_round: int) -> dict:
+        cv_result = lightgbm.cv(
+            self.parameter_set,
+            train_set=self.get_dataset(samples_train),
+            categorical_feature=self.categorical_feature_names,
+            shuffle=False,
+            num_boost_round=num_boost_round,
+            nfold=5,
+        )
+
+        return cv_result
+
+    def get_dataset(self, samples_train: pd.DataFrame) -> Dataset:
         input_data = samples_train[self.feature_names]
         label = samples_train[self.label_name].astype(dtype="int")
         group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
-        dataset = Dataset(
+        return Dataset(
             data=input_data,
             label=label,
             group=group,
             categorical_feature=self.categorical_feature_names,
-        )
-
-        self.booster = lightgbm.train(
-            self.parameter_set,
-            train_set=dataset,
-            categorical_feature=self.categorical_feature_names,
-            num_boost_round=num_boost_round,
         )
 
     def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:

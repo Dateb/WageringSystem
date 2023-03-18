@@ -1,3 +1,4 @@
+from statistics import geometric_mean
 from typing import Dict
 from Model.Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
@@ -21,9 +22,7 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        total_positive_payouts = sum([snapshot.payout_percentages for snapshot in self.snapshots if snapshot.payout_percentages >= 0])
-        total_negative_payouts = sum([-snapshot.payout_percentages for snapshot in self.snapshots if snapshot.payout_percentages < 0])
-        self.validation_score = total_positive_payouts / total_negative_payouts
+        self.validation_score = geometric_mean([1 + payout_percentage for payout_percentage in payout_percentages])
 
     @property
     def bet_rate(self):

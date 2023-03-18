@@ -102,7 +102,13 @@ class BetModelConfigurationTuner:
 
             results = self.__simulate(terminal_configuration)
 
+            train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=0)
+            bet_model = terminal_configuration.create_bet_model(train_samples)
+            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+
             total_score = min(list(results.values()))
+
+            print(f"Score: {total_score} (Betting score: {fund_history_summary.validation_score})")
 
             self.__backup(front_node, total_score)
 
@@ -114,8 +120,9 @@ class BetModelConfigurationTuner:
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
                 print(terminal_configuration)
-                print(f"Score: {total_score}")
+
                 self.__max_score = total_score
+
                 return True
 
         return False

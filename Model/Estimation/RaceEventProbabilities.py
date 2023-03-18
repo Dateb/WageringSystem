@@ -42,7 +42,7 @@ class RaceEventProbabilities:
             ) for i in range(len(horse_numbers))
         ]
 
-        self.horse_results = sorted(self.horse_results, key=lambda x: x.expected_value, reverse=True)
+        self.horse_results = sorted(self.horse_results, key=lambda x: x.win_probability, reverse=True)
 
     @property
     def json(self):

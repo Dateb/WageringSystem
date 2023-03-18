@@ -6,19 +6,19 @@ from Model.Betting.EVSingleBettor import EVSingleBettor
 from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
 from Model.Probabilizing.Probabilizer import Probabilizer
-from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class BetModelConfiguration:
-    num_boost_round_values = [800]
-    expected_value_additional_threshold_values = [0.0]
+    num_boost_round_values = [300, 500, 700]
+    stakes_fraction_values = [0.33, 0.5, 1.0]
+    expected_value_additional_threshold_values = [0.0, 0.1]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
-    learning_rate_values = [0.2]
-    num_leaves_values = [15]
-    min_child_samples_values = [200]
+    learning_rate_values = [0.05, 0.1, 0.15]
+    num_leaves_values = [2]
+    min_child_samples_values = [50, 100, 200]
 
     n_decision_list: List[int]
 
@@ -31,6 +31,7 @@ class BetModelConfiguration:
             probabilizer: Probabilizer,
     ):
         self.num_boost_round = 0
+        self.stakes_fraction = 1.0
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
         self.feature_subset: List[FeatureExtractor] = copy(base_features)
@@ -40,6 +41,7 @@ class BetModelConfiguration:
         self.n_decision_list = \
             [
                 len(BetModelConfiguration.num_boost_round_values),
+                len(BetModelConfiguration.stakes_fraction_values),
                 len(BetModelConfiguration.expected_value_additional_threshold_values),
                 len(BetModelConfiguration.lower_win_prob_threshold_values),
                 len(BetModelConfiguration.upper_win_prob_threshold_values),
@@ -63,21 +65,29 @@ class BetModelConfiguration:
         if i == 0:
             self.num_boost_round = self.num_boost_round_values[decision_idx]
         if i == 1:
-            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
+            self.stakes_fraction = self.stakes_fraction_values[decision_idx]
         if i == 2:
-            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
+            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
         if i == 3:
-            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
+            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
         if i == 4:
-            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
+            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
         if i == 5:
-            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
         if i == 6:
+            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+        if i == 7:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
-        if i >= 7 and decision_idx == 1:
-            selected_search_feature = self.search_features[i - 7]
+        if i >= 8 and decision_idx == 1:
+            selected_search_feature = self.search_features[i - 8]
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
+
+    def validate_bet_model(self, train_samples: RaceCardsSample) -> float:
+        estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
+        cv_result = estimator.cross_validate(train_samples.race_cards_dataframe, self.num_boost_round)
+
+        return cv_result["valid ndcg@5-mean"][-1]
 
     def create_bet_model(self, train_samples: RaceCardsSample) -> BetModel:
         estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
@@ -85,6 +95,7 @@ class BetModelConfiguration:
         bettor = EVSingleBettor(
             self.expected_value_additional_threshold,
             self.probabilizer,
+            self.stakes_fraction,
         )
 
         bet_model = BetModel(estimator, self.probabilizer, bettor)
@@ -101,9 +112,9 @@ class BetModelConfiguration:
         return full_decision_list
 
     def __str__(self) -> str:
-        config_str = f"{self.expected_value_additional_threshold}/" \
-                     f"{self.lower_win_prob_threshold}-{self.upper_win_prob_threshold}/" \
-                     f"{self.num_boost_round}/{self.search_params}\n"
+        config_str = f"fraction:{self.stakes_fraction}/"\
+                     f"ev_thresh:{self.expected_value_additional_threshold}/" \
+                     f"boost_rounds:{self.num_boost_round}/search_params:{self.search_params}\n"
         return config_str
 
     @property

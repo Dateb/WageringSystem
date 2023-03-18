@@ -23,10 +23,10 @@ class WinProbabilizer(Probabilizer):
         race_cards_dataframe["place_probability"] = "0"
 
         race_cards_dataframe["expected_value"] = race_cards_dataframe[Horse.WIN_PROBABILITY_KEY] \
-                                                 * race_cards_dataframe[Horse.CURRENT_WIN_ODDS_KEY] \
+                                                 * race_cards_dataframe[Horse.CURRENT_BETTING_ODDS_KEY] \
                                                  * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
 
-        return RaceEventProbabilities(race_cards_dataframe, Horse.CURRENT_WIN_ODDS_KEY)
+        return RaceEventProbabilities(race_cards_dataframe, Horse.CURRENT_BETTING_ODDS_KEY)
 
     def create_bet(self, horse_result: HorseResult, stakes_fraction: float) -> Bet:
         return WinBet([horse_result], stakes_fraction)

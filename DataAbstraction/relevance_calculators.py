@@ -23,5 +23,5 @@ def get_place_based_relevance(horse: Horse) -> int:
     if horse.place == -1:
         return 0
 
-    relevance = max([4 - horse.place, 0])
+    relevance = max([31 - horse.place, 0])
     return relevance

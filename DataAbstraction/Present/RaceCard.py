@@ -57,6 +57,9 @@ class RaceCard:
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
 
+        if self.distance == 0:
+            print(f"Distance missing: {self.race_id}")
+
         self.distance_category = self.get_distance_category()
 
         self.going = race["trackGoing"]
@@ -64,6 +67,7 @@ class RaceCard:
 
         self.race_type = race["raceType"]
         self.race_type_detail = race["raceTypeDetail"]
+
         self.race_class = race["categoryLetter"]
 
         if self.race_class == "":
@@ -130,14 +134,14 @@ class RaceCard:
                 horse.speed_figure = compute_speed_figure(
                     self.base_time_estimate["avg"],
                     self.base_time_estimate["std"],
-                    self.get_lengths_per_second_estimate["avg"],
+                    self.lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     self.distance,
                     horse.horse_distance,
                     self.track_variant_estimate["avg"],
                 )
 
-                horse.relevance = get_speed_figure_based_relevance(horse)
+                horse.relevance = get_place_based_relevance(horse)
                 horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
 
     def set_date(self, raw_race_card: dict):
@@ -207,10 +211,10 @@ class RaceCard:
 
     @property
     def base_time_estimate(self) -> dict:
-        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.weight_category]
+        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
 
     @property
-    def get_lengths_per_second_estimate(self) -> dict:
+    def lengths_per_second_estimate(self) -> dict:
         return RaceCard.length_modifier[self.distance_category][self.race_type_detail]
 
     @property
@@ -246,7 +250,6 @@ class RaceCard:
     @staticmethod
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = nested_dict()
-
 
     def get_distance_category(self) -> float:
         distance_increment = max(int(self.distance / 1000) * 100, 50)

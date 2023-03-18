@@ -17,8 +17,8 @@ def compute_speed_figure(
         horse_distance: float,
         track_variant: float,
 ) -> float:
-    if is_horse_distance_too_far_from_winner(distance, horse_distance):
-        return None
+    # if is_horse_distance_too_far_from_winner(distance, horse_distance):
+    #     return None
 
     # TODO: just a quick and dirty mapping. The win times data should rename its track names after the ones on racebets.
     if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0 or not track_variant:
@@ -28,11 +28,6 @@ def compute_speed_figure(
     horse_time = (1 - track_variant) * horse_time
 
     speed_figure = (base_time_mean - horse_time) / base_time_std
-
-    if speed_figure < -5:
-        speed_figure = -5
-    if speed_figure > 5:
-        speed_figure = 5
 
     return speed_figure
 

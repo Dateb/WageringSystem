@@ -80,12 +80,6 @@ class FeatureSource(ABC):
     def update_previous(self, category: dict, new_obs: float) -> None:
         category["previous"] = new_obs
 
-    def update_buffer(self, category: dict, new_obs: float) -> None:
-        if not category["buffer"]:
-            category["buffer"] = deque(maxlen=3)
-
-        category["buffer"].append(new_obs)
-
 
 class CategoryAverageSource(FeatureSource, ABC):
     def __init__(self):
@@ -279,20 +273,22 @@ class SpeedFiguresSource(FeatureSource):
         win_time = race_card.race_result.win_time
 
         if win_time > 0:
-            for horse in race_card.horses:
-                if horse.horse_distance >= 0 and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance):
-                    horse_time = get_horse_time(
-                        win_time,
-                        race_card.get_lengths_per_second_estimate["avg"],
-                        horse.horse_distance,
-                    )
-                    self.update_average(
-                        category=race_card.base_time_estimate,
-                        new_obs=horse_time,
-                        new_obs_date=race_card.date,
-                        online_calculator=BASE_TIME_CALCULATOR,
-                    )
-                    self.update_variance(category=race_card.base_time_estimate, new_obs=horse_time)
+            horse_times = [get_horse_time(
+                win_time,
+                race_card.lengths_per_second_estimate["avg"],
+                horse.horse_distance,
+            ) for horse in race_card.horses if horse.horse_distance >= 0
+              and not is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance)
+            ]
+            if horse_times:
+                mean_horse_time = mean(horse_times)
+                self.update_average(
+                    category=race_card.base_time_estimate,
+                    new_obs=mean_horse_time,
+                    new_obs_date=race_card.date,
+                    online_calculator=BASE_TIME_CALCULATOR,
+                )
+                self.update_variance(category=race_card.base_time_estimate, new_obs=mean_horse_time)
 
     def update_lengths_per_second(self, race_card: RaceCard):
         win_time = race_card.race_result.win_time
@@ -301,7 +297,7 @@ class SpeedFiguresSource(FeatureSource):
             lengths_per_second = get_lengths_per_second(race_card.distance, win_time)
 
             self.update_average(
-                category=race_card.get_lengths_per_second_estimate,
+                category=race_card.lengths_per_second_estimate,
                 new_obs=lengths_per_second,
                 new_obs_date=race_card.date,
                 online_calculator=LENGTH_MODIFIER_CALCULATOR,
@@ -312,7 +308,7 @@ class SpeedFiguresSource(FeatureSource):
             speed_figure = compute_speed_figure(
                 race_card.base_time_estimate["avg"],
                 race_card.base_time_estimate["std"],
-                race_card.get_lengths_per_second_estimate["avg"],
+                race_card.lengths_per_second_estimate["avg"],
                 race_card.race_result.win_time,
                 race_card.distance,
                 horse.horse_distance,
@@ -324,9 +320,11 @@ class SpeedFiguresSource(FeatureSource):
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
                 )
-                self.update_buffer(
+                self.update_average(
                     category=self.speed_figures[horse.subject_id],
                     new_obs=speed_figure,
+                    new_obs_date=race_card.date,
+                    online_calculator=HORSE_SPEED_CALCULATOR,
                 )
 
     def update_par_time(self, race_card: RaceCard):
@@ -340,11 +338,12 @@ class SpeedFiguresSource(FeatureSource):
                 online_calculator=PAR_TIME_CALCULATOR,
             )
 
-    def get_speed_figures_buffer(self, category: str):
+    def get_current_speed_figure(self, category: str):
         if category not in self.speed_figures:
             return -1
 
-        return list(self.speed_figures[category]["buffer"])
+        current_speed_figure = self.speed_figures[category]["avg"]
+        return current_speed_figure
 
     def get_max_speed_figure(self, category: str):
         if category not in self.speed_figures:

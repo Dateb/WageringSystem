@@ -14,23 +14,11 @@ class CurrentSpeedFigure(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        speed_figures_buffer = speed_figures_source.get_speed_figures_buffer(horse.subject_id)
-        if speed_figures_buffer == -1:
+        current_speed_figure = speed_figures_source.get_current_speed_figure(horse.subject_id)
+        if current_speed_figure == -1:
             return self.PLACEHOLDER_VALUE
 
-        if len(speed_figures_buffer) == 1:
-            return speed_figures_buffer[0]
-
-        if len(speed_figures_buffer) == 2:
-            return mean(speed_figures_buffer)
-
-        if len(speed_figures_buffer) == 3:
-            min_speed_figure = min(speed_figures_buffer)
-            best_two_speed_figures = [
-                speed_figure for speed_figure in speed_figures_buffer if speed_figure > min_speed_figure
-            ]
-
-            return mean(best_two_speed_figures)
+        return current_speed_figure
 
 
 class BaseTime(FeatureExtractor):
@@ -50,7 +38,7 @@ class MeanSpeedDiff(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        speed_figures_buffer = speed_figures_source.get_speed_figures_buffer(horse.subject_id)
+        speed_figures_buffer = speed_figures_source.get_current_speed_figure(horse.subject_id)
         if speed_figures_buffer == -1 or len(speed_figures_buffer) == 1:
             return self.PLACEHOLDER_VALUE
 

@@ -165,7 +165,7 @@ class TimeFormFetcher(ABC):
         time.sleep(12.5)
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
-            time.sleep(40)
+            time.sleep(4)
 
         return BeautifulSoup(response.text, 'html.parser')
 
@@ -215,7 +215,7 @@ class TimeFormFetcher(ABC):
 
     def get_code_of_track_name(self, track_name: str, day_of_race: date) -> int:
         track_code = self.time_form_track_name_code[track_name]
-        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year in [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]:
+        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year in [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]:
             track_code = 60
         return track_code
 

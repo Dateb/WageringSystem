@@ -14,8 +14,10 @@ class EVSingleBettor(Bettor):
             self,
             additional_ev_threshold: float,
             probabilizer: Probabilizer,
+            stakes_fraction: float
     ):
         super().__init__(additional_ev_threshold, probabilizer)
+        self.stakes_fraction = stakes_fraction
 
     def bet(self, estimation_result: RaceEventProbabilities) -> Dict[str, BettingSlip]:
         betting_slips = {}
@@ -38,9 +40,8 @@ class EVSingleBettor(Bettor):
                               (1 + Bet.BET_TAX + self.additional_ev_threshold)
                 if denominator == 0:
                     print(horse_result.betting_odds)
-                stakes_fraction = numerator / denominator
+                stakes_fraction = (numerator / denominator) * self.stakes_fraction
 
                 new_bet = self.probabilizer.create_bet(horse_result, stakes_fraction)
 
                 betting_slip.add_bet(new_bet)
-
