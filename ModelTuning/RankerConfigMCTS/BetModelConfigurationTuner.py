@@ -12,7 +12,7 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfi
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
-from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
+from SampleExtraction.BlockingSplitter import BlockingSplitter
 from util.stats_calculator import ExponentialOnlineCalculator
 
 
@@ -20,7 +20,7 @@ class SimulateThread(threading.Thread):
     def __init__(
             self,
             race_cards_sample: RaceCardsSample,
-            sample_split_generator: SampleSplitGenerator,
+            sample_split_generator: BlockingSplitter,
             model_evaluator: ModelEvaluator,
             bet_model_configuration: BetModelConfiguration,
             validation_fold_idx: int,
@@ -35,7 +35,10 @@ class SimulateThread(threading.Thread):
         self.scores = results
 
     def run(self):
-        train_samples, validation_samples = self.race_cards_splitter.get_train_validation_split(self.validation_fold_idx)
+        train_samples, validation_samples = self.race_cards_splitter.get_train_validation_split(
+            nth_validation_block=self.validation_fold_idx,
+            n_train_races=self.race_cards_splitter.max_train_races,
+        )
 
         bet_model = self.bet_model_configuration.create_bet_model(train_samples)
 
@@ -50,13 +53,13 @@ class BetModelConfigurationTuner:
             self,
             race_cards_sample: RaceCardsSample,
             feature_manager: FeatureManager,
-            sample_split_generator: SampleSplitGenerator,
+            sample_split_generator: BlockingSplitter,
             model_evaluator: ModelEvaluator,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
 
-        self.sample_split_generator = sample_split_generator
+        self.race_cards_splitter = sample_split_generator
         self.model_evaluator = model_evaluator
 
         self.__best_configuration: BetModelConfiguration = None
@@ -71,7 +74,7 @@ class BetModelConfigurationTuner:
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
-                n_train_races=self.sample_split_generator.n_train_validation_races,
+                n_train_races=self.race_cards_splitter.max_train_races,
             ),
         )
 
@@ -93,18 +96,25 @@ class BetModelConfigurationTuner:
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
-                self.sample_split_generator.n_train_validation_races,
+                self.race_cards_splitter.max_train_races,
             )
 
             results = self.__simulate(terminal_configuration)
 
-            train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=0)
-            bet_model = terminal_configuration.create_bet_model(train_samples)
-            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+            test_scores = []
+            for i in range(self.race_cards_splitter.n_test_blocks):
+                train_samples, test_samples = self.race_cards_splitter.get_train_test_split(
+                    nth_test_block=i,
+                    n_train_races=self.race_cards_splitter.max_train_races,
+                )
+                bet_model = terminal_configuration.create_bet_model(train_samples)
+                fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
+
+                test_scores.append(fund_history_summary.validation_score)
 
             total_score = min(list(results.values()))
 
-            print(f"Score: {total_score} (Betting score: {fund_history_summary.validation_score})")
+            print(f"Score: {total_score} (Betting score: {mean(test_scores)})")
 
             self.__backup(front_node, total_score)
 
@@ -140,7 +150,7 @@ class BetModelConfigurationTuner:
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
-            self.sample_split_generator.n_train_validation_races,
+            self.race_cards_splitter.max_train_races,
         )
 
         new_node = BetModelConfigurationNode(
@@ -154,8 +164,8 @@ class BetModelConfigurationTuner:
     def __simulate(self, bet_model_configuration: BetModelConfiguration) -> dict:
         results = {}
         simulation_threads = [
-            SimulateThread(self.race_cards_sample, self.sample_split_generator, self.model_evaluator, bet_model_configuration, validation_fold_idx, results)
-            for validation_fold_idx in range(self.sample_split_generator.n_folds)
+            SimulateThread(self.race_cards_sample, self.race_cards_splitter, self.model_evaluator, bet_model_configuration, validation_block_idx, results)
+            for validation_block_idx in range(self.race_cards_splitter.n_validation_blocks)
         ]
         for simulation_thread in simulation_threads:
             simulation_thread.start()

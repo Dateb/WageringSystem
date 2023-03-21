@@ -13,13 +13,13 @@ from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
-from SampleExtraction.SampleSplitGenerator import SampleSplitGenerator
+from SampleExtraction.BlockingSplitter import BlockingSplitter
 
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 112
+N_SAMPLE_MONTHS = 10
 
 
 class BetModelTuner:
@@ -27,10 +27,12 @@ class BetModelTuner:
     def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
         self.feature_manager = feature_manager
         self.race_cards_sample = race_cards_sample
-        self.sample_split_generator = SampleSplitGenerator(
+        self.sample_split_generator = BlockingSplitter(
             self.race_cards_sample,
-            n_races_per_fold=6000,
-            n_folds=1,
+            non_train_races_per_block=200,
+            n_validation_blocks=3,
+            n_test_blocks=3,
+            max_train_races=500,
         )
         self.model_evaluator = model_evaluator
 
@@ -41,13 +43,13 @@ class BetModelTuner:
             sample_split_generator=self.sample_split_generator,
             model_evaluator=self.model_evaluator,
         )
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=70)
+        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
 
         return bet_model_configuration
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         test_betting_slips = {}
-        for i in range(self.sample_split_generator.n_folds):
+        for i in range(self.sample_split_generator.n_validation_blocks):
             train_samples, test_samples = self.sample_split_generator.get_train_test_split(nth_test_fold=i)
 
             bet_model = bet_model_configuration.create_bet_model(train_samples)

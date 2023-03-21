@@ -14,13 +14,13 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class BetModelConfiguration:
     probabilizer_values = [WinProbabilizer(), PlaceProbabilizer()]
     num_boost_round_values = [300, 500, 700]
-    stakes_fraction_values = [0.33, 0.5, 1.0]
-    expected_value_additional_threshold_values = [0.0, 0.1]
+    stakes_fraction_values = [1.0]
+    expected_value_additional_threshold_values = [0.3, 0.4, 0.5]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
-    learning_rate_values = [0.05, 0.1, 0.15]
-    num_leaves_values = [2, 5, 10]
-    min_child_samples_values = [50, 100, 200]
+    learning_rate_values = [0.1, 0.15, 0.2]
+    num_leaves_values = [15, 20, 25]
+    min_child_samples_values = [100, 200, 300]
 
     n_decision_list: List[int]
 
