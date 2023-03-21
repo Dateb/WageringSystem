@@ -18,8 +18,8 @@ from SampleExtraction.BlockingSplitter import BlockingSplitter
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 10
+N_CONTAINER_MONTHS = 93
+N_SAMPLE_MONTHS = 20
 
 
 class BetModelTuner:
@@ -30,9 +30,9 @@ class BetModelTuner:
         self.sample_split_generator = BlockingSplitter(
             self.race_cards_sample,
             non_train_races_per_block=200,
-            n_validation_blocks=3,
-            n_test_blocks=3,
-            max_train_races=500,
+            n_validation_blocks=5,
+            n_test_blocks=4,
+            max_train_races=1000,
         )
         self.model_evaluator = model_evaluator
 

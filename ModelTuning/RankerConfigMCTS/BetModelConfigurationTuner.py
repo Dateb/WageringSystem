@@ -37,7 +37,7 @@ class SimulateThread(threading.Thread):
     def run(self):
         train_samples, validation_samples = self.race_cards_splitter.get_train_validation_split(
             nth_validation_block=self.validation_fold_idx,
-            n_train_races=self.race_cards_splitter.max_train_races,
+            n_train_races=int(self.race_cards_splitter.max_train_races * self.bet_model_configuration.train_size_fraction),
         )
 
         bet_model = self.bet_model_configuration.create_bet_model(train_samples)
@@ -74,7 +74,6 @@ class BetModelConfigurationTuner:
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
-                n_train_races=self.race_cards_splitter.max_train_races,
             ),
         )
 
@@ -96,7 +95,6 @@ class BetModelConfigurationTuner:
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
-                self.race_cards_splitter.max_train_races,
             )
 
             results = self.__simulate(terminal_configuration)
@@ -105,14 +103,14 @@ class BetModelConfigurationTuner:
             for i in range(self.race_cards_splitter.n_test_blocks):
                 train_samples, test_samples = self.race_cards_splitter.get_train_test_split(
                     nth_test_block=i,
-                    n_train_races=self.race_cards_splitter.max_train_races,
+                    n_train_races=int(self.race_cards_splitter.max_train_races * terminal_configuration.train_size_fraction),
                 )
                 bet_model = terminal_configuration.create_bet_model(train_samples)
                 fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
 
                 test_scores.append(fund_history_summary.validation_score)
 
-            total_score = min(list(results.values()))
+            total_score = mean(list(results.values()))
 
             print(f"Score: {total_score} (Betting score: {mean(test_scores)})")
 
@@ -150,7 +148,6 @@ class BetModelConfigurationTuner:
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
-            self.race_cards_splitter.max_train_races,
         )
 
         new_node = BetModelConfigurationNode(

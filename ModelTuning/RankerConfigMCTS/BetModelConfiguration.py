@@ -13,13 +13,14 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class BetModelConfiguration:
     probabilizer_values = [WinProbabilizer(), PlaceProbabilizer()]
+    train_size_fraction_values = [1.0, 0.5, 0.25]
     num_boost_round_values = [300, 500, 700]
     stakes_fraction_values = [1.0]
-    expected_value_additional_threshold_values = [0.3, 0.4, 0.5]
+    expected_value_additional_threshold_values = [0.2, 0.3, 0.4]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
     learning_rate_values = [0.1, 0.15, 0.2]
-    num_leaves_values = [15, 20, 25]
+    num_leaves_values = [25, 35, 45]
     min_child_samples_values = [100, 200, 300]
 
     n_decision_list: List[int]
@@ -29,20 +30,20 @@ class BetModelConfiguration:
             decisions: List[int],
             base_features: List[FeatureExtractor],
             search_features: List[FeatureExtractor],
-            n_train_races: int,
     ):
         self.probabilizer = None
+        self.train_size_fraction = 1.0
         self.num_boost_round = 0
         self.stakes_fraction = 1.0
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
         self.feature_subset: List[FeatureExtractor] = copy(base_features)
         self.search_features = search_features
-        self.n_train_races = n_train_races
         self.selected_search_features = []
         self.n_decision_list = \
             [
                 len(BetModelConfiguration.probabilizer_values),
+                len(BetModelConfiguration.train_size_fraction_values),
                 len(BetModelConfiguration.num_boost_round_values),
                 len(BetModelConfiguration.stakes_fraction_values),
                 len(BetModelConfiguration.expected_value_additional_threshold_values),
@@ -66,23 +67,25 @@ class BetModelConfiguration:
         if i == 0:
             self.probabilizer = self.probabilizer_values[decision_idx]
         if i == 1:
-            self.num_boost_round = self.num_boost_round_values[decision_idx]
+            self.train_size_fraction = self.train_size_fraction_values[decision_idx]
         if i == 2:
-            self.stakes_fraction = self.stakes_fraction_values[decision_idx]
+            self.num_boost_round = self.num_boost_round_values[decision_idx]
         if i == 3:
-            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
+            self.stakes_fraction = self.stakes_fraction_values[decision_idx]
         if i == 4:
-            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
+            self.expected_value_additional_threshold = self.expected_value_additional_threshold_values[decision_idx]
         if i == 5:
-            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
+            self.lower_win_prob_threshold = self.lower_win_prob_threshold_values[decision_idx]
         if i == 6:
-            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
+            self.upper_win_prob_threshold = self.upper_win_prob_threshold_values[decision_idx]
         if i == 7:
-            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+            self.search_params["learning_rate"] = self.learning_rate_values[decision_idx]
         if i == 8:
+            self.search_params["num_leaves"] = self.num_leaves_values[decision_idx]
+        if i == 9:
             self.search_params["min_child_samples"] = self.min_child_samples_values[decision_idx]
-        if i >= 9 and decision_idx == 1:
-            selected_search_feature = self.search_features[i - 9]
+        if i >= 10 and decision_idx == 1:
+            selected_search_feature = self.search_features[i - 10]
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
 
@@ -116,7 +119,8 @@ class BetModelConfiguration:
 
     def __str__(self) -> str:
         config_str = f"{type(self.probabilizer).__name__}/"\
-                     f"fraction:{self.stakes_fraction}/"\
+                     f"train_size_fraction: {self.train_size_fraction}/"\
+                     f"stakes_fraction:{self.stakes_fraction}/"\
                      f"ev_thresh:{self.expected_value_additional_threshold}/" \
                      f"boost_rounds:{self.num_boost_round}/search_params:{self.search_params}\n"
         return config_str

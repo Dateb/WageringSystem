@@ -56,16 +56,15 @@ class BlockingSplitter:
         non_train_lower = train_upper
         non_train_upper = non_train_lower + self.non_train_races_per_block
 
-        train_idx = [i for i in range(train_lower, train_upper)]
-        validation_idx = [i for i in range(non_train_lower, non_train_upper)]
+        train_interval = [i for i in range(train_lower, train_upper)]
+        non_train_interval = [i for i in range(non_train_lower, non_train_upper)]
 
-        return self.__split(train_idx, validation_idx)
+        return self.__get_block(train_interval), self.__get_block(non_train_interval)
 
-    def __split(self, first_interval: List[int], second_interval: List[int]) -> Tuple[RaceCardsSample, RaceCardsSample]:
-        first_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(first_interval)]
-        second_df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(second_interval)]
+    def __get_block(self, interval: List[int]) -> RaceCardsSample:
+        df = self.race_cards_dataframe.loc[self.race_cards_dataframe["race_number"].isin(interval)]
 
-        return RaceCardsSample(first_df), RaceCardsSample(second_df)
+        return RaceCardsSample(df)
 
     def get_last_n_races_sample(self, n: int) -> RaceCardsSample:
         last_n_races_interval = [self.n_races - 1 - i for i in range(n)]
