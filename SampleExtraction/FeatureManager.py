@@ -93,10 +93,10 @@ class FeatureManager:
 
             CurrentRaceClass(), CurrentGoing(),
             CurrentRaceType(), CurrentRaceCategory(),
-            #
+
             PulledUpPreviousRace(), WeightDifference(),
             WeightAllowanceExtractor(),
-
+            #
             HighestOddsWin(),
 
             DrawBias(),

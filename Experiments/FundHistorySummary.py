@@ -23,7 +23,7 @@ class FundHistorySummary:
         ]
 
         # self.validation_score = geometric_mean([1 + payout_percentage for payout_percentage in payout_percentages])
-        self.validation_score = (sum(payout_percentages) / len(betting_slips)) * 1000
+        self.score = (sum(payout_percentages) / len(betting_slips))
 
     @property
     def bet_rate(self):

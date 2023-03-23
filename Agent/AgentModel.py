@@ -11,7 +11,7 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
-from SampleExtraction.BlockingSplitter import BlockingSplitter
+from SampleExtraction.BlockSplitter import BlockSplitter
 
 
 class AgentModel:
@@ -40,10 +40,10 @@ class AgentModel:
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         race_cards_sample = sample_encoder.get_race_cards_sample()
-        sample_split_generator = BlockingSplitter(
+        sample_split_generator = BlockSplitter(
             race_cards_sample,
-            non_train_races_per_block=0,
-            n_validation_blocks=0,
+            validation_size=0,
+            validation_count=0,
         )
 
         train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
