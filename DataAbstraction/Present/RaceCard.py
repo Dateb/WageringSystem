@@ -10,6 +10,7 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance
+from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
@@ -50,15 +51,13 @@ class RaceCard:
             self.race_result: RaceResult = RaceResult(raw_result)
 
         self.__set_head_to_head_horses(race)
-        self.set_track_name(raw_race_card)
+
+        self.track_name = get_unique_track_name(raw_race_card["event"]["title"])
 
         self.track_id = event["idTrack"]
 
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
-
-        if self.distance == 0:
-            print(f"Distance missing: {self.race_id}")
 
         self.distance_category = self.get_distance_category()
 
@@ -148,20 +147,6 @@ class RaceCard:
         self.date_raw = raw_race_card["race"]["postTime"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
-
-    def set_track_name(self, raw_race_card: dict):
-        self.track_name = raw_race_card["event"]["title"]
-        if "Chelmsford" in self.track_name:
-            self.track_name = "Chelmsford"
-        if "Bangor" in self.track_name:
-            self.track_name = "Bangor"
-        if "Ascot" in self.track_name:
-            self.track_name = "Ascot"
-        if "Goodwood" in self.track_name:
-            self.track_name = "Goodwood"
-
-        if "PMU" in self.track_name:
-            self.track_name = self.track_name[:-4]
 
     def __remove_non_starters(self):
         self.horses = [horse for horse in self.horses if not horse.is_scratched]

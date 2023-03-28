@@ -1,3 +1,8 @@
+import json
+import pickle
+
+from numpy import ndarray
+
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors import feature_sources
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -143,3 +148,33 @@ class DrawBias(FeatureExtractor):
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE
         return draw_bias
+
+unknown_location_list = []
+
+class TravelDistance(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        with open("../data/locations.json", "r") as f:
+            self.locations = json.load(f)
+        self.beeline_distances: ndarray = pickle.load(open("../data/beeline_distances.bin", "rb"))
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        past_forms = horse.form_table.past_forms
+        if not past_forms:
+            return self.PLACEHOLDER_VALUE
+
+        previous_track_name = past_forms[0].track_name
+
+        if previous_track_name not in self.locations:
+            if previous_track_name not in unknown_location_list:
+                unknown_location_list.append(previous_track_name)
+                print(unknown_location_list)
+            return self.PLACEHOLDER_VALUE
+
+        location_id_current = self.locations[race_card.track_name]["location_id"]
+        location_id_previous = self.locations[previous_track_name]["location_id"]
+
+        travel_distance = self.beeline_distances[location_id_current][location_id_previous]
+
+        return travel_distance

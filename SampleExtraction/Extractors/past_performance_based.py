@@ -4,15 +4,6 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.feature_sources import has_fallen_source
 
 
-class PulledUpPreviousRace(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(horse.previous_performance == "PU")
-
-
 class HasFallen(FeatureExtractor):
 
     def __init__(self):

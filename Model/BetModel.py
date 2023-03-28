@@ -22,8 +22,8 @@ class BetModel:
 
     def bet_on_race_cards_sample(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
         scores = self.estimator.score_races(race_cards_sample)
-        race_event_probabilities = self.probabilizer.create_event_probabilities(race_cards_sample, scores)
-        return self.bettor.bet(race_event_probabilities)
+        betting_slips = self.probabilizer.create_betting_slips(race_cards_sample, scores)
+        return self.bettor.bet(betting_slips)
 
     @property
     def features(self) -> List[FeatureExtractor]:

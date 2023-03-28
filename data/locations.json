@@ -1,0 +1,388 @@
+{
+  "Ascot": {
+    "location_id": 0,
+    "latitude": 51.412167,
+    "longitude": -0.6816734
+  },
+  "Ayr": {
+    "location_id": 1,
+    "latitude": 55.4677238,
+    "longitude": -4.614734
+  },
+  "Bangor": {
+    "location_id": 2,
+    "latitude": 52.9925464,
+    "longitude": -2.9233942
+  },
+  "Bath": {
+    "location_id": 3,
+    "latitude": 51.4186717,
+    "longitude": -2.4085106
+  },
+  "Beverley": {
+    "location_id": 4,
+    "latitude": 53.845642,
+    "longitude": -0.4563859
+  },
+  "Brighton": {
+    "location_id": 5,
+    "latitude": 50.8298473,
+    "longitude": -0.1147932
+  },
+  "Carlisle": {
+    "location_id": 6,
+    "latitude": 54.8589972,
+    "longitude": -2.9310549
+  },
+  "Cartmel": {
+    "location_id": 7,
+    "latitude": 54.2033279,
+    "longitude": -2.9568726
+  },
+  "Catterick": {
+    "location_id": 8,
+    "latitude": 54.3880569,
+    "longitude": -1.6513697
+  },
+  "Cheltenham": {
+    "location_id": 9,
+    "latitude": 51.919451,
+    "longitude": -2.0702181
+  },
+  "Chepstow": {
+    "location_id": 10,
+    "latitude": 51.6513232,
+    "longitude": -2.6940444
+  },
+  "Chester": {
+    "location_id": 11,
+    "latitude": 53.1885912,
+    "longitude": -2.9015551
+  },
+  "Exeter": {
+    "location_id": 12,
+    "latitude": 50.6412034,
+    "longitude": -3.5632437
+  },
+  "Doncaster": {
+    "location_id": 13,
+    "latitude": 53.5204775,
+    "longitude": -1.1087571
+  },
+  "Musselburgh": {
+    "location_id": 14,
+    "latitude": 55.9460002,
+    "longitude": -3.0465419
+  },
+  "Epsom": {
+    "location_id": 15,
+    "latitude": 51.3132476,
+    "longitude": -0.2567485
+  },
+  "Fakenham": {
+    "location_id": 16,
+    "latitude": 52.8221649,
+    "longitude": 0.8497489
+  },
+  "Fontwell": {
+    "location_id": 17,
+    "latitude": 50.8546248,
+    "longitude": -0.6554206
+  },
+  "Goodwood": {
+    "location_id": 18,
+    "latitude": 50.8916174,
+    "longitude": -0.7456747
+  },
+  "Hamilton": {
+    "location_id": 19,
+    "latitude": 55.7899046,
+    "longitude": -4.0531824
+  },
+  "Haydock": {
+    "location_id": 20,
+    "latitude": 53.4809536,
+    "longitude": -2.6300408
+  },
+  "Hereford": {
+    "location_id": 21,
+    "latitude": 52.0748648,
+    "longitude": -2.7313092
+  },
+  "Hexham": {
+    "location_id": 22,
+    "latitude": 54.9554539,
+    "longitude": -2.1310954
+  },
+  "Huntingdon": {
+    "location_id": 23,
+    "latitude": 52.332168,
+    "longitude": -0.2290539
+  },
+  "Kelso": {
+    "location_id": 24,
+    "latitude": 55.6120617,
+    "longitude": -2.439042
+  },
+  "Kempton": {
+    "location_id": 25,
+    "latitude": 51.4178717,
+    "longitude": -0.4089956
+  },
+  "Chelmsford": {
+    "location_id": 26,
+    "latitude": 51.8420504,
+    "longitude": 0.5106256
+  },
+  "Leicester": {
+    "location_id": 27,
+    "latitude": 52.6032594,
+    "longitude": -1.1003099
+  },
+  "Lingfield": {
+    "location_id": 28,
+    "latitude": 51.169845,
+    "longitude": -0.0085024
+  },
+  "Aintree": {
+    "location_id": 29,
+    "latitude": 53.473479,
+    "longitude": -2.9563164
+  },
+  "Ludlow": {
+    "location_id": 30,
+    "latitude": 52.3925984,
+    "longitude": -2.7545669
+  },
+  "Market Rasen": {
+    "location_id": 31,
+    "latitude": 53.3804634,
+    "longitude": -0.3168028
+  },
+  "Newbury": {
+    "location_id": 32,
+    "latitude": 51.3971719,
+    "longitude": -1.3087062
+  },
+  "Newcastle": {
+    "location_id": 33,
+    "latitude": 55.0353828,
+    "longitude": -1.6139578
+  },
+  "Newmarket": {
+    "location_id": 34,
+    "latitude": 52.2380173,
+    "longitude": 0.3725576
+  },
+  "Newton Abbot": {
+    "location_id": 35,
+    "latitude": 50.5387383,
+    "longitude": -3.6028903
+  },
+  "Nottingham": {
+    "location_id": 36,
+    "latitude": 52.9482146,
+    "longitude": -1.116433
+  },
+  "Perth": {
+    "location_id": 37,
+    "latitude": 56.4276566,
+    "longitude": -3.4494211
+  },
+  "Plumpton": {
+    "location_id": 38,
+    "latitude": 50.9244478,
+    "longitude": -0.0666331
+  },
+  "Pontefract": {
+    "location_id": 39,
+    "latitude": 53.696186,
+    "longitude": -1.3324503
+  },
+  "Redcar": {
+    "location_id": 40,
+    "latitude": 54.6106584,
+    "longitude": -1.065462
+  },
+  "Ripon": {
+    "location_id": 41,
+    "latitude": 54.1251795,
+    "longitude": -1.5018821
+  },
+  "Salisbury": {
+    "location_id": 42,
+    "latitude": 51.0551708,
+    "longitude": -1.8674828
+  },
+  "Sandown": {
+    "location_id": 43,
+    "latitude": 51.37333,
+    "longitude": -0.3639808
+  },
+  "Sedgefield": {
+    "location_id": 44,
+    "latitude": 54.6443805,
+    "longitude": -1.4652961
+  },
+  "Southwell": {
+    "location_id": 45,
+    "latitude": 53.0654077,
+    "longitude": -0.9034364
+  },
+  "Stratford": {
+    "location_id": 46,
+    "latitude": 52.1834843,
+    "longitude": -1.7327412
+  },
+  "Taunton": {
+    "location_id": 47,
+    "latitude": 50.9905006,
+    "longitude": -3.0863707
+  },
+  "Ffos Las": {
+    "location_id": 48,
+    "latitude": 51.732621,
+    "longitude": -4.2372999
+  },
+  "Thirsk": {
+    "location_id": 49,
+    "latitude": 54.2312111,
+    "longitude": -1.3537367
+  },
+  "Towcester": {
+    "location_id": 50,
+    "latitude": 52.1235394,
+    "longitude": -0.9732986
+  },
+  "Uttoxeter": {
+    "location_id": 51,
+    "latitude": 52.8960717,
+    "longitude": -1.8551401
+  },
+  "Warwick": {
+    "location_id": 52,
+    "latitude": 52.2794671,
+    "longitude": -1.5987475
+  },
+  "Wetherby": {
+    "location_id": 53,
+    "latitude": 53.9352112,
+    "longitude": -1.3591588
+  },
+  "Wincanton": {
+    "location_id": 54,
+    "latitude": 51.0668434,
+    "longitude": -2.4170107
+  },
+  "Windsor": {
+    "location_id": 55,
+    "latitude": 51.4850628,
+    "longitude": -0.6359375
+  },
+  "Wolverhampton": {
+    "location_id": 56,
+    "latitude": 52.6031781,
+    "longitude": -2.1435324
+  },
+  "Worcester": {
+    "location_id": 57,
+    "latitude": 52.1992494,
+    "longitude": -2.2350941
+  },
+  "Yarmouth": {
+    "location_id": 58,
+    "latitude": 52.6297438,
+    "longitude": 1.7295429
+  },
+  "York": {
+    "location_id": 59,
+    "latitude": 53.9408138,
+    "longitude": -1.094363
+  },
+  "Compiegne": {
+    "location_id": 60,
+    "latitude": 49.4099379,
+    "longitude": 2.8412619
+  },
+  "Bordeaux-Le Bouscat": {
+    "location_id": 61,
+    "latitude": 44.8724721,
+    "longitude": -0.6365676
+  },
+  "Leopardstown": {
+    "location_id": 62,
+    "latitude": 53.2668912,
+    "longitude": -6.1976536
+  },
+  "Cork": {
+    "location_id": 63,
+    "latitude": 52.1321803,
+    "longitude": -8.6881837
+  },
+  "Auteuil": {
+    "location_id": 64,
+    "latitude": 48.852293,
+    "longitude": 2.2520671
+  },
+  "Wexford": {
+    "location_id": 65,
+    "latitude": 52.3388602,
+    "longitude": -6.4941238
+  },
+  "Tramore": {
+    "location_id": 66,
+    "latitude": 52.1714933,
+    "longitude": -7.1509257
+  },
+  "Fontainebleau": {
+    "location_id": 67,
+    "latitude": 48.4319988,
+    "longitude": 2.6834986
+  },
+  "Lyon-Parilly": {
+    "location_id": 68,
+    "latitude": 45.7209822,
+    "longitude": 4.9079429
+  },
+  "Thurles": {
+    "location_id": 69,
+    "latitude": 52.6889253,
+    "longitude": -7.8388095
+  },
+  "Galway": {
+    "location_id": 70,
+    "latitude": 53.301222,
+    "longitude": -9.0013848
+  },
+  "Killarney": {
+    "location_id": 71,
+    "latitude": 52.0490118,
+    "longitude": -9.5168381
+  },
+  "Gowran Park": {
+    "location_id": 72,
+    "latitude": 52.6198365,
+    "longitude": -7.072056
+  },
+  "Bro Park": {
+    "location_id": 73,
+    "latitude": 59.5247498,
+    "longitude": 17.6117178
+  },
+  "Sligo": {
+    "location_id": 74,
+    "latitude": 54.26173,
+    "longitude": -8.4627808
+  },
+  "Punchestown": {
+    "location_id": 75,
+    "latitude": 53.1858233,
+    "longitude": -6.6314812
+  },
+  "Limerick": {
+    "location_id": 76,
+    "latitude": 52.5906584,
+    "longitude": -8.6978166
+  }
+
+}

@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ from numpy import ndarray
 from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.Bets.Bet import Bet
-from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
+from Model.Betting.BettingSlip import BettingSlip
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -17,7 +18,7 @@ class Probabilizer(ABC):
         pass
 
     @abstractmethod
-    def create_event_probabilities(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> RaceEventProbabilities:
+    def create_betting_slips(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> Dict[str, BettingSlip]:
         pass
 
     def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray) -> pd.DataFrame:

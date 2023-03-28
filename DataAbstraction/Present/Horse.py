@@ -69,7 +69,7 @@ class Horse:
         self.trainer_name = f"{trainer_first_name} {trainer_last_name}"
 
         self.is_scratched = raw_data["scratched"]
-        self.previous_performance = raw_data["ppString"].split("-")[0]
+        self.previous_performance = raw_data["ppString"].split(" - ")[0]
 
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])

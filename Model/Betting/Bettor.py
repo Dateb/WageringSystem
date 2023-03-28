@@ -1,7 +1,6 @@
 from abc import abstractmethod, ABC
 from typing import Dict
 from Model.Betting.BettingSlip import BettingSlip
-from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 import pandas as pd
 
 from Model.Probabilizing.Probabilizer import Probabilizer
@@ -16,5 +15,5 @@ class Bettor(ABC):
         self.probabilizer = probabilizer
 
     @abstractmethod
-    def bet(self, estimation_result: RaceEventProbabilities) -> Dict[str, BettingSlip]:
+    def bet(self, betting_slips: Dict[str, BettingSlip]) -> Dict[str, BettingSlip]:
         pass

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from DataAbstraction.util.track_name_mapping import get_unique_track_name
+
 
 class PastForm:
 
@@ -17,7 +19,7 @@ class PastForm:
             self.win_time = raw_data["winTimeSeconds"]
 
         self.race_class = raw_data["categoryLetter"]
-        self.track_name = raw_data["trackName"]
+        self.track_name = get_unique_track_name(raw_data["trackName"])
         self.odds = raw_data["SP"]
         self.date_raw = raw_data["date"]
         self.weight = -1

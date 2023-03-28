@@ -19,8 +19,9 @@ from SampleExtraction.BlockSplitter import BlockSplitter
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 24
-N_SAMPLE_MONTHS = 89
+N_CONTAINER_MONTHS = 1
+N_SAMPLE_MONTHS = 15
+N_MONTHS_FORWARD_OFFSET = 97
 
 
 class BetModelTuner:
@@ -30,12 +31,12 @@ class BetModelTuner:
         self.race_cards_sample = race_cards_sample
         self.block_splitter = BlockSplitter(
             self.race_cards_sample,
-            n_validation_rounds=5,
-            n_test_races=10000,
+            n_validation_rounds=3,
+            n_test_races=2000,
         )
         self.model_evaluator = model_evaluator
 
-    def get_tuned_model_configuration(self) -> None:
+    def get_tuned_model_configuration(self) -> BetModelConfiguration:
         configuration_tuner = BetModelConfigurationTuner(
             race_cards_sample=self.race_cards_sample,
             feature_manager=self.feature_manager,
@@ -43,20 +44,13 @@ class BetModelTuner:
             model_evaluator=self.model_evaluator,
         )
 
-        bet_model_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=30)
+        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
-        test_betting_slips = {}
-        for i in range(self.block_splitter.n_validation_blocks):
-            train_samples, test_samples = self.block_splitter.get_train_test_split(nth_test_fold=i)
+        train_sample, test_sample = self.block_splitter.get_train_test_split()
 
-            bet_model = bet_model_configuration.create_bet_model(train_samples)
-
-            fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_samples)
-
-            test_betting_slips = {**test_betting_slips, **fund_history_summary.betting_slips}
-
-        return FundHistorySummary("Test run GBT", betting_slips=test_betting_slips)
+        bet_model = bet_model_configuration.create_bet_model(train_sample)
+        return self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample)
 
 
 def optimize_model_configuration():
@@ -67,8 +61,8 @@ def optimize_model_configuration():
     race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
 
     n_months = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
-    container_race_card_file_names = race_cards_loader.race_card_file_names[:N_CONTAINER_MONTHS]
-    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_CONTAINER_MONTHS:n_months]
+    container_race_card_file_names = race_cards_loader.race_card_file_names[N_MONTHS_FORWARD_OFFSET:N_MONTHS_FORWARD_OFFSET + N_CONTAINER_MONTHS]
+    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_MONTHS_FORWARD_OFFSET + N_CONTAINER_MONTHS:N_MONTHS_FORWARD_OFFSET + n_months]
     print(container_race_card_file_names)
     print(sample_race_card_file_names)
     for race_card_file_name in tqdm(container_race_card_file_names):

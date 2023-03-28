@@ -33,7 +33,7 @@ class SimulateThread(threading.Thread):
         self.scores = results
 
     def run(self):
-        train_sample, validation_sample, _ = self.sample_splitter.get_block_split(self.validation_block_idx)
+        train_sample, validation_sample, = self.sample_splitter.get_block_split(self.validation_block_idx)
 
         bet_model = self.bet_model_configuration.create_bet_model(train_sample)
 
@@ -156,7 +156,7 @@ class BetModelConfigurationTuner:
             self.model_evaluator,
             bet_model_configuration,
             results
-        ) for validation_block_idx in range(self.sample_splitter.block_count - 1)]
+        ) for validation_block_idx in range(self.sample_splitter.block_count)]
 
         for simulation_thread in simulation_threads:
             simulation_thread.start()

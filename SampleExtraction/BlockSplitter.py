@@ -46,18 +46,17 @@ class BlockSplitter:
         test_interval = [i for i in range(self.n_races - n_test_races, self.n_races)]
         self.test_sample = self.__get_sample(test_interval)
 
-    def get_block_split(self, validation_block_idx: int) -> Tuple[RaceCardsSample, RaceCardsSample, RaceCardsSample]:
+    def get_block_split(self, validation_block_idx: int) -> Tuple[RaceCardsSample, RaceCardsSample]:
         validation_sample = self.blocks[validation_block_idx]
-        test_sample = self.blocks[validation_block_idx + 1]
 
         train_blocks = [
-            self.blocks[j] for j in range(len(self.blocks)) if j not in [validation_block_idx, validation_block_idx + 1]
+            self.blocks[j] for j in range(len(self.blocks)) if j != validation_block_idx
         ]
 
         train_dfs = [block.race_cards_dataframe for block in train_blocks]
         train_sample = RaceCardsSample(pd.concat(train_dfs))
 
-        return train_sample, validation_sample, test_sample
+        return train_sample, validation_sample
 
     def get_train_test_split(self) -> Tuple[RaceCardsSample, RaceCardsSample]:
         train_interval = [i for i in range(self.n_races - self.n_test_races)]
