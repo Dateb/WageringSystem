@@ -73,7 +73,7 @@ class BetModelConfigurationTuner:
         )
 
         self.tree = BetModelConfigurationTree(root_node)
-        self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=50)
+        self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=10)
 
     def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
         while self.__improve_ranker_config(max_iter_without_improvement):

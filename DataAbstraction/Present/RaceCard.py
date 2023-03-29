@@ -9,6 +9,7 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
+from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from util.nested_dict import nested_dict
@@ -46,9 +47,14 @@ class RaceCard:
         self.race_result = None
         raw_result = raw_race_card["result"]
         self.has_results = False
+
         if raw_result:
             self.has_results = True
             self.race_result: RaceResult = RaceResult(raw_result)
+
+        self.weather = None
+        if "weather" in race:
+            self.weather = Weather(race["weather"])
 
         self.__set_head_to_head_horses(race)
 

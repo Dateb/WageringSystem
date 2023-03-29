@@ -1,6 +1,3 @@
-from typing import List
-
-
 class FormGuide:
     def __init__(self, current_race_id: int, subject_id: str, raw_form_guide: dict):
         self.current_race_id = current_race_id

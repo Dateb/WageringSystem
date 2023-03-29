@@ -3,7 +3,8 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage, TravelDistance
+    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage, TravelDistance, Temperature, \
+    AirPressure, Humidity, WindSpeed, WindDirection, Cloudiness
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
@@ -58,8 +59,6 @@ class FeatureManager:
 
         self.base_features = [
             BetfairWinMarketWinProbability(),
-            TravelDistance(),
-            PreviousRelativeDistanceBehind(),
 
             # RacebetsWinProbability(),
             # BetfairPlaceMarketWinProbability(),
@@ -78,6 +77,14 @@ class FeatureManager:
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
 
+            Temperature(),
+            AirPressure(),
+            Humidity(),
+            WindSpeed(),
+            WindDirection(),
+            Cloudiness(),
+
+            PreviousRelativeDistanceBehind(),
             PreviousFasterThanNumber(),
             PreviousSlowerThanNumber(),
 
@@ -85,6 +92,7 @@ class FeatureManager:
             CurrentSpeedFigure(),
             DistanceDifference(),
 
+            TravelDistance(),
             CurrentRaceTrack(),
             Gender(),
             MinutesIntoDay(),

@@ -149,7 +149,9 @@ class DrawBias(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
         return draw_bias
 
+
 unknown_location_list = []
+
 
 class TravelDistance(FeatureExtractor):
 
@@ -178,3 +180,69 @@ class TravelDistance(FeatureExtractor):
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
         return travel_distance
+
+
+class Temperature(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.temperature
+
+
+class AirPressure(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.air_pressure
+
+
+class Humidity(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.humidity
+
+
+class WindSpeed(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.wind_speed
+
+
+class WindDirection(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.wind_direction
+
+
+class Cloudiness(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.cloudiness
