@@ -9,8 +9,8 @@ class WinBet(Bet):
 
     def __init__(self, predicted_horse_results: List[HorseResult], stakes_fraction: float):
         super().__init__(predicted_horse_results, stakes_fraction)
-        self.potential_win = predicted_horse_results[0].betting_odds * stakes_fraction * (1 - Bet.WIN_COMMISION)
-        self.odds = predicted_horse_results[0].betting_odds
+        self.potential_win = predicted_horse_results[0].win_odds * stakes_fraction * (1 - Bet.WIN_COMMISION)
+        self.odds = predicted_horse_results[0].win_odds
 
     def is_won(self, race_result: RaceResult) -> bool:
         result_of_predicted_winner = race_result.get_result_of_horse_number(self.predicted_horse_results[0].number)
@@ -26,7 +26,7 @@ class WinBet(Bet):
         bet_str = "Win bet:\n"
         bet_str += "---------------------------------------\n"
         bet_str += f"Horse number: {self.predicted_horse_results[0].number}\n"
-        bet_str += f"Odds of horse: {self.predicted_horse_results[0].betting_odds}\n"
+        bet_str += f"Odds of horse: {self.predicted_horse_results[0].win_odds}\n"
         bet_str += f"(Fractional) stakes: {self.stakes_fraction}\n"
         bet_str += f"Potential win: {self.potential_win}\n"
         bet_str += f"Estimated success probability: {self.predicted_horse_results[0].win_probability}\n"

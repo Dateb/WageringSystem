@@ -1,7 +1,5 @@
 from typing import List
 
-import numpy as np
-
 from DataAbstraction.Present.HorseResult import HorseResult
 from Model.Betting.Bets.Bet import Bet
 
@@ -24,8 +22,6 @@ class BettingSlip:
 
     def add_bet(self, bet: Bet):
         self.bets.append(bet)
-        self.conditional_ev += bet.success_probability * bet.odds * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
-        self.conditional_odds += bet.odds - (1 + Bet.BET_TAX)
 
         self.loss += bet.loss
         self.success_probability += bet.success_probability
@@ -44,14 +40,6 @@ class BettingSlip:
             betting_slip_str += str(bet)
         betting_slip_str += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
         return betting_slip_str
-
-    @property
-    def win_probabilities(self) -> np.ndarray:
-        return np.array([horse_result.win_probability for horse_result in self.horse_results])
-
-    @property
-    def betting_odds(self) -> np.ndarray:
-        return np.array([horse_result.betting_odds for horse_result in self.horse_results])
 
     @property
     def json(self) -> dict:

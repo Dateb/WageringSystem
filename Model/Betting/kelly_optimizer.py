@@ -3,13 +3,15 @@ import timeit
 import numpy as np
 from scipy.optimize import minimize
 
+from Model.Betting.Bets.Bet import Bet
+
 
 def kelly_jacobian(stakes: np.ndarray, P: np.ndarray, B: np.ndarray) -> np.ndarray:
     if sum(stakes) >= 1:
         stakes = stakes / sum(stakes)
 
     total_stakes = sum(stakes)
-    V = np.multiply(stakes, B)
+    V = np.multiply(stakes, B) * (1 - Bet.WIN_COMMISION)
 
     R = (1 + V + 0.00001) - total_stakes
 
@@ -26,8 +28,7 @@ def kelly_objective(stakes: np.ndarray, P: np.ndarray, B: np.ndarray) -> float:
         stakes = stakes / sum(stakes)
     total_stakes = sum(stakes)
 
-    # print(total_stakes)
-    result = P * np.log((1 + np.multiply(stakes, B) + 0.00001) - total_stakes)
+    result = P * np.log((1 + np.multiply(stakes, B) * (1 - Bet.WIN_COMMISION) + 0.00001) - total_stakes)
 
     return -sum(result)
 

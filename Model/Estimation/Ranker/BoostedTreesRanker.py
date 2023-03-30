@@ -18,8 +18,8 @@ class BoostedTreesRanker(Ranker):
 
     _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "rank_xendcg",
-        "metric": "rank_xendcg",
+        "objective": "lambdarank",
+        "metric": "lambdarank",
         "verbose": -1,
         "deterministic": True,
         "force_row_wise": True,

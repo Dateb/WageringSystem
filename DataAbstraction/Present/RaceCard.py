@@ -10,7 +10,8 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
-from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance
+from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance, \
+    get_winner_relevance
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
@@ -146,7 +147,7 @@ class RaceCard:
                     self.track_variant_estimate["avg"],
                 )
 
-                horse.relevance = get_place_based_relevance(horse)
+                horse.relevance = get_winner_relevance(horse)
                 horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
 
     def set_date(self, raw_race_card: dict):

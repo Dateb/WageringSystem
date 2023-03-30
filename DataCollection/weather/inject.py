@@ -29,10 +29,14 @@ def main():
     for race_card_file_name in reversed(race_card_file_names):
         race_cards = race_cards_persistence.load_race_card_files_writable([race_card_file_name])
 
-        print(list(race_cards.keys())[0])
-        for race_card in race_cards.values():
+        previous_day = list(race_cards.keys())[0].split(' ')[0]
+        print(previous_day)
+        for race_date, race_card in race_cards.items():
             if weather_injector.inject_weather_of_race(race_card):
-                race_cards_persistence.save(list(race_cards.values()))
+                race_day = race_date.split(' ')[0]
+                if race_day != previous_day:
+                    previous_day = race_day
+                    race_cards_persistence.save(list(race_cards.values()))
 
 
 if __name__ == '__main__':

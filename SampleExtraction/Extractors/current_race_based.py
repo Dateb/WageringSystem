@@ -246,3 +246,14 @@ class Cloudiness(FeatureExtractor):
         if race_card.weather is None:
             return self.PLACEHOLDER_VALUE
         return race_card.weather.cloudiness
+
+
+class RainVolume(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather.rain_volume

@@ -27,7 +27,7 @@ def get_most_probable_value_stakes(ev_threshold: float, win_probabilities: ndarr
                 highest_probability_idx = i
 
     if highest_probability_idx != -1:
-        numerator = final_ev - (1 + ev_threshold)
+        numerator = final_ev - (1 + Bet.BET_TAX + ev_threshold)
         denominator = odds[highest_probability_idx] - (1 + Bet.BET_TAX + ev_threshold)
 
         stakes[highest_probability_idx] = numerator / denominator
@@ -41,7 +41,7 @@ def get_highest_value_stakes(ev_threshold: float, win_probabilities: ndarray, od
     highest_ev = 0
     highest_ev_idx = -1
     for i in range(n_horses):
-        ev = win_probabilities[i] * odds[i]
+        ev = win_probabilities[i] * odds[i] * (1 - Bet.WIN_COMMISION)
 
         if ev > highest_ev:
             highest_ev = ev

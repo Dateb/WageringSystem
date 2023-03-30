@@ -141,7 +141,7 @@ def main():
     first_predicted_horse_result = HorseResult(
         number=3,
         position=1,
-        betting_odds=2.0,
+        win_odds=2.0,
         place_odds=0.0,
     )
     first_bet = WinBet(
@@ -153,7 +153,7 @@ def main():
     second_predicted_horse_result = HorseResult(
         number=1,
         position=1,
-        betting_odds=22.0,
+        win_odds=22.0,
         place_odds=0.0,
     )
     second_bet = WinBet(

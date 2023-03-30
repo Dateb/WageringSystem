@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from numpy import ndarray
 
@@ -6,6 +7,7 @@ from DataAbstraction.Present.HorseResult import HorseResult
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.Bets.Bet import Bet
 from Model.Betting.Bets.PlaceBet import PlaceBet
+from Model.Betting.BettingSlip import BettingSlip
 from Model.Probabilizing.Probabilizer import Probabilizer
 from Model.Probabilizing.place_calculation import compute_place_probabilities
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -21,11 +23,7 @@ class PlaceProbabilizer(Probabilizer):
         race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe, scores)
         race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
 
-        race_cards_dataframe["expected_value"] = race_cards_dataframe["place_probability"] \
-                                                 * race_cards_dataframe[Horse.CURRENT_PLACE_ODDS_KEY] \
-                                                 * (1 - Bet.WIN_COMMISION) - (1 + Bet.BET_TAX)
-
-        return None
+        return self.get_betting_slips(race_cards_dataframe)
 
     def set_place_probabilities(self, race_cards_dataframe: pd.DataFrame) -> pd.DataFrame:
         grouped_win_information = race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[["win_probability", RaceCard.PLACE_NUM_KEY]].agg({
@@ -44,3 +42,9 @@ class PlaceProbabilizer(Probabilizer):
 
     def create_bet(self, horse_result: HorseResult, stakes_fraction: float) -> Bet:
         return PlaceBet([horse_result], stakes_fraction)
+
+    def get_probabilities(self, betting_slip: BettingSlip) -> ndarray:
+        return np.array([horse_result.place_probability for horse_result in betting_slip.horse_results])
+
+    def get_odds(self, betting_slip: BettingSlip) -> ndarray:
+        return np.array([horse_result.place_odds for horse_result in betting_slip.horse_results])

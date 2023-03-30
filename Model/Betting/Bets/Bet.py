@@ -17,7 +17,7 @@ class Bet(ABC):
 
         self.potential_win = 0
         self.win = 0
-        self.loss = stakes_fraction * (1 + self.BET_TAX) if predicted_horse_results[0].betting_odds > 0 else 0
+        self.loss = stakes_fraction * (1 + self.BET_TAX) if predicted_horse_results[0].win_odds > 0 else 0
         self.odds = 0
 
     @abstractmethod
@@ -31,6 +31,6 @@ class Bet(ABC):
             "horse_name": self.predicted_horse_results[0].name,
             "win_probability": self.predicted_horse_results[0].win_probability,
             "stakes_fraction": self.stakes_fraction,
-            "betting_odds": self.predicted_horse_results[0].betting_odds,
+            "betting_odds": self.predicted_horse_results[0].win_odds,
             "potential_win": self.potential_win,
         }

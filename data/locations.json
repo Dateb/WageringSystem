@@ -383,6 +383,56 @@
     "location_id": 76,
     "latitude": 52.5906584,
     "longitude": -8.6978166
+  },
+  "Mülheim": {
+    "location_id": 77,
+    "latitude": 50.6474555,
+    "longitude": 6.9447787
+  },
+  "Meydan": {
+    "location_id": 78,
+    "latitude": 25.1575142,
+    "longitude": 55.3003454
+  },
+  "Düsseldorf": {
+    "location_id": 79,
+    "latitude": 51.2247626,
+    "longitude": 6.7717475
+  },
+  "Deauville": {
+    "location_id": 80,
+    "latitude": 49.3528248,
+    "longitude": 0.0735663
+  },
+  "Saint-Cloud": {
+    "location_id": 81,
+    "latitude": 48.853562,
+    "longitude": 2.2023744
+  },
+  "Kilbeggan": {
+    "location_id": 82,
+    "latitude": 53.3867572,
+    "longitude": -7.5040813
+  },
+  "ParisLongchamp": {
+    "location_id": 83,
+    "latitude": 48.8587867,
+    "longitude": 2.2274441
+  },
+  "Jägersro Galopp": {
+    "location_id": 84,
+    "latitude": 55.573336,
+    "longitude": 13.0619783
+  },
+  "Tipperary": {
+    "location_id": 85,
+    "latitude": 52.4997032,
+    "longitude": -8.2090588
+  },
+  "Dundalk": {
+    "location_id": 86,
+    "latitude": 54.0208111,
+    "longitude": -6.3854388
   }
 
 }

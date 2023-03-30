@@ -25,3 +25,7 @@ def get_place_based_relevance(horse: Horse) -> int:
 
     relevance = max([31 - horse.place, 0])
     return relevance
+
+
+def get_winner_relevance(horse: Horse) -> int:
+    return horse.has_won
