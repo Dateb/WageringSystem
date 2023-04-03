@@ -80,8 +80,6 @@ class RaceCard:
             self.race_class = "1"
 
         self.surface = race["trackSurface"]
-        self.age_from = race["ageFrom"]
-        self.age_to = race["ageTo"]
         self.purse = race["purseDetails"]
         self.is_open = race["raceStatus"] == "OPN"
 
@@ -138,8 +136,8 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 horse.speed_figure = compute_speed_figure(
-                    self.base_time_estimate["avg"],
-                    self.base_time_estimate["std"],
+                    self.get_base_time_estimate_of_horse(horse)["avg"],
+                    self.get_base_time_estimate_of_horse(horse)["std"],
                     self.lengths_per_second_estimate["avg"],
                     self.race_result.win_time,
                     self.distance,
@@ -201,9 +199,8 @@ class RaceCard:
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
 
-    @property
-    def base_time_estimate(self) -> dict:
-        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
+    def get_base_time_estimate_of_horse(self, horse: Horse) -> dict:
+        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id][horse.weight_category]
 
     @property
     def lengths_per_second_estimate(self) -> dict:

@@ -55,6 +55,7 @@ class Horse:
         self.horse_distance = self.__extract_horse_distance(raw_data)
 
         self.jockey = Jockey(raw_data["jockey"])
+        self.weight_category = round(self.jockey.weight / 2) * 2
 
         jockey_first_name = raw_data["jockey"]["firstName"]
         jockey_last_name = raw_data["jockey"]["lastName"]
@@ -79,7 +80,7 @@ class Horse:
         self.base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
+            self.CURRENT_WIN_ODDS_KEY: max([self.betfair_win_sp, self.racebets_win_sp]),
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
             self.RELEVANCE_KEY: self.relevance,

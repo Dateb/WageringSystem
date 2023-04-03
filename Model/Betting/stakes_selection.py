@@ -1,3 +1,4 @@
+import random
 from typing import Dict
 
 import numpy as np
@@ -10,7 +11,36 @@ from Model.Betting.kelly_optimizer import kelly_objective, kelly_jacobian
 previous_stakes: Dict[str, ndarray] = {}
 
 
-def get_most_probable_value_stakes(ev_threshold: float, win_probabilities: ndarray, odds: ndarray) -> ndarray:
+def get_fixed_stake_on_everyone(win_probabilities: ndarray, odds: ndarray) -> ndarray:
+    return np.zeros(shape=win_probabilities.shape) + 0.1
+
+
+def get_fixed_stake_on_favorite(win_probabilities: ndarray, odds: ndarray) -> ndarray:
+    favorite_idx = np.argmin(odds)
+
+    stakes = np.zeros(shape=win_probabilities.shape)
+    stakes[favorite_idx] = 0.1
+
+    return stakes
+
+
+def get_multiple_value_stakes(win_probabilities: ndarray, odds: ndarray) -> ndarray:
+    stakes = np.zeros(shape=win_probabilities.shape)
+    n_horses = len(win_probabilities)
+    for i in range(n_horses):
+        win_probability = win_probabilities[i]
+        ev = win_probability * odds[i]
+
+        if ev > 1:
+            numerator = ev - (1 + Bet.BET_TAX)
+            denominator = odds[i] - (1 + Bet.BET_TAX)
+
+            stakes[i] = numerator / denominator
+
+    return stakes
+
+
+def get_most_probable_value_stakes(win_probabilities: ndarray, odds: ndarray) -> ndarray:
     stakes = np.zeros(shape=win_probabilities.shape)
     n_horses = len(win_probabilities)
     highest_probability = 0
@@ -20,15 +50,15 @@ def get_most_probable_value_stakes(ev_threshold: float, win_probabilities: ndarr
         win_probability = win_probabilities[i]
         ev = win_probability * odds[i]
 
-        if ev > 1 + ev_threshold:
+        if ev > 1:
             if win_probability > highest_probability:
                 final_ev = ev
                 highest_probability = win_probability
                 highest_probability_idx = i
 
     if highest_probability_idx != -1:
-        numerator = final_ev - (1 + Bet.BET_TAX + ev_threshold)
-        denominator = odds[highest_probability_idx] - (1 + Bet.BET_TAX + ev_threshold)
+        numerator = final_ev - (1 + Bet.BET_TAX)
+        denominator = odds[highest_probability_idx] - (1 + Bet.BET_TAX)
 
         stakes[highest_probability_idx] = numerator / denominator
 

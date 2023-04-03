@@ -44,11 +44,15 @@ class Probabilizer(ABC):
         horse_names = race_cards_dataframe.loc[:, Horse.NAME_KEY].values
         horse_numbers = race_cards_dataframe.loc[:, Horse.NUMBER_KEY].values
 
-        win_odds = race_cards_dataframe.loc[:, Horse.CURRENT_WIN_ODDS_KEY].values
-        place_odds = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
-
         win_probabilities = race_cards_dataframe.loc[:, Horse.WIN_PROBABILITY_KEY].values
+
+        corrected_p = np.maximum(win_probabilities * (1 - 0.4), 0)
+        win_odds = 1 / corrected_p
+
         place_probabilities = race_cards_dataframe.loc[:, "place_probability"].values
+
+        corrected_p = np.maximum(place_probabilities * (1 - 0.4), 0)
+        place_odds = 1 / corrected_p
 
         place_nums = race_cards_dataframe.loc[:, RaceCard.PLACE_NUM_KEY].values
 

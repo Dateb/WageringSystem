@@ -13,3 +13,4 @@ class Weather:
         if "rain" in raw_weather:
             self.rain_volume = raw_weather["rain"]["1h"]
 
+        self.category = raw_weather["weather"][0]["main"]

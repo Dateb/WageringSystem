@@ -20,7 +20,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 13
+N_SAMPLE_MONTHS = 14
 N_MONTHS_FORWARD_OFFSET = 99
 
 
@@ -44,7 +44,7 @@ class BetModelTuner:
             model_evaluator=self.model_evaluator,
         )
 
-        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=200)
+        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=2)
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         train_sample, test_sample = self.block_splitter.get_train_test_split()

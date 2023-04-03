@@ -1,19 +1,17 @@
 import timeit
 
 import numpy as np
+from numpy import array
 from scipy.optimize import minimize
 
 from Model.Betting.Bets.Bet import Bet
 
 
 def kelly_jacobian(stakes: np.ndarray, P: np.ndarray, B: np.ndarray) -> np.ndarray:
-    if sum(stakes) >= 1:
-        stakes = stakes / sum(stakes)
-
     total_stakes = sum(stakes)
     V = np.multiply(stakes, B) * (1 - Bet.WIN_COMMISION)
 
-    R = (1 + V + 0.00001) - total_stakes
+    R = 1 + V - total_stakes
 
     delta_v = -P / R
 
@@ -26,16 +24,20 @@ def kelly_jacobian(stakes: np.ndarray, P: np.ndarray, B: np.ndarray) -> np.ndarr
 def kelly_objective(stakes: np.ndarray, P: np.ndarray, B: np.ndarray) -> float:
     if sum(stakes) >= 1:
         stakes = stakes / sum(stakes)
+
     total_stakes = sum(stakes)
 
-    result = P * np.log((1 + np.multiply(stakes, B) * (1 - Bet.WIN_COMMISION) + 0.00001) - total_stakes)
+    R = (1 + np.multiply(stakes, B) * (1 - Bet.WIN_COMMISION)) - total_stakes
+    print(R)
+    result = P * np.log(R)
 
     return -sum(result)
 
 
 def main():
     P = np.array([0.5, 0.5])
-    B = np.array([2, 4])
+    B = np.array([2.1, 2.2])
+    print(kelly_objective(array([0, 0]), P, B))
 
     bounds = [(0, 1) for _ in range(len(P))]
     init_stakes = np.array([1/len(P) for _ in range(len(P))])
@@ -45,10 +47,10 @@ def main():
         fun=kelly_objective,
         jac=kelly_jacobian,
         x0=init_stakes,
-        method="SLSQP",
+        method="Nelder-Mead",
         args=(P, B),
         bounds=bounds,
-        constraints=({'type': "ineq", "fun": lambda x: 1 - sum(x)})
+        constraints=({'type': "ineq", "fun": lambda x: 0.9999 - sum(x)})
     )
     stop = timeit.default_timer()
     print('Time: ', stop - start)

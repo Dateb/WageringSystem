@@ -11,7 +11,7 @@ pd.options.mode.chained_assignment = None
 class Bettor(ABC):
 
     def __init__(self, additional_ev_threshold: float, probabilizer: Probabilizer):
-        self.ev_threshold = additional_ev_threshold
+        self.additional_ev_threshold = additional_ev_threshold
         self.probabilizer = probabilizer
 
     @abstractmethod

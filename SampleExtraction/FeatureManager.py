@@ -1,22 +1,19 @@
 from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
-    CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage, TravelDistance, Temperature, \
+from SampleExtraction.Extractors.current_race_based import CurrentDistance, \
+    CurrentRaceClass, CurrentRaceTrack, \
+    DrawBias, CurrentOpponentCount, WeightAdvantage, TravelDistance, Temperature, \
     AirPressure, Humidity, WindSpeed, WindDirection, Cloudiness, RainVolume
-from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
-    HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
-    BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog, \
+from SampleExtraction.Extractors.odds_based import HighestOddsWin, \
+    BetfairWinMarketWinProbability, IsFavorite, IsUnderdog, \
     IndustryMarketWinProbabilityDiff
-from SampleExtraction.Extractors.past_performance_based import HasFallen
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -24,7 +21,7 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     JockeyClassPercentageBeaten, TrainerDistancePercentageBeaten, TrainerSurfacePercentageBeaten, \
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
-from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanNumber, PulledUpPreviousRace, \
+from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanNumber, \
     PreviousSlowerThanNumber, PreviousRelativeDistanceBehind
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference
@@ -58,12 +55,13 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            BetfairWinMarketWinProbability(),
+            # BetfairWinMarketWinProbability(),
+            # IndustryMarketWinProbabilityDiff(),
+            # IsFavorite(),
 
-            # RacebetsWinProbability(),
-            # BetfairPlaceMarketWinProbability(),
-
-            # BaseTime(),
+            CurrentRaceTrack(),
+            PreviousSlowerThanNumber(),
+            PreviousRelativeDistanceBehind(),
         ]
 
         self.features = features
@@ -76,64 +74,46 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            CurrentOpponentCount(),
 
-            Temperature(),
-            AirPressure(),
-            Humidity(),
-            WindSpeed(),
-            WindDirection(),
-            Cloudiness(),
-            RainVolume(),
+            # Temperature(),
+            # AirPressure(),
+            # Humidity(),
+            # WindSpeed(),
+            # WindDirection(),
+            # Cloudiness(),
 
-            PreviousRelativeDistanceBehind(),
             PreviousFasterThanNumber(),
-            PreviousSlowerThanNumber(),
 
-            IndustryMarketWinProbabilityDiff(),
             CurrentSpeedFigure(),
             DistanceDifference(),
 
             TravelDistance(),
-            CurrentRaceTrack(),
             Gender(),
             MinutesIntoDay(),
             Age(),
             CurrentDistance(),
-            CurrentRaceSurface(),
-            HasFallen(),
-            HasTrackChanged(),
             JockeyWeight(),
-            HasTrainerMultipleHorses(),
-            IsFavorite(), IsUnderdog(),
             WeekDayCos(), WeekDaySin(),
 
-            CurrentRaceClass(), CurrentGoing(),
-            CurrentRaceType(), CurrentRaceCategory(),
+            CurrentRaceClass(),
 
-            PulledUpPreviousRace(), WeightDifference(),
+            WeightDifference(),
             WeightAllowanceExtractor(),
-            #
             HighestOddsWin(),
 
             DrawBias(),
-            AgeFrom(), AgeTo(),
             CurrentRating(),
-
-            HasBlinkers(), HasVisor(), HasHood(), HasCheekPieces(), HasEyeCovers(), HasEyeShield(), HasTongueStrap(),
 
             AbsoluteTime(),
 
             BestLifeTimeSpeedFigure(),
 
-            HasOptimalBreak(),
             ComingFromLayoff(),
-            HasWonAfterLongBreak(),
 
             LifeTimeStartCount(),
             OneYearStartCount(),
             TwoYearStartCount(),
-            HasFewStartsInTwoYears(),
-
 
             HorseWinRate(), JockeyWinRate(), TrainerWinRate(),
             BreederWinRate(), OwnerWinRate(), SireWinRate(), DamWinRate(), DamSireWinRate(),
@@ -157,21 +137,21 @@ class FeatureManager:
             TrainerDistancePurseRate(), TrainerSurfacePurseRate(), TrainerTrackPurseRate(), TrainerClassPurseRate(),
 
             HorsePercentageBeaten(), JockeyPercentageBeaten(), TrainerPercentageBeaten(),
-            BreederPercentageBeaten(), OwnerPercentageBeaten(), SirePercentageBeaten(), DamPercentageBeaten(), DamSirePercentageBeaten(),
+            BreederPercentageBeaten(), OwnerPercentageBeaten(), SirePercentageBeaten(), DamPercentageBeaten(),
+            DamSirePercentageBeaten(),
             HorseJockeyPercentageBeaten(), HorseTrainerPercentageBeaten(), HorseBreederPercentageBeaten(),
 
-            JockeyDistancePercentageBeaten(), JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(), JockeyClassPercentageBeaten(),
-            TrainerDistancePercentageBeaten(), TrainerSurfacePercentageBeaten(), TrainerTrackPercentageBeaten(), TrainerClassPercentageBeaten(),
+            JockeyDistancePercentageBeaten(), JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),
+            JockeyClassPercentageBeaten(),
+            TrainerDistancePercentageBeaten(), TrainerSurfacePercentageBeaten(), TrainerTrackPercentageBeaten(),
+            TrainerClassPercentageBeaten(),
 
-            RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
+            RaceClassDifference(),
 
             MaxPastRatingExtractor(),
 
-            # Negatives:
-            # MeanSpeedDiff(),
             DayOfYearSin(),
             DayOfYearCos(),
-            CurrentRaceTypeDetail(),
             WeightAdvantage(),
         ]
 

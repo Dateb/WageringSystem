@@ -39,12 +39,3 @@ class PreviousSlowerThanNumber(FeatureExtractor):
         if not horse.previous_performance.isnumeric():
             return self.PLACEHOLDER_VALUE
         return abs(int(horse.previous_performance) - 1) / (race_card.n_horses - 1)
-
-
-class PulledUpPreviousRace(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(horse.previous_performance == "PU")
