@@ -50,15 +50,17 @@ class BetModelConfigurationTuner:
             feature_manager: FeatureManager,
             sample_splitter: BlockSplitter,
             model_evaluator: ModelEvaluator,
+            fractional_probability_distance: float,
+            max_tuning_rounds: int = 10,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
-
         self.sample_splitter = sample_splitter
         self.model_evaluator = model_evaluator
+        self.fractional_probability_distance = fractional_probability_distance
+        self.max_tuning_rounds = max_tuning_rounds
 
-        self.__best_configuration: BetModelConfiguration = None
-        self.__max_score = -np.Inf
+        self.best_configuration: BetModelConfiguration = None
         self.__exploration_factor = 0.1
 
         root_node = BetModelConfigurationNode(
@@ -69,20 +71,15 @@ class BetModelConfigurationTuner:
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
+                fractional_probability_distance=self.fractional_probability_distance
             ),
         )
 
         self.tree = BetModelConfigurationTree(root_node)
         self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=10)
 
-    def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
-        while self.__improve_ranker_config(max_iter_without_improvement):
-            pass
-
-        return self.__best_configuration
-
-    def __improve_ranker_config(self, max_iter_without_improvement: int) -> bool:
-        for _ in trange(max_iter_without_improvement):
+    def search_for_best_configuration(self) -> bool:
+        for _ in trange(self.max_tuning_rounds):
             front_node = self.__select()
 
             full_decision_list = front_node.ranker_config.get_full_decision_list()
@@ -90,12 +87,12 @@ class BetModelConfigurationTuner:
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
+                self.fractional_probability_distance
             )
 
             results = self.__simulate(terminal_configuration)
 
-            payout_mean = mean(list(results.values()))
-            total_score = payout_mean
+            total_score = min(list(results.values()))
 
             train_sample, test_sample = self.sample_splitter.get_train_test_split()
 
@@ -108,14 +105,12 @@ class BetModelConfigurationTuner:
 
             self.feature_scorer.update_feature_scores(total_score, terminal_configuration.selected_search_features)
 
-            if total_score > self.__max_score:
-                self.__best_configuration = terminal_configuration
+            if total_score > 0.005:
+                self.best_configuration = terminal_configuration
                 print("New best Result:")
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
                 print(terminal_configuration)
-
-                self.__max_score = total_score
 
                 return True
 
@@ -138,6 +133,7 @@ class BetModelConfigurationTuner:
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
+            self.fractional_probability_distance
         )
 
         new_node = BetModelConfigurationNode(

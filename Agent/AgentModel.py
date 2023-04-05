@@ -9,7 +9,7 @@ from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
-from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
+from SampleExtraction.RaceCardsSampleFactory import RaceCardsSampleFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.BlockSplitter import BlockSplitter
 
@@ -24,7 +24,7 @@ class AgentModel:
         self.race_cards_loader = RaceCardsPersistence("race_cards")
 
         model_evaluator = ModelEvaluator()
-        self.race_cards_array_factory = RaceCardsArrayFactory(
+        self.race_cards_array_factory = RaceCardsSampleFactory(
             race_cards_loader=self.race_cards_loader,
             feature_manager=self.feature_manager,
             model_evaluator=model_evaluator

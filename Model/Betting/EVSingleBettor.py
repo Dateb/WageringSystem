@@ -34,8 +34,8 @@ class EVSingleBettor(Bettor):
             # stakes = get_highest_value_stakes(self.ev_threshold, probabilities, odds)
             # stakes = get_most_probable_value_stakes(probabilities, odds)
             # stakes = get_multiple_value_stakes(probabilities, odds)
-            # stakes = get_fixed_stake_on_favorite(probabilities, odds)
-            stakes = get_fixed_stake_on_everyone(probabilities, odds)
+            stakes = get_fixed_stake_on_favorite(probabilities, odds)
+            # stakes = get_fixed_stake_on_everyone(probabilities, odds)
 
             for i in range(len(stakes)):
                 stakes_fraction = stakes[i]

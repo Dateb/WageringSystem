@@ -56,11 +56,11 @@ class BoostedTreesRanker(Ranker):
             num_boost_round=num_boost_round,
         )
 
-        importance_scores = self.booster.feature_importance(importance_type="gain")
-        feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
-        sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
-        importance_sum = sum([importance for importance in list(feature_importances.values())])
-        print(f"{importance_sum}: {sorted_feature_importances}")
+        # importance_scores = self.booster.feature_importance(importance_type="gain")
+        # feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
+        # sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
+        # importance_sum = sum([importance for importance in list(feature_importances.values())])
+        # print(f"{importance_sum}: {sorted_feature_importances}")
 
     def cross_validate(self, samples_train: pd.DataFrame, num_boost_round: int) -> dict:
         cv_result = lightgbm.cv(

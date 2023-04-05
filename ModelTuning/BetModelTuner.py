@@ -11,7 +11,7 @@ from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfigura
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
-from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
+from SampleExtraction.RaceCardsSampleFactory import RaceCardsSampleFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.BlockSplitter import BlockSplitter
@@ -20,8 +20,7 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 14
-N_MONTHS_FORWARD_OFFSET = 99
+N_SAMPLE_MONTHS = 1
 
 
 class BetModelTuner:
@@ -32,19 +31,34 @@ class BetModelTuner:
         self.block_splitter = BlockSplitter(
             self.race_cards_sample,
             n_validation_rounds=5,
-            n_test_races=2000,
+            n_test_races=20,
         )
         self.model_evaluator = model_evaluator
 
     def get_tuned_model_configuration(self) -> BetModelConfiguration:
-        configuration_tuner = BetModelConfigurationTuner(
-            race_cards_sample=self.race_cards_sample,
-            feature_manager=self.feature_manager,
-            sample_splitter=self.block_splitter,
-            model_evaluator=self.model_evaluator,
-        )
+        achieved_positive_returns = True
+        fractional_probability_distance = 0.8
+        best_configuration = None
+        while achieved_positive_returns:
+            print(f"Finding model for p-diff: {fractional_probability_distance}")
+            configuration_tuner = BetModelConfigurationTuner(
+                race_cards_sample=self.race_cards_sample,
+                feature_manager=self.feature_manager,
+                sample_splitter=self.block_splitter,
+                model_evaluator=self.model_evaluator,
+                fractional_probability_distance=fractional_probability_distance,
+                max_tuning_rounds=10,
+            )
 
-        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=2)
+            achieved_positive_returns = configuration_tuner.search_for_best_configuration()
+
+            if achieved_positive_returns:
+                fractional_probability_distance -= 0.02
+                best_configuration = configuration_tuner.best_configuration
+
+        print(f"Lowest possible p-diff: {fractional_probability_distance + 0.02}")
+
+        return best_configuration
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         train_sample, test_sample = self.block_splitter.get_train_test_split()
@@ -56,34 +70,16 @@ class BetModelTuner:
 def optimize_model_configuration():
     feature_manager = FeatureManager()
 
-    race_cards_loader = RaceCardsPersistence("race_cards")
     model_evaluator = ModelEvaluator()
-    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
+    race_cards_sample_factory = RaceCardsSampleFactory(
+        feature_manager=feature_manager,
+        model_evaluator=model_evaluator,
+        n_warm_up_months=1,
+        n_sample_months=1,
+    )
 
-    n_months = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
-    container_race_card_file_names = race_cards_loader.race_card_file_names[N_MONTHS_FORWARD_OFFSET:N_MONTHS_FORWARD_OFFSET + N_CONTAINER_MONTHS]
-    sample_race_card_file_names = race_cards_loader.race_card_file_names[N_MONTHS_FORWARD_OFFSET + N_CONTAINER_MONTHS:N_MONTHS_FORWARD_OFFSET + n_months]
-    print(container_race_card_file_names)
-    print(sample_race_card_file_names)
-    for race_card_file_name in tqdm(container_race_card_file_names):
-        race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
-        race_cards_array_factory.race_cards_to_array(race_cards)
-
-    # features not known from the container race card
-    # TODO: this throws an indexerror when containers are none
-    container_race_cards = race_cards_loader.load_race_card_files_non_writable(container_race_card_file_names)
-    container_race_cards = list(container_race_cards.values())
-    columns = container_race_cards[0].attributes + feature_manager.feature_names
-    sample_encoder = SampleEncoder(feature_manager.features, columns)
-
-    for race_card_file_name in tqdm(sample_race_card_file_names):
-        race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
-        arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
-        sample_encoder.add_race_cards_arr(arr_of_race_cards)
-
-    race_cards_sample = sample_encoder.get_race_cards_sample()
-
-    race_cards_sample.race_cards_dataframe.to_csv("../data/races.csv")
+    race_cards_sample_factory.warm_up()
+    race_cards_sample = race_cards_sample_factory.create_race_cards_sample()
 
     tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample, model_evaluator)
     bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
