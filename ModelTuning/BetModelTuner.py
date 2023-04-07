@@ -50,7 +50,7 @@ class BetModelTuner:
                 sample_splitter=self.sample_splitter,
                 model_evaluator=self.model_evaluator,
                 fractional_probability_distance=next_p_diff,
-                max_tuning_rounds=5,
+                max_tuning_rounds=20,
             )
 
             achieved_positive_returns = configuration_tuner.search_for_best_configuration()
@@ -67,8 +67,8 @@ class BetModelTuner:
 
 def main():
     tuning_pipeline = BetModelTuner(
-        n_warm_up_months=1,
-        n_sample_months=4,
+        n_warm_up_months=24,
+        n_sample_months=30,
     )
     bet_model, fund_history_summary = tuning_pipeline.tune_model()
 

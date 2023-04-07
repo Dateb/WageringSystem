@@ -3,10 +3,10 @@ from copy import copy
 from typing import List
 
 from Model.Betting.EVSingleBettor import EVSingleBettor
-from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Model.Estimation.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
+from Model.Estimation.OddsShiftClassifier import OddsShiftClassifier
 from Model.Probabilizing.PlaceProbabilizer import PlaceProbabilizer
-from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -92,14 +92,8 @@ class BetModelConfiguration:
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
 
-    def validate_bet_model(self, train_samples: RaceCardsSample) -> float:
-        estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
-        cv_result = estimator.cross_validate(train_samples.race_cards_dataframe, self.num_boost_round)
-
-        return cv_result["valid ndcg@5-mean"][-1]
-
     def create_bet_model(self, train_samples: RaceCardsSample) -> BetModel:
-        estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
+        estimator = OddsShiftClassifier(self.feature_subset, self.search_params)
 
         bettor = EVSingleBettor(
             self.expected_value_additional_threshold,

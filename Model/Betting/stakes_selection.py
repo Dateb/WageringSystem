@@ -14,8 +14,6 @@ previous_stakes: Dict[str, ndarray] = {}
 def get_stake_highest_market_deviation(probabilities: ndarray, odds: ndarray, sp: ndarray) -> ndarray:
     market_deviation = (sp - odds) / odds
 
-    print(np.max(market_deviation))
-
     horse_idx = np.argmax(market_deviation)
 
     stakes = np.zeros(shape=probabilities.shape)

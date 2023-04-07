@@ -1,25 +1,28 @@
+import random
 from typing import List
 
 import lightgbm
+import numpy as np
 import pandas as pd
 
 from lightgbm import Dataset
 from numpy import ndarray
+from sklearn.metrics import accuracy_score
+
 from DataAbstraction.Present.Horse import Horse
-from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Estimation.Ranker.Ranker import Ranker
+from Model.Estimation.Estimator import Estimator
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
-class BoostedTreesRanker(Ranker):
+class OddsShiftClassifier(Estimator):
 
     ranking_seed = 30
 
     _FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "lambdarank",
-        "metric": "lambdarank",
+        "objective": "binary",
+        "metric": "binary",
         "verbose": -1,
         "deterministic": True,
         "force_row_wise": True,
@@ -49,46 +52,48 @@ class BoostedTreesRanker(Ranker):
         self.booster = None
 
     def fit(self, samples_train: pd.DataFrame, num_boost_round: int):
+        X, y = self.get_X_and_y(samples_train)
+
+        train_set = Dataset(
+            data=X,
+            label=y,
+            categorical_feature=self.categorical_feature_names,
+        )
+
         self.booster = lightgbm.train(
             self.parameter_set,
-            train_set=self.get_dataset(samples_train),
+            train_set=train_set,
             categorical_feature=self.categorical_feature_names,
             num_boost_round=num_boost_round,
         )
 
-        # importance_scores = self.booster.feature_importance(importance_type="gain")
-        # feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
-        # sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
-        # importance_sum = sum([importance for importance in list(feature_importances.values())])
-        # print(f"{importance_sum}: {sorted_feature_importances}")
+        y_pred = self.booster.predict(X)
+        y_pred = [1 if p >= 0.5 else 0 for p in y_pred]
 
-    def cross_validate(self, samples_train: pd.DataFrame, num_boost_round: int) -> dict:
-        cv_result = lightgbm.cv(
-            self.parameter_set,
-            train_set=self.get_dataset(samples_train),
-            categorical_feature=self.categorical_feature_names,
-            shuffle=False,
-            num_boost_round=num_boost_round,
-            nfold=5,
-        )
+        train_acc = accuracy_score(y, y_pred)
+        print(f"train: {train_acc}")
 
-        return cv_result
+    def get_X_and_y(self, sample: pd.DataFrame):
+        sample["shift"] = (np.random.rand(len(sample)) - 0.5) * 4
+        sample["shifted_odds"] = sample[Horse.CURRENT_PLACE_ODDS_KEY] + sample["shift"]
+        sample["shifted_odds"] = sample["shifted_odds"].astype(float)
 
-    def get_dataset(self, samples_train: pd.DataFrame) -> Dataset:
-        input_data = samples_train[self.feature_names]
-        label = samples_train[self.label_name].astype(dtype="int")
-        group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
+        sample["label"] = sample["shift"] >= 0
 
-        return Dataset(
-            data=input_data,
-            label=label,
-            group=group,
-            categorical_feature=self.categorical_feature_names,
-        )
+        X = sample[self.feature_names + ["shifted_odds"]]
+        y = sample["label"].astype(dtype="int")
+
+        return X, y
 
     def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        X = race_cards_dataframe[self.feature_names]
+        X, y = self.get_X_and_y(race_cards_dataframe)
         scores = self.booster.predict(X)
+
+        y_pred = self.booster.predict(X)
+        y_pred = [1 if p >= 0.5 else 0 for p in y_pred]
+
+        test_acc = accuracy_score(y, y_pred)
+        print(f"test: {test_acc}")
 
         return scores

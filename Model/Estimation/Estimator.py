@@ -1,12 +1,14 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import List, Dict
 
 import pandas as pd
+from numpy import ndarray
 
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
-class Ranker(ABC):
+class Estimator(ABC):
 
     _FIXED_PARAMS: Dict
 
@@ -16,10 +18,12 @@ class Ranker(ABC):
         self.features = features
         self.label_name = label_name
 
-    def _fit(self, samples_train: pd.DataFrame):
+    @abstractmethod
+    def fit(self, samples_train: pd.DataFrame, num_boost_round: int):
         pass
 
-    def score_races(self, samples: pd.DataFrame) -> pd.DataFrame:
+    @abstractmethod
+    def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
         pass
 
     def set_parameter_set(self, search_params: Dict):

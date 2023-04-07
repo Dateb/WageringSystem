@@ -4,7 +4,8 @@ from pandas import DataFrame
 
 from Model.Betting.BettingSlip import BettingSlip
 from Model.Betting.Bettor import Bettor
-from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Model.Estimation.BoostedTreesRanker import BoostedTreesRanker
+from Model.Estimation.Estimator import Estimator
 from Model.Probabilizing.Probabilizer import Probabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -12,7 +13,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class BetModel:
 
-    def __init__(self, estimator: BoostedTreesRanker, probabilizer: Probabilizer, bettor: Bettor):
+    def __init__(self, estimator: Estimator, probabilizer: Probabilizer, bettor: Bettor):
         self.estimator = estimator
         self.probabilizer = probabilizer
         self.bettor = bettor
