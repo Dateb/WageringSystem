@@ -1,9 +1,7 @@
 import pickle
-from typing import Tuple
 
-from Experiments.FundHistorySummary import FundHistorySummary
-from Model.BetModel import BetModel
 from ModelTuning.ModelEvaluator import ModelEvaluator
+from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSampleFactory import RaceCardsSampleFactory
@@ -34,35 +32,18 @@ class BetModelTuner:
             n_test_races=1,
         )
 
-    def tune_model(self) -> Tuple[BetModel, FundHistorySummary]:
-        achieved_positive_returns = True
-        previous_p_diff = 0.82
-        next_p_diff = previous_p_diff
-        best_configuration = None
-        configuration_tuner = None
-        while achieved_positive_returns:
-            previous_p_diff = next_p_diff
-            next_p_diff = previous_p_diff - 0.02
-            print(f"Finding model for p-diff: {next_p_diff}")
-            configuration_tuner = BetModelConfigurationTuner(
-                race_cards_sample=self.race_cards_sample,
-                feature_manager=self.feature_manager,
-                sample_splitter=self.sample_splitter,
-                model_evaluator=self.model_evaluator,
-                fractional_probability_distance=next_p_diff,
-                max_tuning_rounds=20,
-            )
+    def tune_model(self) -> BetModelConfiguration:
+        configuration_tuner = BetModelConfigurationTuner(
+            race_cards_sample=self.race_cards_sample,
+            feature_manager=self.feature_manager,
+            sample_splitter=self.sample_splitter,
+            model_evaluator=self.model_evaluator,
+            max_tuning_rounds=20,
+        )
 
-            achieved_positive_returns = configuration_tuner.search_for_best_configuration()
+        configuration_tuner.search_for_best_configuration()
 
-            if achieved_positive_returns:
-                best_configuration = configuration_tuner.best_configuration
-
-        print(f"Lowest possible p-diff: {previous_p_diff}")
-
-        train_sample, _ = self.sample_splitter.get_train_test_split()
-
-        return best_configuration.create_bet_model(train_sample), configuration_tuner.get_test_fund_history_summary(best_configuration)
+        return configuration_tuner.best_configuration
 
 
 def main():

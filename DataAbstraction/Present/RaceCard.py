@@ -132,22 +132,6 @@ class RaceCard:
             for horse in self.horses:
                 horse.set_purse(self.purse)
 
-    def set_horse_relevance(self) -> None:
-        if self.race_result:
-            for horse in self.horses:
-                horse.speed_figure = compute_speed_figure(
-                    self.get_base_time_estimate_of_horse(horse)["avg"],
-                    self.get_base_time_estimate_of_horse(horse)["std"],
-                    self.lengths_per_second_estimate["avg"],
-                    self.race_result.win_time,
-                    self.distance,
-                    horse.horse_distance,
-                    self.track_variant_estimate["avg"],
-                )
-
-                horse.relevance = get_winner_relevance(horse)
-                horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
-
     def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
@@ -155,13 +139,6 @@ class RaceCard:
 
     def __remove_non_starters(self):
         self.horses = [horse for horse in self.horses if not horse.is_scratched]
-
-    def to_array(self) -> ndarray:
-        total_values = []
-        for horse in self.horses:
-            values = self.values + horse.values
-            total_values.append(values)
-        return total_values
 
     def get_horse_by_id(self, horse_id: str) -> Horse:
         horse_with_id = [horse for horse in self.horses if horse.horse_id == horse_id][0]

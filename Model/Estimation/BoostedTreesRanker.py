@@ -36,7 +36,7 @@ class BoostedTreesRanker(Estimator):
     }
 
     def __init__(self, features: List[FeatureExtractor], search_params: dict):
-        super().__init__(features, Horse.RELEVANCE_KEY)
+        super().__init__(features, Horse.LABEL)
         if not search_params:
             search_params = {}
 
@@ -80,7 +80,7 @@ class BoostedTreesRanker(Estimator):
             categorical_feature=self.categorical_feature_names,
         )
 
-    def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
+    def score_test_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
         X = race_cards_dataframe[self.feature_names]
         scores = self.booster.predict(X)

@@ -3,6 +3,15 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
 
+class ShiftedOdds(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return int(horse.shifted_odds)
+
+
 class Age(FeatureExtractor):
 
     def __init__(self):

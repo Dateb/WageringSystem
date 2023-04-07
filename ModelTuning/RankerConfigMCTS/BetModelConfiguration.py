@@ -14,13 +14,13 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class BetModelConfiguration:
     probabilizer_values = [PlaceProbabilizer()]
     train_size_fraction_values = [1.0]
-    num_boost_round_values = [600]
+    num_boost_round_values = [400, 600, 800]
     stakes_fraction_values = [1.0]
     expected_value_additional_threshold_values = [0.0]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
     learning_rate_values = [0.1]
-    num_leaves_values = [30]
+    num_leaves_values = [10, 30]
     min_child_samples_values = [200]
 
     n_decision_list: List[int]
@@ -30,9 +30,7 @@ class BetModelConfiguration:
             decisions: List[int],
             base_features: List[FeatureExtractor],
             search_features: List[FeatureExtractor],
-            fractional_probability_distance: float
     ):
-        self.fractional_probability_distance = fractional_probability_distance
         self.probabilizer = None
         self.train_size_fraction = 1.0
         self.num_boost_round = 0
@@ -68,7 +66,6 @@ class BetModelConfiguration:
     def __add_ith_decision(self, i: int, decision_idx: int):
         if i == 0:
             self.probabilizer = self.probabilizer_values[decision_idx]
-            self.probabilizer.fractional_probability_distance = self.fractional_probability_distance
         if i == 1:
             self.train_size_fraction = self.train_size_fraction_values[decision_idx]
         if i == 2:

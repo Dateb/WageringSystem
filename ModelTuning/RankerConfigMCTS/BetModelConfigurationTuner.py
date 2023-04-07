@@ -1,5 +1,4 @@
 import threading
-from statistics import mean, stdev
 
 import numpy as np
 from tqdm import trange
@@ -38,9 +37,9 @@ class SimulateThread(threading.Thread):
 
         bet_model = self.bet_model_configuration.create_bet_model(train_sample)
 
-        fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_sample)
+        loss = bet_model.estimator.score_test_races(validation_sample)
 
-        self.scores[self.validation_block_idx] = fund_history_summary.score
+        self.scores[self.validation_block_idx] = loss
 
 
 class BetModelConfigurationTuner:
@@ -51,17 +50,16 @@ class BetModelConfigurationTuner:
             feature_manager: FeatureManager,
             sample_splitter: BlockSplitter,
             model_evaluator: ModelEvaluator,
-            fractional_probability_distance: float,
             max_tuning_rounds: int = 10,
     ):
         self.race_cards_sample = race_cards_sample
         self.feature_manager = feature_manager
         self.sample_splitter = sample_splitter
         self.model_evaluator = model_evaluator
-        self.fractional_probability_distance = fractional_probability_distance
         self.max_tuning_rounds = max_tuning_rounds
 
         self.best_configuration: BetModelConfiguration = None
+        self.best_score = np.inf
         self.__exploration_factor = 0.1
 
         root_node = BetModelConfigurationNode(
@@ -72,14 +70,13 @@ class BetModelConfigurationTuner:
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
-                fractional_probability_distance=self.fractional_probability_distance
             ),
         )
 
         self.tree = BetModelConfigurationTree(root_node)
         self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=10)
 
-    def search_for_best_configuration(self) -> bool:
+    def search_for_best_configuration(self):
         for _ in trange(self.max_tuning_rounds):
             front_node = self.__select()
 
@@ -88,31 +85,25 @@ class BetModelConfigurationTuner:
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
-                self.fractional_probability_distance
             )
 
             results = self.__simulate(terminal_configuration)
 
-            total_score = min(list(results.values()))
+            total_score = max(list(results.values()))
 
-            test_score = self.get_test_fund_history_summary(terminal_configuration).score
-
-            print(f"Score: {total_score} (Test score: {test_score})")
+            print(f"Score: {total_score}")
 
             self.__backup(front_node, total_score)
 
             self.feature_scorer.update_feature_scores(total_score, terminal_configuration.selected_search_features)
 
-            if total_score > 0.02:
+            if total_score < self.best_score:
                 self.best_configuration = terminal_configuration
+                self.best_score = total_score
                 print("New best Result:")
                 for month_year in results:
                     print(f"{month_year}: {results[month_year]}")
                 print(terminal_configuration)
-
-                return True
-
-        return False
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         train_sample, test_sample = self.sample_splitter.get_train_test_split()
@@ -138,7 +129,6 @@ class BetModelConfigurationTuner:
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
-            self.fractional_probability_distance
         )
 
         new_node = BetModelConfigurationNode(

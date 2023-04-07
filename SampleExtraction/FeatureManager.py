@@ -6,7 +6,7 @@ from SampleExtraction.Extractors.current_race_based import CurrentDistance, \
     DrawBias, CurrentOpponentCount, WeightAdvantage, TravelDistance, Temperature, \
     AirPressure, Humidity, WindSpeed, WindDirection, Cloudiness, RainVolume
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, ShiftedOdds
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowanceExtractor
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -54,11 +54,12 @@ class FeatureManager:
     ):
         self.__report_missing_features = report_missing_features
 
-        self.base_features = [
+        self.base_features: List[FeatureExtractor] = [
             # BetfairWinMarketWinProbability(),
             # IndustryMarketWinProbabilityDiff(),
             # IsFavorite(),
 
+            ShiftedOdds(),
             CurrentRaceTrack(),
             PreviousSlowerThanNumber(),
             PreviousRelativeDistanceBehind(),

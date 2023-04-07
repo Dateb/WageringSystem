@@ -4,6 +4,7 @@ import numpy as np
 from numpy import ndarray
 from tqdm import tqdm
 
+from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -66,7 +67,6 @@ class RaceCardsSampleFactory:
                 for race_card in self.current_day_race_cards:
                     if race_card.sample_validity:
                         self.feature_manager.set_features([race_card])
-                        race_card.set_horse_relevance()
                         horse_values_of_race_card = self.get_values_of_race_card(race_card)
                         sample_values += horse_values_of_race_card
 

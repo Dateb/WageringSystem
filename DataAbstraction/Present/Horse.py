@@ -1,3 +1,4 @@
+import random
 from typing import List
 
 from DataAbstraction.Past.FormTable import FormTable
@@ -13,13 +14,13 @@ class Horse:
     CURRENT_WIN_ODDS_KEY: str = "current_win_odds"
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
-    RELEVANCE_KEY: str = "relevance"
+    LABEL: str = "label"
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
         NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
-        PLACE_KEY, RELEVANCE_KEY,
+        PLACE_KEY, LABEL,
     ]
 
     def __init__(self, raw_data: dict):
@@ -49,6 +50,13 @@ class Horse:
         self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
+
+        self.odds_shift = (random.random() - 0.5) * 2
+
+        #TODO: Better handling of missing place odds
+        self.shifted_odds = 1 / (1 / (self.betfair_place_sp + 0.001)) * (1 - self.odds_shift)
+
+        self.label = int(self.odds_shift < 0)
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
@@ -80,10 +88,10 @@ class Horse:
         self.base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_WIN_ODDS_KEY: max([self.betfair_win_sp, self.racebets_win_sp]),
+            self.CURRENT_WIN_ODDS_KEY: self.racebets_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
-            self.RELEVANCE_KEY: self.relevance,
+            self.LABEL: self.label,
         }
 
         self.__features = {}

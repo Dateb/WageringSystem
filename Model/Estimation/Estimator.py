@@ -23,7 +23,7 @@ class Estimator(ABC):
         pass
 
     @abstractmethod
-    def score_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
+    def score_test_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
         pass
 
     def set_parameter_set(self, search_params: Dict):

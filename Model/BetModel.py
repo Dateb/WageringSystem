@@ -22,7 +22,7 @@ class BetModel:
         self.estimator.fit(train_samples, num_boost_round)
 
     def bet_on_race_cards_sample(self, race_cards_sample: RaceCardsSample) -> Dict[str, BettingSlip]:
-        scores = self.estimator.score_races(race_cards_sample)
+        scores = self.estimator.score_test_races(race_cards_sample)
         betting_slips = self.probabilizer.create_betting_slips(race_cards_sample, scores)
         return self.bettor.bet(betting_slips)
 
