@@ -31,7 +31,7 @@ class BettingSlip:
         self.win += bet.win
 
     def __str__(self) -> str:
-        betting_slip_str = ""
+        betting_slip_str = f"Race ID: {self.race_id}"
         betting_slip_str += "Betting slip:\n"
         betting_slip_str += f"(Fractional) total loss: {self.loss}\n"
         betting_slip_str += "Bets:\n"

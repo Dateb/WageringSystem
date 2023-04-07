@@ -1,16 +1,8 @@
-from copy import copy
-from typing import Dict, List
+from typing import Dict
 
-import numpy as np
-from scipy.optimize import minimize
-
-from Model.Betting.Bets.Bet import Bet
-from Model.Betting.Bets.WinBet import WinBet
 from Model.Betting.BettingSlip import BettingSlip
 from Model.Betting.Bettor import Bettor
-from Model.Betting.kelly_optimizer import kelly_objective, kelly_jacobian
-from Model.Betting.stakes_selection import get_multiple_win_stakes, get_highest_value_stakes, \
-    get_most_probable_value_stakes, get_multiple_value_stakes, get_fixed_stake_on_favorite, get_fixed_stake_on_everyone
+from Model.Betting.stakes_selection import get_stake_highest_market_deviation
 from Model.Probabilizing.Probabilizer import Probabilizer
 
 
@@ -29,13 +21,9 @@ class EVSingleBettor(Bettor):
         for betting_slip in betting_slips.values():
             probabilities = self.probabilizer.get_probabilities(betting_slip)
             odds = self.probabilizer.get_odds(betting_slip)
+            sp = self.probabilizer.get_sp(betting_slip)
 
-            # stakes = get_multiple_win_stakes(betting_slip.race_id, probabilities, odds)
-            # stakes = get_highest_value_stakes(self.ev_threshold, probabilities, odds)
-            # stakes = get_most_probable_value_stakes(probabilities, odds)
-            # stakes = get_multiple_value_stakes(probabilities, odds)
-            stakes = get_fixed_stake_on_favorite(probabilities, odds)
-            # stakes = get_fixed_stake_on_everyone(probabilities, odds)
+            stakes = get_stake_highest_market_deviation(probabilities, odds, sp)
 
             for i in range(len(stakes)):
                 stakes_fraction = stakes[i]

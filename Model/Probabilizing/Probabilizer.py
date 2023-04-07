@@ -50,6 +50,7 @@ class Probabilizer(ABC):
         corrected_p = np.maximum(win_probabilities * (1 - self.fractional_probability_distance), 0)
         win_odds = 1 / corrected_p
 
+        place_sp = race_cards_dataframe.loc[:, Horse.CURRENT_PLACE_ODDS_KEY].values
         place_probabilities = race_cards_dataframe.loc[:, "place_probability"].values
 
         corrected_p = np.maximum(place_probabilities * (1 - self.fractional_probability_distance), 0)
@@ -74,6 +75,7 @@ class Probabilizer(ABC):
                     place_probability=place_probabilities[i],
                     win_odds=win_odds[i],
                     place_odds=place_odds[i],
+                    place_sp=place_sp[i],
                     place_num=place_nums[i],
                 )
 
@@ -93,3 +95,6 @@ class Probabilizer(ABC):
     def get_odds(self, betting_slip: BettingSlip) -> ndarray:
         pass
 
+    @abstractmethod
+    def get_sp(self, betting_slip: BettingSlip) -> ndarray:
+        pass

@@ -4,6 +4,7 @@ from statistics import mean, stdev
 import numpy as np
 from tqdm import trange
 
+from Experiments.FundHistorySummary import FundHistorySummary
 from Model.Probabilizing.Probabilizer import Probabilizer
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
@@ -94,10 +95,7 @@ class BetModelConfigurationTuner:
 
             total_score = min(list(results.values()))
 
-            train_sample, test_sample = self.sample_splitter.get_train_test_split()
-
-            bet_model = terminal_configuration.create_bet_model(train_sample)
-            test_score = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample).score
+            test_score = self.get_test_fund_history_summary(terminal_configuration).score
 
             print(f"Score: {total_score} (Test score: {test_score})")
 
@@ -105,7 +103,7 @@ class BetModelConfigurationTuner:
 
             self.feature_scorer.update_feature_scores(total_score, terminal_configuration.selected_search_features)
 
-            if total_score > 0.005:
+            if total_score > 0.02:
                 self.best_configuration = terminal_configuration
                 print("New best Result:")
                 for month_year in results:
@@ -115,6 +113,13 @@ class BetModelConfigurationTuner:
                 return True
 
         return False
+
+    def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
+        train_sample, test_sample = self.sample_splitter.get_train_test_split()
+
+        bet_model = bet_model_configuration.create_bet_model(train_sample)
+
+        return self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample)
 
     def __select(self):
         node = self.tree.node("root")

@@ -13,4 +13,5 @@ class HorseResult:
     place_probability: float
     win_odds: float
     place_odds: float
+    place_sp: float
     place_num: int

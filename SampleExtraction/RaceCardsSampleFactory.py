@@ -35,9 +35,9 @@ class RaceCardsSampleFactory:
         # TODO: this throws an indexerror when containers are none
         container_race_cards = self.race_cards_loader.load_race_card_files_non_writable(self.warm_up_race_card_file_names)
         container_race_cards = list(container_race_cards.values())
-        columns = container_race_cards[0].attributes + feature_manager.feature_names
+        self.columns = container_race_cards[0].attributes + feature_manager.feature_names
 
-        self.sample_encoder = SampleEncoder(feature_manager.features, columns)
+        self.sample_encoder = SampleEncoder(feature_manager.features, self.columns)
 
     def warm_up(self) -> None:
         for race_card_file_name in tqdm(self.warm_up_race_card_file_names):

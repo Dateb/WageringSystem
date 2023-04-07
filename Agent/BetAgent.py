@@ -1,73 +1,49 @@
-import time
-import traceback
-from datetime import datetime, date
-from typing import List
+from datetime import date
 
-from Agent.AgentModel import AgentModel
-from Agent.SeleniumAgentController import SeleniumAgentController
 from DataAbstraction.Present.RaceCard import RaceCard
-from DataCollection.TrainDataCollector import TrainDataCollector
-from DataCollection.current_races.fetch import TodayRaceCardsFetcher
-from DataCollection.current_races.inject import CurrentRaceCardsInjector
+from DataCollection.DayCollector import DayCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
+from Model.Betting.BettingSlip import BettingSlip
+from ModelTuning.BetModelTuner import BetModelTuner
+from SampleExtraction.SampleEncoder import SampleEncoder
 
 
 class BetAgent:
 
-    CONTROLLER_SUBMISSION_MODE_ON = False
-
     def __init__(self):
-        self.collect_race_cards_until_today()
-        self.model = AgentModel()
-        self.controller = SeleniumAgentController(submission_mode_on=self.CONTROLLER_SUBMISSION_MODE_ON)
+        self.model_tuner = BetModelTuner(
+            n_warm_up_months=24,
+            n_sample_months=30,
+        )
+        self.model, fund_history_summary = self.model_tuner.tune_model()
 
-        self.today_race_cards: List[RaceCard] = TodayRaceCardsFetcher().fetch_race_cards()
-        self.today_race_cards_injector = CurrentRaceCardsInjector()
+    def run(self) -> None:
+        race_ids = DayCollector().get_open_race_ids_of_day(date.today())
+        print(race_ids)
+        for race_id in race_ids:
+            current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(race_id)
 
-    def run(self):
-        self.controller.restart_driver()
-        self.controller.relogin()
+            betting_slip = self.bet_on_race_card(current_full_race_card)
 
-        print([race_card.datetime for race_card in self.today_race_cards])
-        while self.today_race_cards:
-            race_card = self.today_race_cards[0]
-            print("Loading full version of race card...")
-            full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(race_card.race_id)
+            print(betting_slip)
 
-            self.controller.read_wealth()
-            print(f"Using bet limit: {self.controller.bet_limit}")
-            self.controller.open_race_card(full_race_card)
+    def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
+        sample_encoder = SampleEncoder(self.model_tuner.feature_manager.features,
+                                       self.model_tuner.race_cards_sample_factory.columns)
 
-            self.today_race_cards.remove(race_card)
-            self.controller.wait_for_race_start(full_race_card)
-            self.controller.prepare_for_race_start()
+        race_card_arr = self.model_tuner.race_cards_sample_factory.race_card_to_array(race_card)
+        sample_encoder.add_race_cards_arr(race_card_arr)
 
-            updated_race_card = self.today_race_cards_injector.inject_newest_odds_into_horses(full_race_card)
-            start_betting_time = time.time()
+        race_card_sample = sample_encoder.get_race_cards_sample()
 
-            betting_slip = self.model.bet_on_race_card(updated_race_card)
-            below_minimum_stakes_bet = [bet for bet in betting_slip.bets if bet.stakes_fraction * self.controller.bet_limit < 0.5]
-            if betting_slip.bets and len(below_minimum_stakes_bet) == 0:
-                self.controller.submit_betting_slip(betting_slip)
-                end_betting_time = time.time()
-                print(betting_slip)
-                print(f"time to execute on race odds:{end_betting_time - start_betting_time}")
-                # Quick and dirty security measure: could otherwise stick in an unsafe state regarding open betting slips
-                raise ValueError("Just restarting for security.")
-            else:
-                print("No value found. Skipping race.")
+        betting_slips = self.model.bet_on_race_cards_sample(race_card_sample)
+
+        return list(betting_slips.values())[0]
 
 
 def main():
     bettor = BetAgent()
-    while True:
-        try:
-            bettor.run()
-        except Exception as e:
-            print(f"Agent crashed. Causing error: {str(e)}")
-            print(traceback.format_exc())
-        else:
-            break
+    bettor.run()
 
 
 if __name__ == '__main__':

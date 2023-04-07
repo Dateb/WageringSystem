@@ -22,6 +22,7 @@ class RaceResult:
                 place_probability=0,
                 win_odds=0,
                 place_odds=0,
+                place_sp=0,
                 place_num=0,
             )
 

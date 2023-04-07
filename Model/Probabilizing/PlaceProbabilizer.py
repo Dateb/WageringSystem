@@ -48,3 +48,6 @@ class PlaceProbabilizer(Probabilizer):
 
     def get_odds(self, betting_slip: BettingSlip) -> ndarray:
         return np.array([horse_result.place_odds for horse_result in betting_slip.horse_results])
+
+    def get_sp(self, betting_slip: BettingSlip) -> ndarray:
+        return np.array([horse_result.place_sp for horse_result in betting_slip.horse_results])

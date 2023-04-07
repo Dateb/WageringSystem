@@ -11,6 +11,28 @@ from Model.Betting.kelly_optimizer import kelly_objective, kelly_jacobian
 previous_stakes: Dict[str, ndarray] = {}
 
 
+def get_stake_highest_market_deviation(probabilities: ndarray, odds: ndarray, sp: ndarray) -> ndarray:
+    market_deviation = (sp - odds) / odds
+
+    print(np.max(market_deviation))
+
+    horse_idx = np.argmax(market_deviation)
+
+    stakes = np.zeros(shape=probabilities.shape)
+    stakes[horse_idx] = 0.1
+
+    return stakes
+
+
+def get_fixed_stake_on_random(win_probabilities: ndarray, odds: ndarray) -> ndarray:
+    stakes = np.zeros(shape=win_probabilities.shape)
+    horse_idx = random.randint(0, stakes.shape[0] - 1)
+
+    stakes[horse_idx] = 0.1
+
+    return stakes
+
+
 def get_fixed_stake_on_everyone(win_probabilities: ndarray, odds: ndarray) -> ndarray:
     return np.zeros(shape=win_probabilities.shape) + 0.1
 
