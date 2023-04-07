@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import List, Dict
 
 import pandas as pd
@@ -6,6 +7,14 @@ from numpy import ndarray
 
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
+
+
+@dataclass
+class ClassificationResult:
+
+    y_true: ndarray
+    y_pred: ndarray
+    shift: ndarray
 
 
 class Estimator(ABC):
@@ -23,7 +32,7 @@ class Estimator(ABC):
         pass
 
     @abstractmethod
-    def score_test_races(self, race_cards_sample: RaceCardsSample) -> ndarray:
+    def score_test_races(self, race_cards_sample: RaceCardsSample) -> ClassificationResult:
         pass
 
     def set_parameter_set(self, search_params: Dict):

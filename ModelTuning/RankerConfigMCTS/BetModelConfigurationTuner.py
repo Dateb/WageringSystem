@@ -1,6 +1,8 @@
 import threading
 
 import numpy as np
+from numpy import ndarray
+from sklearn.metrics import log_loss
 from tqdm import trange
 
 from Experiments.FundHistorySummary import FundHistorySummary
@@ -13,7 +15,37 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfi
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.BlockSplitter import BlockSplitter
-from util.stats_calculator import ExponentialOnlineCalculator
+from util.stats_calculator import ExponentialOnlineCalculator, SimpleOnlineCalculator
+
+
+class ConfidenceTable:
+
+    def __init__(self):
+        self.avg_table = {}
+        self.count_table = {}
+
+    def add_predictions(self, y_pred: ndarray, shift: ndarray):
+        for i in range(len(y_pred)):
+            confidence_category = str(round(y_pred[i] * 10) / 10)
+            if confidence_category not in self.avg_table:
+                self.avg_table[confidence_category] = shift[i]
+                self.count_table[confidence_category] = 0
+            else:
+                self.count_table[confidence_category] += 1
+                self.avg_table[confidence_category] = SimpleOnlineCalculator().calculate_average(
+                    old_average=self.avg_table[confidence_category],
+                    new_obs=shift[i],
+                    count=self.count_table[confidence_category],
+                    n_days_since_last_obs=0
+                )
+
+    def __str__(self) -> str:
+        result = ""
+        for confidence_category in self.avg_table:
+            result += f"{confidence_category}: {self.avg_table[confidence_category]}\n"
+            result += "-----------------------------------------------------------\n"
+
+        return result
 
 
 class SimulateThread(threading.Thread):
@@ -30,16 +62,14 @@ class SimulateThread(threading.Thread):
         self.validation_block_idx = validation_block_idx
         self.model_evaluator = model_evaluator
         self.bet_model_configuration = bet_model_configuration
-        self.scores = results
+        self.results = results
 
     def run(self):
         train_sample, validation_sample, = self.sample_splitter.get_block_split(self.validation_block_idx)
 
         bet_model = self.bet_model_configuration.create_bet_model(train_sample)
 
-        loss = bet_model.estimator.score_test_races(validation_sample)
-
-        self.scores[self.validation_block_idx] = loss
+        self.results[self.validation_block_idx] = bet_model.estimator.score_test_races(validation_sample)
 
 
 class BetModelConfigurationTuner:
@@ -89,7 +119,11 @@ class BetModelConfigurationTuner:
 
             results = self.__simulate(terminal_configuration)
 
-            total_score = max(list(results.values()))
+            losses = []
+            for result in results.values():
+                losses.append(log_loss(result.y_true, result.y_pred))
+
+            total_score = max(losses)
 
             print(f"Score: {total_score}")
 
@@ -101,9 +135,14 @@ class BetModelConfigurationTuner:
                 self.best_configuration = terminal_configuration
                 self.best_score = total_score
                 print("New best Result:")
-                for month_year in results:
-                    print(f"{month_year}: {results[month_year]}")
+                print(losses)
                 print(terminal_configuration)
+
+                confidence_table = ConfidenceTable()
+                for result in results.values():
+                    confidence_table.add_predictions(result.y_pred, result.shift)
+
+                print(confidence_table)
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         train_sample, test_sample = self.sample_splitter.get_train_test_split()

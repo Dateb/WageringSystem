@@ -1,16 +1,12 @@
-import random
 from typing import List
 
 import lightgbm
-import numpy as np
 import pandas as pd
 
 from lightgbm import Dataset
-from numpy import ndarray
-from sklearn.metrics import log_loss
 
 from DataAbstraction.Present.Horse import Horse
-from Model.Estimation.Estimator import Estimator
+from Model.Estimation.Estimator import Estimator, ClassificationResult
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -73,10 +69,16 @@ class OddsShiftClassifier(Estimator):
 
         return X, y
 
-    def score_test_races(self, race_cards_sample: RaceCardsSample) -> float:
+    def score_test_races(self, race_cards_sample: RaceCardsSample) -> ClassificationResult:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        X, y = self.get_X_and_y(race_cards_dataframe)
+        X, y_true = self.get_X_and_y(race_cards_dataframe)
 
         y_pred = self.booster.predict(X)
 
-        return log_loss(y, y_pred)
+        classification_result = ClassificationResult(
+            y_true.to_numpy(),
+            y_pred,
+            race_cards_dataframe[Horse.ODDS_SHIFT].to_numpy()
+        )
+
+        return classification_result
