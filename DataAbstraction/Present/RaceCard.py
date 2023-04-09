@@ -44,6 +44,8 @@ class RaceCard:
         event = raw_race_card["event"]
         race = raw_race_card["race"]
 
+        self.country = event["country"]
+
         self.winner_id = -1
         self.race_result = None
         raw_result = raw_race_card["result"]
@@ -226,10 +228,16 @@ class RaceCard:
             self.sample_validity = False
             self.feature_source_validity = False
 
-        if self.has_foreigners:
-            self.sample_validity = False
+        #TODO: Not a bad idea, but we should look in the form table to determine foreigners
+
+        # if self.has_foreigners:
+        #     self.sample_validity = False
 
         for horse in self.horses:
-            if horse.betfair_win_sp == 0:
+            if horse.betfair_place_sp == 0:
                 self.sample_validity = False
+
+    def insert_market_odds(self, market_odds: ndarray):
+        for i in range(len(market_odds)):
+            self.horses[i].shifted_odds = market_odds[i]
 

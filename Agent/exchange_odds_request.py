@@ -1,7 +1,9 @@
 import json
-from typing import Dict
+from typing import Dict, Tuple
 
+import numpy as np
 import websocket
+from numpy import ndarray
 
 from DataCollection.Scraper import get_scraper
 
@@ -9,7 +11,6 @@ from DataCollection.Scraper import get_scraper
 class ExchangeOddsRequester:
 
     def __init__(self, customer_id: str, event_id: str, market_id: str):
-        websocket.enableTrace(True)
         self.web_socket = websocket.WebSocket()
         self.scraper = get_scraper()
 
@@ -24,15 +25,15 @@ class ExchangeOddsRequester:
         self.current_odds = {}
         self.open_race_connection()
 
-    def get_odds_from_exchange(self) -> Dict[str, float]:
+    def get_odds_from_exchange(self) -> ndarray:
         self.open_race_connection()
         self.close_race_connection()
         odds_by_internal_id = self.extract_odds_by_internal_id(self.current_odds_data)
 
-        exchange_odds = {
-            self.horse_number_by_exchange_id[internal_id]: odds_by_internal_id[internal_id]
-            for internal_id in self.horse_number_by_exchange_id
-        }
+        exchange_odds = np.zeros(shape=(len(self.horse_number_by_exchange_id)))
+        for internal_id in self.horse_number_by_exchange_id:
+            horse_number = int(self.horse_number_by_exchange_id[internal_id])
+            exchange_odds[horse_number - 1] = odds_by_internal_id[internal_id]
 
         return exchange_odds
 
@@ -60,6 +61,7 @@ class ExchangeOddsRequester:
         if message == "h":
             return self.current_odds_data
 
+        print(message)
         current_odds_data = json.loads(json.loads(message[2:-1]))
 
         return current_odds_data
@@ -82,6 +84,43 @@ class ExchangeOddsRequester:
             number_by_internal_id[horse_data["selectionId"]] = horse_data["metadata"]["CLOTH_NUMBER_ALPHA"]
 
         return number_by_internal_id
+
+
+class MarketRetriever:
+
+    def __init__(self):
+        self.scraper = get_scraper()
+
+        self.markets_url = "https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange=TODAY"
+        self.markets_raw = self.scraper.request_data(self.markets_url)
+        self.events_raw = self.get_events()
+
+        if self.events_raw is None:
+            self.markets_url = "https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange=TOMORROW"
+            self.markets_raw = self.scraper.request_data(self.markets_url)
+            self.events_raw = self.get_events()
+
+        if self.events_raw is None:
+            print("Cannot find events today or tomorrow in GB")
+
+    def get_events(self) -> dict:
+        for country_data in self.markets_raw:
+            if "GB" in country_data["name"]:
+                return country_data["events"]
+
+    def get_event_and_market_id(self, track_name: str, start_time: int) -> Tuple[str, str]:
+        for event_data in self.events_raw:
+            if track_name in event_data["name"]:
+                for market_data in event_data["markets"]:
+                    if market_data["startTime"] / 1000 == start_time:
+                        event_id = event_data["id"]
+
+                        win_market_id = market_data["id"]
+
+                        place_market_id_substr = str(int(win_market_id.split(sep=".")[1]) + 2)
+                        place_market_id = f"1.{place_market_id_substr}"
+
+                        return event_id, place_market_id
 
 
 if __name__ == "__main__":

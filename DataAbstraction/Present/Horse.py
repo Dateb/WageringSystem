@@ -52,10 +52,11 @@ class Horse:
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
 
-        self.odds_shift = (random.random() - 0.5) * 2
+        self.odds_shift = random.normalvariate(mu=0, sigma=0.3)
 
-        #TODO: Better handling of missing place odds
-        self.shifted_odds = 1 / (1 / (self.betfair_place_sp + 0.001)) * (1 - self.odds_shift)
+        self.shifted_odds = 0
+        if self.betfair_place_sp:
+            self.shifted_odds = 1 / ((1 / self.betfair_place_sp) * (1 - self.odds_shift))
 
         self.label = int(self.odds_shift < 0)
 

@@ -115,7 +115,6 @@ class TimeFormFetcher(ABC):
             "RememberMe": "false"
         }
 
-        print(login_token)
         self.session.post(login_url, login_payload, headers=self.headers, cookies=cookies)
 
     def get_time_form_attributes(self, race_card: WritableRaceCard):

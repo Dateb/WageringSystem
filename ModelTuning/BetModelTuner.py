@@ -28,7 +28,7 @@ class BetModelTuner:
 
         self.sample_splitter = BlockSplitter(
             self.race_cards_sample,
-            n_validation_rounds=5,
+            n_validation_rounds=3,
             n_test_races=1,
         )
 
@@ -38,7 +38,7 @@ class BetModelTuner:
             feature_manager=self.feature_manager,
             sample_splitter=self.sample_splitter,
             model_evaluator=self.model_evaluator,
-            max_tuning_rounds=20,
+            max_tuning_rounds=5,
         )
 
         configuration_tuner.search_for_best_configuration()
