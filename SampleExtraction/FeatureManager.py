@@ -47,6 +47,8 @@ from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRa
 
 class FeatureManager:
 
+    HORSE_PADDING_SIZE = 30
+
     def __init__(
             self,
             report_missing_features: bool = False,
@@ -55,10 +57,6 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features: List[FeatureExtractor] = [
-            # BetfairWinMarketWinProbability(),
-            # IndustryMarketWinProbabilityDiff(),
-            # IsFavorite(),
-
             ShiftedOdds(),
             CurrentRaceTrack(),
             PreviousSlowerThanNumber(),
@@ -70,19 +68,16 @@ class FeatureManager:
             self.search_features = self.get_search_features()
             self.features = self.base_features + self.search_features
 
-        self.feature_names = [feature.get_name() for feature in self.features]
+        self.feature_names = []
+        for i in range(0, self.HORSE_PADDING_SIZE):
+            self.feature_names += [f"{feature.get_name()}_{i + 1}" for feature in self.features]
         self.n_features = len(self.features)
+
+        self.columns = RaceCard.BASE_ATTRIBUTE_NAMES + Horse.BASE_ATTRIBUTE_NAMES + self.feature_names
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
             CurrentOpponentCount(),
-
-            # Temperature(),
-            # AirPressure(),
-            # Humidity(),
-            # WindSpeed(),
-            # WindDirection(),
-            # Cloudiness(),
 
             PreviousFasterThanNumber(),
 
@@ -154,6 +149,13 @@ class FeatureManager:
             DayOfYearSin(),
             DayOfYearCos(),
             WeightAdvantage(),
+
+            # Temperature(),
+            # AirPressure(),
+            # Humidity(),
+            # WindSpeed(),
+            # WindDirection(),
+            # Cloudiness(),
         ]
 
         return default_features
@@ -190,3 +192,13 @@ class FeatureManager:
             horse_name = horse.get_race(0).get_name_of_horse(horse.horse_id)
             print(f"WARNING: Missing feature {feature_extractor.get_name()} for horse {horse_name}, "
                   f"used value: {feature_extractor.PLACEHOLDER_VALUE}")
+
+    @staticmethod
+    def get_feature_names(feature_subset: List[FeatureExtractor]) -> List[str]:
+        feature_names = []
+        #TODO: Use variable for padding size
+        for i in range(0, 30):
+            feature_names += [f"{feature.get_name()}_{i + 1}" for feature in feature_subset]
+
+        return feature_names
+

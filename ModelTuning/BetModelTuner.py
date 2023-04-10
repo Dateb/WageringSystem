@@ -26,6 +26,7 @@ class BetModelTuner:
         self.race_cards_sample_factory.warm_up()
         self.race_cards_sample = self.race_cards_sample_factory.create_race_cards_sample()
 
+        print('executing split....')
         self.sample_splitter = BlockSplitter(
             self.race_cards_sample,
             n_validation_rounds=3,
@@ -48,8 +49,8 @@ class BetModelTuner:
 
 def main():
     tuning_pipeline = BetModelTuner(
-        n_warm_up_months=24,
-        n_sample_months=30,
+        n_warm_up_months=6,
+        n_sample_months=2,
     )
     bet_model, fund_history_summary = tuning_pipeline.tune_model()
 

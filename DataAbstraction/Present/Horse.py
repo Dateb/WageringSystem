@@ -52,13 +52,13 @@ class Horse:
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
 
-        self.odds_shift = random.normalvariate(mu=0, sigma=0.3)
+        self.probability_shift = random.normalvariate(mu=0, sigma=0.1)
 
         self.shifted_odds = 0
         if self.betfair_place_sp:
-            self.shifted_odds = 1 / ((1 / self.betfair_place_sp) * (1 - self.odds_shift))
+            self.shifted_odds = 1 / ((1 / self.betfair_place_sp) * (1 + self.probability_shift))
 
-        self.label = int(self.odds_shift < 0)
+        self.label = int(self.probability_shift < 0)
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
@@ -93,11 +93,11 @@ class Horse:
             self.CURRENT_WIN_ODDS_KEY: self.racebets_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
-            self.ODDS_SHIFT: self.odds_shift,
+            self.ODDS_SHIFT: self.probability_shift,
             self.LABEL: self.label,
         }
 
-        self.__features = {}
+        self.features = {}
         self.speed_figure = None
 
     def set_betting_odds(self, new_odds: float):
@@ -150,13 +150,17 @@ class Horse:
         return -1
 
     def set_feature_value(self, name: str, value):
-        self.__features[name] = value
+        self.features[name] = value
 
     @property
     def attributes(self) -> List[str]:
-        return self.BASE_ATTRIBUTE_NAMES + list(self.__features.keys())
+        return self.BASE_ATTRIBUTE_NAMES + list(self.features.keys())
+
+    @property
+    def feature_values(self) -> List:
+        return list(self.features.values())
 
     @property
     def values(self) -> List:
-        self.base_attributes.update(self.__features)
+        self.base_attributes.update(self.features)
         return list(self.base_attributes.values())

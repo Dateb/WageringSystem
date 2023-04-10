@@ -8,6 +8,7 @@ from lightgbm import Dataset
 from DataAbstraction.Present.Horse import Horse
 from Model.Estimation.Estimator import Estimator, ClassificationResult
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -40,7 +41,6 @@ class OddsShiftClassifier(Estimator):
             search_params = {}
 
         self.features = features
-        self.feature_names = [feature.get_name() for feature in features]
 
         self.categorical_feature_names = [feature.get_name() for feature in features if feature.is_categorical]
 
@@ -64,7 +64,7 @@ class OddsShiftClassifier(Estimator):
         )
 
     def get_X_and_y(self, sample: pd.DataFrame):
-        X = sample[self.feature_names]
+        X = sample[FeatureManager.get_feature_names(self.features)]
         y = sample[self.label_name].astype(dtype="int")
 
         return X, y

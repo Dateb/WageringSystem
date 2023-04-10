@@ -8,7 +8,7 @@ from Model.Betting.BettingSlip import BettingSlip
 from ModelTuning.BetModelTuner import BetModelTuner
 from SampleExtraction.SampleEncoder import SampleEncoder
 
-MARKET_CUSTOMER_ID = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2ODExMTc0NDAsImlhdCI6MTY4MTA4MTQ0MCwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.xDKOr9xWGimQ7nMntFsE_2cRj8T_MoCcw1FvEBnsY_4"
+MARKET_CUSTOMER_ID = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2ODExMjgyNzIsImlhdCI6MTY4MTA5MjI3MiwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0._U77g9f7X1wRhog5fWnvaDtaVlvja1TYTo86Aof0H2k"
 
 
 class BetAgent:
@@ -27,9 +27,11 @@ class BetAgent:
         race_ids = DayCollector().get_open_race_ids_of_day(date.today())
         for race_id in race_ids:
             current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(race_id)
-            self.insert_current_market_odds(current_full_race_card)
-
-            self.bet_on_race_card(current_full_race_card)
+            try:
+                self.insert_current_market_odds(current_full_race_card)
+                self.bet_on_race_card(current_full_race_card)
+            except LookupError:
+                print("Market did not exist")
 
     def bet_on_race_card(self, race_card: RaceCard):
         sample_encoder = SampleEncoder(
@@ -52,6 +54,9 @@ class BetAgent:
             track_name=race_card.track_name,
             start_time=race_card.date_raw
         )
+
+        if not market_id:
+            raise LookupError()
 
         market_odds = ExchangeOddsRequester(
             customer_id=MARKET_CUSTOMER_ID,

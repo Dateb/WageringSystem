@@ -4,7 +4,6 @@ import numpy as np
 from numpy import ndarray
 from tqdm import tqdm
 
-from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -32,13 +31,7 @@ class RaceCardsSampleFactory:
         self.current_day = None
         self.current_day_race_cards = []
 
-        # features not known from the container race card
-        # TODO: this throws an indexerror when containers are none
-        container_race_cards = self.race_cards_loader.load_race_card_files_non_writable(self.warm_up_race_card_file_names)
-        container_race_cards = list(container_race_cards.values())
-        self.columns = container_race_cards[0].attributes + feature_manager.feature_names
-
-        self.sample_encoder = SampleEncoder(feature_manager.features, self.columns)
+        self.sample_encoder = SampleEncoder(feature_manager, self.feature_manager.columns)
 
     def warm_up(self) -> None:
         for race_card_file_name in tqdm(self.warm_up_race_card_file_names):
@@ -55,7 +48,6 @@ class RaceCardsSampleFactory:
             self.sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         race_cards_sample = self.sample_encoder.get_race_cards_sample()
-        race_cards_sample.race_cards_dataframe.to_csv("../data/races.csv")
 
         return race_cards_sample
 
@@ -85,8 +77,18 @@ class RaceCardsSampleFactory:
         return race_card_arr
 
     def get_values_of_race_card(self, race_card: RaceCard) -> List[List[Any]]:
-        horse_values_of_race_card = []
-        for horse in race_card.horses:
-            horse_values_of_race_card.append(race_card.values + horse.values)
+        horse_values_of_race_card = [race_card.values for _ in range(race_card.n_horses)]
+
+        for i in range(race_card.n_horses):
+            horse_values_of_race_card[i] += race_card.horses[i].values
+
+        for i in range(race_card.max_horse_padding_size):
+            horse_feature_values = [0 for _ in range(len(self.feature_manager.features))]
+            if i < race_card.n_horses:
+                horse_feature_values = race_card.horses[i].feature_values
+
+            for j in range(race_card.n_horses):
+                if j != i:
+                    horse_values_of_race_card[j] += horse_feature_values
 
         return horse_values_of_race_card

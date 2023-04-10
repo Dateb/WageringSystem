@@ -21,12 +21,15 @@ class RaceCard:
     N_HORSES_KEY: str = "n_runners"
     PLACE_NUM_KEY: str = "place_num"
 
+    BASE_ATTRIBUTE_NAMES = [RACE_NAME_KEY, DATETIME_KEY, RACE_ID_KEY, N_HORSES_KEY, PLACE_NUM_KEY]
+
     base_times: defaultdict = nested_dict()
     length_modifier: defaultdict = nested_dict()
     par_time: defaultdict = nested_dict()
     track_variant: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
+        self.max_horse_padding_size = 30
         self.sample_validity = True
         self.feature_source_validity = True
         self.race_id = race_id
@@ -149,10 +152,6 @@ class RaceCard:
     @property
     def values(self) -> List:
         return list(self.__base_attributes.values())
-
-    @property
-    def attributes(self) -> List[str]:
-        return list(self.__base_attributes.keys()) + self.horses[0].attributes
 
     def __set_head_to_head_horses(self, race: dict):
         self.__head_to_head_horses = []

@@ -39,19 +39,24 @@ class ExchangeOddsRequester:
         return exchange_odds
 
     def open_race_connection(self):
-        self.web_socket.connect(
-            url="wss://exch.piwi247.com/customer/ws/market-prices/485/vewdhysm/websocket",
-            cookie=f"BIAB_CUSTOMER={self.customer_id}",
-        )
-        self.web_socket.recv()
+        self.current_odds_data = None
+        while self.current_odds_data is None:
+            self.web_socket.connect(
+                url="wss://exch.piwi247.com/customer/ws/market-prices/485/vewdhysm/websocket",
+                cookie=f"BIAB_CUSTOMER={self.customer_id}",
+            )
+            self.web_socket.recv()
 
-        request = '["{\\"eventId\\":\\"'
-        request += self.event_id
-        request += '\\",\\"marketId\\":\\"'
-        request += self.market_id
-        request += '\\",\\"applicationType\\":\\"WEB\\"}"]'
-        self.web_socket.send(request)
-        self.current_odds_data = self.get_current_odds_data()
+            request = '["{\\"eventId\\":\\"'
+            request += self.event_id
+            request += '\\",\\"marketId\\":\\"'
+            request += self.market_id
+            request += '\\",\\"applicationType\\":\\"WEB\\"}"]'
+            self.web_socket.send(request)
+
+            self.current_odds_data = self.get_current_odds_data()
+
+        self.current_odds_data = json.loads(self.current_odds_data)
 
     def close_race_connection(self):
         self.web_socket.close()
@@ -63,7 +68,10 @@ class ExchangeOddsRequester:
             return self.current_odds_data
 
         print(message)
-        current_odds_data = json.loads(json.loads(message[2:-1]))
+        if not message:
+            return None
+
+        current_odds_data = json.loads(message[2:-1])
 
         return current_odds_data
 
@@ -126,6 +134,8 @@ class MarketRetriever:
                                 place_market_id = market_raw["id"]
 
                                 return event_id, place_market_id
+
+                        return event_id, ""
 
 
 if __name__ == "__main__":
