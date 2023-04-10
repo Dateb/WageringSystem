@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
 import numpy as np
@@ -115,12 +116,16 @@ class MarketRetriever:
                     if market_data["startTime"] / 1000 == start_time:
                         event_id = event_data["id"]
 
-                        win_market_id = market_data["id"]
+                        date_time_obj = datetime.fromtimestamp(start_time) - timedelta(hours=2)
+                        market_request_time_substr = f"{str(date_time_obj.hour).rjust(2, '0')}{str(date_time_obj.minute).rjust(2, '0')}"
+                        markets_of_race_url = f"https://exch.piwi247.com/customer/api/race/{event_id}.{market_request_time_substr}"
+                        markets_of_race_raw = self.scraper.request_data(markets_of_race_url)
 
-                        place_market_id_substr = str(int(win_market_id.split(sep=".")[1]) + 2)
-                        place_market_id = f"1.{place_market_id_substr}"
+                        for market_raw in markets_of_race_raw["children"]:
+                            if market_raw["name"] == "To Be Placed":
+                                place_market_id = market_raw["id"]
 
-                        return event_id, place_market_id
+                                return event_id, place_market_id
 
 
 if __name__ == "__main__":

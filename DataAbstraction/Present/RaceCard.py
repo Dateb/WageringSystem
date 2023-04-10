@@ -1,7 +1,6 @@
-import math
 from collections import defaultdict
 from datetime import datetime
-from statistics import mean, median
+from statistics import mean
 from typing import List
 
 import numpy as np
@@ -10,11 +9,8 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
-from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance, \
-    get_winner_relevance
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from util.nested_dict import nested_dict
-from util.speed_calculator import compute_speed_figure
 
 
 class RaceCard:
