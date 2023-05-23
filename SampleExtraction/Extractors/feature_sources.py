@@ -14,11 +14,11 @@ from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, Expo
 
 
 CATEGORY_AVERAGE_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
-BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.01, fading_factor=0.1)
+BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
 HORSE_SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
-LENGTH_MODIFIER_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.01, fading_factor=0.1)
-PAR_TIME_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.01, fading_factor=0.1)
-DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(base_alpha=0.001, fading_factor=0.1)
+LENGTH_MODIFIER_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
+PAR_TIME_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
+DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000, fading_factor=0.1)
 
 
 class FeatureSource(ABC):
@@ -48,9 +48,7 @@ class FeatureSource(ABC):
 
             category["prev_avg"] = category["avg"]
             category["avg"] = online_calculator.calculate_average(
-                old_average=category["avg"],
                 new_obs=new_obs,
-                count=category["count"],
                 n_days_since_last_obs=n_days_since_last_obs,
             )
             category["count"] += 1

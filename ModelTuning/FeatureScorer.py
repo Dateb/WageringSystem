@@ -47,8 +47,6 @@ class FeatureScorer:
                 feature_count = self.feature_scores[feature_name].count
                 new_feature_score = SimpleOnlineCalculator().calculate_average(
                     feature_score,
-                    score,
-                    feature_count,
                     0
                 )
 
