@@ -94,8 +94,9 @@ class BetModelConfigurationTuner:
 
             results = self.__simulate(terminal_configuration)
 
-            payout_mean = mean(list(results.values()))
-            total_score = payout_mean
+            payout_values = list(results.values())
+
+            total_score = mean(payout_values) / stdev(payout_values)
 
             train_sample, test_sample = self.sample_splitter.get_train_test_split()
 

@@ -44,7 +44,7 @@ class BetModelTuner:
             model_evaluator=self.model_evaluator,
         )
 
-        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
+        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=50)
 
     def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
         train_sample, test_sample = self.block_splitter.get_train_test_split()

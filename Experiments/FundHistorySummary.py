@@ -1,5 +1,8 @@
 from statistics import geometric_mean
 from typing import Dict
+
+from numpy import std, mean
+
 from Model.Betting.BettingSlip import BettingSlip
 from Experiments.PayoutSnapshot import PayoutSnapshot
 
@@ -23,7 +26,7 @@ class FundHistorySummary:
         ]
 
         # self.validation_score = geometric_mean([1 + payout_percentage for payout_percentage in payout_percentages])
-        self.score = (sum(payout_percentages) / len(betting_slips))
+        self.score = mean(payout_percentages)
 
     @property
     def bet_rate(self):
