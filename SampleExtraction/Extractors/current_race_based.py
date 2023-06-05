@@ -182,6 +182,19 @@ class TravelDistance(FeatureExtractor):
         return travel_distance
 
 
+class WeatherType(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        self.is_categorical = True
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.weather is None:
+            return self.PLACEHOLDER_VALUE
+
+        return get_category_encoding("weather_type", race_card.weather.weather_type)
+
+
 class Temperature(FeatureExtractor):
 
     def __init__(self):

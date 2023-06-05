@@ -16,7 +16,7 @@ class JockeyWeight(FeatureExtractor):
         return jockey_weight
 
 
-class WeightAllowanceExtractor(FeatureExtractor):
+class WeightAllowance(FeatureExtractor):
 
     def __init__(self):
         super().__init__()

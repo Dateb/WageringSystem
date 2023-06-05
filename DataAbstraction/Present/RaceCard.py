@@ -31,7 +31,7 @@ class RaceCard:
     track_variant: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
-        self.sample_validity = True
+        self.is_valid_sample = True
         self.feature_source_validity = True
         self.race_id = race_id
         self.remove_non_starters = remove_non_starters
@@ -87,6 +87,7 @@ class RaceCard:
 
         self.set_horses(raw_race_card["runners"]["data"])
 
+        self.non_runners = [horse for horse in self.horses if horse.is_scratched]
         if self.remove_non_starters:
             self.__remove_non_starters()
 
@@ -165,10 +166,6 @@ class RaceCard:
             total_values.append(values)
         return total_values
 
-    def get_horse_by_id(self, horse_id: str) -> Horse:
-        horse_with_id = [horse for horse in self.horses if horse.horse_id == horse_id][0]
-        return horse_with_id
-
     def get_horse_by_number(self, horse_number: int) -> Horse:
         horse_with_number = [horse for horse in self.horses if horse.number == horse_number][0]
         return horse_with_number
@@ -203,6 +200,9 @@ class RaceCard:
 
     @property
     def base_time_estimate(self) -> dict:
+        weather_type_category = ""
+        if self.weather is not None:
+            weather_type_category = self.weather.weather_type
         return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
 
     @property
@@ -249,13 +249,10 @@ class RaceCard:
 
     def set_validity(self) -> None:
         if len(self.horses) <= 1:
-            self.sample_validity = False
+            self.is_valid_sample = False
             self.feature_source_validity = False
-
-        if self.has_foreigners:
-            self.sample_validity = False
 
         for horse in self.horses:
             if horse.betfair_win_sp == 0:
-                self.sample_validity = False
+                self.is_valid_sample = False
 

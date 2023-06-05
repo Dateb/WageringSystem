@@ -433,6 +433,405 @@
     "location_id": 86,
     "latitude": 54.0208111,
     "longitude": -6.3854388
+  },
+  "Downpatrick": {
+    "location_id": 87,
+    "latitude": 54.3155841,
+    "longitude": -5.7315296
+  },
+  "Le Croisé-Laroche": {
+    "location_id": 88,
+    "latitude": 50.6646557,
+    "longitude": 3.0898067
+  },
+  "Bellewstown": {
+    "location_id": 89,
+    "latitude": 53.6444121,
+    "longitude": -6.3490291
+  },
+  "Curragh": {
+    "location_id": 90,
+    "latitude": 53.1677202,
+    "longitude": -6.8421829
+  },
+  "Naas": {
+    "location_id": 91,
+    "latitude": 53.2193404,
+    "longitude": -6.6496829
+  },
+  "Navan": {
+    "location_id": 92,
+    "latitude": 53.6832821,
+    "longitude": -6.6762573
+  },
+  "Baden-Baden": {
+    "location_id": 93,
+    "latitude": 48.8239985,
+    "longitude": 8.1413611
+  },
+  "Les Sables-d'Olonne": {
+    "location_id": 94,
+    "latitude": 46.6446626,
+    "longitude": -2.0729686
+  },
+  "Longchamp": {
+    "location_id": 95,
+    "latitude": 48.8587867,
+    "longitude": 2.2270579
+  },
+  "Fairyhouse": {
+    "location_id": 96,
+    "latitude": 53.4842485,
+    "longitude": -6.4700789
+  },
+  "Down Royal": {
+    "location_id": 97,
+    "latitude": 54.486965,
+    "longitude": -6.1302913
+  },
+  "Ballinrobe": {
+    "location_id": 98,
+    "latitude": 53.638292,
+    "longitude": -9.2472385
+  },
+  "Cagnes-sur-Mer": {
+    "location_id": 99,
+    "latitude": 43.6615372,
+    "longitude": 7.1469754
+  },
+  "Chantilly": {
+    "location_id": 100,
+    "latitude": 49.1909286,
+    "longitude": 2.4730185
+  },
+  "Vichy": {
+    "location_id": 101,
+    "latitude": 46.1305321,
+    "longitude": 3.4041336
+  },
+  "St. Moritz": {
+    "location_id": 102,
+    "latitude": 46.490428,
+    "longitude": 9.8326063
+  },
+  "Clairefontaine": {
+    "location_id": 103,
+    "latitude": 49.3447567,
+    "longitude": 0.0505354
+  },
+  "Mont-de-Marsan": {
+    "location_id": 104,
+    "latitude": 43.9177601,
+    "longitude": -0.5220625
+  },
+  "Clonmel": {
+    "location_id": 105,
+    "latitude": 52.364898,
+    "longitude": -7.6850948
+  },
+  "Riyadh": {
+    "location_id": 106,
+    "latitude": 24.9696616,
+    "longitude": 46.7843878
+  },
+  "Craon": {
+    "location_id": 107,
+    "latitude": 47.8380438,
+    "longitude": -0.9344701
+  },
+  "Sha Tin": {
+    "location_id": 108,
+    "latitude": 22.4013027,
+    "longitude": 114.2026314
+  },
+  "Pau": {
+    "location_id": 109,
+    "latitude": 43.3345326,
+    "longitude": -0.3765402
+  },
+  "Listowel": {
+    "location_id": 110,
+    "latitude": 52.4372836,
+    "longitude": -9.4862618
+  },
+  "Nantes": {
+    "location_id": 111,
+    "latitude": 47.2455946,
+    "longitude": -1.5651865
+  },
+  "Vittel": {
+    "location_id": 112,
+    "latitude": 48.2148135,
+    "longitude": 5.9370974
+  },
+  "Angers": {
+    "location_id": 113,
+    "latitude": 47.497793,
+    "longitude": -0.6602193
+  },
+  "Greyville": {
+    "location_id": 114,
+    "latitude": -29.8406386,
+    "longitude": 31.0096209
+  },
+  "Del Mar": {
+    "location_id": 115,
+    "latitude": 32.9756604,
+    "longitude": -117.2639477
+  },
+  "La Teste": {
+    "location_id": 116,
+    "latitude": 44.5861665,
+    "longitude": -1.3452947
+  },
+  "Roscommon": {
+    "location_id": 117,
+    "latitude": 53.647036,
+    "longitude": -8.2254787
+  },
+  "Dax": {
+    "location_id": 118,
+    "latitude": 43.6991712,
+    "longitude": -1.078026
+  },
+  "Cholet": {
+    "location_id": 119,
+    "latitude": 47.0525404,
+    "longitude": -0.9221085
+  },
+  "Hoppegarten": {
+    "location_id": 120,
+    "latitude": 52.5127283,
+    "longitude": 13.6683541
+  },
+  "München": {
+    "location_id": 121,
+    "latitude": 48.1679711,
+    "longitude": 11.4373489
+  },
+  "Bahrain Trophy": {
+    "location_id": 122,
+    "latitude": 26.1365436,
+    "longitude": 50.4405211
+  },
+  "Jebel Ali": {
+    "location_id": 123,
+    "latitude": 25.0852665,
+    "longitude": 55.1840719
+  },
+  "Toodyay": {
+    "location_id": 124,
+    "latitude": -31.5731111,
+    "longitude": 116.4611178
+  },
+  "Pornichet": {
+    "location_id": 125,
+    "latitude": 47.2599115,
+    "longitude": -2.3334638
+  },
+  "Bahrain International Trophy": {
+    "location_id": 126,
+    "latitude": 26.1365436,
+    "longitude": 50.4405211
+  },
+  "Rom": {
+    "location_id": 127,
+    "latitude": 41.9410682,
+    "longitude": 12.3811997
+  },
+  "Dieppe": {
+    "location_id": 128,
+    "latitude": 49.90974,
+    "longitude": 1.0867246
+  },
+  "Machecoul": {
+    "location_id": 129,
+    "latitude": 46.8147462,
+    "longitude": -2.7945586
+  },
+  "Pornichet-La Baule": {
+    "location_id": 130,
+    "latitude": 47.2592276,
+    "longitude": -2.3346774
+  },
+  "Dresden": {
+    "location_id": 131,
+    "latitude": 51.055914,
+    "longitude": 13.696777
+  },
+  "Belmont Park": {
+    "location_id": 132,
+    "latitude": -31.9467534,
+    "longitude": 115.8880792
+  },
+  "Moulins": {
+    "location_id": 133,
+    "latitude": 46.5767396,
+    "longitude": 3.2401162
+  },
+  "Tampa Bay Downs": {
+    "location_id": 134,
+    "latitude": 28.0497698,
+    "longitude": -82.6505216
+  },
+  "Tarbes": {
+    "location_id": 135,
+    "latitude": 43.2167852,
+    "longitude": 0.0591232
+  },
+  "Salon-de-Provence": {
+    "location_id": 136,
+    "latitude": 43.6390685,
+    "longitude": 5.0293243
+  },
+  "Cluny": {
+    "location_id": 137,
+    "latitude": 46.4365656,
+    "longitude": 4.6478899
+  },
+  "Laytown": {
+    "location_id": 138,
+    "latitude": 53.6851783,
+    "longitude": -6.2424914
+  },
+  "Hakodate": {
+    "location_id": 139,
+    "latitude": 41.7813332,
+    "longitude": 140.7710248
+  },
+  "Le Mans": {
+    "location_id": 140,
+    "latitude": 47.9519939,
+    "longitude": 0.205504
+  },
+  "Launceston": {
+    "location_id": 141,
+    "latitude": -41.4304159,
+    "longitude": 147.1460171
+  },
+  "Gulfstream Park": {
+    "location_id": 142,
+    "latitude": 25.9780702,
+    "longitude": -80.1421476
+  },
+  "Le Lion D'Angers": {
+    "location_id": 143,
+    "latitude": 47.6298636,
+    "longitude": -0.7106759
+  },
+  "Rio de Janeiro": {
+    "location_id": 144,
+    "latitude": -22.8805033,
+    "longitude": -43.6070834
+  },
+  "Saint-Malo": {
+    "location_id": 145,
+    "latitude": 48.6351089,
+    "longitude": -2.0007918
+  },
+  "Maisons-Laffitte": {
+    "location_id": 146,
+    "latitude": 48.9563458,
+    "longitude": 2.1635362
+  },
+  "Arlington Park": {
+    "location_id": 147,
+    "latitude": 42.0953107,
+    "longitude": -88.0117665
+  },
+  "Istanbul": {
+    "location_id": 148,
+    "latitude": 40.9865607,
+    "longitude": 28.5826693
+  },
+  "Pardubice": {
+    "location_id": 149,
+    "latitude": 50.0193668,
+    "longitude": 15.7449541
+  },
+  "São Paulo": {
+    "location_id": 150,
+    "latitude": -23.5414579,
+    "longitude": -46.827335
+  },
+  "Le Lion d'Angers": {
+    "location_id": 151,
+    "latitude": 47.6298636,
+    "longitude": -0.7106759
+  },
+  "Jägersro": {
+    "location_id": 152,
+    "latitude": 55.7597769,
+    "longitude": 12.7954515
+  },
+  "Beulah Park": {
+    "location_id": 153,
+    "latitude": 38.7969338,
+    "longitude": -77.0006377
+  },
+  "Berlin-Hoppegarten": {
+    "location_id": 154,
+    "latitude": 52.5127283,
+    "longitude": 13.6683541
+  },
+  "Aix-les-Bains": {
+    "location_id": 155,
+    "latitude": 45.6717363,
+    "longitude": 5.9024262
+  },
+  "Golden Gate": {
+    "location_id": 156,
+    "latitude": 26.1944934,
+    "longitude": -82.0591837
+  },
+  "Churchill Downs": {
+    "location_id": 157,
+    "latitude": 38.2040234,
+    "longitude": -85.810171
+  },
+  "Te Rapa": {
+    "location_id": 158,
+    "latitude": -37.7648386,
+    "longitude": 175.2402073
+  },
+  "Nancy": {
+    "location_id": 159,
+    "latitude": 48.6533463,
+    "longitude": 6.1399474
+  },
+  "Saratoga": {
+    "location_id": 160,
+    "latitude": 43.0739744,
+    "longitude": -73.7705548
+  },
+  "Enghien": {
+    "location_id": 161,
+    "latitude": 49.0217151,
+    "longitude": 2.1311912
+  },
+  "San Isidro": {
+    "location_id": 162,
+    "latitude": -34.4805676,
+    "longitude": -58.5255159
+  },
+  "Keeneland": {
+    "location_id": 163,
+    "latitude": 38.0469559,
+    "longitude": -84.6088153
+  },
+  "Chateaubriant": {
+    "location_id": 164,
+    "latitude": 47.7375984,
+    "longitude": -1.6970307
+  },
+  "Köln": {
+    "location_id": 165,
+    "latitude": 50.9468081,
+    "longitude": 6.9269267
+  },
+  "Le Lion-d'Angers": {
+    "location_id": 166,
+    "latitude": 47.6298636,
+    "longitude": -0.7106759
   }
-
 }
