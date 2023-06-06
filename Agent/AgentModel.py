@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
+from Model.Estimators.RaceEventProbabilities import RaceEventProbabilities
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -67,7 +67,7 @@ class AgentModel:
             path_or_buf=f"../data/logs/samples/real_time_{race_card.race_id}"
         )
 
-        estimation_result = self.bet_model.estimator.score_races(race_card_sample)
+        estimation_result = self.bet_model.estimator.predict(race_card_sample)
 
         return estimation_result
 

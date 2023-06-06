@@ -65,6 +65,32 @@ class HasJockeyChanged(FeatureExtractor):
         return previous_jockey_last_name != current_jockey_last_name
 
 
+class IsSecondRaceForJockey(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        current_jockey_last_name = horse.jockey.last_name
+
+        if len(horse.form_table.past_forms) < 2:
+            return self.PLACEHOLDER_VALUE
+
+        previous_form = horse.form_table.past_forms[0]
+        penultimate_form = horse.form_table.past_forms[1]
+
+        if not previous_form.jockey_name or not penultimate_form.jockey_name:
+            return self.PLACEHOLDER_VALUE
+
+        if len(previous_form.jockey_name.split(" ")) < 2 or len(penultimate_form.jockey_name.split(" ")) < 2:
+            return self.PLACEHOLDER_VALUE
+
+        previous_race_jockey_change = previous_form.jockey_name.split(" ")[1] != penultimate_form.jockey_name.split(" ")[1]
+        current_race_no_jockey_change = current_jockey_last_name == previous_form.jockey_name.split(" ")[1]
+
+        return previous_race_jockey_change and current_race_no_jockey_change
+
+
 class HasTrackChanged(FeatureExtractor):
 
     def __init__(self):

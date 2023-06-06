@@ -27,7 +27,7 @@ from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
 from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanNumber, PulledUpPreviousRace, \
     PreviousSlowerThanNumber, PreviousRelativeDistanceBehind
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference
+    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey
 from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
@@ -65,6 +65,7 @@ class FeatureManager:
             IndustryMarketWinProbabilityDiff(),
 
             BetfairOverround(),
+            IsSecondRaceForJockey(),
 
             # RacebetsWinProbability(),
             # BetfairPlaceMarketWinProbability(),

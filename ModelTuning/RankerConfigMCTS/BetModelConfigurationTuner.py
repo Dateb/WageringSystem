@@ -1,10 +1,8 @@
 import threading
-from statistics import mean, stdev
 
 import numpy as np
 from tqdm import trange
 
-from Model.Probabilizing.Probabilizer import Probabilizer
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
@@ -13,7 +11,6 @@ from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfi
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.BlockSplitter import BlockSplitter
-from util.stats_calculator import ExponentialOnlineCalculator
 
 
 class SimulateThread(threading.Thread):
@@ -33,13 +30,9 @@ class SimulateThread(threading.Thread):
         self.scores = results
 
     def run(self):
-        train_sample, validation_sample, = self.sample_splitter.get_block_split(self.validation_block_idx)
 
-        bet_model = self.bet_model_configuration.create_bet_model(train_sample)
 
-        fund_history_summary = self.model_evaluator.get_fund_history_summary_of_model(bet_model, validation_sample)
-
-        self.scores[self.validation_block_idx] = fund_history_summary.score
+        self.scores[self.validation_block_idx] = self.bet_model_configuration.validate_bet_model(sample)
 
 
 class BetModelConfigurationTuner:
@@ -92,31 +85,23 @@ class BetModelConfigurationTuner:
                 self.feature_manager.search_features,
             )
 
-            results = self.__simulate(terminal_configuration)
-
-            payout_values = list(results.values())
-
-            total_score = mean(payout_values) / stdev(payout_values)
-
-            train_sample, test_sample = self.sample_splitter.get_train_test_split()
-
-            bet_model = terminal_configuration.create_bet_model(train_sample)
-            test_score = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample).score
-
-            print(f"Score: {total_score} (Test score: {test_score})")
+            total_score = self.__simulate(terminal_configuration)
 
             self.__backup(front_node, total_score)
-
-            self.feature_scorer.update_feature_scores(total_score, terminal_configuration.selected_search_features)
 
             if total_score > self.__max_score:
                 self.__best_configuration = terminal_configuration
                 print("New best Result:")
-                for month_year in results:
-                    print(f"{month_year}: {results[month_year]}")
                 print(terminal_configuration)
 
                 self.__max_score = total_score
+
+                train_sample, test_sample = self.sample_splitter.get_train_test_split()
+
+                bet_model = terminal_configuration.create_bet_model(train_sample)
+                test_score = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample).score
+
+                print(f"Score: {total_score} (Test score: {test_score})")
 
                 return True
 
@@ -149,21 +134,9 @@ class BetModelConfigurationTuner:
         )
         return self.tree.add_node(new_node, node)
 
-    def __simulate(self, bet_model_configuration: BetModelConfiguration) -> dict:
-        results = {}
-        simulation_threads = [SimulateThread(
-            self.sample_splitter,
-            validation_block_idx,
-            self.model_evaluator,
-            bet_model_configuration,
-            results
-        ) for validation_block_idx in range(self.sample_splitter.block_count)]
-
-        for simulation_thread in simulation_threads:
-            simulation_thread.start()
-            simulation_thread.join()
-
-        return results
+    def __simulate(self, bet_model_configuration: BetModelConfiguration) -> float:
+        sample, _ = self.sample_splitter.get_train_test_split()
+        return bet_model_configuration.validate_bet_model(sample)
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

@@ -25,7 +25,6 @@ class FundHistorySummary:
             for i in range(len(dates))
         ]
 
-        # self.validation_score = geometric_mean([1 + payout_percentage for payout_percentage in payout_percentages])
         self.score = mean(payout_percentages)
 
     @property

@@ -30,8 +30,8 @@ class EVSingleBettor(Bettor):
             odds = self.probabilizer.get_odds(betting_slip)
 
             # stakes = get_multiple_win_stakes(betting_slip.race_id, probabilities, odds)
-            stakes = get_highest_value_stakes(self.ev_threshold, probabilities, odds)
-            # stakes = get_most_probable_value_stakes(self.ev_threshold, probabilities, odds)
+            # stakes = get_highest_value_stakes(self.ev_threshold, probabilities, odds)
+            stakes = get_most_probable_value_stakes(self.ev_threshold, probabilities, odds)
 
             for i in range(len(stakes)):
                 stakes_fraction = stakes[i]

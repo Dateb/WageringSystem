@@ -3,9 +3,8 @@ from copy import copy
 from typing import List
 
 from Model.Betting.EVSingleBettor import EVSingleBettor
-from Model.Estimation.Ranker.BoostedTreesRanker import BoostedTreesRanker
+from Model.Estimators.BoostedTreesRanker import BoostedTreesRanker
 from Model.BetModel import BetModel
-from Model.Probabilizing.PlaceProbabilizer import PlaceProbabilizer
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -14,13 +13,13 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class BetModelConfiguration:
     probabilizer_values = [WinProbabilizer()]
     train_size_fraction_values = [1.0]
-    num_boost_round_values = [500]
+    num_boost_round_values = [100, 200, 500]
     stakes_fraction_values = [1.0]
-    expected_value_additional_threshold_values = [0.0]
+    expected_value_additional_threshold_values = [0.5]
     lower_win_prob_threshold_values = [0]
     upper_win_prob_threshold_values = [1]
     learning_rate_values = [0.15]
-    num_leaves_values = [30]
+    num_leaves_values = [2, 10, 30]
     min_child_samples_values = [200]
 
     n_decision_list: List[int]
@@ -33,7 +32,7 @@ class BetModelConfiguration:
     ):
         self.probabilizer = None
         self.train_size_fraction = 1.0
-        self.num_boost_round = 0
+        self.num_boost_rounds = 0
         self.stakes_fraction = 1.0
         self.expected_value_additional_threshold = 0.0
         self.search_params = {}
@@ -64,12 +63,13 @@ class BetModelConfiguration:
             self.__add_ith_decision(i, decision_idx)
 
     def __add_ith_decision(self, i: int, decision_idx: int):
+        #TODO: Replace the long case logic
         if i == 0:
             self.probabilizer = self.probabilizer_values[decision_idx]
         if i == 1:
             self.train_size_fraction = self.train_size_fraction_values[decision_idx]
         if i == 2:
-            self.num_boost_round = self.num_boost_round_values[decision_idx]
+            self.num_boost_rounds = self.num_boost_round_values[decision_idx]
         if i == 3:
             self.stakes_fraction = self.stakes_fraction_values[decision_idx]
         if i == 4:
@@ -89,14 +89,15 @@ class BetModelConfiguration:
             self.selected_search_features.append(selected_search_feature)
             self.feature_subset.append(selected_search_feature)
 
-    def validate_bet_model(self, train_samples: RaceCardsSample) -> float:
-        estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
-        cv_result = estimator.cross_validate(train_samples.race_cards_dataframe, self.num_boost_round)
+    def validate_bet_model(self, sample: RaceCardsSample) -> float:
+        estimator = BoostedTreesRanker(self.feature_subset, self.search_params, self.num_boost_rounds)
+        cv_result = estimator.cross_validate(sample.race_cards_dataframe)
+        print(cv_result["valid map@1-mean"])
 
-        return cv_result["valid ndcg@5-mean"][-1]
+        return cv_result["valid map@1-mean"][-1]
 
-    def create_bet_model(self, train_samples: RaceCardsSample) -> BetModel:
-        estimator = BoostedTreesRanker(self.feature_subset, self.search_params)
+    def create_bet_model(self, sample: RaceCardsSample) -> BetModel:
+        estimator = BoostedTreesRanker(self.feature_subset, self.search_params, self.num_boost_rounds)
 
         bettor = EVSingleBettor(
             self.expected_value_additional_threshold,
@@ -105,7 +106,7 @@ class BetModelConfiguration:
         )
 
         bet_model = BetModel(estimator, self.probabilizer, bettor)
-        bet_model.fit_estimator(train_samples.race_cards_dataframe, self.num_boost_round)
+        bet_model.fit_estimator(sample.race_cards_dataframe)
 
         return bet_model
 
@@ -122,7 +123,7 @@ class BetModelConfiguration:
                      f"train_size_fraction: {self.train_size_fraction}/"\
                      f"stakes_fraction:{self.stakes_fraction}/"\
                      f"ev_thresh:{self.expected_value_additional_threshold}/" \
-                     f"boost_rounds:{self.num_boost_round}/search_params:{self.search_params}\n"
+                     f"boost_rounds:{self.num_boost_rounds}/search_params:{self.search_params}\n"
         return config_str
 
     @property
