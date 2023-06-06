@@ -4,7 +4,7 @@ import numpy as np
 from treelib import Tree
 
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
-from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
+from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
 
 
 class BetModelConfigurationTree:

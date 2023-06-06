@@ -1,11 +1,9 @@
-import threading
-
 import numpy as np
 from tqdm import trange
 
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
-from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
+from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
 from SampleExtraction.FeatureManager import FeatureManager
@@ -13,44 +11,22 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.BlockSplitter import BlockSplitter
 
 
-class SimulateThread(threading.Thread):
-    def __init__(
-            self,
-            sample_splitter: BlockSplitter,
-            validation_block_idx: int,
-            model_evaluator: ModelEvaluator,
-            bet_model_configuration: BetModelConfiguration,
-            results: dict,
-    ):
-        threading.Thread.__init__(self)
-        self.sample_splitter = sample_splitter
-        self.validation_block_idx = validation_block_idx
-        self.model_evaluator = model_evaluator
-        self.bet_model_configuration = bet_model_configuration
-        self.scores = results
-
-    def run(self):
-
-
-        self.scores[self.validation_block_idx] = self.bet_model_configuration.validate_bet_model(sample)
-
-
 class BetModelConfigurationTuner:
 
     def __init__(
             self,
-            race_cards_sample: RaceCardsSample,
+            train_sample: RaceCardsSample,
             feature_manager: FeatureManager,
             sample_splitter: BlockSplitter,
             model_evaluator: ModelEvaluator,
     ):
-        self.race_cards_sample = race_cards_sample
+        self.train_sample = train_sample
         self.feature_manager = feature_manager
 
         self.sample_splitter = sample_splitter
         self.model_evaluator = model_evaluator
 
-        self.__best_configuration: BetModelConfiguration = None
+        self.__best_configuration: EstimatorConfiguration = None
         self.__max_score = -np.Inf
         self.__exploration_factor = 0.1
 
@@ -58,7 +34,7 @@ class BetModelConfigurationTuner:
             identifier="root",
             max_score=-np.Inf,
             n_visits=0,
-            ranker_config=BetModelConfiguration(
+            ranker_config=EstimatorConfiguration(
                 decisions=[],
                 base_features=self.feature_manager.base_features,
                 search_features=self.feature_manager.search_features,
@@ -68,7 +44,7 @@ class BetModelConfigurationTuner:
         self.tree = BetModelConfigurationTree(root_node)
         self.feature_scorer = FeatureScorer(self.feature_manager.search_features, report_interval=10)
 
-    def search_for_best_configuration(self, max_iter_without_improvement: int) -> BetModelConfiguration:
+    def search_for_best_configuration(self, max_iter_without_improvement: int) -> EstimatorConfiguration:
         while self.__improve_ranker_config(max_iter_without_improvement):
             pass
 
@@ -79,7 +55,7 @@ class BetModelConfigurationTuner:
             front_node = self.__select()
 
             full_decision_list = front_node.ranker_config.get_full_decision_list()
-            terminal_configuration = BetModelConfiguration(
+            terminal_configuration = EstimatorConfiguration(
                 full_decision_list,
                 self.feature_manager.base_features,
                 self.feature_manager.search_features,
@@ -95,13 +71,6 @@ class BetModelConfigurationTuner:
                 print(terminal_configuration)
 
                 self.__max_score = total_score
-
-                train_sample, test_sample = self.sample_splitter.get_train_test_split()
-
-                bet_model = terminal_configuration.create_bet_model(train_sample)
-                test_score = self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample).score
-
-                print(f"Score: {total_score} (Test score: {test_score})")
 
                 return True
 
@@ -120,7 +89,7 @@ class BetModelConfigurationTuner:
     def __expand(self, node: BetModelConfigurationNode):
         next_action_idx = len(self.tree.children(node.identifier))
         decisions_children = node.ranker_config.decisions + [next_action_idx]
-        children_ranker_config = BetModelConfiguration(
+        children_ranker_config = EstimatorConfiguration(
             decisions_children,
             self.feature_manager.base_features,
             self.feature_manager.search_features,
@@ -134,9 +103,9 @@ class BetModelConfigurationTuner:
         )
         return self.tree.add_node(new_node, node)
 
-    def __simulate(self, bet_model_configuration: BetModelConfiguration) -> float:
+    def __simulate(self, bet_model_configuration: EstimatorConfiguration) -> float:
         sample, _ = self.sample_splitter.get_train_test_split()
-        return bet_model_configuration.validate_bet_model(sample)
+        return bet_model_configuration.validate_estimator(sample)
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

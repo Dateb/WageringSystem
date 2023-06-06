@@ -14,6 +14,7 @@ class BlockSplitter:
             n_test_races: int,
             n_validation_rounds: int = 5,
     ):
+        # TODO: Handle case if n_test_races is too large!
         self.n_test_races = n_test_races
         self.block_count = n_validation_rounds
 

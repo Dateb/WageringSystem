@@ -6,7 +6,7 @@ from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.RaceEventProbabilities import RaceEventProbabilities
 from ModelTuning.ModelEvaluator import ModelEvaluator
-from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
+from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
@@ -48,7 +48,7 @@ class AgentModel:
 
         train_sample = sample_split_generator.get_last_n_races_sample(bet_model_configuration.n_train_races)
 
-        self.bet_model = bet_model_configuration.create_bet_model(train_sample)
+        self.bet_model = bet_model_configuration.create_estimator(train_sample)
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
         estimation_result = self.estimate_race_card(race_card)
@@ -71,7 +71,7 @@ class AgentModel:
 
         return estimation_result
 
-    def load_bet_model_configuration(self) -> BetModelConfiguration:
+    def load_bet_model_configuration(self) -> EstimatorConfiguration:
         with open(self.__BET_MODEL_CONFIGURATION_PATH, "rb") as f:
             return pickle.load(f)
 

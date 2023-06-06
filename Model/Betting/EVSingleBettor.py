@@ -19,10 +19,8 @@ class EVSingleBettor(Bettor):
             self,
             additional_ev_threshold: float,
             probabilizer: Probabilizer,
-            stakes_fraction: float
     ):
         super().__init__(additional_ev_threshold, probabilizer)
-        self.stakes_fraction = stakes_fraction
 
     def bet(self, betting_slips: Dict[str, BettingSlip]) -> Dict[str, BettingSlip]:
         for betting_slip in betting_slips.values():

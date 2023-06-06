@@ -1,18 +1,12 @@
 import pickle
-from time import sleep
 
 from tqdm import tqdm
 
-from Experiments.FundHistorySummary import FundHistorySummary
-from Model.Probabilizing.PlaceProbabilizer import PlaceProbabilizer
-from Model.Probabilizing.WinProbabilizer import WinProbabilizer
+from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
-from ModelTuning.RankerConfigMCTS.BetModelConfiguration import BetModelConfiguration
-from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
-from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.BlockSplitter import BlockSplitter
 
@@ -22,36 +16,6 @@ __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 N_CONTAINER_MONTHS = 1
 N_SAMPLE_MONTHS = 2
 N_MONTHS_FORWARD_OFFSET = 0
-
-
-class BetModelTuner:
-
-    def __init__(self, feature_manager: FeatureManager, race_cards_sample: RaceCardsSample, model_evaluator: ModelEvaluator):
-        self.feature_manager = feature_manager
-        self.race_cards_sample = race_cards_sample
-        #TODO: Handle case if n_test_races is too large!
-        self.block_splitter = BlockSplitter(
-            self.race_cards_sample,
-            n_validation_rounds=4,
-            n_test_races=40,
-        )
-        self.model_evaluator = model_evaluator
-
-    def get_tuned_model_configuration(self) -> BetModelConfiguration:
-        configuration_tuner = BetModelConfigurationTuner(
-            race_cards_sample=self.race_cards_sample,
-            feature_manager=self.feature_manager,
-            sample_splitter=self.block_splitter,
-            model_evaluator=self.model_evaluator,
-        )
-
-        return configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
-
-    def get_test_fund_history_summary(self, bet_model_configuration: BetModelConfiguration) -> FundHistorySummary:
-        train_sample, test_sample = self.block_splitter.get_train_test_split()
-
-        bet_model = bet_model_configuration.create_bet_model(train_sample)
-        return self.model_evaluator.get_fund_history_summary_of_model(bet_model, test_sample)
 
 
 def optimize_model_configuration():
@@ -86,18 +50,27 @@ def optimize_model_configuration():
 
     race_cards_sample.race_cards_dataframe.to_csv("../data/races.csv")
 
-    tuning_pipeline = BetModelTuner(feature_manager, race_cards_sample, model_evaluator)
-    bet_model_configuration = tuning_pipeline.get_tuned_model_configuration()
+    block_splitter = BlockSplitter(
+        race_cards_sample,
+        n_validation_rounds=4,
+        n_test_races=40,
+    )
 
-    for i in range(2):
-        fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
-        print(f"Result {i + 1}: {fund_history_summary.score}")
+    estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
 
-        with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
-            pickle.dump(fund_history_summary, f)
+    fund_history_summary = model_evaluator.get_fund_history_summary_of_model(estimator, block_splitter)
 
-    with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
-        pickle.dump(bet_model_configuration, f)
+    print(fund_history_summary.score)
+
+    # for i in range(2):
+    #     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
+    #     print(f"Result {i + 1}: {fund_history_summary.score}")
+    #
+    #     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
+    #         pickle.dump(fund_history_summary, f)
+    #
+    # with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
+    #     pickle.dump(bet_model_configuration, f)
 
 
 if __name__ == '__main__':
