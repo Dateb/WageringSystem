@@ -67,8 +67,8 @@ class BetModelConfigurationTuner:
 
             if total_score > self.__max_score:
                 self.__best_configuration = terminal_configuration
-                print("New best Result:")
-                print(terminal_configuration)
+                print(f"New best total score: {total_score}")
+                print(f"Under this configuration: {terminal_configuration}")
 
                 self.__max_score = total_score
 

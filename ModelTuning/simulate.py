@@ -2,6 +2,7 @@ import pickle
 
 from tqdm import tqdm
 
+from Model.Estimators.Classification.LSTMClassifier import LSTMClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -56,11 +57,12 @@ def optimize_model_configuration():
         n_test_races=40,
     )
 
-    estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
+    # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
+    estimator = LSTMClassifier(feature_manager, model_evaluator, block_splitter)
 
     fund_history_summary = model_evaluator.get_fund_history_summary_of_model(estimator, block_splitter)
 
-    print(fund_history_summary.score)
+    print(f"Final test set return: {fund_history_summary.score}")
 
     # for i in range(2):
     #     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)

@@ -138,8 +138,6 @@ class EstimatorConfiguration:
             nfold=5,
         )
 
-        print(cv_result["valid map@1-mean"])
-
         return cv_result["valid map@1-mean"][-1]
 
     def get_dataset(self, sample: pd.DataFrame) -> Dataset:

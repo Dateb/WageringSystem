@@ -25,7 +25,6 @@ class BlockSplitter:
         self.train_validation_pool_size = self.n_races - n_test_races
 
         self.block_sizes = self.__get_block_sizes()
-        print(self.block_sizes)
         self.block_intervals = []
         block_lower = 0
         for block_size in self.block_sizes:

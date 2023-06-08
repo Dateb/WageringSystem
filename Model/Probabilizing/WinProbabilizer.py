@@ -25,7 +25,6 @@ class WinProbabilizer(Probabilizer):
         race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe, scores)
         race_cards_dataframe["place_probability"] = "0"
 
-        print(list(race_cards_dataframe["win_probability"]))
         return self.get_betting_slips(race_cards_dataframe)
 
     def create_bet(self, horse_result: HorseResult, stakes_fraction: float) -> Bet:

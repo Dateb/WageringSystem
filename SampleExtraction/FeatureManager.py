@@ -58,14 +58,14 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            CurrentRaceTrack(),
+            # CurrentRaceTrack(),
             BetfairWinMarketWinProbability(),
 
-            IsFavorite(),
-            IndustryMarketWinProbabilityDiff(),
-
-            BetfairOverround(),
-            IsSecondRaceForJockey(),
+            # IsFavorite(),
+            # IndustryMarketWinProbabilityDiff(),
+            #
+            # BetfairOverround(),
+            # IsSecondRaceForJockey(),
 
             # RacebetsWinProbability(),
             # BetfairPlaceMarketWinProbability(),
@@ -84,176 +84,176 @@ class FeatureManager:
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
 
-            DamSireWinRate(),
-            SireWinRate(),
+            # DamSireWinRate(),
+            # SireWinRate(),
+            #
+            # TrainerClassWinRate(),
+            # TrainerPercentageBeaten(),
+            #
+            # DamSirePurseRate(),
+            # DamSirePercentageBeaten(),
+            #
+            # JockeyClassShowRate(),
+            # SireShowRate(),
+            #
+            # JockeyPurseRate(),
+            # BreederPercentageBeaten(),
+            #
+            # PreviousRelativeDistanceBehind(),
+            # DistanceDifference(),
+            #
+            # JockeySurfaceWinRate(),
+            # WeightDifference(),
+            #
+            # BreederPurseRate(),
+            # JockeyPercentageBeaten(),
+            #
+            # OwnerShowRate(),
+            # SirePurseRate(),
+            #
+            # CurrentSpeedFigure(),
+            # JockeyClassPurseRate(),
+            #
+            # TrainerShowRate(),
+            # TrainerTrackPurseRate(),
+            #
+            # OwnerPercentageBeaten(),
+            # TrainerTrackPercentageBeaten(),
+            #
+            # TrainerTrackShowRate(),
+            # TrainerPurseRate(),
+            #
+            # JockeyTrackShowRate(),
+            # BreederShowRate(),
+            #
+            # WeightAdvantage(),
+            # HighestOddsWin(),
+            #
+            # JockeyClassPercentageBeaten(),
+            # TrainerSurfacePurseRate(),
+            #
+            # OwnerPurseRate(),
+            # TrainerClassShowRate(),
+            #
+            # PreviousSlowerThanNumber(),
+            # Humidity(),
+            #
+            # LifeTimeStartCount(),
+            # TrainerDistancePercentageBeaten(),
+            #
+            # JockeyDistancePercentageBeaten(),
+            # DamPurseRate(),
+            #
+            # HorsePercentageBeaten(),
+            # AirPressure(),
+            #
+            # JockeyDistancePurseRate(),
+            # MinutesIntoDay(),
+            #
+            # AbsoluteTime(),
+            # DamShowRate(),
+            #
+            # TrainerDistancePurseRate(),
+            # HorseBreederPurseRate(),
+            #
+            # TrainerDistanceShowRate(),
+            # Cloudiness(),
+            #
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+            #
+            # JockeyDistanceWinRate(),
+            # DayOfYearSin(),
+            #
+            # HorseTrainerShowRate(),
+            # HorseBreederShowRate(),
+            #
+            # HorseWinRate(),
+            # Gender(),
+            #
+            # HorseBreederWinRate(),
+            # WeekDaySin(),
+            #
+            # HorseJockeyShowRate(),
+            # WeightAllowance(),
+            #
+            # HasWonAfterLongBreak(),
+            # ComingFromLayoff(),
+            #
+            # HasVisor(),
+            # CurrentRaceType(),
+            #
+            # HasFewStartsInTwoYears(),
+            # HasTongueStrap(),
+            #
+            # HasEyeCovers(),
+            # HasEyeShield(),
+            #
+            # PulledUpPreviousRace(),
+            # HasTrainerMultipleHorses(),
+            #
+            # Temperature(),
+            # WindSpeed(),
+            # WindDirection(),
+            # RainVolume(),
+            #
+            #
+            # PreviousFasterThanNumber(),
+            #
+            # TravelDistance(),
+            # Age(),
+            # CurrentDistance(),
+            # CurrentRaceSurface(),
+            # HasFallen(),
+            # HasTrackChanged(),
+            # JockeyWeight(),
+            # IsUnderdog(),
+            # WeekDayCos(),
+            #
+            # CurrentRaceClass(), CurrentGoing(),
+            # CurrentRaceCategory(),
+            #
+            # DrawBias(),
+            # AgeFrom(), AgeTo(),
+            # CurrentRating(),
+            #
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            #
+            # BestLifeTimeSpeedFigure(),
+            #
+            # HasOptimalBreak(),
+            #
+            # JockeyWinRate(), TrainerWinRate(),
+            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
+            # HorseJockeyWinRate(), HorseTrainerWinRate(),
+            #
+            # JockeyTrackWinRate(), JockeyClassWinRate(),
+            # TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
+            #
+            # HorseShowRate(), JockeyShowRate(),
+            # DamSireShowRate(),
+            #
+            # JockeyDistanceShowRate(), JockeySurfaceShowRate(),
+            # TrainerSurfaceShowRate(),
+            #
+            # HorsePurseRate(),
+            # HorseJockeyPurseRate(), HorseTrainerPurseRate(),
+            #
+            # JockeySurfacePurseRate(), JockeyTrackPurseRate(),
+            # TrainerClassPurseRate(),
+            #
+            # SirePercentageBeaten(), DamPercentageBeaten(),
+            # HorseJockeyPercentageBeaten(), HorseTrainerPercentageBeaten(), HorseBreederPercentageBeaten(),
+            #
+            # JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),
+            # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
+            #
+            # RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
 
-            TrainerClassWinRate(),
-            TrainerPercentageBeaten(),
-
-            DamSirePurseRate(),
-            DamSirePercentageBeaten(),
-
-            JockeyClassShowRate(),
-            SireShowRate(),
-
-            JockeyPurseRate(),
-            BreederPercentageBeaten(),
-
-            PreviousRelativeDistanceBehind(),
-            DistanceDifference(),
-
-            JockeySurfaceWinRate(),
-            WeightDifference(),
-
-            BreederPurseRate(),
-            JockeyPercentageBeaten(),
-
-            OwnerShowRate(),
-            SirePurseRate(),
-
-            CurrentSpeedFigure(),
-            JockeyClassPurseRate(),
-
-            TrainerShowRate(),
-            TrainerTrackPurseRate(),
-
-            OwnerPercentageBeaten(),
-            TrainerTrackPercentageBeaten(),
-
-            TrainerTrackShowRate(),
-            TrainerPurseRate(),
-
-            JockeyTrackShowRate(),
-            BreederShowRate(),
-
-            WeightAdvantage(),
-            HighestOddsWin(),
-
-            JockeyClassPercentageBeaten(),
-            TrainerSurfacePurseRate(),
-
-            OwnerPurseRate(),
-            TrainerClassShowRate(),
-
-            PreviousSlowerThanNumber(),
-            Humidity(),
-
-            LifeTimeStartCount(),
-            TrainerDistancePercentageBeaten(),
-
-            JockeyDistancePercentageBeaten(),
-            DamPurseRate(),
-
-            HorsePercentageBeaten(),
-            AirPressure(),
-
-            JockeyDistancePurseRate(),
-            MinutesIntoDay(),
-
-            AbsoluteTime(),
-            DamShowRate(),
-
-            TrainerDistancePurseRate(),
-            HorseBreederPurseRate(),
-
-            TrainerDistanceShowRate(),
-            Cloudiness(),
-
-            OneYearStartCount(),
-            TwoYearStartCount(),
-
-            JockeyDistanceWinRate(),
-            DayOfYearSin(),
-
-            HorseTrainerShowRate(),
-            HorseBreederShowRate(),
-
-            HorseWinRate(),
-            Gender(),
-
-            HorseBreederWinRate(),
-            WeekDaySin(),
-
-            HorseJockeyShowRate(),
-            WeightAllowance(),
-
-            HasWonAfterLongBreak(),
-            ComingFromLayoff(),
-
-            HasVisor(),
-            CurrentRaceType(),
-
-            HasFewStartsInTwoYears(),
-            HasTongueStrap(),
-
-            HasEyeCovers(),
-            HasEyeShield(),
-
-            PulledUpPreviousRace(),
-            HasTrainerMultipleHorses(),
-
-            Temperature(),
-            WindSpeed(),
-            WindDirection(),
-            RainVolume(),
-
-
-            PreviousFasterThanNumber(),
-
-            TravelDistance(),
-            Age(),
-            CurrentDistance(),
-            CurrentRaceSurface(),
-            HasFallen(),
-            HasTrackChanged(),
-            JockeyWeight(),
-            IsUnderdog(),
-            WeekDayCos(),
-
-            CurrentRaceClass(), CurrentGoing(),
-            CurrentRaceCategory(),
-
-            DrawBias(),
-            AgeFrom(), AgeTo(),
-            CurrentRating(),
-
-            HasBlinkers(), HasHood(), HasCheekPieces(),
-
-            BestLifeTimeSpeedFigure(),
-
-            HasOptimalBreak(),
-
-            JockeyWinRate(), TrainerWinRate(),
-            BreederWinRate(), OwnerWinRate(), DamWinRate(),
-            HorseJockeyWinRate(), HorseTrainerWinRate(),
-
-            JockeyTrackWinRate(), JockeyClassWinRate(),
-            TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
-
-            HorseShowRate(), JockeyShowRate(),
-            DamSireShowRate(),
-
-            JockeyDistanceShowRate(), JockeySurfaceShowRate(),
-            TrainerSurfaceShowRate(),
-
-            HorsePurseRate(),
-            HorseJockeyPurseRate(), HorseTrainerPurseRate(),
-
-            JockeySurfacePurseRate(), JockeyTrackPurseRate(),
-            TrainerClassPurseRate(),
-
-            SirePercentageBeaten(), DamPercentageBeaten(),
-            HorseJockeyPercentageBeaten(), HorseTrainerPercentageBeaten(), HorseBreederPercentageBeaten(),
-
-            JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),
-            TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
-
-            RaceClassDifference(), HasJockeyChanged(), HasTrainerChanged(),
-
-            MaxPastRatingExtractor(),
+            # MaxPastRatingExtractor(),
             # MeanSpeedDiff(),
-            DayOfYearCos(),
-            CurrentRaceTypeDetail(),
+            # DayOfYearCos(),
+            # CurrentRaceTypeDetail(),
         ]
 
         return default_features
