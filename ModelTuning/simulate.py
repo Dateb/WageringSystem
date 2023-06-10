@@ -53,8 +53,8 @@ def optimize_model_configuration():
 
     block_splitter = BlockSplitter(
         race_cards_sample,
-        n_validation_rounds=4,
-        n_test_races=40,
+        n_validation_rounds=5,
+        n_test_races=100,
     )
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
@@ -64,12 +64,13 @@ def optimize_model_configuration():
 
     print(f"Final test set return: {fund_history_summary.score}")
 
+    with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
+        pickle.dump(fund_history_summary, f)
+
     # for i in range(2):
     #     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
     #     print(f"Result {i + 1}: {fund_history_summary.score}")
     #
-    #     with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
-    #         pickle.dump(fund_history_summary, f)
     #
     # with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
     #     pickle.dump(bet_model_configuration, f)

@@ -39,7 +39,7 @@ class BetfairWinMarketWinProbability(FeatureExtractor):
         total_inverse_odds = sum(inverse_odds)
 
         if total_inverse_odds == 0 or horse.betfair_win_sp == 0:
-            return self.PLACEHOLDER_VALUE
+            return -1
         return (1 / horse.betfair_win_sp) / total_inverse_odds
 
 
