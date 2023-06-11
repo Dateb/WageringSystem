@@ -9,6 +9,7 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
+from Model.Estimators.Classification.networks import SimpleMLP
 
 from Model.Estimators.Estimator import Estimator
 from ModelTuning.ModelEvaluator import ModelEvaluator
@@ -18,28 +19,7 @@ from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
-class NeuralNetwork(nn.Module):
-    def __init__(self, max_horses_per_race: int, feature_count: int):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(max_horses_per_race * feature_count, 512),
-            nn.BatchNorm1d(512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
-            nn.BatchNorm1d(512),
-            nn.ReLU(),
-            nn.Linear(512, max_horses_per_race),
-        )
-
-    def forward(self, x):
-        x = nn.functional.normalize(x)
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
-
-
-class LSTMClassifier(Estimator):
+class NNClassifier(Estimator):
 
     def __init__(self, feature_manager: FeatureManager, model_evaluator: ModelEvaluator, block_splitter: BlockSplitter):
         super().__init__()
@@ -56,7 +36,7 @@ class LSTMClassifier(Estimator):
             else "cpu"
         )
         print(f"Using {self.device} device")
-        self.network = NeuralNetwork(self.max_horses_per_race, self.feature_count).to(self.device)
+        self.network = SimpleMLP(self.max_horses_per_race, self.feature_count).to(self.device)
         self.loss_fn = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
 
@@ -99,20 +79,18 @@ class LSTMClassifier(Estimator):
     def fit_epoch(self, train_dataloader: DataLoader):
         size = len(train_dataloader.dataset)
         self.network.train()
-        for batch, (X, y) in enumerate(train_dataloader):
+        for batch_idx, (X, y) in enumerate(train_dataloader):
             X, y = X.to(self.device), y.to(self.device)
 
-            # Compute prediction error
             pred = self.network(X)
             loss = self.loss_fn(pred, y)
 
-            # Backpropagation
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-            if batch % 100 == 0:
-                loss, current = loss.item(), (batch + 1) * len(X)
+            if batch_idx % 1000 == 0:
+                loss, current = loss.item(), (batch_idx + 1) * len(X)
                 print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
     def test_epoch(self, test_dataloader: DataLoader):
@@ -129,17 +107,6 @@ class LSTMClassifier(Estimator):
         test_loss /= num_batches
         correct /= size
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-
-    def transform(self, samples: pd.DataFrame) -> ndarray:
-        x, y = self.horse_dataframe_to_features_and_labels(samples)
-        group_counts = samples.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
-
-        predictions = self.network.predict(x)
-        scores = self.get_non_padded_scores(predictions, group_counts)
-        cuda.select_device(0)
-        cuda.close()
-
-        return scores
 
     def horse_dataframe_to_features_and_labels(self, horse_dataframe: pd.DataFrame):
         horses_features = horse_dataframe[self.feature_manager.feature_names].to_numpy()

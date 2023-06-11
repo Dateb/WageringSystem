@@ -2,7 +2,7 @@ import pickle
 
 from tqdm import tqdm
 
-from Model.Estimators.Classification.LSTMClassifier import LSTMClassifier
+from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -58,7 +58,7 @@ def optimize_model_configuration():
     )
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
-    estimator = LSTMClassifier(feature_manager, model_evaluator, block_splitter)
+    estimator = NNClassifier(feature_manager, model_evaluator, block_splitter)
 
     fund_history_summary = model_evaluator.get_fund_history_summary_of_model(estimator, block_splitter)
 
