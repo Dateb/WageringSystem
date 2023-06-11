@@ -64,7 +64,7 @@ class FeatureManager:
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
             #
-            # BetfairOverround(),
+            BetfairOverround(),
             # IsSecondRaceForJockey(),
 
             # RacebetsWinProbability(),
@@ -201,7 +201,7 @@ class FeatureManager:
             # PreviousFasterThanNumber(),
             #
             # TravelDistance(),
-            # Age(),
+            Age(),
             # CurrentDistance(),
             # CurrentRaceSurface(),
             # HasFallen(),

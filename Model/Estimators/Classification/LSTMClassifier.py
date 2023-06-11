@@ -24,13 +24,16 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(max_horses_per_race * feature_count, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Linear(512, max_horses_per_race),
         )
 
     def forward(self, x):
+        x = nn.functional.normalize(x)
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         return logits
@@ -58,38 +61,34 @@ class LSTMClassifier(Estimator):
         self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
 
     def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
-        x_train, y_train = self.horse_dataframe_to_features_and_labels(train_sample.race_cards_dataframe)
+        train_dataloader = self.create_dataloader(train_sample)
+        test_dataloader = self.create_dataloader(test_sample)
 
-        tensor_x = torch.Tensor(x_train)
-        tensor_y = torch.Tensor(y_train).type(torch.LongTensor)
-
-        dataset = TensorDataset(tensor_x, tensor_y)
-
-        train_dataloader = DataLoader(dataset, batch_size=64)
-
-        x_test, y_test = self.horse_dataframe_to_features_and_labels(test_sample.race_cards_dataframe)
-
-        test_tensor_x = torch.Tensor(x_test)
-        tensor_y = torch.Tensor(y_test).type(torch.LongTensor)
-
-        dataset = TensorDataset(test_tensor_x, tensor_y)
-
-        test_dataloader = DataLoader(dataset, batch_size=64)
-
-        epochs = 120
+        epochs = 15
         for t in range(epochs):
             print(f"Epoch {t + 1}\n-------------------------------")
             self.fit_epoch(train_dataloader)
             self.test_epoch(test_dataloader)
         print("Done!")
 
-        predictions = self.network(test_tensor_x.to(self.device))
+        tensor_x_test = test_dataloader.dataset.tensors[0]
+        predictions = self.network(tensor_x_test.to(self.device))
 
         #TODO: Maybe redundant calculating group_counts?
         group_counts = test_sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
         scores = self.get_non_padded_scores(predictions, group_counts)
 
         return scores
+
+    def create_dataloader(self, sample: RaceCardsSample) -> DataLoader:
+        x, y = self.horse_dataframe_to_features_and_labels(sample.race_cards_dataframe)
+
+        tensor_x = torch.Tensor(x)
+        tensor_y = torch.Tensor(y).type(torch.LongTensor)
+
+        dataset = TensorDataset(tensor_x, tensor_y)
+
+        return DataLoader(dataset, batch_size=64)
 
     def tune_setting(self, train_sample: RaceCardsSample) -> None:
         pass
