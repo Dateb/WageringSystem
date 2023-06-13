@@ -1,8 +1,9 @@
+from typing import List
+
 import numpy as np
 import pandas as pd
 import torch
 from numpy import ndarray
-from numba import cuda
 
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
@@ -19,11 +20,69 @@ from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
+class RaceCardLoader:
+
+    def __init__(self, sample: RaceCardsSample, feature_names: List[str], horses_per_race_padding_size: int):
+        self.feature_names = feature_names
+        self.horses_per_race_padding_size = horses_per_race_padding_size
+        self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
+
+        self.dataloader = self.create_dataloader(sample)
+
+        self.x_tensor = self.dataloader.dataset.tensors[0]
+
+    def create_dataloader(self, sample: RaceCardsSample) -> DataLoader:
+        x, y = self.horse_dataframe_to_features_and_labels(sample.race_cards_dataframe)
+
+        tensor_x = torch.Tensor(x)
+        tensor_y = torch.Tensor(y).type(torch.LongTensor)
+
+        dataset = TensorDataset(tensor_x, tensor_y)
+
+        return DataLoader(dataset, batch_size=64)
+
+    def horse_dataframe_to_features_and_labels(self, horse_dataframe: pd.DataFrame):
+        horses_features = horse_dataframe[self.feature_names].to_numpy()
+        horses_win_indicator = horse_dataframe[Horse.RELEVANCE_KEY].to_numpy()
+
+        x_horses, y_horses = self.get_padded_features_and_labels(
+            horses_features,
+            horses_win_indicator,
+            self.group_counts,
+        )
+
+        return x_horses, y_horses
+
+    def get_padded_features_and_labels(
+            self,
+            horse_features: ndarray,
+            horses_win_indicator: ndarray,
+            group_counts: ndarray
+    ):
+        padded_horse_features = np.zeros((len(group_counts), self.horses_per_race_padding_size, len(self.feature_names)))
+        padded_horse_labels = np.zeros((len(group_counts)))
+
+        horse_idx = 0
+        for i in range(len(group_counts)):
+            group_count = group_counts[i]
+            for j in range(self.horses_per_race_padding_size):
+                if j < group_count:
+                    padded_horse_features[i, j, :] = horse_features[horse_idx]
+                    if horses_win_indicator[horse_idx]:
+                        padded_horse_labels[i] = j
+
+                    horse_idx += 1
+                else:
+                    padded_horse_features[i, j, :] = 0
+
+        return padded_horse_features, padded_horse_labels
+
+
 class NNClassifier(Estimator):
 
     def __init__(self, feature_manager: FeatureManager, model_evaluator: ModelEvaluator, block_splitter: BlockSplitter):
         super().__init__()
-        self.max_horses_per_race = 40
+        self.horses_per_race_padding_size = 40
         self.feature_manager = feature_manager
         self.model_evaluator = model_evaluator
         self.block_splitter = block_splitter
@@ -36,39 +95,35 @@ class NNClassifier(Estimator):
             else "cpu"
         )
         print(f"Using {self.device} device")
-        self.network = SimpleMLP(self.max_horses_per_race, self.feature_count).to(self.device)
+        self.network = SimpleMLP(self.horses_per_race_padding_size, self.feature_count).to(self.device)
         self.loss_fn = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
 
     def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
-        train_dataloader = self.create_dataloader(train_sample)
-        test_dataloader = self.create_dataloader(test_sample)
+        train_race_card_loader = RaceCardLoader(
+            train_sample,
+            self.feature_manager.feature_names,
+            horses_per_race_padding_size=self.horses_per_race_padding_size
+        )
+
+        test_race_card_loader = RaceCardLoader(
+            test_sample,
+            self.feature_manager.feature_names,
+            horses_per_race_padding_size=self.horses_per_race_padding_size
+        )
 
         epochs = 15
         for t in range(epochs):
             print(f"Epoch {t + 1}\n-------------------------------")
-            self.fit_epoch(train_dataloader)
-            self.test_epoch(test_dataloader)
+            self.fit_epoch(train_race_card_loader.dataloader)
+            self.test_epoch(test_race_card_loader.dataloader)
         print("Done!")
 
-        tensor_x_test = test_dataloader.dataset.tensors[0]
-        predictions = self.network(tensor_x_test.to(self.device))
+        predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
 
-        #TODO: Maybe redundant calculating group_counts?
-        group_counts = test_sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
-        scores = self.get_non_padded_scores(predictions, group_counts)
+        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
 
         return scores
-
-    def create_dataloader(self, sample: RaceCardsSample) -> DataLoader:
-        x, y = self.horse_dataframe_to_features_and_labels(sample.race_cards_dataframe)
-
-        tensor_x = torch.Tensor(x)
-        tensor_y = torch.Tensor(y).type(torch.LongTensor)
-
-        dataset = TensorDataset(tensor_x, tensor_y)
-
-        return DataLoader(dataset, batch_size=64)
 
     def tune_setting(self, train_sample: RaceCardsSample) -> None:
         pass
@@ -108,43 +163,6 @@ class NNClassifier(Estimator):
         correct /= size
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
-    def horse_dataframe_to_features_and_labels(self, horse_dataframe: pd.DataFrame):
-        horses_features = horse_dataframe[self.feature_manager.feature_names].to_numpy()
-        horses_win_indicator = horse_dataframe[Horse.RELEVANCE_KEY].to_numpy()
-        group_counts = horse_dataframe.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count().to_numpy()
-
-        x_horses, y_horses = self.get_padded_features_and_labels(
-            horses_features,
-            horses_win_indicator,
-            group_counts,
-        )
-
-        return x_horses, y_horses
-
-    def get_padded_features_and_labels(
-            self,
-            horse_features: ndarray,
-            horses_win_indicator: ndarray,
-            group_counts: ndarray
-    ):
-        padded_horse_features = np.zeros((len(group_counts), self.max_horses_per_race, self.feature_count))
-        padded_horse_labels = np.zeros((len(group_counts)))
-
-        horse_idx = 0
-        for i in range(len(group_counts)):
-            group_count = group_counts[i]
-            for j in range(self.max_horses_per_race):
-                if j < group_count:
-                    padded_horse_features[i, j, :] = horse_features[horse_idx]
-                    if horses_win_indicator[horse_idx]:
-                        padded_horse_labels[i] = j
-
-                    horse_idx += 1
-                else:
-                    padded_horse_features[i, j, :] = 0
-
-        return padded_horse_features, padded_horse_labels
-
     def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
         scores = np.zeros(np.sum(group_counts))
 
@@ -152,7 +170,7 @@ class NNClassifier(Estimator):
         for i in range(len(group_counts)):
             group_count = group_counts[i]
             for j in range(group_count):
-                if j < self.max_horses_per_race:
+                if j < self.horses_per_race_padding_size:
                     scores[horse_idx] = predictions[i, j]
                 else:
                     scores[horse_idx] = 0
