@@ -26,10 +26,12 @@ class BetfairOverround(FeatureExtractor):
         inverse_odds = [1 / horse.betfair_win_sp for horse in race_card.horses if horse.betfair_win_sp > 0]
         overround = sum(inverse_odds)
 
-        return overround
+        return float(overround)
 
 
 class BetfairWinMarketWinProbability(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -39,7 +41,7 @@ class BetfairWinMarketWinProbability(FeatureExtractor):
         total_inverse_odds = sum(inverse_odds)
 
         if total_inverse_odds == 0 or horse.betfair_win_sp == 0:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return (1 / horse.betfair_win_sp) / total_inverse_odds
 
 

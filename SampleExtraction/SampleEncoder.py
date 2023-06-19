@@ -14,7 +14,7 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class SampleEncoder:
 
     def __init__(self, features: List[FeatureExtractor], columns: List[str]):
-        self.__feature_names = [feature.get_name() for feature in features]
+        self.numerical_feature_names = [feature.get_name() for feature in features if not feature.is_categorical]
         self.__samples_array = None
         self.__columns = columns
 
@@ -27,7 +27,7 @@ class SampleEncoder:
     def get_race_cards_sample(self) -> RaceCardsSample:
         race_cards_dataframe = DataFrame(data=self.__samples_array, columns=self.__columns)
 
-        race_cards_dataframe[self.__feature_names] = \
-            race_cards_dataframe[self.__feature_names].apply(pd.to_numeric, errors="coerce")
+        race_cards_dataframe[self.numerical_feature_names] = \
+            race_cards_dataframe[self.numerical_feature_names].apply(pd.to_numeric, errors="coerce")
 
         return RaceCardsSample(race_cards_dataframe)

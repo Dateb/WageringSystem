@@ -10,6 +10,30 @@ from Model.Betting.kelly_optimizer import kelly_objective, kelly_jacobian
 previous_stakes: Dict[str, ndarray] = {}
 
 
+def get_predicted_winner_stakes(ev_threshold: float, win_probabilities: ndarray, odds: ndarray) -> ndarray:
+    stakes = np.zeros(shape=win_probabilities.shape)
+    n_horses = len(win_probabilities)
+    highest_probability = 0
+    highest_probability_idx = -1
+    final_ev = 0
+    for i in range(n_horses):
+        win_probability = win_probabilities[i]
+        ev = win_probability * odds[i] * (1 - Bet.WIN_COMMISION)
+
+        if win_probability > highest_probability:
+            final_ev = ev
+            highest_probability = win_probability
+            highest_probability_idx = i
+
+    if final_ev > 1 + ev_threshold:
+        numerator = final_ev - (1 + Bet.BET_TAX + ev_threshold)
+        denominator = odds[highest_probability_idx] - (1 + Bet.BET_TAX + ev_threshold)
+
+        stakes[highest_probability_idx] = numerator / denominator
+
+    return stakes
+
+
 def get_most_probable_value_stakes(ev_threshold: float, win_probabilities: ndarray, odds: ndarray) -> ndarray:
     stakes = np.zeros(shape=win_probabilities.shape)
     n_horses = len(win_probabilities)
@@ -18,7 +42,7 @@ def get_most_probable_value_stakes(ev_threshold: float, win_probabilities: ndarr
     final_ev = 0
     for i in range(n_horses):
         win_probability = win_probabilities[i]
-        ev = win_probability * odds[i]
+        ev = win_probability * odds[i] * (1 - Bet.WIN_COMMISION)
 
         if ev > 1 + ev_threshold:
             if win_probability > highest_probability:

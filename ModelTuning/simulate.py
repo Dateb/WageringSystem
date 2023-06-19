@@ -14,8 +14,8 @@ from SampleExtraction.BlockSplitter import BlockSplitter
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 2
+N_CONTAINER_MONTHS = 10
+N_SAMPLE_MONTHS = 104
 N_MONTHS_FORWARD_OFFSET = 0
 
 
@@ -54,7 +54,7 @@ def optimize_model_configuration():
     block_splitter = BlockSplitter(
         race_cards_sample,
         n_validation_rounds=5,
-        n_test_races=100,
+        n_test_races=2000,
     )
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)

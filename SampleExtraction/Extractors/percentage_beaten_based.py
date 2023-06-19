@@ -215,6 +215,4 @@ class TrainerClassPercentageBeaten(FeatureExtractor):
 
 def get_percentage_beaten_of_name(name: str) -> float:
     show_rate = percentage_beaten_source.get_average_of_name(name)
-    if show_rate == -1:
-        return float('NaN')
     return show_rate

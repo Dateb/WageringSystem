@@ -214,6 +214,5 @@ class TrainerClassWinRate(FeatureExtractor):
 
 def get_win_rate_of_name(name: str) -> float:
     win_rate = win_rate_source.get_average_of_name(name)
-    if win_rate == -1:
-        return float('NaN')
+
     return win_rate

@@ -9,11 +9,7 @@ class JockeyWeight(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        jockey_weight = horse.jockey.weight
-        if jockey_weight == -1:
-            return self.PLACEHOLDER_VALUE
-
-        return jockey_weight
+        return float(horse.jockey.weight)
 
 
 class WeightAllowance(FeatureExtractor):

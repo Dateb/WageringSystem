@@ -79,10 +79,16 @@ class FeatureManager:
             self.features = self.base_features + self.search_features
 
         self.feature_names = [feature.get_name() for feature in self.features]
+        self.numerical_feature_names = [feature.get_name() for feature in self.features if not feature.is_categorical]
+        self.categorical_feature_names = [feature.get_name() for feature in self.features if feature.is_categorical]
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            Age(),
+            CurrentDistance(),
+            JockeyWeight(),
+            Gender(),
 
             # DamSireWinRate(),
             # SireWinRate(),
@@ -169,7 +175,6 @@ class FeatureManager:
             # HorseBreederShowRate(),
             #
             # HorseWinRate(),
-            # Gender(),
             #
             # HorseBreederWinRate(),
             # WeekDaySin(),
@@ -201,12 +206,9 @@ class FeatureManager:
             # PreviousFasterThanNumber(),
             #
             # TravelDistance(),
-            Age(),
-            # CurrentDistance(),
             # CurrentRaceSurface(),
             # HasFallen(),
             # HasTrackChanged(),
-            # JockeyWeight(),
             # IsUnderdog(),
             # WeekDayCos(),
             #

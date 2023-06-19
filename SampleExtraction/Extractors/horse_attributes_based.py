@@ -9,7 +9,7 @@ class Age(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return horse.age
+        return int(horse.age)
 
 
 class Gender(FeatureExtractor):
@@ -18,13 +18,8 @@ class Gender(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        if horse.gender == "G":
-            return 0
-        elif horse.gender == "M":
-            return 1
-        elif horse.gender == "C":
-            return 2
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return horse.gender
 
 
 class CurrentRating(FeatureExtractor):

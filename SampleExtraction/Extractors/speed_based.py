@@ -10,11 +10,16 @@ from SampleExtraction.Extractors.feature_sources import speed_figures_source
 
 class CurrentSpeedFigure(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = -1
+
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         current_speed_figure = speed_figures_source.get_current_speed_figure(horse.subject_id)
+        if current_speed_figure < -1:
+            print(current_speed_figure)
+
         if current_speed_figure == -1:
             return self.PLACEHOLDER_VALUE
 
