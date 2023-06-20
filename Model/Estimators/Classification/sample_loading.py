@@ -27,7 +27,7 @@ class RaceCardLoader(ABC):
 
         dataset = TensorDataset(tensor_x, tensor_y)
 
-        return DataLoader(dataset, batch_size=64)
+        return DataLoader(dataset, batch_size=64, shuffle=True)
 
     def horse_dataframe_to_features_and_labels(self, x: ndarray, y: ndarray):
         x_horses, y_horses = self.get_padded_features_and_labels(
@@ -58,8 +58,6 @@ class RaceCardLoader(ABC):
                         padded_horse_labels[i] = j
 
                     horse_idx += 1
-                else:
-                    padded_horse_features[i, j, :] = 0
 
         return padded_horse_features, padded_horse_labels
 

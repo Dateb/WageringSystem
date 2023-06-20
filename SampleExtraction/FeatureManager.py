@@ -65,6 +65,8 @@ class FeatureManager:
             # IndustryMarketWinProbabilityDiff(),
             #
             BetfairOverround(),
+            # DayOfYearSin(),
+            # DayOfYearCos(),
             # IsSecondRaceForJockey(),
 
             # RacebetsWinProbability(),
@@ -169,7 +171,6 @@ class FeatureManager:
             # TwoYearStartCount(),
             #
             # JockeyDistanceWinRate(),
-            # DayOfYearSin(),
             #
             # HorseTrainerShowRate(),
             # HorseBreederShowRate(),
@@ -254,7 +255,6 @@ class FeatureManager:
 
             # MaxPastRatingExtractor(),
             # MeanSpeedDiff(),
-            # DayOfYearCos(),
             # CurrentRaceTypeDetail(),
         ]
 
