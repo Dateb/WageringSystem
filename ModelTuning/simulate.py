@@ -1,5 +1,7 @@
 import pickle
 
+import torch
+from torch import nn
 from tqdm import tqdm
 
 from Model.Estimators.Classification.NNClassifier import NNClassifier
@@ -14,9 +16,19 @@ from SampleExtraction.BlockSplitter import BlockSplitter
 __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 10
-N_SAMPLE_MONTHS = 104
+N_CONTAINER_MONTHS = 1
+N_SAMPLE_MONTHS = 2
 N_MONTHS_FORWARD_OFFSET = 0
+
+NN_CLASSIFIER_PARAMS = {
+    "loss_function": nn.CrossEntropyLoss(),
+    "base_lr": 1e-3,
+    "decay_factor": 0.1,
+    "patience": 20,
+    "threshold": 1e-4,
+    "eps": 1e-10,
+    "lr_to_stop": 1e-8
+}
 
 
 def optimize_model_configuration():
@@ -54,11 +66,11 @@ def optimize_model_configuration():
     block_splitter = BlockSplitter(
         race_cards_sample,
         n_validation_rounds=5,
-        n_test_races=2000,
+        n_test_races=100,
     )
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
-    estimator = NNClassifier(feature_manager, model_evaluator, block_splitter)
+    estimator = NNClassifier(feature_manager, model_evaluator, block_splitter, NN_CLASSIFIER_PARAMS)
 
     fund_history_summary = model_evaluator.get_fund_history_summary_of_model(estimator, block_splitter)
 

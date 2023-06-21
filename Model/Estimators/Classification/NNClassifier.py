@@ -22,12 +22,21 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class NNClassifier(Estimator):
 
-    def __init__(self, feature_manager: FeatureManager, model_evaluator: ModelEvaluator, block_splitter: BlockSplitter):
+    def __init__(
+            self,
+            feature_manager: FeatureManager,
+            model_evaluator: ModelEvaluator,
+            block_splitter: BlockSplitter,
+            params: dict,
+    ):
         super().__init__()
         self.horses_per_race_padding_size = 40
         self.feature_manager = feature_manager
         self.model_evaluator = model_evaluator
         self.block_splitter = block_splitter
+
+        self.params = params
+        self.loss_function = self.params["loss_function"]
 
         self.device = (
             "cuda"
@@ -57,13 +66,17 @@ class NNClassifier(Estimator):
         )
 
         self.network = SimpleMLP(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values).to(self.device)
-        self.loss_fn = nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min',
-                                                               factor=0.1, patience=20, threshold=0.0001,
-                                                               threshold_mode='abs', eps=1e-10)
 
-        while self.scheduler.optimizer.param_groups[-1]['lr'] > 1e-8:
+        self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode='min',
+            factor=self.params["decay_factor"],
+            patience=self.params["patience"],
+            threshold=self.params["threshold"],
+            eps=self.params["eps"]
+        )
+
+        while self.scheduler.optimizer.param_groups[-1]['lr'] > self.params["lr_to_stop"]:
             print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
             self.fit_epoch(train_race_card_loader.dataloader)
             self.test_epoch(test_race_card_loader.dataloader)
@@ -89,7 +102,7 @@ class NNClassifier(Estimator):
             X, y = X.to(self.device), y.to(self.device)
 
             pred = self.network(X)
-            loss = self.loss_fn(pred, y)
+            loss = self.loss_function(pred, y)
 
             loss.backward()
             self.optimizer.step()
@@ -110,7 +123,7 @@ class NNClassifier(Estimator):
             for X, y in test_dataloader:
                 X, y = X.to(self.device), y.to(self.device)
                 pred = self.network(X)
-                test_loss += self.loss_fn(pred, y).item()
+                test_loss += self.loss_function(pred, y).item()
                 correct += (pred.argmax(1) == y).type(torch.float).sum().item()
         test_loss /= num_batches
         correct /= size
