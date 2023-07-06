@@ -4,7 +4,7 @@ from torch.autograd import Variable
 
 
 class SimpleMLP(nn.Module):
-    def __init__(self, max_horses_per_race: int, feature_count: int):
+    def __init__(self, max_horses_per_race: int, feature_count: int, dropout_rate: float):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
@@ -13,25 +13,25 @@ class SimpleMLP(nn.Module):
             nn.BatchNorm1d(1024),
             nn.ReLU(),
 
-            nn.Dropout(0.2),
+            nn.Dropout(dropout_rate),
 
             nn.Linear(1024, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
-            nn.Dropout(0.2),
+            nn.Dropout(dropout_rate),
 
             nn.Linear(512, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
 
-            nn.Dropout(0.2),
+            nn.Dropout(dropout_rate),
 
             nn.Linear(256, 128),
             nn.BatchNorm1d(128),
             nn.ReLU(),
 
-            nn.Dropout(0.2),
+            nn.Dropout(dropout_rate),
 
             nn.Linear(128, max_horses_per_race),
         )

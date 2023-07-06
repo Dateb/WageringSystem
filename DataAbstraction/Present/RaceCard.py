@@ -149,7 +149,7 @@ class RaceCard:
                 )
 
                 horse.relevance = get_winner_relevance(horse)
-                horse.base_attributes[Horse.RELEVANCE_KEY] = horse.relevance
+                horse.base_attributes[Horse.LABEL_KEY] = horse.relevance
 
     def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

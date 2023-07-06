@@ -58,13 +58,13 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
-            # CurrentRaceTrack(),
-            BetfairWinMarketWinProbability(),
+            CurrentRaceTrack(),
+            # BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
             #
-            BetfairOverround(),
+            # BetfairOverround(),
             # DayOfYearSin(),
             # DayOfYearCos(),
             # IsSecondRaceForJockey(),
@@ -91,6 +91,8 @@ class FeatureManager:
             CurrentDistance(),
             JockeyWeight(),
             Gender(),
+            TravelDistance(),
+            # CurrentRaceCategory(),
 
             # DamSireWinRate(),
             # SireWinRate(),
@@ -206,7 +208,6 @@ class FeatureManager:
             #
             # PreviousFasterThanNumber(),
             #
-            # TravelDistance(),
             # CurrentRaceSurface(),
             # HasFallen(),
             # HasTrackChanged(),
@@ -214,7 +215,6 @@ class FeatureManager:
             # WeekDayCos(),
             #
             # CurrentRaceClass(), CurrentGoing(),
-            # CurrentRaceCategory(),
             #
             # DrawBias(),
             # AgeFrom(), AgeTo(),

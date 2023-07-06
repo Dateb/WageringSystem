@@ -17,8 +17,10 @@ __FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 2
+N_SAMPLE_MONTHS = 113
 N_MONTHS_FORWARD_OFFSET = 0
+
+N_TEST_RACES = 2000
 
 NN_CLASSIFIER_PARAMS = {
     "loss_function": nn.CrossEntropyLoss(),
@@ -27,7 +29,8 @@ NN_CLASSIFIER_PARAMS = {
     "patience": 20,
     "threshold": 1e-4,
     "eps": 1e-10,
-    "lr_to_stop": 1e-8
+    "lr_to_stop": 1e-8,
+    "dropout_rate": 0.2
 }
 
 
@@ -66,7 +69,7 @@ def optimize_model_configuration():
     block_splitter = BlockSplitter(
         race_cards_sample,
         n_validation_rounds=5,
-        n_test_races=100,
+        n_test_races=N_TEST_RACES,
     )
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)

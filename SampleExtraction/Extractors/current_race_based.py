@@ -34,8 +34,8 @@ class CurrentRaceTrack(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return get_category_encoding("track_name", str(race_card.track_name))
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return race_card.track_name
 
 
 class CurrentRaceSurface(FeatureExtractor):
@@ -155,6 +155,8 @@ unknown_location_list = []
 
 class TravelDistance(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = -1
+
     def __init__(self):
         super().__init__()
         with open("../data/locations.json", "r") as f:
@@ -179,7 +181,7 @@ class TravelDistance(FeatureExtractor):
 
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
-        return travel_distance
+        return 1 / (travel_distance + 1e-4)
 
 
 class WeatherType(FeatureExtractor):

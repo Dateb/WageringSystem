@@ -64,7 +64,7 @@ class EstimatorConfiguration:
         self.search_params = {}
         self.parameter_set = {}
 
-        self.label_name = Horse.RELEVANCE_KEY
+        self.label_name = Horse.LABEL_KEY
         self.feature_names = []
         self.categorical_feature_names = []
 

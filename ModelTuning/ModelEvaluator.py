@@ -26,6 +26,9 @@ class ModelEvaluator:
 
         train_sample, test_sample = block_splitter.get_train_test_split()
 
+        train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
+        test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
+
         scores = estimator.predict(train_sample, test_sample)
         betting_slips = WinProbabilizer().create_betting_slips(deepcopy(test_sample), scores)
 
@@ -42,3 +45,11 @@ class ModelEvaluator:
         fund_history_summary = FundHistorySummary("Some Name", betting_slips)
 
         return fund_history_summary
+
+    def prune_sample(self, race_cards_df):
+        race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
+
+        race_ids_to_keep = race_id_counts[race_id_counts <= 20].index
+
+        return race_cards_df[race_cards_df[RaceCard.RACE_ID_KEY].isin(race_ids_to_keep)]
+

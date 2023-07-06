@@ -65,7 +65,7 @@ class NNClassifier(Estimator):
             one_hot_encoder=one_hot_encoder
         )
 
-        self.network = SimpleMLP(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values).to(self.device)
+        self.network = SimpleMLP(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values, self.params["dropout_rate"]).to(self.device)
 
         self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -96,23 +96,29 @@ class NNClassifier(Estimator):
 
     def fit_epoch(self, train_dataloader: DataLoader):
         size = len(train_dataloader.dataset)
-        loss = None
+        num_batches = len(train_dataloader)
+
+        batch_loss = None
+        train_loss, correct = 0, 0
         self.network.train()
         for batch_idx, (X, y) in enumerate(train_dataloader):
             X, y = X.to(self.device), y.to(self.device)
 
             pred = self.network(X)
-            loss = self.loss_function(pred, y)
+            batch_loss = self.loss_function(pred, y)
 
-            loss.backward()
+            batch_loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-            if batch_idx % 1000 == 0:
-                loss, current = loss.item(), (batch_idx + 1) * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            train_loss += self.loss_function(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
-        self.scheduler.step(loss)
+        self.scheduler.step(batch_loss)
+
+        train_loss /= num_batches
+        correct /= size
+        print(f"Train Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {train_loss:>8f} \n")
 
     def test_epoch(self, test_dataloader: DataLoader):
         size = len(test_dataloader.dataset)
@@ -125,6 +131,7 @@ class NNClassifier(Estimator):
                 pred = self.network(X)
                 test_loss += self.loss_function(pred, y).item()
                 correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
         test_loss /= num_batches
         correct /= size
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")

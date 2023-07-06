@@ -18,6 +18,7 @@ class RaceCardLoader(ABC):
 
     def __init__(self, sample: RaceCardsSample, horses_per_race_padding_size: int):
         self.horses_per_race_padding_size = horses_per_race_padding_size
+
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
@@ -70,7 +71,7 @@ class TrainRaceCardLoader(RaceCardLoader):
 
         #TODO: Remove redundancy
         horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
-        horses_win_indicator = sample.race_cards_dataframe[Horse.RELEVANCE_KEY].to_numpy()
+        horses_win_indicator = sample.race_cards_dataframe[Horse.LABEL_KEY].to_numpy()
 
         numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
 
@@ -95,7 +96,7 @@ class TestRaceCardLoader(RaceCardLoader):
         super().__init__(sample, horses_per_race_padding_size)
 
         horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
-        horses_win_indicator = sample.race_cards_dataframe[Horse.RELEVANCE_KEY].to_numpy()
+        horses_win_indicator = sample.race_cards_dataframe[Horse.LABEL_KEY].to_numpy()
 
         numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
 
