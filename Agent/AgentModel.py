@@ -52,7 +52,7 @@ class AgentModel:
 
     def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
         estimation_result = self.estimate_race_card(race_card)
-        betting_slips = self.bet_model.bettor.bet(estimation_result)
+        betting_slips = self.bet_model.bettor.create_bets(estimation_result)
 
         return list(betting_slips.values())[0]
 

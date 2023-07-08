@@ -6,13 +6,13 @@ from datetime import datetime
 
 
 @dataclass
-class BetfairOffer:
+class BetOffer:
 
-    runner_name: str
+    horse_name: str
     odds: float
 
     def __str__(self) -> str:
-        return f"Odds for {self.runner_name}: {self.odds}"
+        return f"Odds for {self.horse_name}: {self.odds}"
 
 
 class BetfairHistoryDictIterator:
@@ -64,14 +64,14 @@ class BetfairOfferContainer:
         print(initial_history_dict)
 
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
-        runners = market_definition["runners"]
-        runner_id_to_name_map = {runner["id"]: runner["name"] for runner in runners}
+        horses = market_definition["runners"]
+        horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 
         for history_dict in history_dict_iterator:
             market_condition = history_dict["mc"][0]
             if "rc" in market_condition:
                 new_offers = [
-                    BetfairOffer(runner_id_to_name_map[offer_data["id"]], offer_data["ltp"])
+                    BetOffer(horse_id_to_name_map[offer_data["id"]], offer_data["ltp"])
                     for offer_data in market_condition["rc"]
                 ]
                 betfair_offers += new_offers
@@ -81,14 +81,21 @@ class BetfairOfferContainer:
         race_datetime = self.create_datetime_from_market_time(market_definition["marketTime"])
 
         race_key = f"{race_datetime}_{track_name}"
+        print(race_key)
 
         self.race_offers[race_key] = betfair_offers
 
-    def get_offers_from_race(self, race_datetime: datetime, track_name: str) -> List[BetfairOffer]:
+    def get_offers_from_race(self, race_datetime: datetime, track_name: str) -> List[BetOffer]:
         race_key = f"{race_datetime}_{track_name}"
         if race_key in self.race_offers:
             return self.race_offers[race_key]
         return []
+
+    # Usage:
+    # race_offers = offer_container.get_offers_from_race(
+    #     race_datetime=datetime(year=2023, month=4, day=1, hour=16, minute=30),
+    #     track_name="Chelmsford City",
+    # )
 
     def create_datetime_from_market_time(self, market_time: str) -> datetime:
         datetime_substrings = market_time.split('T')
@@ -100,10 +107,80 @@ class BetfairOfferContainer:
         return datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
 
 
+class EstimationResult:
+
+    def __init__(self, probability_estimates: dict):
+        self.probability_estimates = probability_estimates
+
+    def get_probability_estimate(self, race_key: str, horse_name: str) -> float:
+        return self.probability_estimates[race_key][horse_name]
+
+
+@dataclass
+class Bet:
+
+    race_key: str
+    bet_offer: BetOffer
+    stakes: float
+
+
+def create_bets(estimation_result: EstimationResult, betfair_offer_container: BetfairOfferContainer) -> List[Bet]:
+    bets = []
+    already_taken_offers = {}
+
+    for race_key, race_offers in betfair_offer_container.race_offers.items():
+        for offer in race_offers:
+            probability_estimate = estimation_result.get_probability_estimate(race_key, offer.horse_name)
+            offer_probability = 1 / offer.odds
+
+            if probability_estimate > offer_probability and (race_key, offer.horse_name) not in already_taken_offers:
+                stakes = probability_estimate - offer_probability
+                bets.append(Bet(race_key, offer, stakes))
+                already_taken_offers[(race_key, offer.horse_name)] = True
+
+    return bets
+
+
+class WinOracle:
+
+    def __init__(self, win_results: dict):
+        self.win_results = win_results
+
+    def get_payout(self, bets: List[Bet]) -> float:
+        total_payout = 0
+
+        for bet in bets:
+            if bet.race_key in win_results:
+                total_payout -= bet.stakes
+                if self.is_winning_bet(bet):
+                    total_payout += bet.stakes * bet.bet_offer.odds
+
+        return total_payout
+
+    def is_winning_bet(self, bet: Bet) -> bool:
+        return bet.bet_offer.horse_name == self.win_results[bet.race_key]
+
+
 offer_container = BetfairOfferContainer()
 
-race_offers = offer_container.get_offers_from_race(
-    race_datetime=datetime(year=2023, month=4, day=1, hour=16, minute=30),
-    track_name="Chelmsford City",
-)
-print(race_offers)
+probability_estimates = {
+    "2023-04-01 16:30:00_Chelmsford City": {
+        "Valorant": 0.5,
+        "Vitralite": 0.2,
+        "Ostilio": 0.15,
+        "Brazen Arrow": 0.1,
+        "Butterfly Island": 0.03,
+        "Okeanos": 0.02,
+    }
+}
+
+estimation_result = EstimationResult(probability_estimates)
+bets = create_bets(estimation_result, offer_container)
+
+win_results = {
+    "2023-04-01 16:30:00_Chelmsford City": "Valorant"
+}
+win_oracle = WinOracle(win_results)
+payout = win_oracle.get_payout(bets)
+
+print(payout)
