@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import timedelta
 from typing import Dict
 
 from Model.Betting.BetEvaluator import BetEvaluator
@@ -10,27 +11,36 @@ from Model.Estimators.Estimator import Estimator
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.BlockSplitter import BlockSplitter
 from SampleExtraction.RaceCardsSample import RaceCardsSample
+from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key
 
 
 class ModelEvaluator:
 
     def __init__(self):
-        self.race_card_results: Dict[str, RaceResult] = {}
+        self.offer_container = BetfairOfferContainer()
+        self.win_results = {}
 
     def add_results_from_race_cards(self, race_cards: Dict[str, RaceCard]):
-        for date in race_cards:
-            self.race_card_results[date] = race_cards[date].race_result
+        for race_card in race_cards.values():
+            race_datetime = race_card.datetime - timedelta(hours=2)
+            race_key = create_race_key(race_datetime, race_card.track_name)
+            self.win_results[race_key] = race_card.winner_name
 
     def get_fund_history_summary_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> FundHistorySummary:
-        bet_evaluator = BetEvaluator(self.race_card_results)
-
         train_sample, test_sample = block_splitter.get_train_test_split()
 
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
         test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
 
         scores = estimator.predict(train_sample, test_sample)
-        betting_slips = WinProbabilizer().create_betting_slips(deepcopy(test_sample), scores)
+        estimation_result = WinProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
+
+        bets = create_bets(estimation_result, self.offer_container)
+
+        print(bets)
+
+        win_oracle = WinOracle(self.win_results)
+        payout = win_oracle.get_payout(bets)
 
         #TODO: Why does the bettor need the probabilizer?
         bettor = EVSingleBettor(
@@ -38,11 +48,9 @@ class ModelEvaluator:
             probabilizer=WinProbabilizer(),
         )
 
-        betting_slips = bettor.bet(betting_slips)
+        # fund_history_summary = FundHistorySummary("Some Name", betting_slips)
 
-        bet_evaluator.add_wins_to_betting_slips(betting_slips)
-
-        fund_history_summary = FundHistorySummary("Some Name", betting_slips)
+        print(payout)
 
         return fund_history_summary
 

@@ -44,7 +44,6 @@ class RaceCard:
         event = raw_race_card["event"]
         race = raw_race_card["race"]
 
-        self.winner_id = -1
         self.race_result = None
         raw_result = raw_race_card["result"]
         self.has_results = False
@@ -86,10 +85,7 @@ class RaceCard:
         self.is_open = race["raceStatus"] == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
-
-        self.non_runners = [horse for horse in self.horses if horse.is_scratched]
-        if self.remove_non_starters:
-            self.__remove_non_starters()
+        self.winner_name = [horse.name for horse in self.horses if horse.place == 1][0]
 
         self.n_horses = len(self.horses)
 
@@ -251,8 +247,3 @@ class RaceCard:
         if len(self.horses) <= 1:
             self.is_valid_sample = False
             self.feature_source_validity = False
-
-        for horse in self.horses:
-            if horse.betfair_win_sp == 0:
-                self.is_valid_sample = False
-

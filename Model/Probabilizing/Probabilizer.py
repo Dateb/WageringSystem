@@ -12,6 +12,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.Bets.Bet import Bet
 from Model.Betting.BettingSlip import BettingSlip
 from SampleExtraction.RaceCardsSample import RaceCardsSample
+from market_simulation.odds_history import EstimationResult
 
 
 class Probabilizer(ABC):
@@ -20,7 +21,7 @@ class Probabilizer(ABC):
         pass
 
     @abstractmethod
-    def create_betting_slips(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> Dict[str, BettingSlip]:
+    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
         pass
 
     def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray) -> pd.DataFrame:

@@ -18,7 +18,7 @@ class PlaceProbabilizer(Probabilizer):
     def __init__(self):
         super().__init__()
 
-    def create_betting_slips(self, race_cards_sample: RaceCardsSample, scores: ndarray):
+    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray):
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
         race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe, scores)
         race_cards_dataframe = self.set_place_probabilities(race_cards_dataframe)
