@@ -21,6 +21,30 @@ class SimpleMLP(nn.Module):
 
             nn.Dropout(dropout_rate),
 
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
             nn.Linear(512, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),

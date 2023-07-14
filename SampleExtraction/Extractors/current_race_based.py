@@ -101,8 +101,8 @@ class WeightAdvantage(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         horse_weight = horse.jockey.weight
-        if horse_weight == -1:
-            return self.PLACEHOLDER_VALUE
+        if horse_weight in [-1, 0]:
+            return -1
         return race_card.mean_horse_weight / horse_weight
 
 

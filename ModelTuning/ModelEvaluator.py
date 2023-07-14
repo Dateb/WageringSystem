@@ -1,16 +1,13 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Dict
+from typing import Dict, List
 
-from Model.Betting.BetEvaluator import BetEvaluator
+import numpy as np
+
 from DataAbstraction.Present.RaceCard import RaceCard
-from DataAbstraction.Present.RaceResult import RaceResult
-from Experiments.FundHistorySummary import FundHistorySummary
-from Model.Betting.EVSingleBettor import EVSingleBettor
 from Model.Estimators.Estimator import Estimator
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from SampleExtraction.BlockSplitter import BlockSplitter
-from SampleExtraction.RaceCardsSample import RaceCardsSample
 from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key
 
 
@@ -26,7 +23,7 @@ class ModelEvaluator:
             race_key = create_race_key(race_datetime, race_card.track_name)
             self.win_results[race_key] = race_card.winner_name
 
-    def get_fund_history_summary_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> FundHistorySummary:
+    def get_payouts_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> List[float]:
         train_sample, test_sample = block_splitter.get_train_test_split()
 
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
@@ -35,24 +32,26 @@ class ModelEvaluator:
         scores = estimator.predict(train_sample, test_sample)
         estimation_result = WinProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
 
-        bets = create_bets(estimation_result, self.offer_container)
+        best_score = -np.inf
+        best_sorted_payouts = []
 
-        print(bets)
+        bet_thresholds = [1.0 + i / 10 for i in range(10)]
+        for bet_threshold in bet_thresholds:
+            bets = create_bets(estimation_result, self.offer_container, bet_threshold=bet_threshold)
 
-        win_oracle = WinOracle(self.win_results)
-        payout = win_oracle.get_payout(bets)
+            win_oracle = WinOracle(self.win_results)
+            payouts = win_oracle.get_payouts(bets)
 
-        #TODO: Why does the bettor need the probabilizer?
-        bettor = EVSingleBettor(
-            additional_ev_threshold=0.0,
-            probabilizer=WinProbabilizer(),
-        )
+            sorted_payouts = [payout_value for date, payout_value in sorted(payouts.items())]
 
-        # fund_history_summary = FundHistorySummary("Some Name", betting_slips)
+            score = sum(sorted_payouts)
 
-        print(payout)
+            if score > best_score:
+                best_sorted_payouts = sorted_payouts
+                best_score = score
+                print(f"New best score: {best_score} at threshold: {bet_threshold}")
 
-        return fund_history_summary
+        return best_sorted_payouts
 
     def prune_sample(self, race_cards_df):
         race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()

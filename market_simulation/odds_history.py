@@ -1,6 +1,8 @@
 import bz2
 import json
+import os
 from dataclasses import dataclass
+from json import JSONDecodeError
 from typing import List
 from datetime import datetime
 
@@ -52,35 +54,48 @@ class BetfairOfferContainer:
     def __init__(self):
         self.race_offers = {}
 
-        history_path = "../data/exchange_odds_history/32228209/1.212090749.bz2"
-        self.load_offers_from_race(history_path)
+        history_path = "../data/exchange_odds_history/Apr/"
+        day_dirs = os.listdir(history_path)
+        for day_dir in day_dirs:
+            race_series_dirs = os.listdir(f"{history_path}/{day_dir}")
+            for race_series_dir in race_series_dirs:
+                history_files = os.listdir(f"{history_path}/{day_dir}/{race_series_dir}")
+
+                for file_name in history_files:
+                    if file_name.startswith("1"):
+                        self.load_offers_from_race(f"{history_path}/{day_dir}/{race_series_dir}/{file_name}")
 
     def load_offers_from_race(self, race_history_file_path: str):
         betfair_offers = []
 
         history_dict_iterator = BetfairHistoryDictIterator(race_history_file_path)
 
-        initial_history_dict = next(history_dict_iterator)
-        print(initial_history_dict)
+        try:
+            initial_history_dict = next(history_dict_iterator)
+        except JSONDecodeError:
+            print(f"broken file: {race_history_file_path}")
+            return
 
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
-        horses = market_definition["runners"]
-        horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 
-        for history_dict in history_dict_iterator:
-            market_condition = history_dict["mc"][0]
-            if "rc" in market_condition:
-                new_offers = [
-                    BetOffer(horse_id_to_name_map[offer_data["id"]], offer_data["ltp"])
-                    for offer_data in market_condition["rc"]
-                ]
-                betfair_offers += new_offers
+        if market_definition["marketType"] == "WIN" and market_definition["countryCode"] == "GB":
+            horses = market_definition["runners"]
+            horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 
-        race_datetime = self.create_datetime_from_market_time(market_definition["marketTime"])
+            for history_dict in history_dict_iterator:
+                market_condition = history_dict["mc"][0]
+                if "rc" in market_condition:
+                    new_offers = [
+                        BetOffer(horse_id_to_name_map[offer_data["id"]], offer_data["ltp"])
+                        for offer_data in market_condition["rc"]
+                    ]
+                    betfair_offers += new_offers
 
-        race_key = create_race_key(race_datetime, market_definition["venue"])
+            race_datetime = self.create_datetime_from_market_time(market_definition["suspendTime"])
 
-        self.race_offers[race_key] = betfair_offers
+            race_key = create_race_key(race_datetime, market_definition["venue"])
+
+            self.race_offers[race_key] = betfair_offers
 
     def get_offers_from_race(self, race_key: str) -> List[BetOffer]:
         if race_key in self.race_offers:
@@ -103,7 +118,11 @@ class EstimationResult:
         self.probability_estimates = probability_estimates
 
     def get_probability_estimate(self, race_key: str, horse_name: str) -> float:
-        return self.probability_estimates[race_key][horse_name]
+        if horse_name in self.probability_estimates[race_key]:
+            return self.probability_estimates[race_key][horse_name]
+
+        #TODO: fix this by better matching
+        return 0.0
 
 
 @dataclass
@@ -114,7 +133,7 @@ class Bet:
     stakes: float
 
 
-def create_bets(estimation_result: EstimationResult, betfair_offer_container: BetfairOfferContainer) -> List[Bet]:
+def create_bets(estimation_result: EstimationResult, betfair_offer_container: BetfairOfferContainer, bet_threshold: float) -> List[Bet]:
     bets = []
     already_taken_offers = {}
 
@@ -124,8 +143,11 @@ def create_bets(estimation_result: EstimationResult, betfair_offer_container: Be
                 probability_estimate = estimation_result.get_probability_estimate(race_key, offer.horse_name)
                 offer_probability = 1 / offer.odds
 
-                if probability_estimate > offer_probability and (race_key, offer.horse_name) not in already_taken_offers:
-                    stakes = probability_estimate - offer_probability
+                if probability_estimate > bet_threshold * offer_probability and (race_key, offer.horse_name) not in already_taken_offers:
+                    stakes = (offer.odds * probability_estimate - 1) / (offer.odds - 1)
+
+                    if stakes < 0:
+                        print(f"Warning, the stakes: {stakes} are negative")
                     bets.append(Bet(race_key, offer, stakes))
                     already_taken_offers[(race_key, offer.horse_name)] = True
 
@@ -137,16 +159,18 @@ class WinOracle:
     def __init__(self, win_results: dict):
         self.win_results = win_results
 
-    def get_payout(self, bets: List[Bet]) -> float:
-        total_payout = 0
+    def get_payouts(self, bets: List[Bet]) -> dict:
+        payouts = {}
 
         for bet in bets:
             if bet.race_key in self.win_results:
-                total_payout -= bet.stakes
+                if bet.race_key not in payouts:
+                    payouts[bet.race_key] = 0
+                payouts[bet.race_key] -= bet.stakes
                 if self.is_winning_bet(bet):
-                    total_payout += bet.stakes * bet.bet_offer.odds
+                    payouts[bet.race_key] += bet.stakes * bet.bet_offer.odds
 
-        return total_payout
+        return payouts
 
     def is_winning_bet(self, bet: Bet) -> bool:
         return bet.bet_offer.horse_name == self.win_results[bet.race_key]
@@ -182,7 +206,7 @@ def main():
         "2023-04-01 16:30:00_Chelmsford City": "Valorant"
     }
     win_oracle = WinOracle(win_results)
-    payout = win_oracle.get_payout(bets)
+    payout = win_oracle.get_payouts(bets)
 
     print(payout)
 

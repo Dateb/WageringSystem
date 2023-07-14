@@ -82,7 +82,7 @@ class Horse:
             self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
             self.PLACE_KEY: self.place,
-            self.LABEL_KEY: self.betfair_win_sp,
+            self.LABEL_KEY: self.has_won,
         }
 
         self.__features = {}

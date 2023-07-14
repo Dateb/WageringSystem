@@ -65,8 +65,6 @@ class FeatureManager:
             # IndustryMarketWinProbabilityDiff(),
             #
             # BetfairOverround(),
-            # DayOfYearSin(),
-            # DayOfYearCos(),
             # IsSecondRaceForJockey(),
 
             # RacebetsWinProbability(),
@@ -87,11 +85,25 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            # CurrentSpeedFigure(),
+            # HorseWinRate(),
+            JockeyWinRate(), TrainerWinRate(),
             Age(),
             CurrentDistance(),
             JockeyWeight(),
+            DistanceDifference(),
+            WeightDifference(),
             # Gender(),
-            TravelDistance(),
+            # TravelDistance(),
+            PreviousRelativeDistanceBehind(),
+            LifeTimeStartCount(),
+            CurrentRating(),
+            OneYearStartCount(),
+            TwoYearStartCount(),
+            # WeightAdvantage(),
+            # WeightAllowance(),
+            # DayOfYearSin(),
+            # DayOfYearCos(),
             # CurrentRaceCategory(),
 
             # DamSireWinRate(),
@@ -109,11 +121,8 @@ class FeatureManager:
             # JockeyPurseRate(),
             # BreederPercentageBeaten(),
             #
-            # PreviousRelativeDistanceBehind(),
-            # DistanceDifference(),
             #
             # JockeySurfaceWinRate(),
-            # WeightDifference(),
             #
             # BreederPurseRate(),
             # JockeyPercentageBeaten(),
@@ -121,7 +130,6 @@ class FeatureManager:
             # OwnerShowRate(),
             # SirePurseRate(),
             #
-            # CurrentSpeedFigure(),
             # JockeyClassPurseRate(),
             #
             # TrainerShowRate(),
@@ -136,7 +144,6 @@ class FeatureManager:
             # JockeyTrackShowRate(),
             # BreederShowRate(),
             #
-            # WeightAdvantage(),
             # HighestOddsWin(),
             #
             # JockeyClassPercentageBeaten(),
@@ -148,7 +155,6 @@ class FeatureManager:
             # PreviousSlowerThanNumber(),
             # Humidity(),
             #
-            # LifeTimeStartCount(),
             # TrainerDistancePercentageBeaten(),
             #
             # JockeyDistancePercentageBeaten(),
@@ -169,21 +175,17 @@ class FeatureManager:
             # TrainerDistanceShowRate(),
             # Cloudiness(),
             #
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
             #
             # JockeyDistanceWinRate(),
             #
             # HorseTrainerShowRate(),
             # HorseBreederShowRate(),
             #
-            # HorseWinRate(),
             #
             # HorseBreederWinRate(),
             # WeekDaySin(),
             #
             # HorseJockeyShowRate(),
-            # WeightAllowance(),
             #
             # HasWonAfterLongBreak(),
             # ComingFromLayoff(),
@@ -218,7 +220,6 @@ class FeatureManager:
             #
             # DrawBias(),
             # AgeFrom(), AgeTo(),
-            # CurrentRating(),
             #
             # HasBlinkers(), HasHood(), HasCheekPieces(),
             #
@@ -226,7 +227,6 @@ class FeatureManager:
             #
             # HasOptimalBreak(),
             #
-            # JockeyWinRate(), TrainerWinRate(),
             # BreederWinRate(), OwnerWinRate(), DamWinRate(),
             # HorseJockeyWinRate(), HorseTrainerWinRate(),
             #

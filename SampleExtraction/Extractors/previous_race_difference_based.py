@@ -14,9 +14,9 @@ class DistanceDifference(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_distance = previous_distance_source.get_previous_of_name(horse.name)
         if previous_distance == -1:
-            return self.PLACEHOLDER_VALUE
+            return -1
 
-        return race_card.distance - previous_distance
+        return race_card.distance / previous_distance
 
 
 class RaceClassDifference(FeatureExtractor):
@@ -109,6 +109,8 @@ class HasTrackChanged(FeatureExtractor):
 
 
 class WeightDifference(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()

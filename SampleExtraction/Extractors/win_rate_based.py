@@ -12,7 +12,10 @@ class HorseWinRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_win_rate_of_name(horse.name)
+        win_rate = get_win_rate_of_name(horse.name)
+        if win_rate == -1:
+            return -1
+        return win_rate + 1
 
 
 class JockeyWinRate(FeatureExtractor):
@@ -23,7 +26,10 @@ class JockeyWinRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_win_rate_of_name(horse.jockey_name)
+        win_rate = get_win_rate_of_name(horse.jockey_name)
+        if win_rate == -1:
+            return -1
+        return win_rate + 1
 
 
 class TrainerWinRate(FeatureExtractor):
@@ -34,7 +40,10 @@ class TrainerWinRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_win_rate_of_name(horse.trainer_name)
+        win_rate = get_win_rate_of_name(horse.trainer_name)
+        if win_rate == -1:
+            return -1
+        return win_rate + 1
 
 
 class HorseJockeyWinRate(FeatureExtractor):

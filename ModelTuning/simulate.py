@@ -13,14 +13,14 @@ from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.BlockSplitter import BlockSplitter
 
-__FUND_HISTORY_SUMMARIES_PATH = "../data/fund_history_summaries.dat"
+__TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
 N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 2
-N_MONTHS_FORWARD_OFFSET = 111
+N_SAMPLE_MONTHS = 102
+N_MONTHS_FORWARD_OFFSET = 11
 
-N_TEST_RACES = 500
+N_TEST_RACES = 2000
 
 NN_CLASSIFIER_PARAMS = {
     "loss_function": nn.CrossEntropyLoss(),
@@ -30,7 +30,7 @@ NN_CLASSIFIER_PARAMS = {
     "threshold": 1e-4,
     "eps": 1e-10,
     "lr_to_stop": 1e-6,
-    "dropout_rate": 0.2
+    "dropout_rate": 0.1
 }
 
 
@@ -75,12 +75,12 @@ def optimize_model_configuration():
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
     estimator = NNClassifier(feature_manager, model_evaluator, block_splitter, NN_CLASSIFIER_PARAMS)
 
-    fund_history_summary = model_evaluator.get_fund_history_summary_of_model(estimator, block_splitter)
+    payouts = model_evaluator.get_payouts_of_model(estimator, block_splitter)
 
-    print(f"Final test set return: {fund_history_summary.score}")
+    print(f"Final test set return: {sum(payouts)}")
 
-    with open(__FUND_HISTORY_SUMMARIES_PATH, "wb") as f:
-        pickle.dump(fund_history_summary, f)
+    with open(__TEST_PAYOUTS_PATH, "wb") as f:
+        pickle.dump(payouts, f)
 
     # for i in range(2):
     #     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)

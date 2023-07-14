@@ -4,6 +4,9 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
 
 class PreviousRelativeDistanceBehind(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
     def __init__(self):
         super().__init__()
 
