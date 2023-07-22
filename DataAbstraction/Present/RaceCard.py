@@ -1,4 +1,3 @@
-import math
 from collections import defaultdict
 from datetime import datetime
 from statistics import mean, median
@@ -10,9 +9,9 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
-from DataAbstraction.relevance_calculators import get_speed_figure_based_relevance, get_place_based_relevance, \
-    get_winner_relevance
+from DataAbstraction.relevance_calculators import get_winner_relevance
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
+from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from util.nested_dict import nested_dict
 from util.speed_calculator import compute_speed_figure
 
@@ -85,6 +84,7 @@ class RaceCard:
         self.is_open = race["raceStatus"] == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
+
         self.winner_name = [horse.name for horse in self.horses if horse.place == 1][0]
 
         self.n_horses = len(self.horses)
@@ -125,6 +125,9 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+
+        # if self.remove_non_starters:
+        #     self.__remove_non_starters()
 
     def set_horse_results(self) -> None:
         if self.race_result:
@@ -244,6 +247,13 @@ class RaceCard:
         return round(self.distance / distance_increment) * distance_increment
 
     def set_validity(self) -> None:
-        if len(self.horses) <= 1:
+        if self.n_horses <= 1:
             self.is_valid_sample = False
             self.feature_source_validity = False
+
+        if self.n_horses > MAX_HORSES_PER_RACE:
+            self.is_valid_sample = False
+
+        # for horse in self.horses:
+        #     if not horse.form_table.past_forms:
+        #         self.is_valid_sample = False

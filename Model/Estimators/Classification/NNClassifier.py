@@ -1,15 +1,12 @@
-from statistics import mean
-
 import numpy as np
 import torch
 from numpy import ndarray
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 
-from torch import nn
 from torch.utils.data import DataLoader
 
-from Model.Estimators.Classification.networks import SimpleMLP, SimpleLSTM
+from Model.Estimators.Classification.networks import SimpleMLP
 from Model.Estimators.Classification.sample_loading import TrainRaceCardLoader, TestRaceCardLoader
 
 from Model.Estimators.Estimator import Estimator
@@ -30,12 +27,12 @@ class NNClassifier(Estimator):
             params: dict,
     ):
         super().__init__()
-        self.horses_per_race_padding_size = 40
         self.feature_manager = feature_manager
         self.model_evaluator = model_evaluator
         self.block_splitter = block_splitter
 
         self.params = params
+        self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
         self.loss_function = self.params["loss_function"]
 
         self.device = (

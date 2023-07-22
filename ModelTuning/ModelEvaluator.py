@@ -35,7 +35,7 @@ class ModelEvaluator:
         best_score = -np.inf
         best_sorted_payouts = []
 
-        bet_thresholds = [1.0 + i / 10 for i in range(10)]
+        bet_thresholds = [1.0 + i for i in range(100)]
         for bet_threshold in bet_thresholds:
             bets = create_bets(estimation_result, self.offer_container, bet_threshold=bet_threshold)
 

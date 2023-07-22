@@ -139,6 +139,16 @@ class PreviousValueSource(FeatureSource, ABC):
         return -1
 
 
+class PreviousOddsSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def post_update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            self.insert_previous_value(race_card, horse, horse.betfair_win_sp)
+
+
 class PreviousDistanceSource(PreviousValueSource):
 
     def __init__(self):
@@ -375,6 +385,7 @@ purse_rate_source: PurseRateSource = PurseRateSource()
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 
 #Previous value based sources:
+previous_odds_source: PreviousOddsSource = PreviousOddsSource()
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
@@ -389,7 +400,7 @@ def get_feature_sources() -> List[FeatureSource]:
     return [
         win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
 
-        previous_distance_source, previous_trainer_source,
+        previous_odds_source, previous_distance_source, previous_trainer_source,
 
         speed_figures_source,
 

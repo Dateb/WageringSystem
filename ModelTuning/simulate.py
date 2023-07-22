@@ -1,37 +1,18 @@
 import pickle
 
 import torch
-from torch import nn
 from tqdm import tqdm
 
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
+from ModelTuning.simulate_conf import N_CONTAINER_MONTHS, N_SAMPLE_MONTHS, N_MONTHS_FORWARD_OFFSET, N_TEST_RACES, \
+    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
 from SampleExtraction.BlockSplitter import BlockSplitter
-
-__TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
-__BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
-
-N_CONTAINER_MONTHS = 1
-N_SAMPLE_MONTHS = 102
-N_MONTHS_FORWARD_OFFSET = 11
-
-N_TEST_RACES = 2000
-
-NN_CLASSIFIER_PARAMS = {
-    "loss_function": nn.CrossEntropyLoss(),
-    "base_lr": 1e-3,
-    "decay_factor": 0.1,
-    "patience": 5,
-    "threshold": 1e-4,
-    "eps": 1e-10,
-    "lr_to_stop": 1e-6,
-    "dropout_rate": 0.1
-}
 
 
 def optimize_model_configuration():
@@ -39,7 +20,7 @@ def optimize_model_configuration():
 
     race_cards_loader = RaceCardsPersistence("race_cards")
     model_evaluator = ModelEvaluator()
-    race_cards_array_factory = RaceCardsArrayFactory(race_cards_loader, feature_manager, model_evaluator)
+    race_cards_array_factory = RaceCardsArrayFactory(feature_manager, model_evaluator)
 
     n_months = N_CONTAINER_MONTHS + N_SAMPLE_MONTHS
     container_race_card_file_names = race_cards_loader.race_card_file_names[N_MONTHS_FORWARD_OFFSET:N_MONTHS_FORWARD_OFFSET + N_CONTAINER_MONTHS]

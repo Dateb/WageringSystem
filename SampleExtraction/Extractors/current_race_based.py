@@ -135,7 +135,7 @@ class HasTrainerMultipleHorses(FeatureExtractor):
             other_horse.trainer_name for other_horse in race_card.horses if other_horse.trainer_name == horse.trainer_name
         ]
 
-        return int(len(trainer_names) > 1)
+        return int(len(trainer_names) > 1) + 1
 
 
 class DrawBias(FeatureExtractor):

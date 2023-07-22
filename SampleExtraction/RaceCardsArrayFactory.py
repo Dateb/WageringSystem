@@ -5,14 +5,12 @@ from numpy import ndarray
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from ModelTuning.ModelEvaluator import ModelEvaluator
-from Persistence import RaceCardPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 
 
 class RaceCardsArrayFactory:
     def __init__(
             self,
-            race_cards_loader: RaceCardPersistence,
             feature_manager: FeatureManager,
             model_evaluator: ModelEvaluator,
     ):

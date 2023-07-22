@@ -31,6 +31,8 @@ class RaceClassDifference(FeatureExtractor):
 class HasTrainerChanged(FeatureExtractor):
     previous_trainer_source.previous_value_attribute_groups.append(["name"])
 
+    PLACEHOLDER_VALUE = -1
+
     def __init__(self):
         super().__init__()
 
@@ -39,10 +41,12 @@ class HasTrainerChanged(FeatureExtractor):
         if previous_trainer_name == -1:
             return self.PLACEHOLDER_VALUE
 
-        return int(horse.trainer_name != previous_trainer_name)
+        return int(horse.trainer_name != previous_trainer_name) + 1
 
 
 class HasJockeyChanged(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -62,7 +66,7 @@ class HasJockeyChanged(FeatureExtractor):
 
         previous_jockey_last_name = previous_form.jockey_name.split(" ")[1]
 
-        return previous_jockey_last_name != current_jockey_last_name
+        return (previous_jockey_last_name != current_jockey_last_name) + 1
 
 
 class IsSecondRaceForJockey(FeatureExtractor):
@@ -93,6 +97,8 @@ class IsSecondRaceForJockey(FeatureExtractor):
 
 class HasTrackChanged(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = -1
+
     def __init__(self):
         super().__init__()
 
@@ -105,7 +111,7 @@ class HasTrackChanged(FeatureExtractor):
         previous_track = form_table.past_forms[0].track_name
         current_track = race_card.track_name
 
-        return int(previous_track != current_track)
+        return int(previous_track != current_track) + 1
 
 
 class WeightDifference(FeatureExtractor):
