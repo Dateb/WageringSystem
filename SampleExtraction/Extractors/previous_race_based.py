@@ -47,7 +47,9 @@ class PreviousRelativeDistanceBehind(FeatureExtractor):
         return previous_form.horse_distance / previous_form.distance
 
 
-class PreviousFasterThanNumber(FeatureExtractor):
+class PreviousFasterThanFraction(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -55,10 +57,21 @@ class PreviousFasterThanNumber(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.previous_performance.isnumeric():
             return self.PLACEHOLDER_VALUE
-        return abs(int(horse.previous_performance) - race_card.n_horses) / (race_card.n_horses - 1)
+
+        if not horse.form_table.past_forms:
+            return self.PLACEHOLDER_VALUE
+
+        previous_n_horses = horse.form_table.past_forms[0].n_horses
+
+        if previous_n_horses == 1:
+            return self.PLACEHOLDER_VALUE
+
+        return abs(int(horse.previous_performance) - 1) / (previous_n_horses - 1) + 1
 
 
-class PreviousSlowerThanNumber(FeatureExtractor):
+class PreviousSlowerThanFraction(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -66,7 +79,16 @@ class PreviousSlowerThanNumber(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         if not horse.previous_performance.isnumeric():
             return self.PLACEHOLDER_VALUE
-        return abs(int(horse.previous_performance) - 1) / (race_card.n_horses - 1)
+
+        if not horse.form_table.past_forms:
+            return self.PLACEHOLDER_VALUE
+
+        previous_n_horses = horse.form_table.past_forms[0].n_horses
+
+        if previous_n_horses == 1:
+            return self.PLACEHOLDER_VALUE
+
+        return abs(previous_n_horses - int(horse.previous_performance)) / (previous_n_horses - 1) + 1
 
 
 class PulledUpPreviousRace(FeatureExtractor):

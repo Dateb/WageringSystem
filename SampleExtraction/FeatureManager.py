@@ -24,8 +24,8 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     JockeyClassPercentageBeaten, TrainerDistancePercentageBeaten, TrainerSurfacePercentageBeaten, \
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
-from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanNumber, PulledUpPreviousRace, \
-    PreviousSlowerThanNumber, PreviousRelativeDistanceBehind, PreviousWinProbability
+from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFraction, PulledUpPreviousRace, \
+    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey
 from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
@@ -109,6 +109,13 @@ class FeatureManager:
             HasJockeyChanged(),
             HasTrainerChanged(),
 
+            # Increasing loss when included:
+
+            # PreviousFasterThanFraction(),
+            # PreviousSlowerThanFraction(),
+
+            # Not tested:
+
             # CurrentSpeedFigure(),
             # HorseWinRate(),
             # Gender(),
@@ -168,7 +175,6 @@ class FeatureManager:
             # OwnerPurseRate(),
             # TrainerClassShowRate(),
             #
-            # PreviousSlowerThanNumber(),
             # Humidity(),
             #
             # TrainerDistancePercentageBeaten(),
