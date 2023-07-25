@@ -118,11 +118,8 @@ class EstimationResult:
         self.probability_estimates = probability_estimates
 
     def get_probability_estimate(self, race_key: str, horse_name: str) -> float:
-        if horse_name in self.probability_estimates[race_key]:
-            return self.probability_estimates[race_key][horse_name]
-
-        #TODO: fix this by better matching
-        return 0.0
+        if horse_name.upper() in self.probability_estimates[race_key]:
+            return self.probability_estimates[race_key][horse_name.upper()]
 
 
 @dataclass

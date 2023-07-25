@@ -9,7 +9,7 @@ class HasBlinkers(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("b" in horse.equipments)
+        return int("b" in horse.equipments) + 1
 
 
 class HasVisor(FeatureExtractor):
@@ -18,7 +18,7 @@ class HasVisor(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("v" in horse.equipments)
+        return int("v" in horse.equipments) + 1
 
 
 class HasHood(FeatureExtractor):
@@ -27,7 +27,7 @@ class HasHood(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("h" in horse.equipments)
+        return int("h" in horse.equipments) + 1
 
 
 class HasCheekPieces(FeatureExtractor):
@@ -36,7 +36,7 @@ class HasCheekPieces(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("s" in horse.equipments)
+        return int("s" in horse.equipments) + 1
 
 
 class HasEyeCovers(FeatureExtractor):
@@ -45,7 +45,7 @@ class HasEyeCovers(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("ec" in horse.equipments)
+        return int("ec" in horse.equipments) + 1
 
 
 class HasEyeShield(FeatureExtractor):
@@ -54,7 +54,7 @@ class HasEyeShield(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("es" in horse.equipments)
+        return int("es" in horse.equipments) + 1
 
 
 class HasTongueStrap(FeatureExtractor):
@@ -63,4 +63,4 @@ class HasTongueStrap(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int("t" in horse.equipments)
+        return int("t" in horse.equipments) + 1

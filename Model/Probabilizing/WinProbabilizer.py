@@ -35,7 +35,7 @@ class WinProbabilizer(Probabilizer):
 
             race_key = create_race_key(race_datetime, track_name)
 
-            horse_name = row.name
+            horse_name = row.name.replace("'", "").upper()
             win_probability = row.win_probability
 
             if race_key not in probability_estimates:

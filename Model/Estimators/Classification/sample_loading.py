@@ -1,3 +1,4 @@
+import random
 from abc import ABC
 from typing import List
 
@@ -52,13 +53,13 @@ class RaceCardLoader(ABC):
         horse_idx = 0
         for i in range(len(group_counts)):
             group_count = group_counts[i]
-            for j in range(self.horses_per_race_padding_size):
-                if j < group_count:
-                    padded_horse_features[i, j, :] = horse_features[horse_idx]
-                    if horses_win_indicator[horse_idx]:
-                        padded_horse_labels[i] = j
 
-                    horse_idx += 1
+            for j in range(group_count):
+                padded_horse_features[i, j, :] = horse_features[horse_idx]
+                if horses_win_indicator[horse_idx]:
+                    padded_horse_labels[i] = j
+
+                horse_idx += 1
 
         return padded_horse_features, padded_horse_labels
 

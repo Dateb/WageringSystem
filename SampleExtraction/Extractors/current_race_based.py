@@ -128,7 +128,6 @@ class HasTrainerMultipleHorses(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         trainer_names = [

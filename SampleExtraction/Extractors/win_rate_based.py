@@ -152,7 +152,11 @@ class JockeySurfaceWinRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_win_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
+        win_rate = get_win_rate_of_name(f"{horse.jockey_name}_{race_card.surface}")
+        if win_rate == -1:
+            return -1
+
+        return win_rate + 1
 
 
 class JockeyTrackWinRate(FeatureExtractor):

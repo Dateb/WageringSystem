@@ -28,11 +28,11 @@ from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFr
     PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey
-from SampleExtraction.Extractors.purse_rate_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
+from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
     JockeySurfacePurseRate, TrainerSurfacePurseRate, JockeyTrackPurseRate, TrainerTrackPurseRate, JockeyClassPurseRate, \
-    TrainerClassPurseRate
+    TrainerClassPurseRate, AveragePurse
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeyShowRate, TrainerShowRate, BreederShowRate, \
     OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
     HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
@@ -85,6 +85,7 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            CurrentSpeedFigure(),
             JockeyWinRate(), TrainerWinRate(),
             Age(),
             CurrentDistance(),
@@ -113,16 +114,18 @@ class FeatureManager:
 
             # PreviousFasterThanFraction(),
             # PreviousSlowerThanFraction(),
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasTrainerMultipleHorses(),
+            # JockeySurfaceWinRate(),
+            # AveragePurse(),
 
             # Not tested:
 
-            # CurrentSpeedFigure(),
             # HorseWinRate(),
             # Gender(),
             # TravelDistance(),
 
             # CurrentRaceClass(),
-            # HasTrainerMultipleHorses(),
             # WeightAdvantage(),
             # WeightAllowance(),
             # DayOfYearSin(),
@@ -145,7 +148,6 @@ class FeatureManager:
             # BreederPercentageBeaten(),
             #
             #
-            # JockeySurfaceWinRate(),
             #
             # BreederPurseRate(),
             # JockeyPercentageBeaten(),
@@ -241,7 +243,6 @@ class FeatureManager:
             # DrawBias(),
             # AgeFrom(), AgeTo(),
             #
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
             #
             # BestLifeTimeSpeedFigure(),
             #
