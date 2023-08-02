@@ -89,28 +89,20 @@ class RaceCard:
 
         self.n_horses = len(self.horses)
 
-        self.mean_horse_weight = mean([horse.jockey.weight for horse in self.horses if horse.jockey.weight > 0])
-        self.weight_category = round(self.mean_horse_weight / 4) * 4
-
         self.set_horse_results()
-
-        self.places_num = 1
-        if 5 <= self.n_horses <= 7:
-            self.places_num = 2
-        if 8 <= self.n_horses:
-            self.places_num = 3
-        if 16 <= self.n_horses and self.category == "HCP":
-            self.places_num = 4
 
         self.__base_attributes = {
             self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
             self.N_HORSES_KEY: self.n_horses,
-            self.PLACE_NUM_KEY: self.places_num,
         }
 
         self.set_validity()
+
+        if self.feature_source_validity:
+            print(self.race_id)
+            self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners])
 
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
@@ -125,6 +117,7 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+        self.runners = [horse for horse in self.horses if not horse.is_scratched]
 
         # if self.remove_non_starters:
         #     self.__remove_non_starters()
@@ -133,22 +126,6 @@ class RaceCard:
         if self.race_result:
             for horse in self.horses:
                 horse.set_purse(self.purse)
-
-    def set_horse_relevance(self) -> None:
-        if self.race_result:
-            for horse in self.horses:
-                horse.speed_figure = compute_speed_figure(
-                    self.base_time_estimate["avg"],
-                    self.base_time_estimate["std"],
-                    self.lengths_per_second_estimate["avg"],
-                    self.race_result.win_time,
-                    self.distance,
-                    horse.horse_distance,
-                    self.track_variant_estimate["avg"],
-                )
-
-                horse.relevance = get_winner_relevance(horse)
-                horse.base_attributes[Horse.LABEL_KEY] = horse.relevance
 
     def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]
@@ -197,11 +174,10 @@ class RaceCard:
     def head_to_head_horses(self) -> List[str]:
         return self.__head_to_head_horses
 
-    @property
-    def base_time_estimate(self) -> dict:
-        weather_type_category = ""
-        if self.weather is not None:
-            weather_type_category = self.weather.weather_type
+    def get_base_time_estimate(self, horse_number: int) -> dict:
+        # horse_weight = self.get_horse_by_number(horse_number).jockey.weight
+        # weight_category = round(horse_weight / 4) * 4
+
         return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
 
     @property

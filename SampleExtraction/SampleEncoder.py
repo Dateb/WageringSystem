@@ -6,8 +6,6 @@ from numpy import ndarray
 from pandas import DataFrame
 
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from DataAbstraction.Present.Horse import Horse
-from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 

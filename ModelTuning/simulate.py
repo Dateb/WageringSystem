@@ -1,6 +1,5 @@
 import pickle
 
-import torch
 from tqdm import tqdm
 
 from Model.Estimators.Classification.NNClassifier import NNClassifier

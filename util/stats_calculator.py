@@ -5,11 +5,10 @@ from math import log
 class OnlineCalculator(ABC):
 
     def __init__(self):
-        self.obs_count = 0
-        self.current_average = 0
+        pass
 
     @abstractmethod
-    def calculate_average(self, new_obs: float, n_days_since_last_obs: int):
+    def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int, count: int):
         pass
 
     @abstractmethod
@@ -22,9 +21,8 @@ class SimpleOnlineCalculator(OnlineCalculator):
     def __init__(self):
         super().__init__()
 
-    def calculate_average(self, new_obs: float, n_days_since_last_obs: int):
-        self.obs_count += 1
-        return ((self.obs_count - 1) * self.current_average + new_obs) / self.obs_count
+    def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int, count: int):
+        return ((count - 1) * old_average + new_obs) / count
 
     def calculate_variance(self):
         pass
@@ -60,11 +58,9 @@ class ExponentialOnlineCalculator(OnlineCalculator):
         self.window_size = window_size
         self.alpha = 2 / (window_size + 1)
 
-    def calculate_average(self, new_obs: float, n_days_since_last_obs: int):
-        self.obs_count += 1
-        if self.obs_count <= self.window_size:
-            self.current_average = ((self.obs_count - 1) * self.current_average + new_obs) / self.obs_count
-            return self.current_average
+    def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int, count: int):
+        if count <= self.window_size:
+            return ((count - 1) * old_average + new_obs) / count
 
         average_fade_factor = 0
         if self.fading_factor > 0:
@@ -73,9 +69,7 @@ class ExponentialOnlineCalculator(OnlineCalculator):
 
         alpha = self.alpha + average_fade_factor
 
-        self.current_average = alpha * new_obs + (1 - alpha) * self.current_average
-
-        return self.current_average
+        return alpha * new_obs + (1 - alpha) * old_average
 
     def calculate_variance(self):
         pass

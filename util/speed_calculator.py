@@ -9,6 +9,7 @@ def get_speed_figures_distribution() -> deque:
 
 
 def compute_speed_figure(
+        race_id: str,
         base_time_mean: float,
         base_time_std: float,
         lengths_per_second: float,
@@ -20,19 +21,28 @@ def compute_speed_figure(
     # if is_horse_distance_too_far_from_winner(distance, horse_distance):
     #     return None
 
-    speed_figure_base_shift = 20
-
     if horse_distance < 0 or win_time <= 0 or not base_time_mean or base_time_std == 0 or not track_variant:
         return None
 
     horse_time = get_horse_time(win_time, lengths_per_second, horse_distance)
-    horse_time = (1 - track_variant) * horse_time
+    track_corrected_horse_time = (1 - track_variant) * horse_time
 
-    speed_figure = (base_time_mean - horse_time) / base_time_std
+    speed_figure = (base_time_mean - track_corrected_horse_time) / base_time_std
 
-    speed_figure = max([speed_figure, -speed_figure_base_shift + 1])
+    if speed_figure < -10:
+        print("----------------------------------")
+        print(f"race id: {race_id}")
+        print(f"track variant: {track_variant}")
+        print(f"speed figure: {speed_figure}")
+        print(f"base time mean: {base_time_mean}")
+        print(f"base time std: {base_time_std}")
+        print(f"win time: {win_time}")
+        print(f"horse time: {horse_time}")
+        print(f"track_corrected_horse_time: {track_corrected_horse_time}")
+        print(f"lengths per second: {lengths_per_second}")
+        print("----------------------------------")
 
-    return speed_figure + speed_figure_base_shift
+    return speed_figure
 
 
 def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):
