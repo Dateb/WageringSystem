@@ -21,7 +21,7 @@ class ModelEvaluator:
         for race_card in race_cards.values():
             race_datetime = race_card.datetime - timedelta(hours=2)
             race_key = create_race_key(race_datetime, race_card.track_name)
-            self.win_results[race_key] = race_card.winner_name
+            self.win_results[race_key] = {horse.name.replace("'", "").upper(): horse.has_won for horse in race_card.runners}
 
     def get_payouts_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> List[float]:
         train_sample, test_sample = block_splitter.get_train_test_split()

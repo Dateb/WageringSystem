@@ -163,14 +163,17 @@ class WinOracle:
             if bet.race_key in self.win_results:
                 if bet.race_key not in payouts:
                     payouts[bet.race_key] = 0
-                payouts[bet.race_key] -= bet.stakes
-                if self.is_winning_bet(bet):
-                    payouts[bet.race_key] += bet.stakes * bet.bet_offer.odds
+
+                if bet.bet_offer.horse_name.upper() in self.win_results[bet.race_key]:
+                    payouts[bet.race_key] -= bet.stakes
+
+                    if self.is_winning_bet(bet):
+                        payouts[bet.race_key] += bet.stakes * bet.bet_offer.odds
 
         return payouts
 
     def is_winning_bet(self, bet: Bet) -> bool:
-        return bet.bet_offer.horse_name == self.win_results[bet.race_key]
+        return self.win_results[bet.race_key][bet.bet_offer.horse_name.upper()]
 
 
 def create_race_key(race_datetime: datetime, track_name: str) -> str:
