@@ -2,7 +2,6 @@ import bz2
 import json
 import os
 from dataclasses import dataclass
-from json import JSONDecodeError
 from typing import List
 from datetime import datetime
 
@@ -44,7 +43,8 @@ class BetfairHistoryDictIterator:
                 if curly_braces_level == 0:
                     json_string = self.raw_entries[self.json_start_idx:i + 1]
                     self.json_start_idx = i + 1
-                    return json.loads(json_string)
+                    escaped_json_string = json_string.translate(str.maketrans({"'":  r"\'"}))
+                    return json.loads(escaped_json_string)
 
         raise StopIteration
 
@@ -70,11 +70,7 @@ class BetfairOfferContainer:
 
         history_dict_iterator = BetfairHistoryDictIterator(race_history_file_path)
 
-        try:
-            initial_history_dict = next(history_dict_iterator)
-        except JSONDecodeError:
-            print(f"broken file: {race_history_file_path}")
-            return
+        initial_history_dict = next(history_dict_iterator)
 
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
 
@@ -135,18 +131,21 @@ def create_bets(estimation_result: EstimationResult, betfair_offer_container: Be
     already_taken_offers = {}
 
     for race_key, race_offers in betfair_offer_container.race_offers.items():
+        print(race_key)
         if race_key in estimation_result.probability_estimates:
             for offer in race_offers:
                 probability_estimate = estimation_result.get_probability_estimate(race_key, offer.horse_name)
-                offer_probability = 1 / offer.odds
 
-                if probability_estimate > bet_threshold * offer_probability and (race_key, offer.horse_name) not in already_taken_offers:
-                    stakes = (offer.odds * probability_estimate - 1) / (offer.odds - 1)
+                if probability_estimate is not None:
+                    offer_probability = 1 / offer.odds
 
-                    if stakes < 0:
-                        print(f"Warning, the stakes: {stakes} are negative")
-                    bets.append(Bet(race_key, offer, stakes))
-                    already_taken_offers[(race_key, offer.horse_name)] = True
+                    if probability_estimate > bet_threshold * offer_probability and (race_key, offer.horse_name) not in already_taken_offers:
+                        stakes = (offer.odds * probability_estimate - 1) / (offer.odds - 1)
+
+                        if stakes < 0:
+                            print(f"Warning, the stakes: {stakes} are negative")
+                        bets.append(Bet(race_key, offer, stakes))
+                        already_taken_offers[(race_key, offer.horse_name)] = True
 
     return bets
 

@@ -101,7 +101,6 @@ class RaceCard:
         self.set_validity()
 
         if self.feature_source_validity:
-            print(self.race_id)
             self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners])
 
         # TODO: there some border cases here. Would need a fix.
@@ -117,6 +116,8 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+
+        self.horses = [horse for horse in self.horses if not horse.is_scratched]
         self.runners = [horse for horse in self.horses if not horse.is_scratched]
 
         # if self.remove_non_starters:
