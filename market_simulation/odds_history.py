@@ -131,7 +131,6 @@ def create_bets(estimation_result: EstimationResult, betfair_offer_container: Be
     already_taken_offers = {}
 
     for race_key, race_offers in betfair_offer_container.race_offers.items():
-        print(race_key)
         if race_key in estimation_result.probability_estimates:
             for offer in race_offers:
                 probability_estimate = estimation_result.get_probability_estimate(race_key, offer.horse_name)
@@ -144,6 +143,7 @@ def create_bets(estimation_result: EstimationResult, betfair_offer_container: Be
 
                         if stakes < 0:
                             print(f"Warning, the stakes: {stakes} are negative")
+
                         bets.append(Bet(race_key, offer, stakes))
                         already_taken_offers[(race_key, offer.horse_name)] = True
 

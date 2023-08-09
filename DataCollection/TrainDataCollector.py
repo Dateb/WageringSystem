@@ -64,8 +64,8 @@ def main():
 
     query_date = date(
         year=2023,
-        month=3,
-        day=7,
+        month=6,
+        day=1,
     )
 
     train_data_collector.collect(query_date)

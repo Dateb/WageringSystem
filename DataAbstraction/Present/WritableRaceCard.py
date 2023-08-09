@@ -14,6 +14,9 @@ class WritableRaceCard(RaceCard):
     def set_horses(self, raw_horses: dict):
         self.horses: List[WritableHorse] = [WritableHorse(raw_horses[horse_id]) for horse_id in raw_horses]
 
+        self.horses = [horse for horse in self.horses if not horse.is_scratched]
+        self.runners = [horse for horse in self.horses if not horse.is_scratched]
+
     def get_data_of_subject(self, subject_id: str) -> dict:
         for horse in self.horses:
             if horse.subject_id == subject_id:

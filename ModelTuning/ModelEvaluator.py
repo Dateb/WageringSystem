@@ -7,6 +7,7 @@ import numpy as np
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.Estimator import Estimator
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
+from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from SampleExtraction.BlockSplitter import BlockSplitter
 from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key
 
@@ -35,11 +36,12 @@ class ModelEvaluator:
         best_score = -np.inf
         best_sorted_payouts = []
 
-        bet_thresholds = [1.0 + i for i in range(100)]
+        bet_thresholds = [1.0 + (i / 10) for i in range(100)]
+        print(bet_thresholds)
+        win_oracle = WinOracle(self.win_results)
         for bet_threshold in bet_thresholds:
             bets = create_bets(estimation_result, self.offer_container, bet_threshold=bet_threshold)
 
-            win_oracle = WinOracle(self.win_results)
             payouts = win_oracle.get_payouts(bets)
 
             sorted_payouts = [payout_value for date, payout_value in sorted(payouts.items())]
@@ -56,7 +58,7 @@ class ModelEvaluator:
     def prune_sample(self, race_cards_df):
         race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
 
-        race_ids_to_keep = race_id_counts[race_id_counts <= 20].index
+        race_ids_to_keep = race_id_counts[race_id_counts <= MAX_HORSES_PER_RACE].index
 
         return race_cards_df[race_cards_df[RaceCard.RACE_ID_KEY].isin(race_ids_to_keep)]
 
