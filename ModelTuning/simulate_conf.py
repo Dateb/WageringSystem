@@ -3,13 +3,13 @@ from torch import nn
 __TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 __BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
 
-N_CONTAINER_MONTHS = 12
-N_SAMPLE_MONTHS = 102
-N_MONTHS_FORWARD_OFFSET = 0
+N_CONTAINER_MONTHS = 1
+N_SAMPLE_MONTHS = 2
+N_MONTHS_FORWARD_OFFSET = 111
 
-N_TEST_RACES = 2000
+N_TEST_RACES = 400
 
-MAX_HORSES_PER_RACE = 30
+MAX_HORSES_PER_RACE = 20
 
 NN_CLASSIFIER_PARAMS = {
     "loss_function": nn.CrossEntropyLoss(),

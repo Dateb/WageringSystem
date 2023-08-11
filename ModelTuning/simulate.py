@@ -55,18 +55,11 @@ def optimize_model_configuration():
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
     estimator = NNClassifier(feature_manager, model_evaluator, block_splitter, NN_CLASSIFIER_PARAMS)
 
-    payouts = model_evaluator.get_payouts_of_model(estimator, block_splitter)
-
-    print(f"Final test set return: {sum(payouts)}")
+    bets = model_evaluator.get_bets_of_model(estimator, block_splitter)
 
     with open(__TEST_PAYOUTS_PATH, "wb") as f:
-        pickle.dump(payouts, f)
+        pickle.dump(bets, f)
 
-    # for i in range(2):
-    #     fund_history_summary = tuning_pipeline.get_test_fund_history_summary(bet_model_configuration)
-    #     print(f"Result {i + 1}: {fund_history_summary.score}")
-    #
-    #
     # with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
     #     pickle.dump(bet_model_configuration, f)
 

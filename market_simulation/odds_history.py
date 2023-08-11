@@ -1,8 +1,9 @@
 import bz2
+import collections
 import json
 import os
 from dataclasses import dataclass
-from typing import List
+from typing import List, OrderedDict
 from datetime import datetime
 
 
@@ -14,6 +15,25 @@ class BetOffer:
 
     def __str__(self) -> str:
         return f"Odds for {self.horse_name}: {self.odds}"
+
+
+@dataclass
+class Bet:
+
+    race_key: str
+    bet_offer: BetOffer
+    stakes: float
+    payout: float
+
+    def __str__(self) -> str:
+        bet_str = ("-----------------------------------\n" +
+                   f"Race: {self.race_key}\n" +
+                   f"Offer: {self.bet_offer}\n" +
+                   f"Stakes: {self.stakes}\n" +
+                   f"Payout: {self.payout}\n" +
+                   "-----------------------------------\n")
+
+        return bet_str
 
 
 class BetfairHistoryDictIterator:
@@ -118,14 +138,6 @@ class EstimationResult:
             return self.probability_estimates[race_key][horse_name.upper()]
 
 
-@dataclass
-class Bet:
-
-    race_key: str
-    bet_offer: BetOffer
-    stakes: float
-
-
 def create_bets(estimation_result: EstimationResult, betfair_offer_container: BetfairOfferContainer, bet_threshold: float) -> List[Bet]:
     bets = []
     already_taken_offers = {}
@@ -144,7 +156,7 @@ def create_bets(estimation_result: EstimationResult, betfair_offer_container: Be
                         if stakes < 0:
                             print(f"Warning, the stakes: {stakes} are negative")
 
-                        bets.append(Bet(race_key, offer, stakes))
+                        bets.append(Bet(race_key, offer, stakes, payout=0.0))
                         already_taken_offers[(race_key, offer.horse_name)] = True
 
     return bets
@@ -155,21 +167,14 @@ class WinOracle:
     def __init__(self, win_results: dict):
         self.win_results = win_results
 
-    def get_payouts(self, bets: List[Bet]) -> dict:
-        payouts = {}
-
+    def insert_payouts_into_bets(self, bets: List[Bet]) -> None:
         for bet in bets:
             if bet.race_key in self.win_results:
-                if bet.race_key not in payouts:
-                    payouts[bet.race_key] = 0
-
                 if bet.bet_offer.horse_name.upper() in self.win_results[bet.race_key]:
-                    payouts[bet.race_key] -= bet.stakes
+                    bet.payout -= bet.stakes
 
                     if self.is_winning_bet(bet):
-                        payouts[bet.race_key] += bet.stakes * bet.bet_offer.odds
-
-        return payouts
+                        bet.payout += bet.stakes * bet.bet_offer.odds
 
     def is_winning_bet(self, bet: Bet) -> bool:
         return self.win_results[bet.race_key][bet.bet_offer.horse_name.upper()]
@@ -205,7 +210,7 @@ def main():
         "2023-04-01 16:30:00_Chelmsford City": "Valorant"
     }
     win_oracle = WinOracle(win_results)
-    payout = win_oracle.get_payouts(bets)
+    payout = win_oracle.insert_payouts_into_bets(bets)
 
     print(payout)
 

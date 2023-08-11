@@ -9,7 +9,7 @@ from Model.Estimators.Estimator import Estimator
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from SampleExtraction.BlockSplitter import BlockSplitter
-from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key
+from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key, Bet
 
 
 class ModelEvaluator:
@@ -24,7 +24,7 @@ class ModelEvaluator:
             race_key = create_race_key(race_datetime, race_card.track_name)
             self.win_results[race_key] = {horse.name.replace("'", "").upper(): horse.has_won for horse in race_card.runners}
 
-    def get_payouts_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> List[float]:
+    def get_bets_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> List[Bet]:
         train_sample, test_sample = block_splitter.get_train_test_split()
 
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
@@ -33,27 +33,25 @@ class ModelEvaluator:
         scores = estimator.predict(train_sample, test_sample)
         estimation_result = WinProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
 
-        best_score = -np.inf
-        best_sorted_payouts = []
+        best_payout_sum = -np.inf
+        best_bets = []
 
         bet_thresholds = [1.0 + (i / 10) for i in range(100)]
-        print(bet_thresholds)
         win_oracle = WinOracle(self.win_results)
         for bet_threshold in bet_thresholds:
             bets = create_bets(estimation_result, self.offer_container, bet_threshold=bet_threshold)
 
-            payouts = win_oracle.get_payouts(bets)
+            win_oracle.insert_payouts_into_bets(bets)
 
-            sorted_payouts = [payout_value for date, payout_value in sorted(payouts.items())]
+            payouts = [bet.payout for bet in bets]
+            payout_sum = sum(payouts)
 
-            score = sum(sorted_payouts)
+            if payout_sum > best_payout_sum:
+                best_bets = bets
+                best_payout_sum = payout_sum
+                print(f"New best score: {best_payout_sum} at threshold: {bet_threshold}")
 
-            if score > best_score:
-                best_sorted_payouts = sorted_payouts
-                best_score = score
-                print(f"New best score: {best_score} at threshold: {bet_threshold}")
-
-        return best_sorted_payouts
+        return best_bets
 
     def prune_sample(self, race_cards_df):
         race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
