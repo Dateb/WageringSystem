@@ -23,13 +23,11 @@ class NNClassifier(Estimator):
             self,
             feature_manager: FeatureManager,
             model_evaluator: ModelEvaluator,
-            block_splitter: BlockSplitter,
             params: dict,
     ):
         super().__init__()
         self.feature_manager = feature_manager
         self.model_evaluator = model_evaluator
-        self.block_splitter = block_splitter
 
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]

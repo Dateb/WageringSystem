@@ -9,6 +9,7 @@ from Model.Estimators.Estimator import Estimator
 from Model.Probabilizing.WinProbabilizer import WinProbabilizer
 from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from SampleExtraction.BlockSplitter import BlockSplitter
+from SampleExtraction.SampleEncoder import SampleEncoder
 from market_simulation.odds_history import create_bets, BetfairOfferContainer, WinOracle, create_race_key, Bet
 
 
@@ -24,8 +25,9 @@ class ModelEvaluator:
             race_key = create_race_key(race_datetime, race_card.track_name)
             self.win_results[race_key] = {horse.name.replace("'", "").upper(): horse.has_won for horse in race_card.runners}
 
-    def get_bets_of_model(self, estimator: Estimator, block_splitter: BlockSplitter) -> List[Bet]:
-        train_sample, test_sample = block_splitter.get_train_test_split()
+    def get_bets_of_model(self, estimator: Estimator, train_sample_encoder: SampleEncoder, test_sample_encoder: SampleEncoder) -> List[Bet]:
+        train_sample = train_sample_encoder.get_race_cards_sample()
+        test_sample = test_sample_encoder.get_race_cards_sample()
 
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
         test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
