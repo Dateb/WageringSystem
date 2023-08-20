@@ -56,7 +56,7 @@ class ExchangeMonitor:
             race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_odds_from_exchange())
             updated_race_card = race_cards_injector.inject_newest_odds_into_horses(self.current_full_race_card)
             estimation_result = self.model.estimate_race_card(updated_race_card)
-            betting_slip = self.model.bet_model.bettor.create_bets(estimation_result)
+            betting_slip = self.model.bet_model.bettor.bet(estimation_result)
 
             print(self.current_full_race_card.race_id)
             print(f"{datetime.datetime.now()}: Served betting slip")

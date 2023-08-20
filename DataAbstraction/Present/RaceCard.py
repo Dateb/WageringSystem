@@ -117,6 +117,8 @@ class RaceCard:
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
 
+        self.total_horses = self.horses
+
         self.horses = [horse for horse in self.horses if not horse.is_scratched]
         self.runners = [horse for horse in self.horses if not horse.is_scratched]
 
@@ -227,6 +229,9 @@ class RaceCard:
         if self.n_horses <= 1:
             self.is_valid_sample = False
             self.feature_source_validity = False
+
+        if self.category not in ["LST", "HCP"]:
+            self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False

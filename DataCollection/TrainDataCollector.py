@@ -64,7 +64,7 @@ def main():
 
     query_date = date(
         year=2023,
-        month=6,
+        month=7,
         day=1,
     )
 

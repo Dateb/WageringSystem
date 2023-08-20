@@ -52,10 +52,14 @@ def optimize_model_configuration():
 
     test_sample_encoder = SampleEncoder(feature_manager.features, columns)
 
+    test_race_cards = {}
+
     for race_card_file_name in tqdm(test_sample_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
+
+        test_race_cards.update(race_cards)
 
     race_cards_sample = train_sample_encoder.get_race_cards_sample()
     race_cards_sample.race_cards_dataframe.to_csv("../data/races.csv")
@@ -69,7 +73,12 @@ def optimize_model_configuration():
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
     estimator = NNClassifier(feature_manager, model_evaluator, NN_CLASSIFIER_PARAMS)
 
-    bets = model_evaluator.get_bets_of_model(estimator, train_sample_encoder, test_sample_encoder)
+    test_race_cards = {
+        race_key: race_card for race_key, race_card in test_race_cards.items()
+        if race_card.category in ["HCP", "LST"] and len(race_card.total_horses) == len(race_card.horses)
+    }
+
+    bets = model_evaluator.get_bets_of_model(estimator, train_sample_encoder, test_sample_encoder, test_race_cards)
 
     with open(__TEST_PAYOUTS_PATH, "wb") as f:
         pickle.dump(bets, f)
