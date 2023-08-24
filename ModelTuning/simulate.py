@@ -75,7 +75,7 @@ def optimize_model_configuration():
 
     test_race_cards = {
         race_key: race_card for race_key, race_card in test_race_cards.items()
-        if race_card.category in ["HCP", "LST"] and len(race_card.total_horses) == len(race_card.horses)
+        # if race_card.category in ["HCP", "LST"]
     }
 
     bets = model_evaluator.get_bets_of_model(estimator, train_sample_encoder, test_sample_encoder, test_race_cards)

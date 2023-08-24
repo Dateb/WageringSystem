@@ -17,7 +17,8 @@ class BetEvaluator:
                     bet.payout -= bet.stakes
 
                     if self.is_winning_bet(race_key, horse_name):
-                        bet.payout += bet.stakes * bet.bet_offer.odds * (1 - Bet.WIN_COMMISSION)
+                        win_amount = bet.stakes * bet.bet_offer.odds * bet.bet_offer.adjustment_factor
+                        bet.payout += win_amount * (1 - Bet.WIN_COMMISSION)
 
     def is_winning_bet(self, race_key: str, horse_name: str) -> bool:
         return self.win_results[race_key][horse_name]

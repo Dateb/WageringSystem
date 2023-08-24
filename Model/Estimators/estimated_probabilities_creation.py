@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import pandas as pd
 
@@ -12,9 +14,14 @@ class ProbabilityEstimates:
     def __init__(self, probability_estimates: dict):
         self.probability_estimates = probability_estimates
 
-    def get_probability_estimate(self, race_key: str, horse_name: str) -> float:
+    def get_horse_win_probability(self, race_key: str, horse_name: str, scratched_horse_names: List[str]) -> float:
+        total_probability_scratched_horses = 0
+        for scratched_horse_name in scratched_horse_names:
+            if scratched_horse_name.upper() in self.probability_estimates[race_key]:
+                total_probability_scratched_horses += self.probability_estimates[race_key][scratched_horse_name.upper()]
+
         if horse_name.upper() in self.probability_estimates[race_key]:
-            return self.probability_estimates[race_key][horse_name.upper()]
+            return self.probability_estimates[race_key][horse_name.upper()] / (1 - total_probability_scratched_horses)
 
 
 class Probabilizer(ABC):
