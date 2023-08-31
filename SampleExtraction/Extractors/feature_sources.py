@@ -13,7 +13,7 @@ from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
 
-CATEGORY_AVERAGE_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
+CATEGORY_AVERAGE_CALCULATOR = SimpleOnlineCalculator()
 BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
 HORSE_SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
 LENGTH_MODIFIER_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)

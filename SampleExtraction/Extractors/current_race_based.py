@@ -180,7 +180,7 @@ class TravelDistance(FeatureExtractor):
 
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
-        return 1 / (travel_distance + 1e-4)
+        return travel_distance + 1000
 
 
 class WeatherType(FeatureExtractor):

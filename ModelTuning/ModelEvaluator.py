@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Dict, List
 
 import numpy as np
+from numpy import mean, std
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bettor, Bet, BetfairOfferContainer
@@ -35,6 +36,9 @@ class ModelEvaluator:
         test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
 
         scores = estimator.predict(train_sample, test_sample)
+
+        test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
+
         estimation_result = WinProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
 
         best_payout_sum = -np.inf
@@ -50,11 +54,11 @@ class ModelEvaluator:
             win_oracle.insert_payouts_into_bets(bets)
 
             payouts = [bet.payout for bet in bets]
-            payout_sum = sum(payouts)
+            payout_score = mean(payouts) / std(payouts)
 
-            if payout_sum > best_payout_sum:
+            if payout_score > best_payout_sum:
                 best_bets = bets
-                best_payout_sum = payout_sum
+                best_payout_sum = payout_score
                 print(f"New best score: {best_payout_sum} at threshold: {bet_threshold}")
 
         return best_bets

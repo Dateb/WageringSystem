@@ -1,3 +1,5 @@
+from math import isnan
+
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
@@ -25,7 +27,11 @@ class RaceClassDifference(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_difference_of_current_and_previous_attribute_value(race_card, horse, "race_class")
+        class_difference = get_difference_of_current_and_previous_attribute_value(race_card, horse, "race_class")
+        if isnan(class_difference):
+            return -1
+
+        return class_difference + 10
 
 
 class HasTrainerChanged(FeatureExtractor):

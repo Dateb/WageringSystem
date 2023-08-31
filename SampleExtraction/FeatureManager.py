@@ -9,7 +9,8 @@ from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, H
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating
-from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance
+from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
+    JockeyEarningsRate
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak, Layoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
@@ -23,9 +24,9 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     JockeyDistancePercentageBeaten, JockeySurfacePercentageBeaten, JockeyTrackPercentageBeaten, \
     JockeyClassPercentageBeaten, TrainerDistancePercentageBeaten, TrainerSurfacePercentageBeaten, \
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
-from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor
+from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor, HorseTopFinish
 from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFraction, PulledUpPreviousRace, \
-    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability
+    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey
 from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
@@ -42,8 +43,9 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYear
     HasFewStartsInTwoYears
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
     AbsoluteTime
+from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
-    JockeyWinRate, HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, TrainerWinRate, DamWinRate, \
+    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, DamWinRate, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
     JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate
 
@@ -85,32 +87,53 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            CurrentSpeedFigure(),
-            JockeyWinRate(), TrainerWinRate(),
-            Age(),
-            CurrentDistance(),
-            JockeyWeight(),
-
-            DistanceDifference(),
-            WeightDifference(),
-
-            PreviousRelativeDistanceBehind(),
-
             PreviousWinProbability(),
 
-            LifeTimeStartCount(),
-            CurrentRating(),
-            OneYearStartCount(),
-            TwoYearStartCount(),
+            # CurrentSpeedFigure(),
+            #
+            # JockeyWinRate(),
+            # JockeyPlaceRate(),
+            # JockeyEarningsRate(),
+            #
+            # TrainerWinRate(),
+            # TrainerPlaceRate(),
+            # TrainerEarningsRate(),
+            #
+            # Age(),
+            # JockeyWeight(),
+            #
+            # DistanceDifference(),
+            # WeightDifference(),
+            #
+            # PreviousPlacePercentile(),
+            # PreviousRelativeDistanceBehind(),
+            #
+            # LifeTimeStartCount(),
+            # CurrentRating(),
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+            #
+            # HasTrackChanged(),
+            #
+            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
+            # Layoff(),
 
-            HasTrackChanged(),
+            #-----------------------------------------------------------------
 
-            BestLifeTimeSpeedFigure(),
+            # HorseTopFinish()
+            # MaxPastRatingExtractor(),
+
+            # RaceClassDifference(),
+
+            # Gender(),
+
+            # TravelDistance(),
+
+            # BestLifeTimeSpeedFigure(),
 
             # Not helping but not hurting:
-            Layoff(),
-            HasJockeyChanged(),
-            HasTrainerChanged(),
+            # HasJockeyChanged(),
+            # HasTrainerChanged(),
 
             # Increasing loss when included:
 
@@ -124,8 +147,6 @@ class FeatureManager:
             # Not tested:
 
             # HorseWinRate(),
-            # Gender(),
-            # TravelDistance(),
 
             # CurrentRaceClass(),
             # WeightAdvantage(),
@@ -249,7 +270,6 @@ class FeatureManager:
             #
             # HasOptimalBreak(),
             #
-            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
             # HorseJockeyWinRate(), HorseTrainerWinRate(),
             #
             # JockeyTrackWinRate(), JockeyClassWinRate(),
@@ -273,9 +293,6 @@ class FeatureManager:
             # JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),
             # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
             #
-            # RaceClassDifference(),
-
-            # MaxPastRatingExtractor(),
             # MeanSpeedDiff(),
             # CurrentRaceTypeDetail(),
         ]

@@ -148,6 +148,12 @@ class RaceCard:
         horse_with_number = [horse for horse in self.horses if horse.number == horse_number][0]
         return horse_with_number
 
+    def get_horse_by_name(self, horse_name: str) -> Horse:
+        horse_name = horse_name.replace("'", "").upper()
+        for horse in self.horses:
+            if horse.name.replace("'", "").upper() == horse_name:
+                return horse
+
     @property
     def values(self) -> List:
         return list(self.__base_attributes.values())
@@ -229,8 +235,8 @@ class RaceCard:
             self.is_valid_sample = False
             self.feature_source_validity = False
 
-        # if self.category not in ["LST", "HCP"]:
-        #     self.is_valid_sample = False
+        if self.category not in ["LST", "HCP"]:
+            self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False

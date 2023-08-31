@@ -48,6 +48,9 @@ class Horse:
 
         self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
+
+        self.betfair_probability_sp = 1 / self.betfair_win_sp if self.betfair_win_sp >= 1 else -1
+
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
 
         self.post_position = self.__extract_post_position(raw_data)

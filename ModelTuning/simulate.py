@@ -43,6 +43,10 @@ def optimize_model_configuration():
 
     for race_card_file_name in tqdm(train_sample_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+
+        for race_card in race_cards.values():
+            race_card.horses = race_card.runners
+
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         train_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
@@ -75,7 +79,7 @@ def optimize_model_configuration():
 
     test_race_cards = {
         race_key: race_card for race_key, race_card in test_race_cards.items()
-        # if race_card.category in ["HCP", "LST"]
+        if race_card.category in ["HCP", "LST"]
     }
 
     bets = model_evaluator.get_bets_of_model(estimator, train_sample_encoder, test_sample_encoder, test_race_cards)

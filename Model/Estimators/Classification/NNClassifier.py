@@ -80,6 +80,7 @@ class NNClassifier(Estimator):
         predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
 
         scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
+        test_sample.race_cards_dataframe["score"] = scores
 
         return scores
 
