@@ -89,41 +89,41 @@ class FeatureManager:
         default_features = [
             PreviousWinProbability(),
 
-            # CurrentSpeedFigure(),
-            #
-            # JockeyWinRate(),
-            # JockeyPlaceRate(),
-            # JockeyEarningsRate(),
-            #
-            # TrainerWinRate(),
-            # TrainerPlaceRate(),
-            # TrainerEarningsRate(),
-            #
-            # Age(),
-            # JockeyWeight(),
-            #
-            # DistanceDifference(),
-            # WeightDifference(),
-            #
-            # PreviousPlacePercentile(),
-            # PreviousRelativeDistanceBehind(),
-            #
-            # LifeTimeStartCount(),
-            # CurrentRating(),
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
-            #
-            # HasTrackChanged(),
-            #
-            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
-            # Layoff(),
+            CurrentSpeedFigure(),
+
+            JockeyWinRate(),
+            JockeyPlaceRate(),
+            JockeyEarningsRate(),
+
+            TrainerWinRate(),
+            TrainerPlaceRate(),
+            TrainerEarningsRate(),
+
+            Age(),
+            JockeyWeight(),
+
+            DistanceDifference(),
+            WeightDifference(),
+
+            PreviousPlacePercentile(),
+            PreviousRelativeDistanceBehind(),
+
+            LifeTimeStartCount(),
+            CurrentRating(),
+            OneYearStartCount(),
+            TwoYearStartCount(),
+
+            HasTrackChanged(),
+
+            BreederWinRate(), OwnerWinRate(), DamWinRate(),
+            Layoff(),
+
+            # RaceClassDifference(),
 
             #-----------------------------------------------------------------
 
             # HorseTopFinish()
             # MaxPastRatingExtractor(),
-
-            # RaceClassDifference(),
 
             # Gender(),
 

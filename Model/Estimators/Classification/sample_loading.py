@@ -23,6 +23,8 @@ class RaceCardLoader(ABC):
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
+        self.group_permutation_idx = None
+
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)
         tensor_y = torch.Tensor(y).type(torch.LongTensor)
@@ -47,17 +49,24 @@ class RaceCardLoader(ABC):
             group_counts: ndarray
     ):
         n_feature_values = horse_features.shape[1]
-        padded_horse_features = np.zeros((len(group_counts), self.horses_per_race_padding_size, n_feature_values))
+        padded_horse_features = np.zeros((len(group_counts), self.horses_per_race_padding_size, 1 + n_feature_values))
         padded_horse_labels = np.zeros((len(group_counts)))
+
+        self.group_permutation_idx = np.zeros((len(group_counts), self.horses_per_race_padding_size), dtype=np.int16)
 
         horse_idx = 0
         for i in range(len(group_counts)):
             group_count = group_counts[i]
 
+            horse_positions = list(range(self.horses_per_race_padding_size))
+            random.shuffle(horse_positions)
+
+            self.group_permutation_idx[i, :] = horse_positions
+
             for j in range(group_count):
-                padded_horse_features[i, j, :] = horse_features[horse_idx]
+                padded_horse_features[i, horse_positions[j], :] = np.insert(horse_features[horse_idx], 0, 1)
                 if horses_win_indicator[horse_idx]:
-                    padded_horse_labels[i] = j
+                    padded_horse_labels[i] = horse_positions[j]
 
                 horse_idx += 1
 

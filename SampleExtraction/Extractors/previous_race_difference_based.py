@@ -31,7 +31,7 @@ class RaceClassDifference(FeatureExtractor):
         if isnan(class_difference):
             return -1
 
-        return class_difference + 10
+        return class_difference
 
 
 class HasTrainerChanged(FeatureExtractor):
@@ -117,7 +117,7 @@ class HasTrackChanged(FeatureExtractor):
         previous_track = form_table.past_forms[0].track_name
         current_track = race_card.track_name
 
-        return int(previous_track != current_track) + 1
+        return int(previous_track != current_track)
 
 
 class WeightDifference(FeatureExtractor):

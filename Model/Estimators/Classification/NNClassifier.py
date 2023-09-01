@@ -79,7 +79,7 @@ class NNClassifier(Estimator):
 
         predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
 
-        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
+        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts, test_race_card_loader.group_permutation_idx)
         test_sample.race_cards_dataframe["score"] = scores
 
         return scores
@@ -132,7 +132,7 @@ class NNClassifier(Estimator):
         correct /= size
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
-    def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
+    def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray, group_permutation_idx: ndarray):
         scores = np.zeros(np.sum(group_counts))
 
         horse_idx = 0
@@ -140,7 +140,7 @@ class NNClassifier(Estimator):
             group_count = group_counts[i]
             for j in range(group_count):
                 if j < self.horses_per_race_padding_size:
-                    scores[horse_idx] = predictions[i, j]
+                    scores[horse_idx] = predictions[i, group_permutation_idx[i, j]]
                 else:
                     scores[horse_idx] = 0
                 horse_idx += 1

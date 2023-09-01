@@ -9,7 +9,7 @@ class SimpleMLP(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
 
-            nn.Linear(max_horses_per_race * feature_count, 1024),
+            nn.Linear(max_horses_per_race * (feature_count + 1), 1024),
             nn.BatchNorm1d(1024),
             nn.ReLU(),
 

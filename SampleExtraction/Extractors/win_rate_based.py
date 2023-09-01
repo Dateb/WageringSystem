@@ -89,7 +89,7 @@ class BreederWinRate(FeatureExtractor):
         breeder_win_rate = get_win_rate_of_name(horse.breeder)
         if breeder_win_rate == -1:
             return -1
-        return breeder_win_rate + 1
+        return breeder_win_rate
 
 
 class OwnerWinRate(FeatureExtractor):
@@ -103,7 +103,7 @@ class OwnerWinRate(FeatureExtractor):
         owner_win_rate = get_win_rate_of_name(horse.owner)
         if owner_win_rate == -1:
             return -1
-        return owner_win_rate + 1
+        return owner_win_rate
 
 
 class SireWinRate(FeatureExtractor):
@@ -128,7 +128,7 @@ class DamWinRate(FeatureExtractor):
         dam_win_rate = get_win_rate_of_name(horse.dam)
         if dam_win_rate == -1:
             return -1
-        return dam_win_rate + 1
+        return dam_win_rate
 
 
 class DamSireWinRate(FeatureExtractor):

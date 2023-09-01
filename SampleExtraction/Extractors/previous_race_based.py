@@ -13,7 +13,7 @@ class PreviousWinProbability(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return previous_win_prob_source.get_previous_of_name(horse.name) + 1
+        return previous_win_prob_source.get_previous_of_name(horse.name)
         # if previous_exchange_odds not in [-1, 0]:
         #     return 1 / previous_exchange_odds
         #
@@ -43,7 +43,7 @@ class PreviousPlacePercentile(FeatureExtractor):
         previous_n_horses = past_forms[0].n_horses
         previous_performance = horse.previous_performance
 
-        if previous_performance == "PU":
+        if previous_performance in ["PU", "RO"]:
             previous_performance = str(previous_n_horses)
 
         if not previous_performance.isnumeric():
@@ -61,7 +61,7 @@ class PreviousPlacePercentile(FeatureExtractor):
 
         previous_place = int(previous_performance)
 
-        return (previous_place - 1) / (previous_n_horses - 1) + 1
+        return (previous_place - 1) / (previous_n_horses - 1)
 
 
 class PreviousRelativeDistanceBehind(FeatureExtractor):

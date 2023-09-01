@@ -355,7 +355,7 @@ class SpeedFiguresSource(FeatureSource):
             return -1
 
         current_speed_figure = self.speed_figures[category]["avg"]
-        return current_speed_figure + 100
+        return current_speed_figure
 
     def get_max_speed_figure(self, category: str):
         if category not in self.speed_figures:

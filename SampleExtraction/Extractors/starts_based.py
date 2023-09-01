@@ -10,7 +10,7 @@ class LifeTimeStartCount(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return len(horse.form_table.past_forms) + 1
+        return len(horse.form_table.past_forms)
 
 
 class OneYearStartCount(FeatureExtractor):
@@ -22,7 +22,7 @@ class OneYearStartCount(FeatureExtractor):
         past_forms_this_year = [
             i for i in range(len(horse.form_table.past_forms)) if get_day_difference(race_card, horse, -1, i) <= 365
         ]
-        return len(past_forms_this_year) + 1
+        return len(past_forms_this_year)
 
 
 class TwoYearStartCount(FeatureExtractor):
@@ -34,7 +34,7 @@ class TwoYearStartCount(FeatureExtractor):
         past_forms_this_and_last_year = [
             i for i in range(len(horse.form_table.past_forms)) if get_day_difference(race_card, horse, -1, i) <= 2 * 365
         ]
-        return len(past_forms_this_and_last_year) + 1
+        return len(past_forms_this_and_last_year)
 
 
 class HasFewStartsInTwoYears(FeatureExtractor):

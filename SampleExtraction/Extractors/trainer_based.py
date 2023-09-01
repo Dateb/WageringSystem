@@ -10,7 +10,7 @@ class TrainerWinRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.trainer.win_rate == -1:
             return -1
-        return horse.trainer.win_rate + 1
+        return horse.trainer.win_rate
 
 
 class TrainerPlaceRate(FeatureExtractor):
@@ -21,7 +21,7 @@ class TrainerPlaceRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.trainer.place_rate == -1:
             return -1
-        return horse.trainer.place_rate + 1
+        return horse.trainer.place_rate
 
 
 class TrainerEarningsRate(FeatureExtractor):
@@ -32,4 +32,4 @@ class TrainerEarningsRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.trainer.earnings_rate == -1:
             return -1
-        return horse.trainer.earnings_rate + 1000
+        return horse.trainer.earnings_rate
