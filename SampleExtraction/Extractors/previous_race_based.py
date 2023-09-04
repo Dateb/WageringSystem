@@ -43,7 +43,7 @@ class PreviousPlacePercentile(FeatureExtractor):
         previous_n_horses = past_forms[0].n_horses
         previous_performance = horse.previous_performance
 
-        if previous_performance in ["PU", "RO"]:
+        if previous_performance in ["PU", "RO", "UR"]:
             previous_performance = str(previous_n_horses)
 
         if not previous_performance.isnumeric():
@@ -66,7 +66,7 @@ class PreviousPlacePercentile(FeatureExtractor):
 
 class PreviousRelativeDistanceBehind(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = 1
 
     def __init__(self):
         super().__init__()

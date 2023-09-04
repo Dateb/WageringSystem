@@ -62,7 +62,7 @@ class NNClassifier(Estimator):
 
         self.network = SimpleMLP(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values, self.params["dropout_rate"]).to(self.device)
 
-        self.optimizer = torch.optim.SGD(self.network.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.SGD(self.network.parameters(), lr=self.params["base_lr"])
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode='min',
             factor=self.params["decay_factor"],
@@ -79,7 +79,7 @@ class NNClassifier(Estimator):
 
         predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
 
-        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts, test_race_card_loader.group_permutation_idx)
+        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
 
         return scores
@@ -94,7 +94,6 @@ class NNClassifier(Estimator):
         size = len(train_dataloader.dataset)
         num_batches = len(train_dataloader)
 
-        batch_loss = None
         train_loss, correct = 0, 0
         self.network.train()
         for batch_idx, (X, y) in enumerate(train_dataloader):
@@ -110,10 +109,9 @@ class NNClassifier(Estimator):
             train_loss += self.loss_function(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
-        self.scheduler.step(batch_loss)
-
         train_loss /= num_batches
         correct /= size
+
         print(f"Train Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {train_loss:>8f} \n")
 
     def test_epoch(self, test_dataloader: DataLoader):
@@ -130,19 +128,19 @@ class NNClassifier(Estimator):
 
         test_loss /= num_batches
         correct /= size
+
+        self.scheduler.step(test_loss)
+
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
-    def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray, group_permutation_idx: ndarray):
+    def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
         scores = np.zeros(np.sum(group_counts))
 
         horse_idx = 0
         for i in range(len(group_counts)):
             group_count = group_counts[i]
             for j in range(group_count):
-                if j < self.horses_per_race_padding_size:
-                    scores[horse_idx] = predictions[i, group_permutation_idx[i, j]]
-                else:
-                    scores[horse_idx] = 0
+                scores[horse_idx] = predictions[i, j]
                 horse_idx += 1
 
         return scores

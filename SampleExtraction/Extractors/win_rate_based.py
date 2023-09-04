@@ -80,6 +80,7 @@ class HorseBreederWinRate(FeatureExtractor):
 
 class BreederWinRate(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0
     win_rate_source.average_attribute_groups.append(["breeder"])
 
     def __init__(self):
@@ -88,12 +89,13 @@ class BreederWinRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         breeder_win_rate = get_win_rate_of_name(horse.breeder)
         if breeder_win_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return breeder_win_rate
 
 
 class OwnerWinRate(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0
     win_rate_source.average_attribute_groups.append(["owner"])
 
     def __init__(self):
@@ -102,7 +104,7 @@ class OwnerWinRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         owner_win_rate = get_win_rate_of_name(horse.owner)
         if owner_win_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return owner_win_rate
 
 
@@ -119,6 +121,7 @@ class SireWinRate(FeatureExtractor):
 
 class DamWinRate(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0
     win_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
@@ -127,7 +130,7 @@ class DamWinRate(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         dam_win_rate = get_win_rate_of_name(horse.dam)
         if dam_win_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return dam_win_rate
 
 

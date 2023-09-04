@@ -61,7 +61,7 @@ class FeatureManager:
 
         self.base_features = [
             # CurrentRaceTrack(),
-            # BetfairWinMarketWinProbability(),
+            BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
@@ -87,45 +87,46 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            PreviousWinProbability(),
+            # PreviousWinProbability(),
 
-            CurrentSpeedFigure(),
-
-            JockeyWinRate(),
-            JockeyPlaceRate(),
-            JockeyEarningsRate(),
-
-            TrainerWinRate(),
-            TrainerPlaceRate(),
-            TrainerEarningsRate(),
-
-            Age(),
-            JockeyWeight(),
-
-            DistanceDifference(),
-            WeightDifference(),
-
-            PreviousPlacePercentile(),
-            PreviousRelativeDistanceBehind(),
-
-            LifeTimeStartCount(),
-            CurrentRating(),
-            OneYearStartCount(),
-            TwoYearStartCount(),
-
-            HasTrackChanged(),
-
-            BreederWinRate(), OwnerWinRate(), DamWinRate(),
-            Layoff(),
-
+            # CurrentSpeedFigure(),
+            #
+            # JockeyWinRate(),
+            # JockeyPlaceRate(),
+            # JockeyEarningsRate(),
+            #
+            # TrainerWinRate(),
+            # TrainerPlaceRate(),
+            # TrainerEarningsRate(),
+            #
+            # DistanceDifference(),
+            # WeightDifference(),
+            #
+            # PreviousPlacePercentile(),
+            # PreviousRelativeDistanceBehind(),
+            #
+            # HasTrackChanged(),
+            #
+            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
+            #
             # RaceClassDifference(),
+            #
+            # Gender(),
 
             #-----------------------------------------------------------------
+            #Needs improvement:
+            # Layoff(),
+            # Age(),
+            # JockeyWeight(),
+            # LifeTimeStartCount(),
+            # CurrentRating(),
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+
+            # HorsePurseRate(),
 
             # HorseTopFinish()
             # MaxPastRatingExtractor(),
-
-            # Gender(),
 
             # TravelDistance(),
 
@@ -281,7 +282,6 @@ class FeatureManager:
             # JockeyDistanceShowRate(), JockeySurfaceShowRate(),
             # TrainerSurfaceShowRate(),
             #
-            # HorsePurseRate(),
             # HorseJockeyPurseRate(), HorseTrainerPurseRate(),
             #
             # JockeySurfacePurseRate(), JockeyTrackPurseRate(),

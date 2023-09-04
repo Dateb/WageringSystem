@@ -4,34 +4,40 @@ from DataAbstraction.Present.Horse import Horse
 
 class JockeyWinRate(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0
+
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.jockey.win_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return horse.jockey.win_rate
 
 
 class JockeyPlaceRate(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.jockey.place_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return horse.jockey.place_rate
 
 
 class JockeyEarningsRate(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.jockey.earnings_rate == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
         return horse.jockey.earnings_rate
 
 

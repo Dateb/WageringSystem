@@ -285,7 +285,7 @@ class SpeedFiguresSource(FeatureSource):
         win_time = race_card.race_result.win_time
 
         for horse in race_card.runners:
-            if horse.horse_distance >= 0 and is_horse_distance_too_far_from_winner(race_card.distance, horse.horse_distance):
+            if horse.horse_distance >= 0:
                 horse_time = get_horse_time(
                     win_time,
                     race_card.lengths_per_second_estimate["avg"],
