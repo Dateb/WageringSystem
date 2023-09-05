@@ -6,7 +6,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 from torch.utils.data import DataLoader
 
-from Model.Estimators.Classification.networks import SimpleMLP
+from Model.Estimators.Classification.networks import SimpleMLP, SimpleLSTM
 from Model.Estimators.Classification.sample_loading import TrainRaceCardLoader, TestRaceCardLoader
 
 from Model.Estimators.Estimator import Estimator
@@ -60,7 +60,7 @@ class NNClassifier(Estimator):
             one_hot_encoder=one_hot_encoder
         )
 
-        self.network = SimpleMLP(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values, self.params["dropout_rate"]).to(self.device)
+        self.network = SimpleLSTM(self.horses_per_race_padding_size, train_race_card_loader.n_feature_values, self.device).to(self.device)
 
         self.optimizer = torch.optim.SGD(self.network.parameters(), lr=self.params["base_lr"])
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(

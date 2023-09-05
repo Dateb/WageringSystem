@@ -72,16 +72,10 @@ class SimpleLSTM(nn.Module):
         super(SimpleLSTM, self).__init__()
         self.device = device
         self.num_layers = 1
-        self.hidden_size = 2000
+        self.hidden_size = max_horses_per_race
 
-        self.lstm = nn.LSTM(input_size=feature_count, hidden_size=self.hidden_size,
+        self.lstm = nn.LSTM(input_size=feature_count + 1, hidden_size=self.hidden_size,
                             num_layers=self.num_layers, batch_first=True)
-        self.fc_1 = nn.Linear(self.hidden_size, 512)
-        self.fc = nn.Linear(512, max_horses_per_race)
-
-        self.relu = nn.ReLU()
-
-        self.batch_norm = nn.BatchNorm1d(512)
 
     def forward(self, x):
         x = nn.functional.normalize(x)
@@ -89,11 +83,6 @@ class SimpleLSTM(nn.Module):
         c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device))
 
         output, (hn, cn) = self.lstm(x, (h_0, c_0))
-        hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
-        out = self.relu(hn)
-        out = self.fc_1(out)
-        out = self.batch_norm(out)
-        out = self.relu(out)
-        out = self.fc(out)
+        out = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
 
         return out
