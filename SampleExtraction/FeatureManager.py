@@ -17,7 +17,7 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
     BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog, \
     IndustryMarketWinProbabilityDiff, BetfairOverround
-from SampleExtraction.Extractors.past_performance_based import HasFallen
+from SampleExtraction.Extractors.past_performance_based import HasFallen, HasPastPerformance
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -61,7 +61,7 @@ class FeatureManager:
 
         self.base_features = [
             # CurrentRaceTrack(),
-            BetfairWinMarketWinProbability(),
+            # BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
@@ -89,39 +89,49 @@ class FeatureManager:
         default_features = [
             # PreviousWinProbability(),
 
-            # CurrentSpeedFigure(),
-            #
-            # JockeyWinRate(),
-            # JockeyPlaceRate(),
-            # JockeyEarningsRate(),
-            #
-            # TrainerWinRate(),
-            # TrainerPlaceRate(),
-            # TrainerEarningsRate(),
-            #
-            # DistanceDifference(),
-            # WeightDifference(),
-            #
-            # PreviousPlacePercentile(),
-            # PreviousRelativeDistanceBehind(),
-            #
-            # HasTrackChanged(),
-            #
-            # BreederWinRate(), OwnerWinRate(), DamWinRate(),
-            #
-            # RaceClassDifference(),
-            #
-            # Gender(),
+            ## Uses form table:
+            HasPastPerformance(),
+            WeightDifference(),
+            PreviousPlacePercentile(),
+            PreviousRelativeDistanceBehind(),
+            HasTrackChanged(),
+            Layoff(),
+            LifeTimeStartCount(),
+
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+
+            # Not using form table:
+            Age(),
+            CurrentSpeedFigure(),
+            JockeyWinRate(),
+            JockeyPlaceRate(),
+            JockeyEarningsRate(),
+            TrainerWinRate(),
+            TrainerPlaceRate(),
+            TrainerEarningsRate(),
+            DistanceDifference(),
+            RaceClassDifference(),
+            Gender(),
+            JockeyWeight(),
+
+            BreederWinRate(), OwnerWinRate(),
+            DamWinRate(),
+            CurrentRating(),
+
+            DayOfYearSin(),
+            DayOfYearCos(),
+
+            WeekDaySin(),
+            WeekDayCos(),
+
+            MinutesIntoDay(),
+
+            # HorseWinRate(),
+            # DamSireWinRate(), SireWinRate(),
 
             #-----------------------------------------------------------------
             #Needs improvement:
-            # Layoff(),
-            # Age(),
-            # JockeyWeight(),
-            # LifeTimeStartCount(),
-            # CurrentRating(),
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
 
             # HorsePurseRate(),
 
@@ -147,17 +157,10 @@ class FeatureManager:
 
             # Not tested:
 
-            # HorseWinRate(),
-
             # CurrentRaceClass(),
             # WeightAdvantage(),
             # WeightAllowance(),
-            # DayOfYearSin(),
-            # DayOfYearCos(),
             # CurrentRaceCategory(),
-
-            # DamSireWinRate(),
-            # SireWinRate(),
             #
             # TrainerClassWinRate(),
             # TrainerPercentageBeaten(),
@@ -212,7 +215,6 @@ class FeatureManager:
             # AirPressure(),
             #
             # JockeyDistancePurseRate(),
-            # MinutesIntoDay(),
             #
             # AbsoluteTime(),
             # DamShowRate(),
@@ -231,7 +233,6 @@ class FeatureManager:
             #
             #
             # HorseBreederWinRate(),
-            # WeekDaySin(),
             #
             # HorseJockeyShowRate(),
             #

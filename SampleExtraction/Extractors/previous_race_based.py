@@ -7,7 +7,7 @@ from SampleExtraction.Extractors.feature_sources import previous_win_prob_source
 class PreviousWinProbability(FeatureExtractor):
 
     previous_win_prob_source.previous_value_attribute_groups.append(["name"])
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = 1
 
     def __init__(self):
         super().__init__()
@@ -30,7 +30,7 @@ class PreviousWinProbability(FeatureExtractor):
 
 class PreviousPlacePercentile(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = 1
 
     def __init__(self):
         super().__init__()

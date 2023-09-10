@@ -8,6 +8,7 @@ from SampleExtraction.Extractors.feature_sources import previous_distance_source
 
 class DistanceDifference(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 1
     previous_distance_source.previous_value_attribute_groups.append(["name"])
 
     def __init__(self):
@@ -16,12 +17,14 @@ class DistanceDifference(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_distance = previous_distance_source.get_previous_of_name(horse.name)
         if previous_distance == -1:
-            return -1
+            return self.PLACEHOLDER_VALUE
 
         return race_card.distance / previous_distance
 
 
 class RaceClassDifference(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
@@ -29,7 +32,7 @@ class RaceClassDifference(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         class_difference = get_difference_of_current_and_previous_attribute_value(race_card, horse, "race_class")
         if isnan(class_difference):
-            return -1
+            return self.PLACEHOLDER_VALUE
 
         return class_difference
 
@@ -103,7 +106,7 @@ class IsSecondRaceForJockey(FeatureExtractor):
 
 class HasTrackChanged(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
@@ -122,7 +125,7 @@ class HasTrackChanged(FeatureExtractor):
 
 class WeightDifference(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = 1
 
     def __init__(self):
         super().__init__()

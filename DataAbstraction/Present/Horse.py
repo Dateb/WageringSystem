@@ -26,8 +26,13 @@ class Horse:
         self.base_attributes = {}
 
         self.name = raw_data["name"]
+
         self.sire = raw_data["sire"]
         self.dam = raw_data["dam"]
+
+        if self.dam == "Time To Blossom":
+            print(self.name)
+
         self.dam_sire = raw_data["damSire"]
         self.breeder = raw_data["breeder"]
         self.owner = raw_data["owner"]

@@ -14,7 +14,7 @@ class CurrentSpeedFigure(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return speed_figures_source.get_current_speed_figure(horse.subject_id)
+        return speed_figures_source.get_current_speed_figure(horse.name)
 
 
 class MeanSpeedDiff(FeatureExtractor):

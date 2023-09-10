@@ -43,7 +43,7 @@ class FeatureSource(ABC):
         pass
 
     def update_average(self, category: dict, new_obs: float, new_obs_date: Date, online_calculator: OnlineCalculator) -> None:
-        if not category["avg"]:
+        if not category["count"]:
             category["prev_avg"] = 0
             category["avg"] = new_obs
             category["count"] = 1
@@ -52,13 +52,14 @@ class FeatureSource(ABC):
             n_days_since_last_obs = (new_obs_date - category["last_obs_date"]).days
 
             category["prev_avg"] = category["avg"]
+            category["count"] += 1
+
             category["avg"] = online_calculator.calculate_average(
                 old_average=category["prev_avg"],
                 new_obs=new_obs,
                 n_days_since_last_obs=n_days_since_last_obs,
                 count=category["count"]
             )
-            category["count"] += 1
             category["last_obs_date"] = new_obs_date
 
     def update_variance(self, category: dict, new_obs: float):
@@ -103,6 +104,7 @@ class CategoryAverageSource(FeatureSource, ABC):
                 attribute_group_key += f"{attribute_key}_"
 
             attribute_group_key = attribute_group_key[:-1]
+
             self.update_average(
                 self.averages[attribute_group_key],
                 value,
@@ -112,6 +114,7 @@ class CategoryAverageSource(FeatureSource, ABC):
 
     def get_average_of_name(self, name: str) -> float:
         average_elem = self.averages[name]
+
         if "avg" in average_elem and average_elem["count"] >= 3:
             return average_elem["avg"]
         return -1
@@ -330,11 +333,11 @@ class SpeedFiguresSource(FeatureSource):
 
                 if speed_figure is not None:
                     self.update_max(
-                        category=self.speed_figures[horse.subject_id],
+                        category=self.speed_figures[horse.name],
                         new_obs=speed_figure,
                     )
                     self.update_average(
-                        category=self.speed_figures[horse.subject_id],
+                        category=self.speed_figures[horse.name],
                         new_obs=speed_figure,
                         new_obs_date=race_card.date,
                         online_calculator=HORSE_SPEED_CALCULATOR,
@@ -352,7 +355,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def get_current_speed_figure(self, category: str):
         if category not in self.speed_figures:
-            return -1
+            return 0
 
         current_speed_figure = self.speed_figures[category]["avg"]
         return current_speed_figure

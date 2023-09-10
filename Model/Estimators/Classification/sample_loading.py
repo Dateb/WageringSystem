@@ -94,7 +94,7 @@ class TrainRaceCardLoader(RaceCardLoader):
             horses_features,
             horses_win_indicator,
             self.group_counts,
-            n_permutations_per_race=40
+            n_permutations_per_race=1
         )
 
         self.n_feature_values = horses_features.shape[1]
