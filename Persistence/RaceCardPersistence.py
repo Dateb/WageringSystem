@@ -89,9 +89,7 @@ class RaceCardsPersistence:
         return total_race_cards
 
     def __load_race_cards_of_file(self, file_name: str, race_card_creation):
-        file_path = f"{self.__dir_path}/{file_name}"
-        with open(file_path, "r") as f:
-            raw_races = json.load(f)
+        raw_races = self.get_raw_races(file_name)
 
         race_cards = {}
         for date in raw_races:
@@ -104,6 +102,11 @@ class RaceCardsPersistence:
                     race_cards[str(new_race_card.datetime)] = new_race_card
 
         return race_cards
+
+    def get_raw_races(self, file_name: str) -> dict:
+        file_path = f"{self.__dir_path}/{file_name}"
+        with open(file_path, "r") as f:
+            return json.load(f)
 
     def __create_race_card(self, raw_race: dict) -> RaceCard:
         return RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)

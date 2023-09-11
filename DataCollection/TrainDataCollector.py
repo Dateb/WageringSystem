@@ -1,4 +1,6 @@
+import pickle
 from datetime import date, timedelta
+from typing import Set
 
 from tqdm import tqdm
 
@@ -7,26 +9,53 @@ from DataCollection.race_cards.full import FullRaceCardsCollector
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
+class CollectedDaysTracker:
+
+    COLLECTED_DAYS_FILE_NAME: str = "../data/collected_days.pickle"
+
+    def __init__(self, race_cards_persistence: RaceCardsPersistence):
+        self.race_cards_persistence = race_cards_persistence
+        self.collected_days = []
+
+        self.collected_days = self.get_collected_days_from_file()
+
+    def save_collected_days_from_race_cards(self) -> None:
+        self.collected_days = self.get_collected_days_from_race_cards()
+
+        with open(self.COLLECTED_DAYS_FILE_NAME, 'wb') as handle:
+            pickle.dump(self.collected_days, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def get_collected_days_from_file(self) -> Set:
+        with open(self.COLLECTED_DAYS_FILE_NAME, 'rb') as handle:
+            return pickle.load(handle)
+
+    def get_collected_days_from_race_cards(self) -> Set:
+        collected_days = set()
+
+        for race_card_file_name in tqdm(self.race_cards_persistence.race_card_file_names):
+            race_cards = self.race_cards_persistence.load_race_card_files_non_writable([race_card_file_name])
+            for race_card in race_cards.values():
+                collected_days.add(race_card.date)
+
+        return collected_days
+
+
 class TrainDataCollector:
 
     __TIME_OF_A_DAY = timedelta(days=1)
+    RACE_CARDS_FILE_NAME: str = "race_cards"
 
-    def __init__(self, file_name: str):
-        self.__race_cards_persistence = RaceCardsPersistence(file_name)
-        self.collected_days = set()
+    def __init__(self):
+        self.race_cards_persistence = RaceCardsPersistence(self.RACE_CARDS_FILE_NAME)
+        self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
-        for race_card_file_name in tqdm(self.__race_cards_persistence.race_card_file_names):
-            race_cards = self.__race_cards_persistence.load_race_card_files_non_writable([race_card_file_name])
-            for race_card in race_cards.values():
-                self.collected_days.add(race_card.date)
-
-        self.__race_cards_collector = FullRaceCardsCollector()
-        self.__day_collector = DayCollector()
+        self.race_cards_collector = FullRaceCardsCollector()
+        self.day_collector = DayCollector()
 
     def collect(self, query_date: date):
         newest_train_date = query_date
-        if len(self.collected_days) > 0:
-            newest_train_date = max(self.collected_days)
+        if len(self.collected_days_tracker.collected_days) > 0:
+            newest_train_date = max(self.collected_days_tracker.collected_days)
 
         if newest_train_date > query_date:
             self.collect_forward_until_newest_date(query_date, newest_train_date)
@@ -37,7 +66,7 @@ class TrainDataCollector:
         print(f"Forward collecting to date: {newest_date}")
         scraping_date = query_date
         while scraping_date != newest_date:
-            if scraping_date not in self.collected_days:
+            if scraping_date not in self.collected_days_tracker.collected_days:
                 self.collect_day(scraping_date)
             scraping_date += self.__TIME_OF_A_DAY
 
@@ -45,22 +74,22 @@ class TrainDataCollector:
         print(f"Backward collecting from date: {query_date}")
         scraping_date = query_date
         while True:
-            if scraping_date not in self.collected_days:
+            if scraping_date not in self.collected_days_tracker.collected_days:
                 self.collect_day(scraping_date)
             scraping_date -= self.__TIME_OF_A_DAY
 
     def collect_day(self, race_date: date):
         print(f"Currently collecting:{race_date}")
-        race_ids = self.__day_collector.get_closed_race_ids_of_day(race_date)
-        new_race_cards = self.__race_cards_collector.collect_race_cards_from_race_ids(race_ids)
-        self.collected_days.add(race_date)
+        race_ids = self.day_collector.get_closed_race_ids_of_day(race_date)
+        new_race_cards = self.race_cards_collector.collect_race_cards_from_race_ids(race_ids)
+        self.collected_days_tracker.collected_days.add(race_date)
 
         if len(race_ids) > 0:
-            self.__race_cards_persistence.save(new_race_cards)
+            self.race_cards_persistence.save(new_race_cards)
 
 
 def main():
-    train_data_collector = TrainDataCollector(file_name="race_cards")
+    train_data_collector = TrainDataCollector()
 
     query_date = date(
         year=2023,
