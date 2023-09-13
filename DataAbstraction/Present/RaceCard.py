@@ -116,6 +116,14 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+        placed_horses = sorted([horse for horse in self.horses if horse.place > 0], key=lambda horse: horse.place)
+
+        total_horse_distance = 0
+        for horse in placed_horses:
+            if horse.lengths_behind >= 0:
+                total_horse_distance += horse.lengths_behind
+
+            horse.horse_distance = total_horse_distance
 
         self.total_horses = self.horses
 

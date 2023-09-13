@@ -30,9 +30,6 @@ class Horse:
         self.sire = raw_data["sire"]
         self.dam = raw_data["dam"]
 
-        if self.dam == "Time To Blossom":
-            print(self.name)
-
         self.dam_sire = raw_data["damSire"]
         self.breeder = raw_data["breeder"]
         self.owner = raw_data["owner"]
@@ -61,6 +58,10 @@ class Horse:
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
         self.horse_distance = self.__extract_horse_distance(raw_data)
+
+        self.lengths_behind = -1
+        if "lenghts_behind" in raw_data:
+            self.lengths_behind = raw_data["lengths_behind"]
 
         self.jockey = Jockey(raw_data["jockey"])
 

@@ -52,16 +52,19 @@ class BetfairOfferContainer:
         self.test_race_cards_mapper = RaceDateToCardMapper(test_race_cards)
         self.race_offers = {}
 
-        history_path = "../data/exchange_odds_history/Apr/"
-        day_dirs = os.listdir(history_path)
-        for day_dir in day_dirs:
-            race_series_dirs = os.listdir(f"{history_path}/{day_dir}")
-            for race_series_dir in race_series_dirs:
-                history_files = os.listdir(f"{history_path}/{day_dir}/{race_series_dir}")
+        history_path = "../data/exchange_odds_history/"
 
-                for file_name in history_files:
-                    if file_name.startswith("1"):
-                        self.load_offers_from_race(f"{history_path}/{day_dir}/{race_series_dir}/{file_name}")
+        month_dirs = os.listdir(history_path)
+        for month_dir in month_dirs:
+            day_dirs = os.listdir(f"{history_path}/{month_dir}")
+            for day_dir in day_dirs:
+                race_series_dirs = os.listdir(f"{history_path}/{month_dir}/{day_dir}")
+                for race_series_dir in race_series_dirs:
+                    history_files = os.listdir(f"{history_path}/{month_dir}/{day_dir}/{race_series_dir}")
+
+                    for file_name in history_files:
+                        if file_name.startswith("1"):
+                            self.load_offers_from_race(f"{history_path}/{month_dir}/{day_dir}/{race_series_dir}/{file_name}")
 
     def load_offers_from_race(self, race_history_file_path: str):
         betfair_offers = []
@@ -104,7 +107,9 @@ class BetfairOfferContainer:
 
             for runner in final_runners:
                 if runner["status"] == "REMOVED":
-                    adjustment_factor = runner["adjustmentFactor"]
+                    adjustment_factor = 0.0
+                    if "adjustmentFactor" in runner:
+                        adjustment_factor = runner["adjustmentFactor"]
                     if adjustment_factor >= 2.5:
                         removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
                         adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}

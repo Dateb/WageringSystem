@@ -22,6 +22,9 @@ class CollectedDaysTracker:
     def save_collected_days_from_race_cards(self) -> None:
         self.collected_days = self.get_collected_days_from_race_cards()
 
+        self.save_collected_days()
+
+    def save_collected_days(self) -> None:
         with open(self.COLLECTED_DAYS_FILE_NAME, 'wb') as handle:
             pickle.dump(self.collected_days, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -48,6 +51,8 @@ class TrainDataCollector:
     def __init__(self):
         self.race_cards_persistence = RaceCardsPersistence(self.RACE_CARDS_FILE_NAME)
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
+
+        # self.collected_days_tracker.save_collected_days_from_race_cards()
 
         self.race_cards_collector = FullRaceCardsCollector()
         self.day_collector = DayCollector()
@@ -84,6 +89,8 @@ class TrainDataCollector:
         new_race_cards = self.race_cards_collector.collect_race_cards_from_race_ids(race_ids)
         self.collected_days_tracker.collected_days.add(race_date)
 
+        self.collected_days_tracker.save_collected_days()
+
         if len(race_ids) > 0:
             self.race_cards_persistence.save(new_race_cards)
 
@@ -92,8 +99,8 @@ def main():
     train_data_collector = TrainDataCollector()
 
     query_date = date(
-        year=2023,
-        month=7,
+        year=2013,
+        month=10,
         day=1,
     )
 

@@ -1,4 +1,5 @@
 import math
+import random
 import time
 from abc import abstractmethod, ABC
 from datetime import date
@@ -138,7 +139,10 @@ class TimeFormFetcher(ABC):
                         "rating": self.get_rating(horse_row),
                         "bsp_win": self.get_bsp_win(horse_row),
                         "bsp_place": self.get_bsp_place(horse_row),
+                        "lengths_behind": self.get_lengths_behind(horse_row)
                     }
+        else:
+            raise ValueError
 
         return time_form_attributes
 
@@ -162,7 +166,15 @@ class TimeFormFetcher(ABC):
         if response.history:
             return None
 
-        time.sleep(12.5)
+        if response.status_code == 404:
+            return None
+
+        #TODO: Reuse it from scraper
+        lowest_waiting_time = 12 * 0.8
+        highest_waiting_time = 12 * 1.2
+        waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
+        time.sleep(waiting_time)
+
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
             time.sleep(4)
@@ -215,7 +227,7 @@ class TimeFormFetcher(ABC):
 
     def get_code_of_track_name(self, track_name: str, day_of_race: date) -> int:
         track_code = self.time_form_track_name_code[track_name]
-        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year in [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]:
+        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year >= 2013:
             track_code = 60
         return track_code
 
@@ -287,6 +299,10 @@ class TimeFormFetcher(ABC):
         pass
 
     @abstractmethod
+    def get_lengths_behind(self, time_form_soup: BeautifulSoup) -> float:
+        pass
+
+    @abstractmethod
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
         pass
 
@@ -306,6 +322,46 @@ class ResultTimeformFetcher(TimeFormFetcher):
         if horse_number.isnumeric():
             return int(horse_number)
         return None
+
+    def get_lengths_behind(self, horse_row: BeautifulSoup) -> float:
+        final_position = horse_row.find("span", {"class": "rp-entry-number"}).text
+
+        lengths_behind_text = horse_row.find("td", {"class": "rp-result-btn"}).text
+
+        if not lengths_behind_text and final_position.isnumeric() and int(final_position) == 1:
+            return 0.0
+
+        if lengths_behind_text == "dh":
+            return 0.0
+
+        if lengths_behind_text == "ns":
+            return 0.05
+
+        if lengths_behind_text == "sh":
+            return 0.1
+
+        if lengths_behind_text == "hd":
+            return 0.2
+
+        if lengths_behind_text == "nk":
+            return 0.3
+
+        if lengths_behind_text == "ds":
+            return -2.0
+
+        if lengths_behind_text == "a":
+            return -3.0
+
+        lengths_behind_text = lengths_behind_text.replace("¼", ".25")
+        lengths_behind_text = lengths_behind_text.replace("½", ".5")
+        lengths_behind_text = lengths_behind_text.replace("¾", ".75")
+
+        if not lengths_behind_text:
+            return -1.0
+
+        lengths_behind = float(lengths_behind_text)
+
+        return lengths_behind
 
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:
         return horse_row.find_all("td", {"class": "rp-ageequip-hide"})[2].text[1:-1]

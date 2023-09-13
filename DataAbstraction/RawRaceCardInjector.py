@@ -17,25 +17,6 @@ class RawRaceCardInjector:
         self.__win_times = self.__persistence.load()
         self.__win_times_factory = WinTimesFactory()
 
-    def inject_form_tables(self, form_guides: List[FormGuide]):
-        for form_guide in form_guides:
-            horse_data = self.__race_card.get_data_of_subject(form_guide.subject_id)
-            horse_data["formTable"] = form_guide.form_table
-
-    def inject_horse_distance_to_race_card(self, form_guides: List[FormGuide]):
-        for form_guide in form_guides:
-            if form_guide.current_race_form:
-                current_race_form = form_guide.current_race_form
-                horse_data = self.__race_card.get_data_of_subject(form_guide.subject_id)
-
-                horse_data["horseDistance"] = -1
-
-                if "horseDistance" in current_race_form:
-                    horse_data["horseDistance"] = current_race_form["horseDistance"]
-
-                if "finalPosition" in current_race_form and current_race_form["finalPosition"] == 1:
-                    horse_data["horseDistance"] = 0
-
     @property
     def raw_race_card(self):
         return self.__race_card.raw_race_card

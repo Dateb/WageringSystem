@@ -59,6 +59,10 @@ class CurrentRating(FeatureExtractor):
         race_type = race_card.race_type_detail
         if race_type in ["STC", "HCH"]:
             race_type = "HRD"
+
+        if race_type in ["NHF"]:
+            race_type = "FLT"
+
         return self.MIDDLE_RATINGS_PER_CLASS[race_type][int(race_card.race_class)]
 
 
