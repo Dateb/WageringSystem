@@ -162,7 +162,6 @@ class Bettor:
             if race_datetime in probability_estimates.probability_estimates:
                 for offer in race_offers:
                     probability_estimate = probability_estimates.get_horse_win_probability(race_datetime, offer.horse_name, offer.scratched_horses)
-                    horse = race_card.get_horse_by_name(offer.horse_name)
 
                     if probability_estimate is not None:
                         offer_probability = 1 / offer.odds
@@ -173,6 +172,7 @@ class Bettor:
                             if stakes < 0:
                                 print(f"Warning, the stakes: {stakes} are negative")
 
+                            horse = race_card.get_horse_by_name(offer.horse_name)
                             new_bet = Bet(
                                 race_card,
                                 offer,

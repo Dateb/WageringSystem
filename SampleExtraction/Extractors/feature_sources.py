@@ -149,6 +149,28 @@ class PreviousValueSource(FeatureSource, ABC):
         return -1
 
 
+class PreviousPlacePercentileSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.place > 0 and len(race_card.runners) > 1:
+            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
+            self.insert_previous_value(race_card, horse, previous_place_percentile)
+
+
+class PreviousRelativeDistanceBehindSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.horse_distance >= 0 and race_card.distance > 0:
+            relative_distance_behind = horse.horse_distance / race_card.distance
+            self.insert_previous_value(race_card, horse, relative_distance_behind)
+
+
 class PreviousWinProbSource(PreviousValueSource):
 
     def __init__(self):
@@ -355,7 +377,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def get_current_speed_figure(self, category: str):
         if category not in self.speed_figures:
-            return 0
+            return -1
 
         current_speed_figure = self.speed_figures[category]["avg"]
         return current_speed_figure
@@ -392,6 +414,8 @@ percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 
 #Previous value based sources:
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
+previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
+previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
@@ -406,7 +430,9 @@ def get_feature_sources() -> List[FeatureSource]:
     return [
         win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
 
-        previous_win_prob_source, previous_distance_source, previous_trainer_source,
+        previous_win_prob_source,
+        previous_place_percentile_source, previous_relative_distance_behind_source,
+        previous_distance_source, previous_trainer_source,
 
         speed_figures_source,
 

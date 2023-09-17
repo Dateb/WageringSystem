@@ -10,6 +10,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.relevance_calculators import get_winner_relevance
+from DataAbstraction.util.horse_name_matching import get_longest_common_substring
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from util.nested_dict import nested_dict
@@ -122,8 +123,7 @@ class RaceCard:
         for horse in placed_horses:
             if horse.lengths_behind >= 0:
                 total_horse_distance += horse.lengths_behind
-
-            horse.horse_distance = total_horse_distance
+                horse.horse_distance = total_horse_distance
 
         self.total_horses = self.horses
 
@@ -157,10 +157,22 @@ class RaceCard:
         return horse_with_number
 
     def get_horse_by_name(self, horse_name: str) -> Horse:
-        horse_name = horse_name.replace("'", "").upper()
+        best_matched_horse = None
+        best_common_substring_fraction = 0.5
+        horse_name_a = horse_name.replace("'", "").upper().replace(" ", "").replace(".", "")
+
         for horse in self.horses:
-            if horse.name.replace("'", "").upper() == horse_name:
-                return horse
+            horse_name_b = horse.name.replace("'", "").upper().replace(" ", "").replace(".", "")
+            longest_common_substring = get_longest_common_substring(horse_name_a, horse_name_b)
+            longer_string_length = max(len(horse_name_a), len(horse_name_b))
+            common_substring_fraction = len(longest_common_substring) / longer_string_length
+            if common_substring_fraction > best_common_substring_fraction:
+                best_matched_horse = horse
+                best_common_substring_fraction = common_substring_fraction
+
+        # print(f"Matched horse {horse_name_a} with:")
+        # print(f"{best_matched_horse.name}")
+        return best_matched_horse
 
     @property
     def values(self) -> List:

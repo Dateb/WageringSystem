@@ -4,6 +4,7 @@ import time
 from abc import abstractmethod, ABC
 from datetime import date
 
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -92,6 +93,7 @@ class TimeFormFetcher(ABC):
 
         self.current_track_name = ""
         self.current_date = None
+        self.current_race_number = 1
 
         self.login()
 
@@ -131,10 +133,10 @@ class TimeFormFetcher(ABC):
             time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
 
             for horse_row in self.get_horse_rows(time_form_soup):
-                horse_number = self.get_horse_number(horse_row)
+                horse_name = self.get_horse_name(horse_row)
 
-                if horse_number:
-                    time_form_attributes["horses"][horse_number] = {
+                if horse_name:
+                    time_form_attributes["horses"][horse_name] = {
                         "equipCode": self.get_equip_code(horse_row),
                         "rating": self.get_rating(horse_row),
                         "bsp_win": self.get_bsp_win(horse_row),
@@ -147,33 +149,37 @@ class TimeFormFetcher(ABC):
         return time_form_attributes
 
     def get_time_form_soup(self, race_card: WritableRaceCard):
-        time_form_url = self.base_time_form_url
-        track_name = self.track_name_to_timeform_name(race_card.track_name)
+        status_code = 404
+        while status_code == 404:
+            time_form_url = self.base_time_form_url
+            track_name = self.track_name_to_timeform_name(race_card.track_name)
 
-        if self.has_race_series_changed(race_card):
-            self.current_track_name = track_name
-            self.current_date = race_card.date
+            if self.has_race_series_changed(race_card):
+                self.current_track_name = track_name
+                self.current_date = race_card.date
+                self.current_race_number = 1
 
-        time_form_url += f"/{track_name}"
-        time_form_url += f"/{race_card.date}"
-        time_form_url += f"/{race_card.datetime.hour}{race_card.datetime.minute}"
-        time_form_url += f"/{self.get_code_of_track_name(track_name, race_card.date)}"
-        time_form_url += f"/{race_card.race_number}"
+            time_form_url += f"/{track_name}"
+            time_form_url += f"/{race_card.date}"
+            time_form_url += f"/{race_card.datetime.hour}{race_card.datetime.minute}"
+            time_form_url += f"/{self.get_code_of_track_name(track_name, race_card.date)}"
+            time_form_url += f"/{self.current_race_number}"
 
-        print(time_form_url)
-        response = self.session.get(time_form_url, headers=self.headers)
+            self.current_race_number += 1
 
-        if response.history:
-            return None
+            print(time_form_url)
+            response = self.session.get(time_form_url, headers=self.headers)
 
-        if response.status_code == 404:
-            return None
+            if response.history:
+                return None
 
-        #TODO: Reuse it from scraper
-        lowest_waiting_time = 12 * 0.8
-        highest_waiting_time = 12 * 1.2
-        waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
-        time.sleep(waiting_time)
+            status_code = response.status_code
+
+            #TODO: Reuse it from scraper
+            lowest_waiting_time = 12 * 0.8
+            highest_waiting_time = 12 * 1.2
+            waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
+            time.sleep(waiting_time)
 
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
@@ -279,7 +285,7 @@ class TimeFormFetcher(ABC):
         pass
 
     @abstractmethod
-    def get_horse_number(self, horse_row: BeautifulSoup):
+    def get_horse_name(self, horse_row: BeautifulSoup):
         pass
 
     @abstractmethod
@@ -316,17 +322,25 @@ class ResultTimeformFetcher(TimeFormFetcher):
     def get_horse_rows(self, time_form_soup: BeautifulSoup):
         return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
 
-    def get_horse_number(self, horse_row: BeautifulSoup) -> int:
-        horse_number = horse_row.find("a", {"class": "rp-horse"}).text.split(".")[0]
+    def get_horse_name(self, horse_row: BeautifulSoup) -> str:
+        horse_name_raw_text = horse_row.find("a", {"class": "rp-horse"}).text
 
-        if horse_number.isnumeric():
-            return int(horse_number)
-        return None
+        # Define a regular expression pattern to match the name
+        pattern = r'^\d+\.\s*|\s*\([A-Z]+\)$'
+
+        # Remove the prefix and suffix
+        horse_name = re.sub(pattern, '', horse_name_raw_text)
+
+        # Remove any leading/trailing whitespaces
+        horse_name = horse_name.strip()
+
+        return horse_name
 
     def get_lengths_behind(self, horse_row: BeautifulSoup) -> float:
         final_position = horse_row.find("span", {"class": "rp-entry-number"}).text
 
         lengths_behind_text = horse_row.find("td", {"class": "rp-result-btn"}).text
+        lengths_behind_text = lengths_behind_text.replace(" ", "")
 
         if not lengths_behind_text and final_position.isnumeric() and int(final_position) == 1:
             return 0.0
@@ -412,7 +426,7 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
     def get_horse_rows(self, time_form_soup: BeautifulSoup):
         return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
 
-    def get_horse_number(self, horse_row: BeautifulSoup) -> int:
+    def get_horse_name(self, horse_row: BeautifulSoup) -> int:
         return int(horse_row.find("span", {"class": "rp-entry-number"}).text)
 
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:

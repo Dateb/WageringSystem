@@ -1,7 +1,8 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.feature_sources import previous_win_prob_source
+from SampleExtraction.Extractors.feature_sources import previous_win_prob_source, previous_place_percentile_source, \
+    previous_relative_distance_behind_source
 
 
 class PreviousWinProbability(FeatureExtractor):
@@ -30,60 +31,26 @@ class PreviousWinProbability(FeatureExtractor):
 
 class PreviousPlacePercentile(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 1
+    previous_place_percentile_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        past_forms = horse.form_table.past_forms
-        if not past_forms:
-            return self.PLACEHOLDER_VALUE
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        previous_place_percentile = previous_place_percentile_source.get_previous_of_name(str(horse.subject_id))
 
-        previous_n_horses = past_forms[0].n_horses
-        previous_performance = horse.previous_performance
-
-        if previous_performance in ["PU", "RO", "UR"]:
-            previous_performance = str(previous_n_horses)
-
-        if not previous_performance.isnumeric():
-            return self.PLACEHOLDER_VALUE
-
-        if previous_n_horses == 1:
-            if len(past_forms) == 1:
-                return self.PLACEHOLDER_VALUE
-
-            previous_n_horses = past_forms[1].n_horses
-            previous_performance = past_forms[1].final_position
-
-            if previous_performance == -1:
-                return self.PLACEHOLDER_VALUE
-
-        previous_place = int(previous_performance)
-
-        return (previous_place - 1) / (previous_n_horses - 1)
+        return previous_place_percentile
 
 
 class PreviousRelativeDistanceBehind(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 1
+    previous_relative_distance_behind_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        past_forms = horse.form_table.past_forms
-        if not past_forms:
-            return self.PLACEHOLDER_VALUE
-        previous_form = past_forms[0]
-
-        if not previous_form.distance:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_form.horse_distance == -1:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_form.horse_distance / previous_form.distance
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
 
 
 class PreviousFasterThanFraction(FeatureExtractor):

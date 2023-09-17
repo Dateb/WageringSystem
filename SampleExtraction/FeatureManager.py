@@ -90,10 +90,11 @@ class FeatureManager:
             # PreviousWinProbability(),
 
             ## Uses form table:
+            PreviousPlacePercentile(),
+            PreviousRelativeDistanceBehind(),
+
             # HasPastPerformance(),
             # WeightDifference(),
-            # PreviousPlacePercentile(),
-            # PreviousRelativeDistanceBehind(),
             # HasTrackChanged(),
             # Layoff(),
             # LifeTimeStartCount(),
@@ -119,13 +120,13 @@ class FeatureManager:
             DamWinRate(), SireWinRate(),
             CurrentRating(),
 
-            DayOfYearSin(),
-            DayOfYearCos(),
-
-            WeekDaySin(),
-            WeekDayCos(),
-
-            MinutesIntoDay(),
+            # DayOfYearSin(),
+            # DayOfYearCos(),
+            #
+            # WeekDaySin(),
+            # WeekDayCos(),
+            #
+            # MinutesIntoDay(),
 
             # HorseWinRate(),
             # DamSireWinRate(),

@@ -39,10 +39,18 @@ class TimeFormInjector:
         raw_race["timeFormInjected"] = True
 
     def write_horse_attributes(self, race_card: WritableRaceCard, time_form_attributes: dict):
-        for horse_number in time_form_attributes["horses"]:
-            horse = race_card.get_horse_by_number(horse_number)
-            for horse_attribute in time_form_attributes["horses"][horse_number]:
-                horse.raw_data[horse_attribute] = time_form_attributes["horses"][horse_number][horse_attribute]
+        for horse_name in time_form_attributes["horses"]:
+            horse = race_card.get_horse_by_name(horse_name)
+
+            if horse is None:
+                if horse_name == "HE'S YOUR MAN":
+                    horse = race_card.get_horse_by_name("I'M YOUR MAN")
+                else:
+                    print(f"Horse name not found: {horse_name}")
+                    raise ValueError
+
+            for horse_attribute in time_form_attributes["horses"][horse_name]:
+                horse.raw_data[horse_attribute] = time_form_attributes["horses"][horse_name][horse_attribute]
 
 
 def main():

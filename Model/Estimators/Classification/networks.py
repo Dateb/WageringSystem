@@ -8,7 +8,19 @@ class SimpleMLP(nn.Module):
         super().__init__()
         self.linear_relu_stack = nn.Sequential(
 
-            nn.Linear(feature_count + 1, 256),
+            nn.Linear(feature_count + 1, 1024),
+            nn.BatchNorm1d(20),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(20),
+            nn.ReLU(),
+
+            nn.Dropout(dropout_rate),
+
+            nn.Linear(512, 256),
             nn.BatchNorm1d(20),
             nn.ReLU(),
 

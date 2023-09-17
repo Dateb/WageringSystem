@@ -60,7 +60,7 @@ class Horse:
         self.horse_distance = self.__extract_horse_distance(raw_data)
 
         self.lengths_behind = -1
-        if "lenghts_behind" in raw_data:
+        if "lengths_behind" in raw_data:
             self.lengths_behind = raw_data["lengths_behind"]
 
         self.jockey = Jockey(raw_data["jockey"])
