@@ -1,16 +1,54 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.Extractors.feature_sources import life_time_start_count_source, life_time_place_count_source, \
+    life_time_win_count_source
 from SampleExtraction.time_calculation import get_day_difference
 
 
 class LifeTimeStartCount(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = 0
+
     def __init__(self):
         super().__init__()
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return len(horse.form_table.past_forms)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        start_count = life_time_start_count_source.get_previous_of_name(str(horse.subject_id))
+
+        if start_count == -1:
+            return self.PLACEHOLDER_VALUE
+        return start_count
+
+
+class LifeTimeWinCount(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        place_count = life_time_win_count_source.get_previous_of_name(str(horse.subject_id))
+
+        if place_count == -1:
+            return self.PLACEHOLDER_VALUE
+        return place_count
+
+
+class LifeTimePlaceCount(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        place_count = life_time_place_count_source.get_previous_of_name(str(horse.subject_id))
+
+        if place_count == -1:
+            return self.PLACEHOLDER_VALUE
+        return place_count
 
 
 class OneYearStartCount(FeatureExtractor):

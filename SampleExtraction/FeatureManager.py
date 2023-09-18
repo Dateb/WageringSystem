@@ -8,7 +8,7 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, HasWon
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
 from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak, Layoff
@@ -40,7 +40,7 @@ from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeySho
     TrainerDistanceShowRate, TrainerSurfaceShowRate, TrainerTrackShowRate, TrainerClassShowRate
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure, MeanSpeedDiff
 from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
-    HasFewStartsInTwoYears
+    HasFewStartsInTwoYears, LifeTimePlaceCount, LifeTimeWinCount
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
     AbsoluteTime
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
@@ -60,8 +60,9 @@ class FeatureManager:
         self.__report_missing_features = report_missing_features
 
         self.base_features = [
+            # HasWon(),
             # CurrentRaceTrack(),
-            # BetfairWinMarketWinProbability(),
+            BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
@@ -87,38 +88,50 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            # PreviousWinProbability(),
-
             ## Uses form table:
-            PreviousPlacePercentile(),
-            PreviousRelativeDistanceBehind(),
 
             # HasPastPerformance(),
             # WeightDifference(),
             # HasTrackChanged(),
             # Layoff(),
-            # LifeTimeStartCount(),
 
             # OneYearStartCount(),
             # TwoYearStartCount(),
 
             # Not using form table:
-            Age(),
-            CurrentSpeedFigure(),
-            JockeyWinRate(),
-            JockeyPlaceRate(),
-            JockeyEarningsRate(),
-            TrainerWinRate(),
-            TrainerPlaceRate(),
-            TrainerEarningsRate(),
-            DistanceDifference(),
-            RaceClassDifference(),
-            Gender(),
-            JockeyWeight(),
+            # PreviousWinProbability(),
+            #
+            # LifeTimeStartCount(),
+            # LifeTimeWinCount(),
+            # LifeTimePlaceCount(),
+            #
+            # PreviousPlacePercentile(),
+            # PreviousRelativeDistanceBehind(),
+            #
+            # Age(),
+            # CurrentSpeedFigure(),
 
-            BreederWinRate(), OwnerWinRate(),
-            DamWinRate(), SireWinRate(),
-            CurrentRating(),
+            # JockeyWinRate(),
+            # JockeyPlaceRate(),
+            # JockeyEarningsRate(),
+            #
+            # WeightAllowance(),
+            #
+            # TrainerWinRate(),
+            # TrainerPlaceRate(),
+            # TrainerEarningsRate(),
+            #
+            # DistanceDifference(),
+            # RaceClassDifference(),
+            # Gender(),
+            # JockeyWeight(),
+            #
+            # BreederWinRate(), OwnerWinRate(),
+            # DamWinRate(), SireWinRate(),
+            # CurrentRating(),
+            #
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasTrainerMultipleHorses(),
 
             # DayOfYearSin(),
             # DayOfYearCos(),
@@ -151,8 +164,6 @@ class FeatureManager:
 
             # PreviousFasterThanFraction(),
             # PreviousSlowerThanFraction(),
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasTrainerMultipleHorses(),
             # JockeySurfaceWinRate(),
             # AveragePurse(),
 
@@ -160,7 +171,6 @@ class FeatureManager:
 
             # CurrentRaceClass(),
             # WeightAdvantage(),
-            # WeightAllowance(),
             # CurrentRaceCategory(),
             #
             # TrainerClassWinRate(),

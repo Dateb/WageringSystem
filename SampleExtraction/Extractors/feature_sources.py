@@ -149,6 +149,53 @@ class PreviousValueSource(FeatureSource, ABC):
         return -1
 
 
+class LifeTimeStartCountSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        start_count = self.get_previous_of_name(str(horse.subject_id))
+
+        if start_count == -1:
+            start_count = 0
+
+        self.insert_previous_value(race_card, horse, start_count + 1)
+
+
+class LifeTimeWinCountSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        win_count = self.get_previous_of_name(str(horse.subject_id))
+
+        if win_count == -1:
+            win_count = 0
+
+        if horse.place == 1:
+            self.insert_previous_value(race_card, horse, win_count + 1)
+
+
+class LifeTimePlaceCountSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        place_count = self.get_previous_of_name(str(horse.subject_id))
+
+        if place_count == -1:
+            place_count = 0
+
+        if 1 <= horse.place <= race_card.places_num:
+            self.insert_previous_value(race_card, horse, place_count + 1)
+
+
 class PreviousPlacePercentileSource(PreviousValueSource):
 
     def __init__(self):
@@ -156,7 +203,7 @@ class PreviousPlacePercentileSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.place > 0 and len(race_card.runners) > 1:
-            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
+            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1) + 1
             self.insert_previous_value(race_card, horse, previous_place_percentile)
 
 
@@ -167,8 +214,17 @@ class PreviousRelativeDistanceBehindSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.horse_distance >= 0 and race_card.distance > 0:
-            relative_distance_behind = horse.horse_distance / race_card.distance
-            self.insert_previous_value(race_card, horse, relative_distance_behind)
+            if horse.place == 1:
+                second_place_horse = race_card.get_horse_by_place(2)
+                second_place_distance = 0
+                if second_place_horse is not None:
+                    second_place_distance = second_place_horse.horse_distance
+
+                relative_distance_ahead = second_place_distance / race_card.distance
+                self.insert_previous_value(race_card, horse, relative_distance_ahead)
+            else:
+                relative_distance_behind = -(horse.horse_distance / race_card.distance)
+                self.insert_previous_value(race_card, horse, relative_distance_behind)
 
 
 class PreviousWinProbSource(PreviousValueSource):
@@ -412,6 +468,10 @@ show_rate_source: ShowRateSource = ShowRateSource()
 purse_rate_source: PurseRateSource = PurseRateSource()
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 
+life_time_start_count_source: LifeTimeStartCountSource = LifeTimeStartCountSource()
+life_time_win_count_source: LifeTimeWinCountSource = LifeTimeWinCountSource()
+life_time_place_count_source: LifeTimePlaceCountSource = LifeTimePlaceCountSource()
+
 #Previous value based sources:
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
@@ -429,6 +489,8 @@ has_fallen_source: HasFallenSource = HasFallenSource()
 def get_feature_sources() -> List[FeatureSource]:
     return [
         win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
+
+        life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,
 
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,

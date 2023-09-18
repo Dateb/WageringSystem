@@ -1,6 +1,21 @@
 import torch
 from torch import nn
 from torch.autograd import Variable
+from torch.nn import BatchNorm1d
+
+
+class SequenceWiseBatchNorm1d(nn.Module):
+    def __init__(self, num_features):
+        super(SequenceWiseBatchNorm1d, self).__init__()
+        self.bn = nn.BatchNorm1d(num_features)
+
+    def forward(self, x):
+        # Permute to apply batch normalization along the sequence dimension
+        x = x.permute(0, 2, 1)
+        x = self.bn(x)
+        # Permute back to the original shape
+        x = x.permute(0, 2, 1)
+        return x
 
 
 class SimpleMLP(nn.Module):
@@ -8,26 +23,26 @@ class SimpleMLP(nn.Module):
         super().__init__()
         self.linear_relu_stack = nn.Sequential(
 
-            nn.Linear(feature_count + 1, 1024),
-            nn.BatchNorm1d(20),
+            nn.Linear(feature_count, 1024),
+            # nn.BatchNorm1d(20),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
 
             nn.Linear(1024, 512),
-            nn.BatchNorm1d(20),
+            # nn.BatchNorm1d(20),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
 
             nn.Linear(512, 256),
-            nn.BatchNorm1d(20),
+            # nn.BatchNorm1d(20),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
 
             nn.Linear(256, 128),
-            nn.BatchNorm1d(20),
+            # nn.BatchNorm1d(20),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
@@ -36,7 +51,7 @@ class SimpleMLP(nn.Module):
         )
 
     def forward(self, x):
-        x = nn.functional.normalize(x)
+        # x = nn.functional.normalize(x, dim=2)
         logits = self.linear_relu_stack(x)
         logits = torch.squeeze(logits)
         return logits

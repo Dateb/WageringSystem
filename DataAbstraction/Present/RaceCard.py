@@ -62,6 +62,9 @@ class RaceCard:
 
         self.track_id = event["idTrack"]
 
+        self.places_num = 1
+        if "placesNum" in race:
+            self.places_num = int(race["placesNum"])
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
 
@@ -155,6 +158,13 @@ class RaceCard:
     def get_horse_by_number(self, horse_number: int) -> Horse:
         horse_with_number = [horse for horse in self.horses if horse.number == horse_number][0]
         return horse_with_number
+
+    def get_horse_by_place(self, place: int) -> Horse:
+        horse_with_place = [horse for horse in self.horses if horse.place == place]
+
+        if not horse_with_place:
+            return None
+        return horse_with_place[0]
 
     def get_horse_by_name(self, horse_name: str) -> Horse:
         best_matched_horse = None

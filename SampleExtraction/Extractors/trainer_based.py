@@ -13,8 +13,8 @@ class TrainerWinRate(FeatureExtractor):
         if horse.trainer.win_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        if horse.trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
+        # if horse.trainer.num_races < 10:
+        #     return self.PLACEHOLDER_VALUE
 
         return horse.trainer.win_rate
 
@@ -30,8 +30,8 @@ class TrainerPlaceRate(FeatureExtractor):
         if horse.trainer.place_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        if horse.trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
+        # if horse.trainer.num_races < 10:
+        #     return self.PLACEHOLDER_VALUE
 
         return horse.trainer.place_rate
 
@@ -47,7 +47,7 @@ class TrainerEarningsRate(FeatureExtractor):
         if horse.trainer.earnings_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        if horse.trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
+        # if horse.trainer.num_races < 10:
+        #     return self.PLACEHOLDER_VALUE
 
         return horse.trainer.earnings_rate
