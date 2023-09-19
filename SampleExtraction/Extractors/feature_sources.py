@@ -246,6 +246,15 @@ class PreviousDistanceSource(PreviousValueSource):
         self.insert_previous_value(race_card, horse, race_card.distance)
 
 
+class PreviousRaceClassSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, race_card.race_class)
+
+
 class PreviousTrainerSource(PreviousValueSource):
     def __init__(self):
         super().__init__()
@@ -476,7 +485,10 @@ life_time_place_count_source: LifeTimePlaceCountSource = LifeTimePlaceCountSourc
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
 previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
+
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
+previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
+
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
@@ -494,7 +506,8 @@ def get_feature_sources() -> List[FeatureSource]:
 
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
-        previous_distance_source, previous_trainer_source,
+        previous_distance_source, previous_race_class_source,
+        previous_trainer_source,
 
         speed_figures_source,
 

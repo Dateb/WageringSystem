@@ -105,6 +105,9 @@ class NNClassifier(Estimator):
             batch_loss = self.loss_function(pred, y)
 
             batch_loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=2)
+
             self.optimizer.step()
             self.optimizer.zero_grad()
 

@@ -265,8 +265,8 @@ class RaceCard:
             self.is_valid_sample = False
             self.feature_source_validity = False
 
-        # if self.category not in ["LST", "HCP"]:
-        #     self.is_valid_sample = False
+        if self.category not in ["HCP"]:
+            self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False

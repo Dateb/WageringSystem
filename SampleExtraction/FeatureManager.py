@@ -62,7 +62,7 @@ class FeatureManager:
         self.base_features = [
             # HasWon(),
             # CurrentRaceTrack(),
-            BetfairWinMarketWinProbability(),
+            # BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
             # IndustryMarketWinProbabilityDiff(),
@@ -88,6 +88,13 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            PreviousWinProbability(),
+            RaceClassDifference(),
+
+            PreviousPlacePercentile(),
+            PreviousRelativeDistanceBehind(),
+            DistanceDifference(),
+
             ## Uses form table:
 
             # HasPastPerformance(),
@@ -99,18 +106,15 @@ class FeatureManager:
             # TwoYearStartCount(),
 
             # Not using form table:
-            # PreviousWinProbability(),
             #
             # LifeTimeStartCount(),
             # LifeTimeWinCount(),
             # LifeTimePlaceCount(),
             #
-            # PreviousPlacePercentile(),
-            # PreviousRelativeDistanceBehind(),
             #
             # Age(),
             # CurrentSpeedFigure(),
-
+            #
             # JockeyWinRate(),
             # JockeyPlaceRate(),
             # JockeyEarningsRate(),
@@ -121,8 +125,6 @@ class FeatureManager:
             # TrainerPlaceRate(),
             # TrainerEarningsRate(),
             #
-            # DistanceDifference(),
-            # RaceClassDifference(),
             # Gender(),
             # JockeyWeight(),
             #

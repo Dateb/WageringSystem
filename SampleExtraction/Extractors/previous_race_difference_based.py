@@ -3,19 +3,20 @@ from math import isnan
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import previous_distance_source, previous_trainer_source
+from SampleExtraction.Extractors.feature_sources import previous_distance_source, previous_trainer_source, \
+    previous_race_class_source
 
 
 class DistanceDifference(FeatureExtractor):
 
     PLACEHOLDER_VALUE = 1
-    previous_distance_source.previous_value_attribute_groups.append(["name"])
+    previous_distance_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_distance = previous_distance_source.get_previous_of_name(horse.name)
+        previous_distance = previous_distance_source.get_previous_of_name(str(horse.subject_id))
         if previous_distance == -1:
             return self.PLACEHOLDER_VALUE
 
@@ -24,17 +25,20 @@ class DistanceDifference(FeatureExtractor):
 
 class RaceClassDifference(FeatureExtractor):
 
+    previous_race_class_source.previous_value_attribute_groups.append(["subject_id"])
     PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        class_difference = get_difference_of_current_and_previous_attribute_value(race_card, horse, "race_class")
-        if isnan(class_difference):
+        previous_race_class = previous_race_class_source.get_previous_of_name(str(horse.subject_id))
+        if previous_race_class == -1:
             return self.PLACEHOLDER_VALUE
 
-        return class_difference
+        race_class_difference = int(race_card.race_class) - int(previous_race_class)
+
+        return race_class_difference
 
 
 class HasTrainerChanged(FeatureExtractor):
