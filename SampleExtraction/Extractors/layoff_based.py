@@ -1,20 +1,25 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.Extractors.feature_sources import previous_date_source
 from SampleExtraction.time_calculation import get_day_difference
 
 
 class Layoff(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    previous_date_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        if not horse.form_table.past_forms:
+        previous_datetime = previous_date_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_datetime == -1:
             return self.PLACEHOLDER_VALUE
-        return get_day_difference(race_card, horse, -1, 0)
+
+        layoff = (race_card.datetime - previous_datetime).days
+        return layoff / 1000
 
 
 class HasOptimalBreak(FeatureExtractor):

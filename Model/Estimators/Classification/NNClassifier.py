@@ -40,7 +40,15 @@ class NNClassifier(Estimator):
         )
         print(f"Using {self.device} device")
 
+    def filter_group(self, group):
+        return not any(group.isna().any())
+
     def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
+
+        print(test_sample.race_cards_dataframe)
+
         missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         one_hot_encoder = OneHotEncoder()
 

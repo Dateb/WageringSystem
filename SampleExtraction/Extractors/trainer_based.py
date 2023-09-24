@@ -2,9 +2,8 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 
-class TrainerWinRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+class TrainerWinRate(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
@@ -13,15 +12,10 @@ class TrainerWinRate(FeatureExtractor):
         if horse.trainer.win_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        # if horse.trainer.num_races < 10:
-        #     return self.PLACEHOLDER_VALUE
-
         return horse.trainer.win_rate
 
 
 class TrainerPlaceRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -30,15 +24,10 @@ class TrainerPlaceRate(FeatureExtractor):
         if horse.trainer.place_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        # if horse.trainer.num_races < 10:
-        #     return self.PLACEHOLDER_VALUE
-
         return horse.trainer.place_rate
 
 
 class TrainerEarningsRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -47,7 +36,4 @@ class TrainerEarningsRate(FeatureExtractor):
         if horse.trainer.earnings_rate == -1:
             return self.PLACEHOLDER_VALUE
 
-        # if horse.trainer.num_races < 10:
-        #     return self.PLACEHOLDER_VALUE
-
-        return horse.trainer.earnings_rate
+        return horse.trainer.earnings_rate / 300000

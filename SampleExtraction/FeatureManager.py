@@ -88,58 +88,68 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            PreviousWinProbability(),
-            RaceClassDifference(),
+            # CurrentSpeedFigure(),
 
+            PreviousWinProbability(),
+
+            DistanceDifference(),
+            RaceClassDifference(),
+            # WeightDifference(),
+            #
             PreviousPlacePercentile(),
             PreviousRelativeDistanceBehind(),
-            DistanceDifference(),
+            Layoff(),
+            #
+            JockeyWeight(),
+            WeightAllowance(),
+            Age(),
+            CurrentRating(),
+            #
+            LifeTimeStartCount(),
+            LifeTimeWinCount(),
+            LifeTimePlaceCount(),
+            #
+            JockeyWinRate(),
+            JockeyPlaceRate(),
+            JockeyEarningsRate(),
+            # #
+            # #
+            TrainerWinRate(),
+            TrainerPlaceRate(),
+            TrainerEarningsRate(),
+            #
+            # HasJockeyChanged(),
+            # HasTrainerChanged(),
 
-            ## Uses form table:
-
-            # HasPastPerformance(),
-            # WeightDifference(),
-            # HasTrackChanged(),
-            # Layoff(),
-
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
-
-            # Not using form table:
-            #
-            # LifeTimeStartCount(),
-            # LifeTimeWinCount(),
-            # LifeTimePlaceCount(),
-            #
-            #
-            # Age(),
-            # CurrentSpeedFigure(),
-            #
-            # JockeyWinRate(),
-            # JockeyPlaceRate(),
-            # JockeyEarningsRate(),
-            #
-            # WeightAllowance(),
-            #
-            # TrainerWinRate(),
-            # TrainerPlaceRate(),
-            # TrainerEarningsRate(),
-            #
             # Gender(),
-            # JockeyWeight(),
-            #
-            # BreederWinRate(), OwnerWinRate(),
-            # DamWinRate(), SireWinRate(),
-            # CurrentRating(),
-            #
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasTrainerMultipleHorses(),
 
             # DayOfYearSin(),
             # DayOfYearCos(),
             #
             # WeekDaySin(),
             # WeekDayCos(),
+
+            # BreederWinRate(), OwnerWinRate(),
+            # DamWinRate(), SireWinRate(),
+
+            ## Uses form table:
+
+            # HasPastPerformance(),
+            # HasTrackChanged(),
+
+            # OneYearStartCount(),
+            # TwoYearStartCount(),
+
+            # Not using form table:
+            #
+            #
+            #
+            #
+            #
+            #
+            #
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasTrainerMultipleHorses(),
             #
             # MinutesIntoDay(),
 
@@ -159,8 +169,6 @@ class FeatureManager:
             # BestLifeTimeSpeedFigure(),
 
             # Not helping but not hurting:
-            # HasJockeyChanged(),
-            # HasTrainerChanged(),
 
             # Increasing loss when included:
 

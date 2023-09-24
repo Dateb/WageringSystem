@@ -18,6 +18,6 @@ NN_CLASSIFIER_PARAMS = {
     "threshold": 1e-4,
     "eps": 1e-10,
     "lr_to_stop": 1e-6,
-    "dropout_rate": 0.0,
+    "dropout_rate": 0.1,
     "horses_per_race_padding_size": MAX_HORSES_PER_RACE
 }

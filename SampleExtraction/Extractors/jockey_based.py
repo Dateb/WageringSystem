@@ -5,8 +5,6 @@ from DataAbstraction.Present.Horse import Horse
 
 class JockeyWinRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -17,8 +15,6 @@ class JockeyWinRate(FeatureExtractor):
 
 
 class JockeyPlaceRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -31,15 +27,14 @@ class JockeyPlaceRate(FeatureExtractor):
 
 class JockeyEarningsRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         if horse.jockey.earnings_rate == -1:
             return self.PLACEHOLDER_VALUE
-        return horse.jockey.earnings_rate + 1000
+
+        return horse.jockey.earnings_rate / 300000
 
 
 class JockeyWeight(FeatureExtractor):
@@ -48,7 +43,9 @@ class JockeyWeight(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return float(horse.jockey.weight)
+        if horse.jockey.weight == -1:
+            return self.PLACEHOLDER_VALUE
+        return float(horse.jockey.weight) / 100
 
 
 class WeightAllowance(FeatureExtractor):
@@ -56,5 +53,7 @@ class WeightAllowance(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
-        return horse.jockey.allowance
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if horse.jockey.allowance == -1:
+            return self.PLACEHOLDER_VALUE
+        return horse.jockey.allowance / 5

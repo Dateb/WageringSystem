@@ -4,12 +4,11 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.feature_sources import previous_distance_source, previous_trainer_source, \
-    previous_race_class_source
+    previous_race_class_source, previous_weight_source
 
 
 class DistanceDifference(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 1
     previous_distance_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
@@ -20,13 +19,12 @@ class DistanceDifference(FeatureExtractor):
         if previous_distance == -1:
             return self.PLACEHOLDER_VALUE
 
-        return race_card.distance / previous_distance
+        return (race_card.distance / previous_distance) / 10
 
 
 class RaceClassDifference(FeatureExtractor):
 
     previous_race_class_source.previous_value_attribute_groups.append(["subject_id"])
-    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
@@ -38,7 +36,7 @@ class RaceClassDifference(FeatureExtractor):
 
         race_class_difference = int(race_card.race_class) - int(previous_race_class)
 
-        return race_class_difference
+        return race_class_difference / 5
 
 
 class HasTrainerChanged(FeatureExtractor):
@@ -129,7 +127,7 @@ class HasTrackChanged(FeatureExtractor):
 
 class WeightDifference(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 1
+    previous_weight_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
@@ -140,17 +138,12 @@ class WeightDifference(FeatureExtractor):
         if current_weight == -1:
             return self.PLACEHOLDER_VALUE
 
-        form_table = horse.form_table
+        previous_weight = previous_weight_source.get_previous_of_name(str(horse.subject_id))
 
-        if not form_table.past_forms:
+        if previous_weight == -1:
             return self.PLACEHOLDER_VALUE
 
-        previous_weight = form_table.past_forms[0].weight
-
-        if previous_weight == 0.0:
-            return self.PLACEHOLDER_VALUE
-
-        return current_weight / previous_weight
+        return (current_weight / previous_weight) / 2
 
 
 def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, horse: Horse, attribute_name: str):

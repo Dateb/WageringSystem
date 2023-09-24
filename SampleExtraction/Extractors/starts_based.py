@@ -18,7 +18,7 @@ class LifeTimeStartCount(FeatureExtractor):
 
         if start_count == -1:
             return self.PLACEHOLDER_VALUE
-        return start_count
+        return start_count / 100
 
 
 class LifeTimeWinCount(FeatureExtractor):
@@ -29,11 +29,11 @@ class LifeTimeWinCount(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        place_count = life_time_win_count_source.get_previous_of_name(str(horse.subject_id))
+        win_count = life_time_win_count_source.get_previous_of_name(str(horse.subject_id))
 
-        if place_count == -1:
+        if win_count == -1:
             return self.PLACEHOLDER_VALUE
-        return place_count
+        return win_count / 20
 
 
 class LifeTimePlaceCount(FeatureExtractor):
@@ -48,7 +48,7 @@ class LifeTimePlaceCount(FeatureExtractor):
 
         if place_count == -1:
             return self.PLACEHOLDER_VALUE
-        return place_count
+        return place_count / 20
 
 
 class OneYearStartCount(FeatureExtractor):

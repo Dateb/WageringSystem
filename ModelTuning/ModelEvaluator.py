@@ -1,3 +1,5 @@
+import os
+import pickle
 from copy import deepcopy
 from typing import Dict, List
 
@@ -47,13 +49,13 @@ class ModelEvaluator:
         bet_thresholds = [1.0 + (i / 10) for i in range(10)]
         win_oracle = BetEvaluator(self.win_results)
 
-        offer_container = BetfairOfferContainer(test_race_cards)
+        offer_container = self.get_bet_offer_container(test_race_cards)
         for bet_threshold in bet_thresholds:
             bets = Bettor(offer_container).bet(estimation_result, bet_threshold=bet_threshold)
 
             win_oracle.insert_payouts_into_bets(bets)
 
-            payouts = [bet.payout for bet in bets]
+            payouts = [bet.payout for bet in bets if bet.payout < 10]
             payout_score = mean(payouts) / std(payouts)
 
             if payout_score > best_payout_sum:
@@ -62,6 +64,17 @@ class ModelEvaluator:
                 print(f"New best score: {best_payout_sum} at threshold: {bet_threshold}")
 
         return best_bets
+
+    def get_bet_offer_container(self, test_race_cards: Dict[str, RaceCard]) -> BetfairOfferContainer:
+        if not os.path.isfile("../data/bet_offer_container.dat"):
+            bet_offer_container = BetfairOfferContainer(test_race_cards)
+            with open("../data/bet_offer_container.dat", "wb") as f:
+                pickle.dump(bet_offer_container, f)
+        else:
+            with open("../data/bet_offer_container.dat", "rb") as f:
+                bet_offer_container = pickle.load(f)
+
+        return bet_offer_container
 
     def prune_sample(self, race_cards_df):
         race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()

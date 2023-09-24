@@ -81,7 +81,7 @@ class HorseBreederWinRate(FeatureExtractor):
 
 class BreederWinRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0
+    PLACEHOLDER_VALUE = -1
     win_rate_source.average_attribute_groups.append(["breeder"])
 
     def __init__(self):
@@ -96,7 +96,7 @@ class BreederWinRate(FeatureExtractor):
 
 class OwnerWinRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0
+    PLACEHOLDER_VALUE = -1
     win_rate_source.average_attribute_groups.append(["owner"])
 
     def __init__(self):

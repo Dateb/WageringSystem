@@ -8,25 +8,16 @@ from SampleExtraction.Extractors.feature_sources import previous_win_prob_source
 class PreviousWinProbability(FeatureExtractor):
 
     previous_win_prob_source.previous_value_attribute_groups.append(["name"])
-    PLACEHOLDER_VALUE = 1
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return previous_win_prob_source.get_previous_of_name(horse.name)
-        # if previous_exchange_odds not in [-1, 0]:
-        #     return 1 / previous_exchange_odds
-        #
-        # past_forms = horse.form_table.past_forms
-        # if not past_forms:
-        #     return self.PLACEHOLDER_VALUE
-        # previous_form = past_forms[0]
-        #
-        # if not previous_form.odds:
-        #     return self.PLACEHOLDER_VALUE
-        #
-        # return 1 / previous_form.odds
+        previous_win_prob = previous_win_prob_source.get_previous_of_name(horse.name)
+
+        if previous_win_prob == -1:
+            return self.PLACEHOLDER_VALUE
+        return previous_win_prob
 
 
 class PreviousPlacePercentile(FeatureExtractor):
@@ -39,6 +30,9 @@ class PreviousPlacePercentile(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_place_percentile = previous_place_percentile_source.get_previous_of_name(str(horse.subject_id))
 
+        if previous_place_percentile == -1:
+            return self.PLACEHOLDER_VALUE
+
         return previous_place_percentile
 
 
@@ -50,7 +44,12 @@ class PreviousRelativeDistanceBehind(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
+        previous_relative_distance_behind = previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_relative_distance_behind == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return previous_relative_distance_behind
 
 
 class PreviousFasterThanFraction(FeatureExtractor):

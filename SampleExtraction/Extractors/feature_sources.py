@@ -203,7 +203,7 @@ class PreviousPlacePercentileSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.place > 0 and len(race_card.runners) > 1:
-            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1) + 1
+            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
             self.insert_previous_value(race_card, horse, previous_place_percentile)
 
 
@@ -236,6 +236,15 @@ class PreviousWinProbSource(PreviousValueSource):
         previous_win_prob = (1 / horse.racebets_win_sp) * (1 / race_card.overround)
         self.insert_previous_value(race_card, horse, previous_win_prob)
 
+class PreviousWeightSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.jockey.weight > 0:
+            self.insert_previous_value(race_card, horse, horse.jockey.weight)
+
 
 class PreviousDistanceSource(PreviousValueSource):
 
@@ -261,6 +270,15 @@ class PreviousTrainerSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_previous_value(race_card, horse, horse.trainer_name)
+
+
+class PreviousDateSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, race_card.datetime)
 
 
 class WinRateSource(CategoryAverageSource):
@@ -486,10 +504,13 @@ previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
 previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
 
+previous_weight_source: PreviousWeightSource = PreviousWeightSource()
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
 previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
 
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
+
+previous_date_source: PreviousDateSource = PreviousDateSource()
 
 speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 
@@ -506,8 +527,10 @@ def get_feature_sources() -> List[FeatureSource]:
 
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
-        previous_distance_source, previous_race_class_source,
+        previous_weight_source, previous_distance_source, previous_race_class_source,
         previous_trainer_source,
+
+        previous_date_source,
 
         speed_figures_source,
 

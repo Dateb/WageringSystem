@@ -21,7 +21,7 @@ class DayOfYearCos(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         day_of_year = race_card.date.timetuple().tm_yday
-        return np.cos(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX) + 2
+        return np.cos(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
 
 
 class DayOfYearSin(FeatureExtractor):
@@ -31,7 +31,7 @@ class DayOfYearSin(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         day_of_year = race_card.date.timetuple().tm_yday
-        return np.sin(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX) + 2
+        return np.sin(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
 
 
 class MinutesIntoDay(FeatureExtractor):
