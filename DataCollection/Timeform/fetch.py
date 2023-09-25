@@ -137,11 +137,16 @@ class TimeFormFetcher(ABC):
 
                 if horse_name:
                     time_form_attributes["horses"][horse_name] = {
-                        "equipCode": self.get_equip_code(horse_row),
-                        "rating": self.get_rating(horse_row),
-                        "bsp_win": self.get_bsp_win(horse_row),
-                        "bsp_place": self.get_bsp_place(horse_row),
-                        "lengths_behind": self.get_lengths_behind(horse_row)
+                        "to_inject": {
+                            "equipCode": self.get_equip_code(horse_row),
+                            "rating": self.get_rating(horse_row),
+                            "bsp_win": self.get_bsp_win(horse_row),
+                            "bsp_place": self.get_bsp_place(horse_row),
+                            "lengths_behind": self.get_lengths_behind(horse_row),
+                        },
+                        "util": {
+                            "jockey_name": self.get_jockey_name(horse_row)
+                        }
                     }
         else:
             raise ValueError
@@ -289,6 +294,10 @@ class TimeFormFetcher(ABC):
         pass
 
     @abstractmethod
+    def get_jockey_name(self, horse_row: BeautifulSoup):
+        pass
+
+    @abstractmethod
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:
         pass
 
@@ -335,6 +344,13 @@ class ResultTimeformFetcher(TimeFormFetcher):
         horse_name = horse_name.strip()
 
         return horse_name
+
+    def get_jockey_name(self, horse_row: BeautifulSoup) -> str:
+        jockey_name_raw_text = horse_row.find("a", {"title": "Jockey"}).text
+
+        print(jockey_name_raw_text)
+
+        return jockey_name_raw_text
 
     def get_lengths_behind(self, horse_row: BeautifulSoup) -> float:
         final_position = horse_row.find("span", {"class": "rp-entry-number"}).text

@@ -43,14 +43,14 @@ class TimeFormInjector:
             horse = race_card.get_horse_by_name(horse_name)
 
             if horse is None:
-                if horse_name == "HE'S YOUR MAN":
-                    horse = race_card.get_horse_by_name("I'M YOUR MAN")
-                else:
-                    print(f"Horse name not found: {horse_name}")
+                print(f"Horse name not found: {horse_name}, try to find horse by jockey...")
+                jockey_name = time_form_attributes["horses"][horse_name]["util"]["jockey_name"]
+                horse = race_card.get_horse_by_jockey(jockey_name)
+                if horse is None:
                     raise ValueError
 
-            for horse_attribute in time_form_attributes["horses"][horse_name]:
-                horse.raw_data[horse_attribute] = time_form_attributes["horses"][horse_name][horse_attribute]
+            for horse_attribute in time_form_attributes["horses"][horse_name]["to_inject"]:
+                horse.raw_data[horse_attribute] = time_form_attributes["horses"][horse_name]["to_inject"][horse_attribute]
 
 
 def main():

@@ -9,12 +9,10 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
-from DataAbstraction.relevance_calculators import get_winner_relevance
-from DataAbstraction.util.horse_name_matching import get_longest_common_substring
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from util.nested_dict import nested_dict
-from util.speed_calculator import compute_speed_figure
+from util.text_based_functions import get_name_similarity
 
 
 class RaceCard:
@@ -173,16 +171,29 @@ class RaceCard:
 
         for horse in self.horses:
             horse_name_b = horse.name.replace("'", "").upper().replace(" ", "").replace(".", "")
-            longest_common_substring = get_longest_common_substring(horse_name_a, horse_name_b)
-            longer_string_length = max(len(horse_name_a), len(horse_name_b))
-            common_substring_fraction = len(longest_common_substring) / longer_string_length
+            common_substring_fraction = get_name_similarity(horse_name_a, horse_name_b)
             if common_substring_fraction > best_common_substring_fraction:
                 best_matched_horse = horse
                 best_common_substring_fraction = common_substring_fraction
 
-        # print(f"Matched horse {horse_name_a} with:")
-        # print(f"{best_matched_horse.name}")
         return best_matched_horse
+
+    def get_horse_by_jockey(self, jockey_name: str) -> Horse:
+        best_matched_horse = None
+        best_common_substring_fraction = 0.5
+        jockey_name_a = jockey_name.split(" ")[1]
+
+        for horse in self.horses:
+            jockey_name_b = horse.jockey.last_name
+            common_substring_fraction = get_name_similarity(jockey_name_a, jockey_name_b)
+            if common_substring_fraction > best_common_substring_fraction:
+                best_matched_horse = horse
+                best_common_substring_fraction = common_substring_fraction
+
+        print(f"Matched jockey {jockey_name_a} with:")
+        print(f"{best_matched_horse.jockey.last_name}")
+        return best_matched_horse
+
 
     @property
     def values(self) -> List:
