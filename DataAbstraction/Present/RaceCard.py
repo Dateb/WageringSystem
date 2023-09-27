@@ -42,6 +42,7 @@ class RaceCard:
         event = raw_race_card["event"]
         race = raw_race_card["race"]
 
+        self.country = event["country"]
         self.race_result = None
         raw_result = raw_race_card["result"]
         self.has_results = False
@@ -83,7 +84,8 @@ class RaceCard:
         self.age_from = race["ageFrom"]
         self.age_to = race["ageTo"]
         self.purse = race["purseDetails"]
-        self.is_open = race["raceStatus"] == "OPN"
+        self.race_status = race["raceStatus"]
+        self.is_open = self.race_status == "OPN"
 
         self.set_horses(raw_race_card["runners"]["data"])
 

@@ -15,14 +15,10 @@ class PreviousWinProbability(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_win_prob = previous_win_prob_source.get_previous_of_name(horse.name)
 
-        if previous_win_prob == -1:
-            return self.PLACEHOLDER_VALUE
         return previous_win_prob
 
 
 class PreviousPlacePercentile(FeatureExtractor):
-
-    previous_place_percentile_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
@@ -30,24 +26,16 @@ class PreviousPlacePercentile(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_place_percentile = previous_place_percentile_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_place_percentile == -1:
-            return self.PLACEHOLDER_VALUE
-
         return previous_place_percentile
 
 
 class PreviousRelativeDistanceBehind(FeatureExtractor):
-
-    previous_relative_distance_behind_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_relative_distance_behind = previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_relative_distance_behind == -1:
-            return self.PLACEHOLDER_VALUE
 
         return previous_relative_distance_behind
 

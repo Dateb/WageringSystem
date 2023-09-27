@@ -47,7 +47,7 @@ class NNClassifier(Estimator):
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
 
-        print(test_sample.race_cards_dataframe)
+        print(train_sample.race_cards_dataframe)
 
         missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         one_hot_encoder = OneHotEncoder()

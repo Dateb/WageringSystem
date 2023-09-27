@@ -46,7 +46,7 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [1.0 + (i / 10) for i in range(10)]
+        bet_thresholds = [1.0 + (i / 2) for i in range(10)]
         win_oracle = BetEvaluator(self.win_results)
 
         offer_container = self.get_bet_offer_container(test_race_cards)

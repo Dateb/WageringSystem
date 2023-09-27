@@ -1,3 +1,5 @@
+from math import isnan
+
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
@@ -15,7 +17,7 @@ class Layoff(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         previous_datetime = previous_date_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_datetime == -1:
+        if previous_datetime is None:
             return self.PLACEHOLDER_VALUE
 
         layoff = (race_card.datetime - previous_datetime).days

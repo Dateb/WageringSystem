@@ -16,7 +16,7 @@ class DistanceDifference(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_distance = previous_distance_source.get_previous_of_name(str(horse.subject_id))
-        if previous_distance == -1:
+        if previous_distance is None:
             return self.PLACEHOLDER_VALUE
 
         return (race_card.distance / previous_distance) / 10
@@ -31,7 +31,7 @@ class RaceClassDifference(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_race_class = previous_race_class_source.get_previous_of_name(str(horse.subject_id))
-        if previous_race_class == -1:
+        if previous_race_class is None:
             return self.PLACEHOLDER_VALUE
 
         race_class_difference = int(race_card.race_class) - int(previous_race_class)

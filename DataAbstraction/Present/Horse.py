@@ -57,7 +57,8 @@ class Horse:
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
-        self.horse_distance = self.__extract_horse_distance(raw_data)
+        self.horse_distance = -1
+        # self.horse_distance = self.__extract_horse_distance(raw_data)
 
         self.lengths_behind = -1
         if "lengths_behind" in raw_data:

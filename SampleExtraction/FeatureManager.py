@@ -117,11 +117,10 @@ class FeatureManager:
             TrainerWinRate(),
             TrainerPlaceRate(),
             TrainerEarningsRate(),
+            # Gender(),
             #
             # HasJockeyChanged(),
             # HasTrainerChanged(),
-
-            # Gender(),
 
             # DayOfYearSin(),
             # DayOfYearCos(),

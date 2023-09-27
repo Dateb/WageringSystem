@@ -99,9 +99,9 @@ def main():
     train_data_collector = TrainDataCollector()
 
     query_date = date(
-        year=2013,
-        month=10,
-        day=1,
+        year=2023,
+        month=6,
+        day=30,
     )
 
     train_data_collector.collect(query_date)

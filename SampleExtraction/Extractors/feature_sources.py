@@ -142,11 +142,14 @@ class PreviousValueSource(FeatureSource, ABC):
                 value,
             )
 
+    def delete_previous_values(self, race_card: RaceCard, horse: Horse) -> None:
+        self.previous_values[str(horse.subject_id)] = nested_dict()
+
     def get_previous_of_name(self, name: str) -> float:
         previous_elem = self.previous_values[name]
         if "previous" in previous_elem:
             return previous_elem["previous"]
-        return -1
+        return None
 
 
 class LifeTimeStartCountSource(PreviousValueSource):
@@ -158,7 +161,7 @@ class LifeTimeStartCountSource(PreviousValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         start_count = self.get_previous_of_name(str(horse.subject_id))
 
-        if start_count == -1:
+        if start_count is None:
             start_count = 0
 
         self.insert_previous_value(race_card, horse, start_count + 1)
@@ -173,7 +176,7 @@ class LifeTimeWinCountSource(PreviousValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         win_count = self.get_previous_of_name(str(horse.subject_id))
 
-        if win_count == -1:
+        if win_count is None:
             win_count = 0
 
         if horse.place == 1:
@@ -189,7 +192,7 @@ class LifeTimePlaceCountSource(PreviousValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         place_count = self.get_previous_of_name(str(horse.subject_id))
 
-        if place_count == -1:
+        if place_count is None:
             place_count = 0
 
         if 1 <= horse.place <= race_card.places_num:
@@ -200,17 +203,22 @@ class PreviousPlacePercentileSource(PreviousValueSource):
 
     def __init__(self):
         super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.place > 0 and len(race_card.runners) > 1:
             previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
             self.insert_previous_value(race_card, horse, previous_place_percentile)
+        else:
+            # self.delete_previous_values(race_card, horse)
+            self.insert_previous_value(race_card, horse, 1)
 
 
 class PreviousRelativeDistanceBehindSource(PreviousValueSource):
 
     def __init__(self):
         super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.horse_distance >= 0 and race_card.distance > 0:
@@ -225,6 +233,9 @@ class PreviousRelativeDistanceBehindSource(PreviousValueSource):
             else:
                 relative_distance_behind = -(horse.horse_distance / race_card.distance)
                 self.insert_previous_value(race_card, horse, relative_distance_behind)
+        else:
+            # self.delete_previous_values(race_card, horse)
+            self.insert_previous_value(race_card, horse, -1)
 
 
 class PreviousWinProbSource(PreviousValueSource):
@@ -235,6 +246,7 @@ class PreviousWinProbSource(PreviousValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         previous_win_prob = (1 / horse.racebets_win_sp) * (1 / race_card.overround)
         self.insert_previous_value(race_card, horse, previous_win_prob)
+
 
 class PreviousWeightSource(PreviousValueSource):
 

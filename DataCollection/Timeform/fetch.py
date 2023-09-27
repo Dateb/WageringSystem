@@ -77,6 +77,31 @@ class TimeFormFetcher(ABC):
         "worcester": 59,
         "yarmouth": 61,
         "york": 62,
+        "ballinrobe": 201,
+        "bellewstown": 202,
+        "clonmel": 203,
+        "curragh": 204,
+        "downpatrick": 205,
+        "down royal": 206,
+        "dundalk": 207,
+        "fairyhouse": 208,
+        "galway": 209,
+        "gowran park": 210,
+        "kilbeggan": 211,
+        "killarney": 212,
+        "leopardstown": 214,
+        "limerick": 215,
+        "listowel": 217,
+        "cork": 218,
+        "naas": 219,
+        "navan": 220,
+        "punchestown": 222,
+        "roscommon": 223,
+        "sligo": 224,
+        "thurles": 225,
+        "tipperary": 226,
+        "tramore": 228,
+        "wexford": 229,
     }
 
     def __init__(self):
@@ -132,7 +157,13 @@ class TimeFormFetcher(ABC):
             time_form_attributes["result"]["winTimeSeconds"] = self.get_win_time(time_form_soup)
             time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
 
-            for horse_row in self.get_horse_rows(time_form_soup):
+            horse_rows = self.get_horse_rows(time_form_soup)
+
+            if not horse_rows or len(horse_rows) == 1:
+                print("found empty timeform in the current url. trying next url for the current race card...")
+                return self.get_time_form_attributes(race_card)
+
+            for horse_row in horse_rows:
                 horse_name = self.get_horse_name(horse_row)
 
                 if horse_name:
@@ -148,8 +179,6 @@ class TimeFormFetcher(ABC):
                             "jockey_name": self.get_jockey_name(horse_row)
                         }
                     }
-        else:
-            raise ValueError
 
         return time_form_attributes
 
@@ -175,20 +204,24 @@ class TimeFormFetcher(ABC):
             print(time_form_url)
             response = self.session.get(time_form_url, headers=self.headers)
 
-            if response.history:
-                return None
-
-            status_code = response.status_code
-
             #TODO: Reuse it from scraper
             lowest_waiting_time = 12 * 0.8
             highest_waiting_time = 12 * 1.2
             waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
             time.sleep(waiting_time)
 
+            if response.history:
+                time.sleep(30)
+                return None
+
+            status_code = response.status_code
+
+            if self.current_race_number > 10:
+                return None
+
         while not response.status_code == 200:
             response = self.session.get(time_form_url, headers=self.headers)
-            time.sleep(4)
+            time.sleep(30)
 
         return BeautifulSoup(response.text, 'html.parser')
 
@@ -347,8 +380,6 @@ class ResultTimeformFetcher(TimeFormFetcher):
 
     def get_jockey_name(self, horse_row: BeautifulSoup) -> str:
         jockey_name_raw_text = horse_row.find("a", {"title": "Jockey"}).text
-
-        print(jockey_name_raw_text)
 
         return jockey_name_raw_text
 
