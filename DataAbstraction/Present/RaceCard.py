@@ -97,6 +97,13 @@ class RaceCard:
 
         self.set_horse_results()
 
+        self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
+
+        if self.overround > 0:
+            for horse in self.horses:
+                if horse.betfair_win_sp >= 1:
+                    horse.sp_win_prob = (1 / horse.betfair_win_sp) * (1 / self.overround)
+
         self.__base_attributes = {
             self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
@@ -105,11 +112,6 @@ class RaceCard:
         }
 
         self.set_validity()
-
-        if self.feature_source_validity:
-            self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
-            if self.overround == 0:
-                self.feature_source_validity = False
 
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
@@ -285,12 +287,11 @@ class RaceCard:
         if self.num_winners > 1:
             self.is_valid_sample = False
 
+        if self.overround == 0:
+            self.feature_source_validity = False
+
         # if self.category not in ["HCP"]:
         #     self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False
-
-        # for horse in self.horses:
-        #     if not horse.form_table.past_forms:
-        #         self.is_valid_sample = False

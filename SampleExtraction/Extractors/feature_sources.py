@@ -248,9 +248,7 @@ class PreviousWinProbSource(PreviousValueSource):
         super().__init__()
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.betfair_win_sp > 0:
-            previous_win_prob = (1 / horse.betfair_win_sp) * (1 / race_card.overround)
-            self.insert_previous_value(race_card, horse, previous_win_prob)
+        self.insert_previous_value(race_card, horse, horse.sp_win_prob)
 
 
 class PreviousWeightSource(PreviousValueSource):

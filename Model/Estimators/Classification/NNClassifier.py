@@ -118,6 +118,8 @@ class NNClassifier(Estimator):
 
             pred = self.network(X)
 
+            print(y)
+            print(y.shape)
             batch_loss = self.loss_function(pred, y)
 
             batch_loss.backward()

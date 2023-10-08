@@ -183,7 +183,7 @@ class Bettor:
                                 stakes,
                                 payout=0.0,
                                 probability_estimate=probability_estimate,
-                                probability_start=horse.betfair_probability_sp
+                                probability_start=horse.sp_win_prob
                             )
                             bets.append(new_bet)
                             already_taken_offers[(race_datetime, offer.horse_name)] = True
