@@ -26,9 +26,12 @@ from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageB
     TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
 from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor, HorseTopFinish
 from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFraction, PulledUpPreviousRace, \
-    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile
+    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
+    PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
+    PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey
+    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey, \
+    RaceGoingDifference
 from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
@@ -88,48 +91,73 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            # CurrentSpeedFigure(),
+            MinutesIntoDay(),
+
+            DayOfYearSin(),
+            DayOfYearCos(),
+
+            WeekDaySin(),
+            WeekDayCos(),
+
+            HasBlinkers(), HasHood(), HasCheekPieces(),
+            HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             PreviousWinProbability(),
 
-            DistanceDifference(),
-            RaceClassDifference(),
-            # WeightDifference(),
-            #
-            PreviousPlacePercentile(),
-            PreviousRelativeDistanceBehind(),
-            Layoff(),
-            #
-            JockeyWeight(),
-            WeightAllowance(),
-            Age(),
-            CurrentRating(),
-            #
-            LifeTimeStartCount(),
-            LifeTimeWinCount(),
-            LifeTimePlaceCount(),
-            #
+            PreviousSameSurfaceWinProbability(),
+            PreviousSameTrackWinProbability(),
+            PreviousSameRaceClassWinProbability(),
+
+            PreviousSameSurfacePlacePercentile(),
+            PreviousSameTrackPlacePercentile(),
+            PreviousSameRaceClassPlacePercentile(),
+
             JockeyWinRate(),
             JockeyPlaceRate(),
             JockeyEarningsRate(),
+
+            JockeyWeight(),
+            WeightAllowance(),
+            Age(),
+
+            DistanceDifference(),
+            RaceGoingDifference(),
+            RaceClassDifference(),
+
+            WeightDifference(),
+            PreviousPlacePercentile(),
+            PreviousRelativeDistanceBehind(),
+            Layoff(),
+
+            DrawBias(),
+
+            # Needs improvement in regards with different start counts
+
+            # TrainerWinRate(),
+            # TrainerPlaceRate(),
+            # TrainerEarningsRate(),
+
+            # CurrentSpeedFigure(),
+
+            # HasTrainerMultipleHorses(),
+            # TravelDistance(),
+            # CurrentRating(),
+            #
+            # LifeTimeStartCount(),
+            # LifeTimeWinCount(),
+            # LifeTimePlaceCount(),
+            #
             # #
             # #
-            TrainerWinRate(),
-            TrainerPlaceRate(),
-            TrainerEarningsRate(),
             # Gender(),
             #
             # HasJockeyChanged(),
             # HasTrainerChanged(),
 
-            # DayOfYearSin(),
-            # DayOfYearCos(),
-            #
-            # WeekDaySin(),
-            # WeekDayCos(),
-
             # BreederWinRate(), OwnerWinRate(),
             # DamWinRate(), SireWinRate(),
+
+            # CurrentGoing(),
 
             ## Uses form table:
 
@@ -142,15 +170,6 @@ class FeatureManager:
             # Not using form table:
             #
             #
-            #
-            #
-            #
-            #
-            #
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasTrainerMultipleHorses(),
-            #
-            # MinutesIntoDay(),
 
             # HorseWinRate(),
             # DamSireWinRate(),
@@ -162,8 +181,6 @@ class FeatureManager:
 
             # HorseTopFinish()
             # MaxPastRatingExtractor(),
-
-            # TravelDistance(),
 
             # BestLifeTimeSpeedFigure(),
 
@@ -259,14 +276,11 @@ class FeatureManager:
             # HasWonAfterLongBreak(),
             # ComingFromLayoff(),
             #
-            # HasVisor(),
             # CurrentRaceType(),
             #
             # HasFewStartsInTwoYears(),
             # HasTongueStrap(),
             #
-            # HasEyeCovers(),
-            # HasEyeShield(),
             #
             # PulledUpPreviousRace(),
             #
@@ -281,11 +295,8 @@ class FeatureManager:
             # CurrentRaceSurface(),
             # HasFallen(),
             # IsUnderdog(),
-            # WeekDayCos(),
             #
-            # CurrentGoing(),
             #
-            # DrawBias(),
             # AgeFrom(), AgeTo(),
             #
             #

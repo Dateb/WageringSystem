@@ -73,6 +73,10 @@ class BetfairOfferContainer:
 
         initial_history_dict = next(history_dict_iterator)
 
+        if initial_history_dict is None:
+            print(f"failed to decode file: {race_history_file_path}")
+            return
+
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
         scratched_horses = []
 

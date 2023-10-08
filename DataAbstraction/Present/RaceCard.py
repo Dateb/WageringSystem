@@ -20,7 +20,7 @@ class RaceCard:
     RACE_NAME_KEY: str = "race_name"
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
-    N_HORSES_KEY: str = "n_runners"
+    N_RUNNERS_KEY: str = "n_runners"
     PLACE_NUM_KEY: str = "place_num"
 
     base_times: defaultdict = nested_dict()
@@ -89,9 +89,11 @@ class RaceCard:
 
         self.set_horses(raw_race_card["runners"]["data"])
 
+        self.num_winners = len([runner for runner in self.runners if runner.has_won])
+
         self.winner_name = [horse.name for horse in self.horses if horse.place == 1][0]
 
-        self.n_horses = len(self.horses)
+        self.n_horses = len(self.runners)
 
         self.set_horse_results()
 
@@ -99,13 +101,15 @@ class RaceCard:
             self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
-            self.N_HORSES_KEY: self.n_horses,
+            self.N_RUNNERS_KEY: self.n_horses,
         }
 
         self.set_validity()
 
         if self.feature_source_validity:
-            self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners])
+            self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
+            if self.overround == 0:
+                self.feature_source_validity = False
 
         # TODO: there some border cases here. Would need a fix.
         # for horse in self.horses:
@@ -278,8 +282,11 @@ class RaceCard:
             self.is_valid_sample = False
             self.feature_source_validity = False
 
-        if self.category not in ["HCP"]:
+        if self.num_winners > 1:
             self.is_valid_sample = False
+
+        # if self.category not in ["HCP"]:
+        #     self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False

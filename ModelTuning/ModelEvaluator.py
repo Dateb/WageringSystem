@@ -34,6 +34,9 @@ class ModelEvaluator:
         train_sample = train_sample_encoder.get_race_cards_sample()
         test_sample = test_sample_encoder.get_race_cards_sample()
 
+        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
+
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
         test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
 
@@ -46,7 +49,7 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [1.0 + (i / 2) for i in range(10)]
+        bet_thresholds = [1.0]
         win_oracle = BetEvaluator(self.win_results)
 
         offer_container = self.get_bet_offer_container(test_race_cards)
@@ -55,7 +58,7 @@ class ModelEvaluator:
 
             win_oracle.insert_payouts_into_bets(bets)
 
-            payouts = [bet.payout for bet in bets if bet.payout < 10]
+            payouts = [bet.payout for bet in bets if bet.bet_offer.odds < 20]
             payout_score = mean(payouts) / std(payouts)
 
             if payout_score > best_payout_sum:

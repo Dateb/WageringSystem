@@ -1,5 +1,6 @@
 import bz2
 import json
+from json import JSONDecodeError
 from typing import Dict
 
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -44,6 +45,10 @@ class BetfairHistoryDictIterator:
                     json_string = self.raw_entries[self.json_start_idx:i + 1]
                     self.json_start_idx = i + 1
                     escaped_json_string = json_string.translate(str.maketrans({"'":  r"\'"}))
-                    return json.loads(escaped_json_string)
+                    escaped_json_string = escaped_json_string.replace("\xa0", " ")
+                    try:
+                        return json.loads(escaped_json_string)
+                    except JSONDecodeError:
+                        return None
 
         raise StopIteration

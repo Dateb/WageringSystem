@@ -1,21 +1,85 @@
+from abc import ABC
+from typing import List
+
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.feature_sources import previous_win_prob_source, previous_place_percentile_source, \
-    previous_relative_distance_behind_source
+    previous_relative_distance_behind_source, PreviousValueSource
 
 
 class PreviousWinProbability(FeatureExtractor):
 
-    previous_win_prob_source.previous_value_attribute_groups.append(["name"])
+    previous_win_prob_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_win_prob = previous_win_prob_source.get_previous_of_name(horse.name)
+        previous_win_prob = previous_win_prob_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_win_prob is None:
+            return self.PLACEHOLDER_VALUE
 
         return previous_win_prob
+
+
+class PreviousSameAttributeWinProbDifference(FeatureExtractor, ABC):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self, previous_value_source: PreviousValueSource, attribute_group: List[str]):
+        super().__init__()
+        self.previous_value_source = previous_value_source
+        self.attribute_group = attribute_group
+        self.previous_value_source.previous_value_attribute_groups.append(attribute_group)
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        previous_win_prob_key = self.previous_value_source.get_attribute_group_key(race_card, horse, self.attribute_group)
+
+        previous_same_attribute_win_prob = self.previous_value_source.get_previous_of_name(previous_win_prob_key)
+        previous_win_prob = self.previous_value_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_same_attribute_win_prob is None:
+            return self.PLACEHOLDER_VALUE
+
+        return previous_same_attribute_win_prob - previous_win_prob
+
+
+class PreviousSameSurfaceWinProbability(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_win_prob_source, ["subject_id", "surface"])
+
+
+class PreviousSameTrackWinProbability(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_win_prob_source, ["subject_id", "track_name"])
+
+
+class PreviousSameRaceClassWinProbability(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_win_prob_source, ["subject_id", "race_class"])
+
+
+class PreviousSameSurfacePlacePercentile(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_place_percentile_source, ["subject_id", "surface"])
+
+
+class PreviousSameTrackPlacePercentile(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_place_percentile_source, ["subject_id", "track_name"])
+
+
+class PreviousSameRaceClassPlacePercentile(PreviousSameAttributeWinProbDifference):
+
+    def __init__(self):
+        super().__init__(previous_place_percentile_source, ["subject_id", "race_class"])
 
 
 class PreviousPlacePercentile(FeatureExtractor):
@@ -25,6 +89,9 @@ class PreviousPlacePercentile(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_place_percentile = previous_place_percentile_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_place_percentile is None:
+            return self.PLACEHOLDER_VALUE
 
         return previous_place_percentile
 
@@ -36,6 +103,9 @@ class PreviousRelativeDistanceBehind(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_relative_distance_behind = previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_relative_distance_behind is None:
+            return self.PLACEHOLDER_VALUE
 
         return previous_relative_distance_behind
 

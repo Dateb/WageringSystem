@@ -10,16 +10,14 @@ from SampleExtraction.Extractors.feature_sources import speed_figures_source
 
 class CurrentSpeedFigure(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        speed_figure = speed_figures_source.get_current_speed_figure(horse.name)
-        if speed_figure == -1:
+        speed_figure = speed_figures_source.get_current_speed_figure(str(horse.subject_id))
+        if speed_figure is None:
             return self.PLACEHOLDER_VALUE
-        return speed_figure
+        return speed_figure / 10
 
 
 class MeanSpeedDiff(FeatureExtractor):

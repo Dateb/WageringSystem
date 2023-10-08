@@ -128,19 +128,23 @@ class PreviousValueSource(FeatureSource, ABC):
 
     def insert_previous_value(self, race_card: RaceCard, horse: Horse, value):
         for attribute_group in self.previous_value_attribute_groups:
-            attribute_group_key = ""
-            for attribute in attribute_group:
-                if attribute in horse.__dict__:
-                    attribute_key = getattr(horse, attribute)
-                else:
-                    attribute_key = getattr(race_card, attribute)
-                attribute_group_key += f"{attribute_key}_"
+            attribute_group_key = self.get_attribute_group_key(race_card, horse, attribute_group)
 
-            attribute_group_key = attribute_group_key[:-1]
             self.update_previous(
                 self.previous_values[attribute_group_key],
                 value,
             )
+
+    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
+        attribute_group_key = ""
+        for attribute in attribute_group:
+            if attribute in horse.__dict__:
+                attribute_key = getattr(horse, attribute)
+            else:
+                attribute_key = getattr(race_card, attribute)
+            attribute_group_key += f"{attribute_key}_"
+
+        return attribute_group_key[:-1]
 
     def delete_previous_values(self, race_card: RaceCard, horse: Horse) -> None:
         self.previous_values[str(horse.subject_id)] = nested_dict()
@@ -244,8 +248,9 @@ class PreviousWinProbSource(PreviousValueSource):
         super().__init__()
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        previous_win_prob = (1 / horse.racebets_win_sp) * (1 / race_card.overround)
-        self.insert_previous_value(race_card, horse, previous_win_prob)
+        if horse.betfair_win_sp > 0:
+            previous_win_prob = (1 / horse.betfair_win_sp) * (1 / race_card.overround)
+            self.insert_previous_value(race_card, horse, previous_win_prob)
 
 
 class PreviousWeightSource(PreviousValueSource):
@@ -265,6 +270,15 @@ class PreviousDistanceSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_previous_value(race_card, horse, race_card.distance)
+
+
+class PreviousRaceGoingSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, race_card.going)
 
 
 class PreviousRaceClassSource(PreviousValueSource):
@@ -291,6 +305,14 @@ class PreviousDateSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_previous_value(race_card, horse, race_card.datetime)
+
+class PreviousTrackNameSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, race_card.track_name)
 
 
 class WinRateSource(CategoryAverageSource):
@@ -347,7 +369,7 @@ class DrawBiasSource(FeatureSource):
         if post_position != "-1":
             self.update_average(
                 self.draw_bias[track_name][post_position],
-                horse.relevance,
+                horse.place,
                 race_card.date,
                 DRAW_BIAS_CALCULATOR,
             )
@@ -435,7 +457,7 @@ class SpeedFiguresSource(FeatureSource):
     def update_speed_figures(self, race_card: RaceCard):
         for horse in race_card.horses:
             base_time_estimate = race_card.get_base_time_estimate(horse.number)
-            if not horse.is_scratched and "count" in base_time_estimate and base_time_estimate['count'] > 200:
+            if not horse.is_scratched and "count" in base_time_estimate and base_time_estimate['count'] > 20:
                 base_time_estimate = race_card.get_base_time_estimate(horse.number)
                 speed_figure = compute_speed_figure(
                     race_card.race_id,
@@ -450,11 +472,11 @@ class SpeedFiguresSource(FeatureSource):
 
                 if speed_figure is not None:
                     self.update_max(
-                        category=self.speed_figures[horse.name],
+                        category=self.speed_figures[str(horse.subject_id)],
                         new_obs=speed_figure,
                     )
                     self.update_average(
-                        category=self.speed_figures[horse.name],
+                        category=self.speed_figures[str(horse.subject_id)],
                         new_obs=speed_figure,
                         new_obs_date=race_card.date,
                         online_calculator=HORSE_SPEED_CALCULATOR,
@@ -472,7 +494,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def get_current_speed_figure(self, category: str):
         if category not in self.speed_figures:
-            return -1
+            return None
 
         current_speed_figure = self.speed_figures[category]["avg"]
         return current_speed_figure
@@ -515,9 +537,11 @@ life_time_place_count_source: LifeTimePlaceCountSource = LifeTimePlaceCountSourc
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
 previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
+previous_track_name_source: PreviousTrackNameSource = PreviousTrackNameSource()
 
 previous_weight_source: PreviousWeightSource = PreviousWeightSource()
 previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
+previous_race_going_source: PreviousRaceGoingSource = PreviousRaceGoingSource()
 previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
 
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
@@ -539,12 +563,15 @@ def get_feature_sources() -> List[FeatureSource]:
 
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
-        previous_weight_source, previous_distance_source, previous_race_class_source,
+        previous_weight_source,
+
+        previous_distance_source, previous_race_going_source, previous_race_class_source,
         previous_trainer_source,
 
         previous_date_source,
+        previous_track_name_source,
 
-        speed_figures_source,
+        # speed_figures_source,
 
         draw_bias_source,
 

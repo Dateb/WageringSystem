@@ -40,14 +40,14 @@ class NNClassifier(Estimator):
         )
         print(f"Using {self.device} device")
 
+        self.best_test_loss = np.inf
+
     def filter_group(self, group):
         return not any(group.isna().any())
 
     def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
-        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
-        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id").filter(self.filter_group)
-
-        print(train_sample.race_cards_dataframe)
+        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
 
         missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         one_hot_encoder = OneHotEncoder()
@@ -80,9 +80,16 @@ class NNClassifier(Estimator):
         )
 
         while self.scheduler.optimizer.param_groups[-1]['lr'] > self.params["lr_to_stop"]:
+            current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
             print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
             self.fit_epoch(train_race_card_loader.dataloader)
             self.test_epoch(test_race_card_loader.dataloader)
+            next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
+
+            if current_lr > next_lr:
+                checkpoint = torch.load('best_model.pth')
+                self.network.load_state_dict(checkpoint['model_state_dict'])
+
         print("Done!")
 
         with torch.no_grad():
@@ -110,6 +117,7 @@ class NNClassifier(Estimator):
             X, y = X.to(self.device), y.to(self.device)
 
             pred = self.network(X)
+
             batch_loss = self.loss_function(pred, y)
 
             batch_loss.backward()
@@ -119,7 +127,10 @@ class NNClassifier(Estimator):
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-            train_loss += self.loss_function(pred, y).item()
+            batch_loss = self.loss_function(pred, y).item()
+
+            train_loss += batch_loss
+
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         train_loss /= num_batches
@@ -145,6 +156,14 @@ class NNClassifier(Estimator):
         self.scheduler.step(test_loss)
 
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+
+        if test_loss < self.best_test_loss:
+            self.best_test_loss = test_loss
+            checkpoint = {
+                'model_state_dict': self.network.state_dict(),
+                # Add any other information you want to save here
+            }
+            torch.save(checkpoint, 'best_model.pth')
 
     def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
         scores = np.zeros(np.sum(group_counts))

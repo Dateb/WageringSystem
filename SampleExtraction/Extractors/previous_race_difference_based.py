@@ -4,7 +4,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.feature_sources import previous_distance_source, previous_trainer_source, \
-    previous_race_class_source, previous_weight_source
+    previous_race_class_source, previous_weight_source, previous_race_going_source
 
 
 class DistanceDifference(FeatureExtractor):
@@ -22,6 +22,21 @@ class DistanceDifference(FeatureExtractor):
         return (race_card.distance / previous_distance) / 10
 
 
+class RaceGoingDifference(FeatureExtractor):
+
+    previous_race_going_source.previous_value_attribute_groups.append(["subject_id"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        previous_race_going = previous_race_going_source.get_previous_of_name(str(horse.subject_id))
+        if previous_race_going is None:
+            return self.PLACEHOLDER_VALUE
+
+        return (race_card.going - previous_race_going) / 10
+
+
 class RaceClassDifference(FeatureExtractor):
 
     previous_race_class_source.previous_value_attribute_groups.append(["subject_id"])
@@ -32,6 +47,9 @@ class RaceClassDifference(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_race_class = previous_race_class_source.get_previous_of_name(str(horse.subject_id))
         if previous_race_class is None:
+            return self.PLACEHOLDER_VALUE
+
+        if race_card.race_class in ["A", "B"] or previous_race_class in ["A", "B"]:
             return self.PLACEHOLDER_VALUE
 
         race_class_difference = int(race_card.race_class) - int(previous_race_class)
@@ -140,7 +158,7 @@ class WeightDifference(FeatureExtractor):
 
         previous_weight = previous_weight_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_weight == -1:
+        if previous_weight is None:
             return self.PLACEHOLDER_VALUE
 
         return (current_weight / previous_weight) / 2

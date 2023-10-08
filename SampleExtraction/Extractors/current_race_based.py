@@ -7,6 +7,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors import feature_sources
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.Extractors.feature_sources import previous_track_name_source
 from util.category_encoder import get_category_encoding
 
 
@@ -146,7 +147,7 @@ class DrawBias(FeatureExtractor):
         draw_bias = feature_sources.draw_bias_source.get_draw_bias(race_card.track_name, horse.post_position)
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE
-        return draw_bias
+        return draw_bias / 20
 
 
 unknown_location_list = []
@@ -154,7 +155,7 @@ unknown_location_list = []
 
 class TravelDistance(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
+    previous_track_name_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
@@ -163,11 +164,10 @@ class TravelDistance(FeatureExtractor):
         self.beeline_distances: ndarray = pickle.load(open("../data/beeline_distances.bin", "rb"))
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        past_forms = horse.form_table.past_forms
-        if not past_forms:
-            return self.PLACEHOLDER_VALUE
+        previous_track_name = previous_track_name_source.get_previous_of_name(str(horse.subject_id))
 
-        previous_track_name = past_forms[0].track_name
+        if previous_track_name is None:
+            return self.PLACEHOLDER_VALUE
 
         if previous_track_name not in self.locations:
             if previous_track_name not in unknown_location_list:
@@ -180,7 +180,7 @@ class TravelDistance(FeatureExtractor):
 
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
-        return travel_distance + 1000
+        return travel_distance / 1000
 
 
 class WeatherType(FeatureExtractor):

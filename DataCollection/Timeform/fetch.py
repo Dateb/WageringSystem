@@ -89,6 +89,7 @@ class TimeFormFetcher(ABC):
         "gowran park": 210,
         "kilbeggan": 211,
         "killarney": 212,
+        "laytown": 213,
         "leopardstown": 214,
         "limerick": 215,
         "listowel": 217,
@@ -409,6 +410,9 @@ class ResultTimeformFetcher(TimeFormFetcher):
 
         if lengths_behind_text == "ds":
             return -2.0
+
+        if lengths_behind_text == "+h":
+            return 1.25
 
         if lengths_behind_text == "a":
             return -3.0

@@ -13,6 +13,8 @@ MONTH_MAX = 12
 DAY_OF_YEAR_MAX = 367
 WEEKDAY_MAX = 7
 
+MINUTES_INTO_DAY_MAX = 1440
+
 
 class DayOfYearCos(FeatureExtractor):
 
@@ -49,7 +51,7 @@ class MinutesIntoDay(FeatureExtractor):
             second=0,
         )
         minutes_into_day = (race_card_date_time - earliest_race_time).seconds / 60
-        return minutes_into_day
+        return minutes_into_day / MINUTES_INTO_DAY_MAX
 
 
 class WeekDayCos(FeatureExtractor):
