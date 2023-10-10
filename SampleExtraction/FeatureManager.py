@@ -11,7 +11,8 @@ from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, HasWon
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
-from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak, Layoff
+from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak, \
+    PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
@@ -28,7 +29,8 @@ from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor, 
 from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFraction, PulledUpPreviousRace, \
     PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
     PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
-    PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile
+    PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
+    PreviousSameGoingWinProbability, PreviousSameGoingPlacePercentile
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey, \
     RaceGoingDifference
@@ -108,13 +110,25 @@ class FeatureManager:
             PreviousSameTrackWinProbability(),
             PreviousSameRaceClassWinProbability(),
 
+            PreviousPlacePercentile(),
+
             PreviousSameSurfacePlacePercentile(),
             PreviousSameTrackPlacePercentile(),
             PreviousSameRaceClassPlacePercentile(),
 
+            PreviousRaceLayoff(),
+
+            SameTrackLayoff(),
+            SameClassLayoff(),
+            SameSurfaceLayoff(),
+
             JockeyWinRate(),
             JockeyPlaceRate(),
             JockeyEarningsRate(),
+
+            TrainerWinRate(),
+            TrainerPlaceRate(),
+            TrainerEarningsRate(),
 
             JockeyWeight(),
             WeightAllowance(),
@@ -125,22 +139,16 @@ class FeatureManager:
             RaceClassDifference(),
 
             WeightDifference(),
-            PreviousPlacePercentile(),
             PreviousRelativeDistanceBehind(),
-            Layoff(),
 
             DrawBias(),
+            TravelDistance(),
 
             # Needs improvement in regards with different start counts
-
-            # TrainerWinRate(),
-            # TrainerPlaceRate(),
-            # TrainerEarningsRate(),
 
             # CurrentSpeedFigure(),
 
             # HasTrainerMultipleHorses(),
-            # TravelDistance(),
             # CurrentRating(),
             #
             # LifeTimeStartCount(),

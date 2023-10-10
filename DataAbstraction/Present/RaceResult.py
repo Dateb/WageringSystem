@@ -1,23 +1,20 @@
+from typing import List
+
+from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.HorseResult import HorseResult
 
 
 class RaceResult:
 
-    def __init__(self, raw_result: dict):
+    def __init__(self, horses: List[Horse], places_num: int):
         self.horse_results = {}
-        positions_dict = raw_result["positions"]
 
-        for position_dict in positions_dict:
-            horse_number = position_dict["programNumber"]
-            position = position_dict["position"]
-
-            # TODO: proper extraction of odds (after odds are fixed from the api, its kinda broken now)
-            self.horse_results[str(horse_number)] = HorseResult(
+        for horse in horses:
+            self.horse_results[horse.name.replace("'", "").upper()] = HorseResult(
                 race_name="",
                 race_date_time="",
-                number=horse_number,
                 name="",
-                position=position,
+                place=horse.place,
                 win_probability=0,
                 place_probability=0,
                 win_odds=0,
@@ -25,12 +22,11 @@ class RaceResult:
                 place_num=0,
             )
 
-        self.win_time = -1
-        if "winTimeSeconds" in raw_result:
-            self.win_time = raw_result["winTimeSeconds"]
+        self.places_num = places_num
 
-    def get_result_of_horse_number(self, horse_number: int) -> HorseResult:
-        # TODO: Returning None is sloppy
-        if str(horse_number) not in self.horse_results:
-            return None
-        return self.horse_results[str(horse_number)]
+    def get_place_of_horse_name(self, horse_name: str) -> int:
+        return self.horse_results[horse_name].place
+
+    @property
+    def horse_names(self) -> List[str]:
+        return list(self.horse_results.keys())

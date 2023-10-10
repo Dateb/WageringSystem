@@ -2,6 +2,7 @@ import pickle
 
 from tqdm import tqdm
 
+from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
@@ -17,8 +18,7 @@ def optimize_model_configuration():
     feature_manager = FeatureManager()
 
     race_cards_loader = RaceCardsPersistence("race_cards")
-    model_evaluator = ModelEvaluator()
-    race_cards_array_factory = RaceCardsArrayFactory(feature_manager, model_evaluator)
+    race_cards_array_factory = RaceCardsArrayFactory(feature_manager)
 
     file_names = race_cards_loader.race_card_file_names
 
@@ -58,8 +58,10 @@ def optimize_model_configuration():
 
     test_race_cards = {}
 
+    race_results_container = RaceResultsContainer()
     for race_card_file_name in tqdm(test_sample_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+        race_results_container.add_results_from_race_cards(race_cards)
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
@@ -68,11 +70,7 @@ def optimize_model_configuration():
     race_cards_sample = train_sample_encoder.get_race_cards_sample()
     race_cards_sample.race_cards_dataframe.to_csv("../data/races.csv")
 
-    # block_splitter = BlockSplitter(
-    #     race_cards_sample,
-    #     n_validation_rounds=5,
-    #     n_test_races=N_TEST_RACES,
-    # )
+    model_evaluator = ModelEvaluator(race_results_container)
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
     estimator = NNClassifier(feature_manager, model_evaluator, NN_CLASSIFIER_PARAMS)

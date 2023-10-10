@@ -12,15 +12,12 @@ class RaceCardsArrayFactory:
     def __init__(
             self,
             feature_manager: FeatureManager,
-            model_evaluator: ModelEvaluator,
     ):
         self.feature_manager = feature_manager
-        self.__model_evaluator = model_evaluator
         self.current_day = None
         self.current_day_race_cards = []
 
     def race_cards_to_array(self, sample_race_cards: Dict[str, RaceCard]) -> ndarray:
-        self.__model_evaluator.add_results_from_race_cards(sample_race_cards)
         sample_values = []
         for datetime in sorted(sample_race_cards):
             next_race_card = sample_race_cards[datetime]

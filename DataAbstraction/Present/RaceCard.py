@@ -49,7 +49,6 @@ class RaceCard:
 
         if raw_result:
             self.has_results = True
-            self.race_result: RaceResult = RaceResult(raw_result)
 
         self.weather = None
         if "weather" in race:
@@ -95,14 +94,15 @@ class RaceCard:
 
         self.n_horses = len(self.runners)
 
-        self.set_horse_results()
-
         self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
         if self.overround > 0:
             for horse in self.horses:
                 if horse.betfair_win_sp >= 1:
                     horse.sp_win_prob = (1 / horse.betfair_win_sp) * (1 / self.overround)
+
+        self.race_result: RaceResult = RaceResult(self.horses, self.places_num)
+        self.set_horse_results()
 
         self.__base_attributes = {
             self.RACE_NAME_KEY: self.name,

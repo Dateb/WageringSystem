@@ -1,4 +1,5 @@
-from math import isnan
+from abc import ABC
+from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
@@ -7,21 +8,48 @@ from SampleExtraction.Extractors.feature_sources import previous_date_source
 from SampleExtraction.time_calculation import get_day_difference
 
 
-class Layoff(FeatureExtractor):
+class Layoff(FeatureExtractor, ABC):
 
-    previous_date_source.previous_value_attribute_groups.append(["subject_id"])
+    PLACEHOLDER_VALUE = -1
 
-    def __init__(self):
+    def __init__(self, attribute_group: List[str]):
         super().__init__()
+        self.attribute_group = attribute_group
+        previous_date_source.previous_value_attribute_groups.append(self.attribute_group)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        previous_datetime = previous_date_source.get_previous_of_name(str(horse.subject_id))
+        attribute_group_key = previous_date_source.get_attribute_group_key(race_card, horse, self.attribute_group)
+        previous_datetime = previous_date_source.get_previous_of_name(attribute_group_key)
 
         if previous_datetime is None:
             return self.PLACEHOLDER_VALUE
 
         layoff = (race_card.datetime - previous_datetime).days
         return layoff / 1000
+
+
+class PreviousRaceLayoff(Layoff):
+
+    def __init__(self):
+        super().__init__(["subject_id"])
+
+
+class SameTrackLayoff(Layoff):
+
+    def __init__(self):
+        super().__init__(["subject_id", "track_name"])
+
+
+class SameClassLayoff(Layoff):
+
+    def __init__(self):
+        super().__init__(["subject_id", "race_class"])
+
+
+class SameSurfaceLayoff(Layoff):
+
+    def __init__(self):
+        super().__init__(["subject_id", "surface"])
 
 
 class HasOptimalBreak(FeatureExtractor):

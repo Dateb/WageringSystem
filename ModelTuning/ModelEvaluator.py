@@ -8,21 +8,19 @@ from numpy import mean, std
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bettor, Bet, BetfairOfferContainer
-from Model.Betting.evaluate import BetEvaluator
+from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
+from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Estimator import Estimator
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer
+from ModelTuning import simulate_conf
 from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 
 class ModelEvaluator:
 
-    def __init__(self):
-        self.win_results = {}
-
-    def add_results_from_race_cards(self, race_cards: Dict[str, RaceCard]):
-        for race_card in race_cards.values():
-            self.win_results[str(race_card.datetime)] = {horse.name.replace("'", "").upper(): horse.has_won for horse in race_card.runners}
+    def __init__(self, race_results_container: RaceResultsContainer):
+        self.race_results_container = race_results_container
 
     def get_bets_of_model(
             self,
@@ -50,13 +48,17 @@ class ModelEvaluator:
         best_bets = []
 
         bet_thresholds = [1.0]
-        win_oracle = BetEvaluator(self.win_results)
+
+        if simulate_conf.MARKET_TYPE == "WIN":
+            bet_evaluator = WinBetEvaluator(self.race_results_container.race_results)
+        else:
+            bet_evaluator = PlaceBetEvaluator(self.race_results_container.race_results)
 
         offer_container = self.get_bet_offer_container(test_race_cards)
         for bet_threshold in bet_thresholds:
             bets = Bettor(offer_container).bet(estimation_result, bet_threshold=bet_threshold)
 
-            win_oracle.insert_payouts_into_bets(bets)
+            bet_evaluator.insert_payouts_into_bets(bets)
 
             payouts = [bet.payout for bet in bets if bet.bet_offer.odds < 20]
             payout_score = mean(payouts) / std(payouts)

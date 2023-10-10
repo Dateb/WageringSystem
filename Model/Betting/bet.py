@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper, BetfairHistoryDictIterator
 from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
+from ModelTuning import simulate_conf
 
 
 @dataclass
@@ -46,6 +47,7 @@ class Bet:
 
 
 #TODO: Separate data parsing from container functions
+
 class BetfairOfferContainer:
 
     def __init__(self, test_race_cards: Dict[str, RaceCard]):
@@ -80,7 +82,7 @@ class BetfairOfferContainer:
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
         scratched_horses = []
 
-        if market_definition["marketType"] == "WIN" and market_definition["countryCode"] == "GB":
+        if market_definition["marketType"] == simulate_conf.MARKET_TYPE and market_definition["countryCode"] == "GB":
             horses = market_definition["runners"]
             horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 

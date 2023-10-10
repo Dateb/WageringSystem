@@ -24,7 +24,7 @@ class PreviousWinProbability(FeatureExtractor):
         return previous_win_prob
 
 
-class PreviousSameAttributeWinProbDifference(FeatureExtractor, ABC):
+class PreviousSameAttributeDifference(FeatureExtractor, ABC):
 
     PLACEHOLDER_VALUE = 0
 
@@ -35,48 +35,60 @@ class PreviousSameAttributeWinProbDifference(FeatureExtractor, ABC):
         self.previous_value_source.previous_value_attribute_groups.append(attribute_group)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_win_prob_key = self.previous_value_source.get_attribute_group_key(race_card, horse, self.attribute_group)
+        attribute_group_key = self.previous_value_source.get_attribute_group_key(race_card, horse, self.attribute_group)
 
-        previous_same_attribute_win_prob = self.previous_value_source.get_previous_of_name(previous_win_prob_key)
-        previous_win_prob = self.previous_value_source.get_previous_of_name(str(horse.subject_id))
+        previous_same_attribute_value = self.previous_value_source.get_previous_of_name(attribute_group_key)
+        previous_value = self.previous_value_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_same_attribute_win_prob is None:
+        if previous_same_attribute_value is None:
             return self.PLACEHOLDER_VALUE
 
-        return previous_same_attribute_win_prob - previous_win_prob
+        return previous_same_attribute_value - previous_value
 
 
-class PreviousSameSurfaceWinProbability(PreviousSameAttributeWinProbDifference):
+class PreviousSameSurfaceWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "surface"])
 
 
-class PreviousSameTrackWinProbability(PreviousSameAttributeWinProbDifference):
+class PreviousSameGoingWinProbability(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_win_prob_source, ["subject_id", "going"])
+
+
+class PreviousSameTrackWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "track_name"])
 
 
-class PreviousSameRaceClassWinProbability(PreviousSameAttributeWinProbDifference):
+class PreviousSameRaceClassWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "race_class"])
 
 
-class PreviousSameSurfacePlacePercentile(PreviousSameAttributeWinProbDifference):
+class PreviousSameSurfacePlacePercentile(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_place_percentile_source, ["subject_id", "surface"])
 
 
-class PreviousSameTrackPlacePercentile(PreviousSameAttributeWinProbDifference):
+class PreviousSameGoingPlacePercentile(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_place_percentile_source, ["subject_id", "going"])
+
+
+class PreviousSameTrackPlacePercentile(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_place_percentile_source, ["subject_id", "track_name"])
 
 
-class PreviousSameRaceClassPlacePercentile(PreviousSameAttributeWinProbDifference):
+class PreviousSameRaceClassPlacePercentile(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_place_percentile_source, ["subject_id", "race_class"])
