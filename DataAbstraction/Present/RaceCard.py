@@ -109,6 +109,7 @@ class RaceCard:
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
             self.N_RUNNERS_KEY: self.n_horses,
+            self.PLACE_NUM_KEY: self.places_num
         }
 
         self.set_validity()

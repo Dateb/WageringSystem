@@ -178,6 +178,9 @@ class Bettor:
                             if stakes < 0:
                                 print(f"Warning, the stakes: {stakes} are negative")
 
+                            if stakes > 1:
+                                print(f"Stakes are over 1: {stakes}, o = {offer.odds}, p = {probability_estimate}")
+
                             horse = race_card.get_horse_by_name(offer.horse_name)
                             new_bet = Bet(
                                 race_card,
