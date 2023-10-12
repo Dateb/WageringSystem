@@ -26,19 +26,22 @@ class ModelEvaluator:
             self,
             estimator: Estimator,
             train_sample_encoder: SampleEncoder,
+            validation_sample_encoder: SampleEncoder,
             test_sample_encoder: SampleEncoder,
             test_race_cards: Dict[str, RaceCard]
     ) -> List[Bet]:
         train_sample = train_sample_encoder.get_race_cards_sample()
+        validation_sample = validation_sample_encoder.get_race_cards_sample()
         test_sample = test_sample_encoder.get_race_cards_sample()
 
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
+        validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.sort_values(by="race_id")
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
 
         train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
         test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
 
-        scores = estimator.predict(train_sample, test_sample)
+        scores = estimator.predict(train_sample, validation_sample, test_sample)
 
         test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
 
@@ -52,7 +55,7 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [1.0]
+        bet_thresholds = [1.0 + (i / 10) for i in range(10)]
 
         offer_container = self.get_bet_offer_container(test_race_cards)
         for bet_threshold in bet_thresholds:

@@ -116,7 +116,7 @@ class BetfairOfferContainer:
                     adjustment_factor = 0.0
                     if "adjustmentFactor" in runner:
                         adjustment_factor = runner["adjustmentFactor"]
-                    if adjustment_factor >= 2.5:
+                    if adjustment_factor >= 2.5 or simulate_conf.MARKET_TYPE == "PLACE":
                         removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
                         adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}
 
@@ -177,9 +177,6 @@ class Bettor:
 
                             if stakes < 0:
                                 print(f"Warning, the stakes: {stakes} are negative")
-
-                            if stakes > 1:
-                                print(f"Stakes are over 1: {stakes}, o = {offer.odds}, p = {probability_estimate}")
 
                             horse = race_card.get_horse_by_name(offer.horse_name)
                             new_bet = Bet(

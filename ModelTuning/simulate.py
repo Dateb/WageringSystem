@@ -7,7 +7,7 @@ from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import N_CONTAINER_MONTHS, N_MONTHS_TRAIN_SAMPLE, N_MONTHS_FORWARD_OFFSET, \
-    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE
+    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE, N_MONTHS_VALIDATION_SAMPLE
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
@@ -50,7 +50,22 @@ def optimize_model_configuration():
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         train_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
-    first_month_test_sample = last_month_train_sample
+    validation_sample_encoder = SampleEncoder(feature_manager.features, columns)
+
+    first_month_validation_sample = last_month_train_sample
+    last_month_validation_sample = first_month_validation_sample + N_MONTHS_VALIDATION_SAMPLE
+    validation_sample_file_names = file_names[first_month_validation_sample:last_month_validation_sample]
+
+    for race_card_file_name in tqdm(validation_sample_file_names):
+        race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+
+        for race_card in race_cards.values():
+            race_card.horses = race_card.runners
+
+        arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
+        validation_sample_encoder.add_race_cards_arr(arr_of_race_cards)
+
+    first_month_test_sample = last_month_validation_sample
     last_month_test_sample = first_month_test_sample + N_MONTHS_TEST_SAMPLE
     test_sample_file_names = file_names[first_month_test_sample:last_month_test_sample]
 
@@ -80,7 +95,13 @@ def optimize_model_configuration():
         # if race_card.category in ["HCP"]
     }
 
-    bets = model_evaluator.get_bets_of_model(estimator, train_sample_encoder, test_sample_encoder, test_race_cards)
+    bets = model_evaluator.get_bets_of_model(
+        estimator,
+        train_sample_encoder,
+        validation_sample_encoder,
+        test_sample_encoder,
+        test_race_cards
+    )
 
     with open(__TEST_PAYOUTS_PATH, "wb") as f:
         pickle.dump(bets, f)

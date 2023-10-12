@@ -20,7 +20,10 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
 
         raw_race_card_injector = RawRaceCardInjector(race_card)
 
-        self.time_form_injector.inject_time_form_attributes(race_card)
+        if race_card.n_horses > 1:
+            self.time_form_injector.inject_time_form_attributes(race_card)
+        else:
+            print("#horses <= 1. Injection of timeform attributes is skipped.")
 
         race_card = WritableRaceCard(race_id, raw_race_card_injector.raw_race_card, self.remove_non_starters)
 

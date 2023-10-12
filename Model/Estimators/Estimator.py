@@ -12,7 +12,7 @@ class Estimator(ABC):
         pass
 
     @abstractmethod
-    def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
         pass
 
     @abstractmethod

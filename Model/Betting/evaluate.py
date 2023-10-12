@@ -3,6 +3,7 @@ from typing import List, Dict
 
 from DataAbstraction.Present.RaceResult import RaceResult
 from Model.Betting.bet import Bet
+from ModelTuning import simulate_conf
 
 
 class BetEvaluator:
@@ -19,7 +20,12 @@ class BetEvaluator:
                     bet.payout -= bet.stakes
 
                     if self.is_winning_bet(race_key, horse_name):
-                        win_amount = bet.stakes * bet.bet_offer.odds * bet.bet_offer.adjustment_factor
+                        if simulate_conf.MARKET_TYPE == "WIN":
+                            win_amount = bet.stakes * bet.bet_offer.odds * bet.bet_offer.adjustment_factor
+                        else:
+                            potential_winning = bet.stakes * (bet.bet_offer.odds - 1)
+                            win_amount = potential_winning * bet.bet_offer.adjustment_factor + bet.stakes
+
                         bet.payout += win_amount * (1 - Bet.WIN_COMMISSION)
 
     @abstractmethod

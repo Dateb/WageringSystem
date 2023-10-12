@@ -1,15 +1,18 @@
 import time
 import traceback
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import List
 
-from Agent.AgentModel import AgentModel
-from Agent.SeleniumAgentController import SeleniumAgentController
+from tqdm import tqdm
+
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher
 from DataCollection.current_races.inject import CurrentRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
+from Persistence.RaceCardPersistence import RaceCardsPersistence
+from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 
 
 class BetAgent:
@@ -17,12 +20,32 @@ class BetAgent:
     CONTROLLER_SUBMISSION_MODE_ON = False
 
     def __init__(self):
-        self.collect_race_cards_until_today()
-        self.model = AgentModel()
-        self.controller = SeleniumAgentController(submission_mode_on=self.CONTROLLER_SUBMISSION_MODE_ON)
+        self.collect_newest_race_cards()
+        self.init_feature_sources()
 
-        self.today_race_cards: List[RaceCard] = TodayRaceCardsFetcher().fetch_race_cards()
-        self.today_race_cards_injector = CurrentRaceCardsInjector()
+    def collect_newest_race_cards(self) -> None:
+        train_data_collector = TrainDataCollector()
+
+        day_before_yesterday = date.today() - timedelta(days=2)
+
+        query_date = date(
+            year=2023,
+            month=10,
+            day=1,
+        )
+
+        train_data_collector.collect_forward_until_newest_date(query_date, day_before_yesterday)
+
+    def init_feature_sources(self) -> None:
+        feature_manager = FeatureManager()
+
+        race_cards_loader = RaceCardsPersistence("race_cards")
+        race_cards_array_factory = RaceCardsArrayFactory(feature_manager)
+
+        print("Loading all race cards to initialize all feature sources:")
+        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
+            race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+            race_cards_array_factory.race_cards_to_array(race_cards)
 
     def run(self):
         self.controller.restart_driver()
@@ -60,14 +83,14 @@ class BetAgent:
 
 def main():
     bettor = BetAgent()
-    while True:
-        try:
-            bettor.run()
-        except Exception as e:
-            print(f"Agent crashed. Causing error: {str(e)}")
-            print(traceback.format_exc())
-        else:
-            break
+    # while True:
+    #     try:
+    #         bettor.run()
+    #     except Exception as e:
+    #         print(f"Agent crashed. Causing error: {str(e)}")
+    #         print(traceback.format_exc())
+    #     else:
+    #         break
 
 
 if __name__ == '__main__':

@@ -2,9 +2,7 @@ import pickle
 
 from tqdm import tqdm
 
-from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Estimators.RaceEventProbabilities import RaceEventProbabilities
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -50,13 +48,13 @@ class AgentModel:
 
         self.bet_model = bet_model_configuration.create_estimator(train_sample)
 
-    def bet_on_race_card(self, race_card: RaceCard) -> BettingSlip:
+    def bet_on_race_card(self, race_card: RaceCard):
         estimation_result = self.estimate_race_card(race_card)
         betting_slips = self.bet_model.bettor.bet(estimation_result)
 
         return list(betting_slips.values())[0]
 
-    def estimate_race_card(self, race_card: RaceCard) -> RaceEventProbabilities:
+    def estimate_race_card(self, race_card: RaceCard):
         sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
         race_card_arr = self.race_cards_array_factory.race_card_to_array(race_card)
         sample_encoder.add_race_cards_arr(race_card_arr)

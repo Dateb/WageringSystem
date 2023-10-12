@@ -40,12 +40,12 @@ class NNClassifier(Estimator):
         )
         print(f"Using {self.device} device")
 
-        self.best_test_loss = np.inf
+        self.best_validation_loss = np.inf
 
     def filter_group(self, group):
         return not any(group.isna().any())
 
-    def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
 
@@ -54,6 +54,14 @@ class NNClassifier(Estimator):
 
         train_race_card_loader = TrainRaceCardLoader(
             train_sample,
+            self.feature_manager,
+            horses_per_race_padding_size=self.horses_per_race_padding_size,
+            missing_values_imputer=missing_values_imputer,
+            one_hot_encoder=one_hot_encoder
+        )
+
+        validation_race_card_loader = TestRaceCardLoader(
+            validation_sample,
             self.feature_manager,
             horses_per_race_padding_size=self.horses_per_race_padding_size,
             missing_values_imputer=missing_values_imputer,
@@ -83,14 +91,16 @@ class NNClassifier(Estimator):
             current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
             print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
             self.fit_epoch(train_race_card_loader.dataloader)
-            self.test_epoch(test_race_card_loader.dataloader)
+            self.validate_epoch(validation_race_card_loader.dataloader)
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
                 checkpoint = torch.load('best_model.pth')
                 self.network.load_state_dict(checkpoint['model_state_dict'])
 
-        print("Done!")
+        print("Model tuning completed!")
+
+        self.test_epoch(test_race_card_loader.dataloader)
 
         with torch.no_grad():
             self.network.eval()
@@ -138,11 +148,43 @@ class NNClassifier(Estimator):
 
         print(f"Train Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {train_loss:>8f} \n")
 
+    def validate_epoch(self, validation_dataloader: DataLoader):
+        size = len(validation_dataloader.dataset)
+        num_batches = len(validation_dataloader)
+
+        validation_loss, validation_accuracy = 0, 0
+        self.network.eval()
+
+        with torch.no_grad():
+            for X, y in validation_dataloader:
+                X, y = X.to(self.device), y.to(self.device)
+
+                pred = self.network(X)
+                validation_loss += self.loss_function(pred, y).item()
+
+                validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+        validation_loss /= num_batches
+        validation_accuracy /= size
+
+        print(f"Validation Error: \n Accuracy: {(100 * validation_accuracy):>0.1f}%, Avg loss: {validation_loss:>8f} \n")
+
+        self.scheduler.step(validation_loss)
+
+        if validation_loss < self.best_validation_loss:
+            self.best_validation_loss = validation_loss
+            checkpoint = {
+                'model_state_dict': self.network.state_dict(),
+                # Add any other information you want to save here
+            }
+            torch.save(checkpoint, 'best_model.pth')
+
     def test_epoch(self, test_dataloader: DataLoader):
         size = len(test_dataloader.dataset)
         num_batches = len(test_dataloader)
         self.network.eval()
         test_loss, correct = 0, 0
+
         with torch.no_grad():
             for X, y in test_dataloader:
                 X, y = X.to(self.device), y.to(self.device)
@@ -153,17 +195,7 @@ class NNClassifier(Estimator):
         test_loss /= num_batches
         correct /= size
 
-        self.scheduler.step(test_loss)
-
         print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-
-        if test_loss < self.best_test_loss:
-            self.best_test_loss = test_loss
-            checkpoint = {
-                'model_state_dict': self.network.state_dict(),
-                # Add any other information you want to save here
-            }
-            torch.save(checkpoint, 'best_model.pth')
 
     def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
         scores = np.zeros(np.sum(group_counts))

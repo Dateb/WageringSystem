@@ -52,7 +52,7 @@ class TrainDataCollector:
         self.race_cards_persistence = RaceCardsPersistence(self.RACE_CARDS_FILE_NAME)
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
-        self.collected_days_tracker.save_collected_days_from_race_cards()
+        # self.collected_days_tracker.save_collected_days_from_race_cards()
 
         self.race_cards_collector = FullRaceCardsCollector()
         self.day_collector = DayCollector()
@@ -98,13 +98,15 @@ class TrainDataCollector:
 def main():
     train_data_collector = TrainDataCollector()
 
-    query_date = date(
-        year=2023,
-        month=9,
-        day=30,
-    )
+    day_before_yesterday = date.today() - timedelta(days=2)
 
-    train_data_collector.collect(query_date)
+    # query_date = date(
+    #     year=2023,
+    #     month=9,
+    #     day=30,
+    # )
+
+    train_data_collector.collect(day_before_yesterday)
     #train_data_collector.collect_day(query_date)
 
 
