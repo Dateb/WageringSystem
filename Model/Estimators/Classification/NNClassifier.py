@@ -11,6 +11,7 @@ from Model.Estimators.Classification.sample_loading import TrainRaceCardLoader, 
 
 from Model.Estimators.Estimator import Estimator
 from ModelTuning.ModelEvaluator import ModelEvaluator
+from Persistence import neural_network_persistence
 from SampleExtraction.BlockSplitter import BlockSplitter
 from SampleExtraction.FeatureManager import FeatureManager
 
@@ -42,6 +43,9 @@ class NNClassifier(Estimator):
 
         self.best_validation_loss = np.inf
 
+        self.missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+        self.one_hot_encoder = OneHotEncoder()
+
     def filter_group(self, group):
         return not any(group.isna().any())
 
@@ -49,31 +53,20 @@ class NNClassifier(Estimator):
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
 
-        missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
-        one_hot_encoder = OneHotEncoder()
-
         train_race_card_loader = TrainRaceCardLoader(
             train_sample,
             self.feature_manager,
             horses_per_race_padding_size=self.horses_per_race_padding_size,
-            missing_values_imputer=missing_values_imputer,
-            one_hot_encoder=one_hot_encoder
+            missing_values_imputer=self.missing_values_imputer,
+            one_hot_encoder=self.one_hot_encoder
         )
 
         validation_race_card_loader = TestRaceCardLoader(
             validation_sample,
             self.feature_manager,
             horses_per_race_padding_size=self.horses_per_race_padding_size,
-            missing_values_imputer=missing_values_imputer,
-            one_hot_encoder=one_hot_encoder
-        )
-
-        test_race_card_loader = TestRaceCardLoader(
-            test_sample,
-            self.feature_manager,
-            horses_per_race_padding_size=self.horses_per_race_padding_size,
-            missing_values_imputer=missing_values_imputer,
-            one_hot_encoder=one_hot_encoder
+            missing_values_imputer=self.missing_values_imputer,
+            one_hot_encoder=self.one_hot_encoder
         )
 
         self.network = SimpleMLP(train_race_card_loader.n_feature_values, self.params["dropout_rate"]).to(self.device)
@@ -95,12 +88,22 @@ class NNClassifier(Estimator):
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
-                checkpoint = torch.load('best_model.pth')
-                self.network.load_state_dict(checkpoint['model_state_dict'])
+                neural_network_persistence.load_state_into_neural_network(self.network)
 
         print("Model tuning completed!")
 
-        self.test_epoch(test_race_card_loader.dataloader)
+        self.score_test_sample(test_sample)
+
+        return test_sample.race_cards_dataframe["score"]
+
+    def score_test_sample(self, test_sample: RaceCardsSample):
+        test_race_card_loader = TestRaceCardLoader(
+            test_sample,
+            self.feature_manager,
+            horses_per_race_padding_size=self.horses_per_race_padding_size,
+            missing_values_imputer=self.missing_values_imputer,
+            one_hot_encoder=self.one_hot_encoder
+        )
 
         with torch.no_grad():
             self.network.eval()
@@ -109,7 +112,7 @@ class NNClassifier(Estimator):
         scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
 
-        return scores
+        self.test_epoch(test_race_card_loader.dataloader)
 
     def tune_setting(self, train_sample: RaceCardsSample) -> None:
         pass
@@ -173,11 +176,7 @@ class NNClassifier(Estimator):
 
         if validation_loss < self.best_validation_loss:
             self.best_validation_loss = validation_loss
-            checkpoint = {
-                'model_state_dict': self.network.state_dict(),
-                # Add any other information you want to save here
-            }
-            torch.save(checkpoint, 'best_model.pth')
+            neural_network_persistence.save(self.network)
 
     def test_epoch(self, test_dataloader: DataLoader):
         size = len(test_dataloader.dataset)

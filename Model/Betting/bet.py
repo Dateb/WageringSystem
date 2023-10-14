@@ -13,6 +13,7 @@ from ModelTuning import simulate_conf
 @dataclass
 class BetOffer:
 
+    race_card: RaceCard
     horse_name: str
     odds: float
     scratched_horses: List[str]
@@ -26,7 +27,6 @@ class BetOffer:
 @dataclass
 class Bet:
 
-    race_card: RaceCard
     bet_offer: BetOffer
     stakes: float
     payout: float
@@ -37,7 +37,7 @@ class Bet:
 
     def __str__(self) -> str:
         bet_str = ("-----------------------------------\n" +
-                   f"Race: {self.race_card.race_id}\n" +
+                   f"Race: {self.bet_offer.race_card.race_id}\n" +
                    f"Offer: {self.bet_offer}\n" +
                    f"Stakes: {self.stakes}\n" +
                    f"Payout: {self.payout}\n" +
@@ -82,53 +82,55 @@ class BetfairOfferContainer:
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
         scratched_horses = []
 
-        if market_definition["marketType"] == simulate_conf.MARKET_TYPE and market_definition["countryCode"] == "GB":
-            horses = market_definition["runners"]
-            horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
+        race_datetime = self.create_datetime_from_market_time(market_definition["suspendTime"])
+        race_card = self.test_race_cards_mapper.get_race_card(str(race_datetime))
 
-            for history_dict in history_dict_iterator:
-                unix_time_stamp = int(history_dict["pt"] / 1000)
-                event_datetime = datetime.fromtimestamp(unix_time_stamp)
-                market_condition = history_dict["mc"][0]
-                if "marketDefinition" in market_condition:
-                    market_definition = history_dict["mc"][0]["marketDefinition"]
-                    if "runners" in market_definition:
-                        scratched_horses = self.get_scratched_horses(market_definition["runners"])
+        if race_card is not None:
+            if market_definition["marketType"] == simulate_conf.MARKET_TYPE and market_definition["countryCode"] == "GB":
+                horses = market_definition["runners"]
+                horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 
-                if "rc" in market_condition:
-                    new_offers = [
-                        BetOffer(
-                            horse_id_to_name_map[offer_data["id"]],
-                            offer_data["ltp"],
-                            scratched_horses,
-                            event_datetime=event_datetime,
-                            adjustment_factor=1.0
-                        )
-                        for offer_data in market_condition["rc"]
-                    ]
-                    betfair_offers += new_offers
+                for history_dict in history_dict_iterator:
+                    unix_time_stamp = int(history_dict["pt"] / 1000)
+                    event_datetime = datetime.fromtimestamp(unix_time_stamp)
+                    market_condition = history_dict["mc"][0]
+                    if "marketDefinition" in market_condition:
+                        market_definition = history_dict["mc"][0]["marketDefinition"]
+                        if "runners" in market_definition:
+                            scratched_horses = self.get_scratched_horses(market_definition["runners"])
 
-            adjustment_factor_lookup = {}
-            final_runners = market_definition["runners"]
+                    if "rc" in market_condition:
+                        if event_datetime < race_card.datetime:
+                            new_offers = [
+                                BetOffer(
+                                    race_card=race_card,
+                                    horse_name=horse_id_to_name_map[offer_data["id"]],
+                                    odds=offer_data["ltp"],
+                                    scratched_horses=scratched_horses,
+                                    event_datetime=event_datetime,
+                                    adjustment_factor=1.0
+                                )
+                                for offer_data in market_condition["rc"]
+                            ]
+                            betfair_offers += new_offers
 
-            for runner in final_runners:
-                if runner["status"] == "REMOVED":
-                    adjustment_factor = 0.0
-                    if "adjustmentFactor" in runner:
-                        adjustment_factor = runner["adjustmentFactor"]
-                    if adjustment_factor >= 2.5 or simulate_conf.MARKET_TYPE == "PLACE":
-                        removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
-                        adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}
+                adjustment_factor_lookup = {}
+                final_runners = market_definition["runners"]
 
-            for offer in betfair_offers:
-                for removed_runner in adjustment_factor_lookup.values():
-                    if offer.event_datetime < removed_runner["date"]:
-                        offer.adjustment_factor *= (1 - removed_runner["factor"] / 100)
+                for runner in final_runners:
+                    if runner["status"] == "REMOVED":
+                        adjustment_factor = 0.0
+                        if "adjustmentFactor" in runner:
+                            adjustment_factor = runner["adjustmentFactor"]
+                        if adjustment_factor >= 2.5 or simulate_conf.MARKET_TYPE == "PLACE":
+                            removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
+                            adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}
 
-            race_datetime = self.create_datetime_from_market_time(market_definition["suspendTime"])
-            race_card = self.test_race_cards_mapper.get_race_card(str(race_datetime))
+                for offer in betfair_offers:
+                    for removed_runner in adjustment_factor_lookup.values():
+                        if offer.event_datetime < removed_runner["date"]:
+                            offer.adjustment_factor *= (1 - removed_runner["factor"] / 100)
 
-            if race_card is not None:
                 self.race_offers[str(race_card.datetime)] = betfair_offers
 
     def get_scratched_horses(self, horses: dict) -> List[str]:
@@ -156,38 +158,46 @@ class BetfairOfferContainer:
 
 class Bettor:
 
-    def __init__(self, betfair_offer_container: BetfairOfferContainer):
-        self.betfair_offer_container = betfair_offer_container
+    def __init__(self, bet_threshold: float):
+        self.bet_threshold = bet_threshold
+        self.already_taken_offers = {}
 
-    def bet(self, probability_estimates: ProbabilityEstimates, bet_threshold: float) -> List[Bet]:
+    def bet(self, offers: Dict[str, List[BetOffer]], probability_estimates: ProbabilityEstimates) -> List[Bet]:
         bets = []
-        already_taken_offers = {}
 
-        for race_datetime, race_offers in self.betfair_offer_container.race_offers.items():
-            race_card = self.betfair_offer_container.test_race_cards_mapper.get_race_card(race_datetime)
+        for race_datetime, race_offers in offers.items():
             if race_datetime in probability_estimates.probability_estimates:
-                for offer in race_offers:
-                    probability_estimate = probability_estimates.get_horse_win_probability(race_datetime, offer.horse_name, offer.scratched_horses)
+                for bet_offer in race_offers:
+                    horse = bet_offer.race_card.get_horse_by_name(bet_offer.horse_name)
 
-                    if probability_estimate is not None:
-                        offer_probability = 1 / offer.odds
+                    probability_estimate = probability_estimates.get_horse_win_probability(
+                        race_datetime,
+                        bet_offer.horse_name,
+                        bet_offer.scratched_horses
+                    )
 
-                        if probability_estimate > bet_threshold * offer_probability and (race_datetime, offer.horse_name) not in already_taken_offers:
-                            stakes = (offer.odds * probability_estimate - 1) / (offer.odds - 1)
-
-                            if stakes < 0:
-                                print(f"Warning, the stakes: {stakes} are negative")
-
-                            horse = race_card.get_horse_by_name(offer.horse_name)
-                            new_bet = Bet(
-                                race_card,
-                                offer,
-                                stakes,
-                                payout=0.0,
-                                probability_estimate=probability_estimate,
-                                probability_start=horse.sp_win_prob
-                            )
-                            bets.append(new_bet)
-                            already_taken_offers[(race_datetime, offer.horse_name)] = True
+                    stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
+                    if stakes > 0:
+                        new_bet = Bet(
+                            bet_offer,
+                            stakes,
+                            payout=0.0,
+                            probability_estimate=probability_estimate,
+                            probability_start=horse.sp_win_prob
+                        )
+                        bets.append(new_bet)
+                        self.already_taken_offers[(race_datetime, bet_offer.horse_name)] = True
 
         return bets
+
+    def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
+        stakes = 0
+
+        if probability_estimate is not None:
+            offer_probability = 1 / bet_offer.odds
+
+            if (probability_estimate > self.bet_threshold * offer_probability
+                    and (race_datetime, bet_offer.horse_name) not in self.already_taken_offers):
+                stakes = (bet_offer.odds * probability_estimate - 1) / (bet_offer.odds - 1)
+
+        return stakes

@@ -1,12 +1,12 @@
 from torch import nn
 
 __TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
-__BET_MODEL_CONFIGURATION_PATH = "../data/bet_model_configuration.dat"
+ESTIMATOR_PATH = "../data/estimator.dat"
 
 MARKET_TYPE = "PLACE"
 
 N_CONTAINER_MONTHS = 2
-N_MONTHS_TRAIN_SAMPLE = 23
+N_MONTHS_TRAIN_SAMPLE = 25
 N_MONTHS_VALIDATION_SAMPLE = 4
 N_MONTHS_TEST_SAMPLE = 4
 N_MONTHS_FORWARD_OFFSET = 0

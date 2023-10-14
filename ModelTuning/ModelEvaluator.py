@@ -55,16 +55,16 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [1.0 + (i / 10) for i in range(10)]
+        bet_thresholds = [1.0]
 
         offer_container = self.get_bet_offer_container(test_race_cards)
         for bet_threshold in bet_thresholds:
-            bets = Bettor(offer_container).bet(estimation_result, bet_threshold=bet_threshold)
+            bets = Bettor(bet_threshold=bet_threshold).bet(offer_container.race_offers, estimation_result)
 
             bet_evaluator.insert_payouts_into_bets(bets)
 
-            payouts = [bet.payout for bet in bets if bet.bet_offer.odds < 20]
-            payout_score = mean(payouts) / std(payouts)
+            payouts = [bet.payout for bet in bets if bet.bet_offer.odds <= 10]
+            payout_score = sum(payouts)
 
             if payout_score > best_payout_sum:
                 best_bets = bets

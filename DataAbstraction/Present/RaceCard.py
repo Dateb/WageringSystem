@@ -20,7 +20,7 @@ class RaceCard:
     RACE_NAME_KEY: str = "race_name"
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
-    N_RUNNERS_KEY: str = "n_runners"
+    N_HORSES_KEY: str = "n_runners"
     PLACE_NUM_KEY: str = "place_num"
 
     base_times: defaultdict = nested_dict()
@@ -92,7 +92,7 @@ class RaceCard:
 
         self.winner_name = [horse.name for horse in self.horses if horse.place == 1][0]
 
-        self.n_horses = len(self.runners)
+        self.n_horses = len(self.horses)
 
         self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
@@ -108,7 +108,7 @@ class RaceCard:
             self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
-            self.N_RUNNERS_KEY: self.n_horses,
+            self.N_HORSES_KEY: self.n_horses,
             self.PLACE_NUM_KEY: self.places_num
         }
 

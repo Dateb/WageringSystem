@@ -1,18 +1,24 @@
+import pickle
 import time
-import traceback
-from datetime import datetime, date, timedelta
-from typing import List
+from copy import deepcopy
+from datetime import date, timedelta
+from typing import List, Dict
 
 from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
-from DataCollection.current_races.fetch import TodayRaceCardsFetcher
-from DataCollection.current_races.inject import CurrentRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
+from Model.Betting.bet import Bettor, BetOffer
+from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper
+from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
+from ModelTuning.simulate_conf import ESTIMATOR_PATH
+from SampleExtraction.RaceCardsSample import RaceCardsSample
+from SampleExtraction.SampleEncoder import SampleEncoder
 
 
 class BetAgent:
@@ -20,10 +26,33 @@ class BetAgent:
     CONTROLLER_SUBMISSION_MODE_ON = False
 
     def __init__(self):
-        self.collect_newest_race_cards()
+        self.race_cards_mapper = None
+        self.feature_manager = FeatureManager()
+        self.columns = None
+
+        self.update_race_card_data()
+
+        with open(ESTIMATOR_PATH, "rb") as f:
+            self.estimator: NNClassifier = pickle.load(f)
+
         self.init_feature_sources()
 
-    def collect_newest_race_cards(self) -> None:
+        race_cards_sample = self.get_upcoming_race_cards_sample()
+
+        self.estimator.score_test_sample(race_cards_sample)
+
+        scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
+        estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
+
+        bet_offers = self.get_bet_offers()
+
+        bettor = Bettor(bet_threshold=1.0)
+
+        bets = bettor.bet(bet_offers, estimation_result)
+
+        print(bets)
+
+    def update_race_card_data(self) -> None:
         train_data_collector = TrainDataCollector()
 
         day_before_yesterday = date.today() - timedelta(days=2)
@@ -37,15 +66,54 @@ class BetAgent:
         train_data_collector.collect_forward_until_newest_date(query_date, day_before_yesterday)
 
     def init_feature_sources(self) -> None:
-        feature_manager = FeatureManager()
-
         race_cards_loader = RaceCardsPersistence("race_cards")
-        race_cards_array_factory = RaceCardsArrayFactory(feature_manager)
+        race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
         print("Loading all race cards to initialize all feature sources:")
         for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
             race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+
+            if self.columns is None:
+                self.columns = list(race_cards.values())[0].attributes + self.feature_manager.feature_names
+
             race_cards_array_factory.race_cards_to_array(race_cards)
+
+    def get_upcoming_race_cards_sample(self) -> RaceCardsSample:
+        race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
+        test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+        race_cards_loader = RaceCardsPersistence("race_cards")
+
+        test_sample_file_names = race_cards_loader.race_card_file_names[3:4]
+
+        for race_card_file_name in tqdm(test_sample_file_names):
+            race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+
+            self.race_cards_mapper = RaceDateToCardMapper(race_cards)
+
+            arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
+            test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
+
+        return test_sample_encoder.get_race_cards_sample()
+
+    def get_bet_offers(self) -> Dict[str, List[BetOffer]]:
+        race_card_date = "2021-02-01 13:15:00"
+        race_card = self.race_cards_mapper.get_race_card(race_card_date)
+
+        bet_offers = {
+            race_card_date:
+                [
+                    BetOffer(
+                        race_card=race_card,
+                        horse_name="AT POETS CROSS",
+                        odds=20.75,
+                        scratched_horses=[],
+                        event_datetime=None,
+                        adjustment_factor=1.0,
+                    )
+                ]
+        }
+
+        return bet_offers
 
     def run(self):
         self.controller.restart_driver()

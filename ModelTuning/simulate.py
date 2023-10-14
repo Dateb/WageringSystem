@@ -7,7 +7,7 @@ from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import N_CONTAINER_MONTHS, N_MONTHS_TRAIN_SAMPLE, N_MONTHS_FORWARD_OFFSET, \
-    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE, N_MONTHS_VALIDATION_SAMPLE
+    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE, N_MONTHS_VALIDATION_SAMPLE, ESTIMATOR_PATH
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
@@ -105,9 +105,9 @@ def optimize_model_configuration():
 
     with open(__TEST_PAYOUTS_PATH, "wb") as f:
         pickle.dump(bets, f)
-
-    # with open(__BET_MODEL_CONFIGURATION_PATH, "wb") as f:
-    #     pickle.dump(bet_model_configuration, f)
+        
+    with open(ESTIMATOR_PATH, "wb") as f:
+        pickle.dump(estimator, f)
 
 
 if __name__ == '__main__':
