@@ -90,7 +90,10 @@ class RaceCard:
 
         self.num_winners = len([runner for runner in self.runners if runner.has_won])
 
-        self.winner_name = [horse.name for horse in self.horses if horse.place == 1][0]
+        self.winner_name = ""
+        first_place_horse_names = [horse.name for horse in self.horses if horse.place == 1]
+        if first_place_horse_names:
+            self.winner_name = first_place_horse_names[0]
 
         self.n_horses = len(self.horses)
 

@@ -54,7 +54,7 @@ class Scraper:
         result = {}
         for _ in range(self.__n_request_tries):
             response = self.__session.get(url=url, headers=self.__headers)
-            self.__wait_random_amount_of_seconds(1.0)
+            self.__wait_random_amount_of_seconds(2.0)
             if response.status_code == 200:
                 result = response.json()
                 return result

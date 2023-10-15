@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
+from DataCollection.current_races.fetch import TodayRaceCardsFetcher
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import Bettor, BetOffer
 from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper
@@ -53,6 +54,8 @@ class BetAgent:
         print(bets)
 
     def update_race_card_data(self) -> None:
+        print("Scraping newest race card data...")
+
         train_data_collector = TrainDataCollector()
 
         day_before_yesterday = date.today() - timedelta(days=2)
@@ -66,10 +69,11 @@ class BetAgent:
         train_data_collector.collect_forward_until_newest_date(query_date, day_before_yesterday)
 
     def init_feature_sources(self) -> None:
+        print("Loading all race cards to initialize all feature sources...")
+
         race_cards_loader = RaceCardsPersistence("race_cards")
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
-        print("Loading all race cards to initialize all feature sources:")
         for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
             race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
@@ -79,24 +83,25 @@ class BetAgent:
             race_cards_array_factory.race_cards_to_array(race_cards)
 
     def get_upcoming_race_cards_sample(self) -> RaceCardsSample:
+        print("Scraping race cards of upcoming races...")
+
+        #TODO: Get full race cards
+        upcoming_race_cards = {str(race_card.datetime): race_card for race_card in TodayRaceCardsFetcher().fetch_race_cards()}
+
+        print(list(upcoming_race_cards.keys()))
+
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
         test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
-        race_cards_loader = RaceCardsPersistence("race_cards")
 
-        test_sample_file_names = race_cards_loader.race_card_file_names[3:4]
+        self.race_cards_mapper = RaceDateToCardMapper(upcoming_race_cards)
 
-        for race_card_file_name in tqdm(test_sample_file_names):
-            race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
-
-            self.race_cards_mapper = RaceDateToCardMapper(race_cards)
-
-            arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
-            test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
+        arr_of_race_cards = race_cards_array_factory.race_cards_to_array(upcoming_race_cards)
+        test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         return test_sample_encoder.get_race_cards_sample()
 
     def get_bet_offers(self) -> Dict[str, List[BetOffer]]:
-        race_card_date = "2021-02-01 13:15:00"
+        race_card_date = "2023-10-15 14:35:00"
         race_card = self.race_cards_mapper.get_race_card(race_card_date)
 
         bet_offers = {
@@ -104,7 +109,7 @@ class BetAgent:
                 [
                     BetOffer(
                         race_card=race_card,
-                        horse_name="AT POETS CROSS",
+                        horse_name="TRAPISTA",
                         odds=20.75,
                         scratched_horses=[],
                         event_datetime=None,

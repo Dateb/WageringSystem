@@ -35,6 +35,14 @@ class RaceCardsArrayFactory:
             self.feature_manager.pre_update_feature_sources(next_race_card)
             self.current_day_race_cards.append(next_race_card)
 
+        for race_card in self.current_day_race_cards:
+            if race_card.is_valid_sample:
+                self.feature_manager.set_features([race_card])
+                horse_values_of_race_card = self.get_values_of_race_card(race_card)
+                sample_values += horse_values_of_race_card
+
+        self.feature_manager.post_update_feature_sources(self.current_day_race_cards)
+
         return np.array(sample_values)
 
     def race_card_to_array(self, race_card: RaceCard) -> ndarray:
