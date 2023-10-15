@@ -477,8 +477,29 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
     def get_horse_rows(self, time_form_soup: BeautifulSoup):
         return time_form_soup.find_all("tbody", {"class": "rp-table-row"})
 
-    def get_horse_name(self, horse_row: BeautifulSoup) -> int:
-        return int(horse_row.find("span", {"class": "rp-entry-number"}).text)
+    def get_horse_name(self, horse_row: BeautifulSoup) -> str:
+        classes = horse_row.get("class")
+
+        if "rp-non-runner" in classes:
+            return ""
+
+        horse_name_raw_text = horse_row.find("a", {"class": "rp-horse"}).text
+
+        # Define a regular expression pattern to match the name
+        pattern = r'^\d+\.\s*|\s*\([A-Z]+\)$'
+
+        # Remove the prefix and suffix
+        horse_name = re.sub(pattern, '', horse_name_raw_text)
+
+        # Remove any leading/trailing whitespaces
+        horse_name = horse_name.strip()
+
+        return horse_name
+
+    def get_jockey_name(self, horse_row: BeautifulSoup) -> str:
+        jockey_name_raw_text = horse_row.find("a", {"title": "Jockey"}).text
+
+        return jockey_name_raw_text
 
     def get_equip_code(self, horse_row: BeautifulSoup) -> str:
         equip_cell = horse_row.find("td", {"class": "rp-td-horse-equipment"}).find("span")
@@ -509,6 +530,9 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
         return 0
 
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
+        return -1
+
+    def get_lengths_behind(self, horse_row: BeautifulSoup) -> float:
         return -1
 
 

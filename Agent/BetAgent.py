@@ -1,3 +1,4 @@
+import datetime
 import pickle
 import time
 from copy import deepcopy
@@ -7,8 +8,10 @@ from typing import List, Dict
 from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
+from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher
+from DataCollection.race_cards.base import BaseRaceCardsCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import Bettor, BetOffer
 from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper
@@ -85,8 +88,15 @@ class BetAgent:
     def get_upcoming_race_cards_sample(self) -> RaceCardsSample:
         print("Scraping race cards of upcoming races...")
 
-        #TODO: Get full race cards
-        upcoming_race_cards = {str(race_card.datetime): race_card for race_card in TodayRaceCardsFetcher().fetch_race_cards()}
+        race_ids = DayCollector().get_open_race_ids_of_day(datetime.date.today())
+        race_ids = ["6365974", "6365975"]
+
+        race_ids.sort()
+
+        full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
+        race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
+
+        upcoming_race_cards = {str(race_card.datetime): race_card for race_card in race_cards}
 
         print(list(upcoming_race_cards.keys()))
 
@@ -101,7 +111,7 @@ class BetAgent:
         return test_sample_encoder.get_race_cards_sample()
 
     def get_bet_offers(self) -> Dict[str, List[BetOffer]]:
-        race_card_date = "2023-10-15 14:35:00"
+        race_card_date = "2023-10-15 14:50:00"
         race_card = self.race_cards_mapper.get_race_card(race_card_date)
 
         bet_offers = {
@@ -109,7 +119,7 @@ class BetAgent:
                 [
                     BetOffer(
                         race_card=race_card,
-                        horse_name="TRAPISTA",
+                        horse_name="MOTAZZEN",
                         odds=20.75,
                         scratched_horses=[],
                         event_datetime=None,
