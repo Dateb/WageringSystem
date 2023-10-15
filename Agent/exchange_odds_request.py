@@ -1,9 +1,37 @@
 import json
-from typing import Dict
+from typing import Dict, Tuple
 
 import websocket
 
 from DataCollection.Scraper import get_scraper
+
+
+class MarketRetriever:
+
+    def __init__(self):
+        self.scraper = get_scraper()
+        self.today_markets_url = "https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange=TODAY"
+        self.today_markets_raw = self.scraper.request_data(self.today_markets_url)
+
+    def get_event_and_market_id(self, country: str, track_name: str, race_number: int) -> Tuple[str, str]:
+        print(country)
+
+        print(self.today_markets_raw)
+        for country_data in self.today_markets_raw:
+            print(country_data)
+            if country in country_data["name"]:
+                events_raw = country_data["events"]
+                for event_data in events_raw:
+                    print(event_data)
+                    if track_name in event_data["name"]:
+                        market_data = event_data["markets"][race_number - 1]
+                        event_id = event_data["id"]
+
+                        market_id_parts = market_data["id"].split(".")
+
+                        market_id = f"{market_id_parts[0]}.{str(int(market_id_parts[1]) + 1)}"
+
+                        return event_id, market_id
 
 
 class ExchangeOddsRequester:
@@ -18,6 +46,7 @@ class ExchangeOddsRequester:
         self.market_id = market_id
 
         self.market_data = self.get_market_data()
+        print(self.market_data)
         self.horse_number_by_exchange_id = self.extract_number_by_internal_id(self.market_data)
 
         self.current_odds_data = {}
@@ -73,7 +102,7 @@ class ExchangeOddsRequester:
 
     def get_market_data(self) -> dict:
         return self.scraper.request_data(
-            url=f"https://exch.piwi247.com/customer/api/market/{self.market_id}?showGroups=true"
+            url=f"https://exch.piwi247.com/customer/api/market/{self.market_id}"
         )
 
     def extract_number_by_internal_id(self, market_data: dict) -> dict:

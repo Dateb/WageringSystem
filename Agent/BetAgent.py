@@ -7,6 +7,7 @@ from typing import List, Dict
 
 from tqdm import tqdm
 
+from Agent.exchange_odds_request import ExchangeOddsRequester, MarketRetriever
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -96,37 +97,54 @@ class BetAgent:
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
 
-        upcoming_race_cards = {str(race_card.datetime): race_card for race_card in race_cards}
+        self.upcoming_race_cards = {str(race_card.datetime): race_card for race_card in race_cards}
 
-        print(list(upcoming_race_cards.keys()))
+        print(list(self.upcoming_race_cards.keys()))
 
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
         test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
-        self.race_cards_mapper = RaceDateToCardMapper(upcoming_race_cards)
+        self.race_cards_mapper = RaceDateToCardMapper(self.upcoming_race_cards)
 
-        arr_of_race_cards = race_cards_array_factory.race_cards_to_array(upcoming_race_cards)
+        arr_of_race_cards = race_cards_array_factory.race_cards_to_array(self.upcoming_race_cards)
         test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         return test_sample_encoder.get_race_cards_sample()
 
     def get_bet_offers(self) -> Dict[str, List[BetOffer]]:
-        race_card_date = "2023-10-15 14:50:00"
-        race_card = self.race_cards_mapper.get_race_card(race_card_date)
+        bet_offers = {}
+        for race_card in self.upcoming_race_cards.values():
+            bet_offers[str(race_card.datetime)] = []
 
-        bet_offers = {
-            race_card_date:
-                [
-                    BetOffer(
+            market_retriever = MarketRetriever()
+            event_id, market_id = market_retriever.get_event_and_market_id(
+                country=race_card.country,
+                track_name=race_card.track_name,
+                race_number=race_card.race_number,
+            )
+
+            exchange_odds_requester = ExchangeOddsRequester(
+                customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTczNzE0ODYsImlhdCI6MTY5NzMzNTQ4NiwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.Qq6lJ9RPybL7QLcdBzrv772F3y1EU0UY1hOg4o1LFAM",
+                event_id=event_id,
+                market_id=market_id,
+            )
+
+            exchange_odds = exchange_odds_requester.get_odds_from_exchange()
+
+            for horse_number, odds in exchange_odds.items():
+                if odds > 0:
+                    horse = race_card.get_horse_by_number(int(horse_number))
+
+                    new_offer = BetOffer(
                         race_card=race_card,
-                        horse_name="MOTAZZEN",
-                        odds=20.75,
+                        horse_name=horse.name,
+                        odds=odds,
                         scratched_horses=[],
                         event_datetime=None,
                         adjustment_factor=1.0,
                     )
-                ]
-        }
+
+                    bet_offers[str(race_card.datetime)].append(new_offer)
 
         return bet_offers
 
