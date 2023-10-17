@@ -26,7 +26,7 @@ class CurrentDistance(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return float(race_card.distance)
+        return float(race_card.distance) / 10000
 
 
 class CurrentRaceTrack(FeatureExtractor):

@@ -122,6 +122,24 @@ class PreviousRelativeDistanceBehind(FeatureExtractor):
         return previous_relative_distance_behind
 
 
+class PreviousSameRaceClassRelativeDistanceBehind(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_relative_distance_behind_source, ["subject_id", "race_class"])
+
+
+class PreviousSameTrackRelativeDistanceBehind(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_relative_distance_behind_source, ["subject_id", "track_name"])
+
+
+class PreviousSameSurfaceRelativeDistanceBehind(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_relative_distance_behind_source, ["subject_id", "surface"])
+
+
 class PreviousFasterThanFraction(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1

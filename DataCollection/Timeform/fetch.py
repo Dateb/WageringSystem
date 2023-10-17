@@ -405,7 +405,7 @@ class ResultTimeformFetcher(TimeFormFetcher):
         if lengths_behind_text == "hd":
             return 0.2
 
-        if lengths_behind_text == "nk":
+        if lengths_behind_text == "nk" or lengths_behind_text == "2-":
             return 0.3
 
         if lengths_behind_text == "ds":

@@ -52,7 +52,7 @@ class TrainDataCollector:
         self.race_cards_persistence = RaceCardsPersistence(self.RACE_CARDS_FILE_NAME)
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
-        # self.collected_days_tracker.save_collected_days_from_race_cards()
+        self.collected_days_tracker.save_collected_days_from_race_cards()
 
         self.race_cards_collector = FullRaceCardsCollector()
         self.day_collector = DayCollector()

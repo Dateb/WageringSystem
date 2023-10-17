@@ -42,6 +42,7 @@ class RaceCardsArrayFactory:
                 sample_values += horse_values_of_race_card
 
         self.feature_manager.post_update_feature_sources(self.current_day_race_cards)
+        self.current_day_race_cards = []
 
         return np.array(sample_values)
 

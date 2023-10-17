@@ -30,7 +30,8 @@ from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFr
     PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
     PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
     PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
-    PreviousSameGoingWinProbability, PreviousSameGoingPlacePercentile
+    PreviousSameGoingWinProbability, PreviousSameGoingPlacePercentile, PreviousSameSurfaceRelativeDistanceBehind, \
+    PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey, \
     RaceGoingDifference
@@ -93,6 +94,16 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            # CurrentDistance(),
+            # CurrentRaceTrack(),
+            # CurrentRaceSurface(),
+            # CurrentRaceClass(),
+            # CurrentRaceCategory(),
+            # CurrentRaceType(),
+            # CurrentRaceTypeDetail(),
+
+
+
             MinutesIntoDay(),
 
             DayOfYearSin(),
@@ -100,9 +111,6 @@ class FeatureManager:
 
             WeekDaySin(),
             WeekDayCos(),
-
-            HasBlinkers(), HasHood(), HasCheekPieces(),
-            HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             PreviousWinProbability(),
 
@@ -115,6 +123,12 @@ class FeatureManager:
             PreviousSameSurfacePlacePercentile(),
             PreviousSameTrackPlacePercentile(),
             PreviousSameRaceClassPlacePercentile(),
+
+            PreviousRelativeDistanceBehind(),
+
+            PreviousSameSurfaceRelativeDistanceBehind(),
+            PreviousSameTrackRelativeDistanceBehind(),
+            PreviousSameRaceClassRelativeDistanceBehind(),
 
             PreviousRaceLayoff(),
 
@@ -139,10 +153,14 @@ class FeatureManager:
             RaceClassDifference(),
 
             WeightDifference(),
-            PreviousRelativeDistanceBehind(),
 
             DrawBias(),
             TravelDistance(),
+
+
+
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # Needs improvement in regards with different start counts
 
@@ -203,10 +221,6 @@ class FeatureManager:
 
             # Not tested:
 
-            # CurrentRaceClass(),
-            # WeightAdvantage(),
-            # CurrentRaceCategory(),
-            #
             # TrainerClassWinRate(),
             # TrainerPercentageBeaten(),
             #

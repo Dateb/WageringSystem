@@ -177,8 +177,7 @@ class Bettor:
                     )
 
                     stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
-                    print('yellow')
-                    if stakes > 0:
+                    if stakes > 0.00:
                         new_bet = Bet(
                             bet_offer,
                             stakes,

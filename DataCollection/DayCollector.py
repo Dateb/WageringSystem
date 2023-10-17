@@ -11,14 +11,14 @@ class DayCollector:
         self.__scraper = get_scraper()
 
     def get_closed_race_ids_of_day(self, day: date) -> List[str]:
-        races = self.__get_races_of_day(day)
+        races = self.__get_races_of_day(day, ["GB", "IE"])
 
         race_ids = [race["idRace"] for race in races if race["raceStatus"] in ["FNL", "TMP"]]
 
         return race_ids
 
     def get_open_race_ids_of_day(self, day: date) -> List[str]:
-        races = self.__get_races_of_day(day)
+        races = self.__get_races_of_day(day, ["GB"])
         print(races)
 
         race_ids = [race["idRace"] for race in races if race["raceStatus"] == "OPN"]
@@ -31,26 +31,26 @@ class DayCollector:
 
         return [race["idRace"] for race in races]
 
-    def __get_races_of_day(self, day: date) -> List[dict]:
-        race_series_list = self.__get_race_series_of_day(day)
+    def __get_races_of_day(self, day: date, countries: List[str]) -> List[dict]:
+        race_series_list = self.__get_race_series_of_day(day, countries)
         races = []
         for race_series in race_series_list:
             races += race_series["relatedRaces"]
 
         return races
 
-    def __get_race_series_of_day(self, day: date) -> List[dict]:
+    def __get_race_series_of_day(self, day: date, countries: List[str]) -> List[dict]:
         api_url = f"https://www.racebets.de/ajax/events/calendar/date/{str(day)}?_=1651490197128"
         calendar_data = self.__scraper.request_data(api_url)
 
-        return self.__get_race_series_from_calendar_data(calendar_data)
+        return self.__get_race_series_from_calendar_data(calendar_data, countries)
 
-    def __get_race_series_from_calendar_data(self, calendar_data: dict) -> List[dict]:
+    def __get_race_series_from_calendar_data(self, calendar_data: dict, countries: List[str]) -> List[dict]:
         race_series_list = []
         del calendar_data["calendarDates"]
         for race_series_key in calendar_data:
             race_series = calendar_data[race_series_key]
-            if race_series["country"] in ["GB", "IE"] and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"] and "PMU" not in race_series["title"]\
+            if race_series["country"] in countries and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"] and "PMU" not in race_series["title"]\
                     and race_series["title"] not in ["Down Royal", "Greatwood Hurdle", "Bath - Arab Race"]:
                 race_series_list.insert(0, race_series)
 

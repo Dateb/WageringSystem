@@ -14,22 +14,29 @@ class MarketRetriever:
         self.today_markets_raw = self.scraper.request_data(self.today_markets_url)
 
     def get_event_and_market_id(self, country: str, track_name: str, race_number: int) -> Tuple[str, str]:
-        print(country)
-
-        print(self.today_markets_raw)
         for country_data in self.today_markets_raw:
-            print(country_data)
             if country in country_data["name"]:
                 events_raw = country_data["events"]
                 for event_data in events_raw:
-                    print(event_data)
                     if track_name in event_data["name"]:
                         market_data = event_data["markets"][race_number - 1]
                         event_id = event_data["id"]
 
-                        market_id_parts = market_data["id"].split(".")
+                        market_type = ""
+                        market_id = market_data["id"]
 
-                        market_id = f"{market_id_parts[0]}.{str(int(market_id_parts[1]) + 1)}"
+                        n_tries = 0
+                        while market_type != "Place":
+                            n_tries += 1
+                            if n_tries > 4:
+                                return None, None
+
+                            market_id_parts = market_id.split(".")
+                            market_id = f"{market_id_parts[0]}.{str(int(market_id_parts[1]) + 1)}"
+
+                            market_info = self.scraper.request_data(f"https://exch.piwi247.com/customer/api/market/{market_id}")
+                            if "marketName" in market_info:
+                                market_type = market_info["marketName"]
 
                         return event_id, market_id
 
@@ -37,7 +44,7 @@ class MarketRetriever:
 class ExchangeOddsRequester:
 
     def __init__(self, customer_id: str, event_id: str, market_id: str):
-        websocket.enableTrace(True)
+        websocket.enableTrace(False)
         self.web_socket = websocket.WebSocket()
         self.scraper = get_scraper()
 

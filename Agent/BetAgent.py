@@ -3,6 +3,7 @@ import pickle
 import time
 from copy import deepcopy
 from datetime import date, timedelta
+from json import JSONDecodeError
 from typing import List, Dict
 
 from tqdm import tqdm
@@ -28,10 +29,11 @@ from SampleExtraction.SampleEncoder import SampleEncoder
 
 class BetAgent:
 
-    CONTROLLER_SUBMISSION_MODE_ON = False
+    BETS_PATH = f"../data/bets_log/{datetime.datetime.now()}"
 
     def __init__(self):
-        self.race_cards_mapper = None
+        self.current_bets = []
+        self.bettor = Bettor(bet_threshold=1.0)
         self.feature_manager = FeatureManager()
         self.columns = None
 
@@ -47,15 +49,7 @@ class BetAgent:
         self.estimator.score_test_sample(race_cards_sample)
 
         scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
-        estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
-
-        bet_offers = self.get_bet_offers()
-
-        bettor = Bettor(bet_threshold=1.0)
-
-        bets = bettor.bet(bet_offers, estimation_result)
-
-        print(bets)
+        self.estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
 
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
@@ -78,7 +72,7 @@ class BetAgent:
         race_cards_loader = RaceCardsPersistence("race_cards")
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
+        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
             race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
             if self.columns is None:
@@ -90,9 +84,8 @@ class BetAgent:
         print("Scraping race cards of upcoming races...")
 
         race_ids = DayCollector().get_open_race_ids_of_day(datetime.date.today())
-        race_ids = ["6365974", "6365975"]
 
-        race_ids.sort()
+        race_ids = race_ids
 
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
@@ -104,86 +97,77 @@ class BetAgent:
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
         test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
-        self.race_cards_mapper = RaceDateToCardMapper(self.upcoming_race_cards)
-
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(self.upcoming_race_cards)
         test_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
         return test_sample_encoder.get_race_cards_sample()
 
-    def get_bet_offers(self) -> Dict[str, List[BetOffer]]:
+    def get_bet_offers_from_race_card(self, race_card: RaceCard) -> Dict[str, List[BetOffer]]:
         bet_offers = {}
-        for race_card in self.upcoming_race_cards.values():
-            bet_offers[str(race_card.datetime)] = []
 
-            market_retriever = MarketRetriever()
-            event_id, market_id = market_retriever.get_event_and_market_id(
-                country=race_card.country,
-                track_name=race_card.track_name,
-                race_number=race_card.race_number,
-            )
+        bet_offers[str(race_card.datetime)] = []
 
-            exchange_odds_requester = ExchangeOddsRequester(
-                customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTczNzE0ODYsImlhdCI6MTY5NzMzNTQ4NiwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.Qq6lJ9RPybL7QLcdBzrv772F3y1EU0UY1hOg4o1LFAM",
-                event_id=event_id,
-                market_id=market_id,
-            )
+        market_retriever = MarketRetriever()
+        event_id, market_id = market_retriever.get_event_and_market_id(
+            country=race_card.country,
+            track_name=race_card.track_name,
+            race_number=race_card.race_number,
+        )
 
-            exchange_odds = exchange_odds_requester.get_odds_from_exchange()
+        if market_id is None:
+            return bet_offers
 
-            for horse_number, odds in exchange_odds.items():
-                if odds > 0:
-                    horse = race_card.get_horse_by_number(int(horse_number))
+        exchange_odds_requester = ExchangeOddsRequester(
+            customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTc1NDMxOTYsImlhdCI6MTY5NzUwNzE5NiwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.BPcgQWVTx4IzsPoxavl8jRePxLNefggiXCKRXYwzGsg",
+            event_id=event_id,
+            market_id=market_id,
+        )
 
-                    new_offer = BetOffer(
-                        race_card=race_card,
-                        horse_name=horse.name,
-                        odds=odds,
-                        scratched_horses=[],
-                        event_datetime=None,
-                        adjustment_factor=1.0,
-                    )
+        while True:
+            try:
+                exchange_odds = exchange_odds_requester.get_odds_from_exchange()
+            except JSONDecodeError:
+                continue
+            break
 
-                    bet_offers[str(race_card.datetime)].append(new_offer)
+        for horse_number, odds in exchange_odds.items():
+            if odds > 0:
+                horse = race_card.get_horse_by_number(int(horse_number))
+
+                new_offer = BetOffer(
+                    race_card=race_card,
+                    horse_name=horse.name,
+                    odds=odds,
+                    scratched_horses=[],
+                    event_datetime=None,
+                    adjustment_factor=1.0,
+                )
+
+                bet_offers[str(race_card.datetime)].append(new_offer)
 
         return bet_offers
 
     def run(self):
-        self.controller.restart_driver()
-        self.controller.relogin()
+        while True:
+            for race_card in self.upcoming_race_cards.values():
+                time.sleep(1)
+                bet_offers = self.get_bet_offers_from_race_card(race_card)
 
-        print([race_card.datetime for race_card in self.today_race_cards])
-        while self.today_race_cards:
-            race_card = self.today_race_cards[0]
-            print("Loading full version of race card...")
-            full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(race_card.race_id)
+                bets = self.bettor.bet(bet_offers, self.estimation_result)
 
-            self.controller.read_wealth()
-            print(f"Using bet limit: {self.controller.bet_limit}")
-            self.controller.open_race_card(full_race_card)
+                if bets:
+                    print(f"Found new Bets: {bets}.\n Writing them now...")
+                    self.current_bets += bets
 
-            self.today_race_cards.remove(race_card)
-            self.controller.wait_for_race_start(full_race_card)
-            self.controller.prepare_for_race_start()
-
-            updated_race_card = self.today_race_cards_injector.inject_newest_odds_into_horses(full_race_card)
-            start_betting_time = time.time()
-
-            betting_slip = self.model.bet_on_race_card(updated_race_card)
-            below_minimum_stakes_bet = [bet for bet in betting_slip.bets if bet.stakes_fraction * self.controller.bet_limit < 0.5]
-            if betting_slip.bets and len(below_minimum_stakes_bet) == 0:
-                self.controller.submit_betting_slip(betting_slip)
-                end_betting_time = time.time()
-                print(betting_slip)
-                print(f"time to execute on race odds:{end_betting_time - start_betting_time}")
-                # Quick and dirty security measure: could otherwise stick in an unsafe state regarding open betting slips
-                raise ValueError("Just restarting for security.")
-            else:
-                print("No value found. Skipping race.")
+                    with open(self.BETS_PATH, "wb") as f:
+                        pickle.dump(self.current_bets, f)
+                else:
+                    print(f"No new bets at: {race_card.name}")
 
 
 def main():
     bettor = BetAgent()
+    bettor.run()
     # while True:
     #     try:
     #         bettor.run()

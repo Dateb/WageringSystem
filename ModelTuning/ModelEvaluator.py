@@ -1,6 +1,7 @@
 import os
 import pickle
 from copy import deepcopy
+from statistics import geometric_mean
 from typing import Dict, List
 
 import numpy as np
@@ -58,13 +59,16 @@ class ModelEvaluator:
         bet_thresholds = [1.0]
 
         offer_container = self.get_bet_offer_container(test_race_cards)
+
         for bet_threshold in bet_thresholds:
             bets = Bettor(bet_threshold=bet_threshold).bet(offer_container.race_offers, estimation_result)
 
             bet_evaluator.insert_payouts_into_bets(bets)
 
-            payouts = [bet.payout for bet in bets if bet.bet_offer.odds <= 10]
-            payout_score = sum(payouts)
+            payouts = [1 + bet.payout for bet in bets]
+            payout_score = geometric_mean(payouts)
+
+            print(f"Thresh/score: {bet_threshold}/{payout_score}")
 
             if payout_score > best_payout_sum:
                 best_bets = bets
