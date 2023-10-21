@@ -94,15 +94,14 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            # CurrentDistance(),
             # CurrentRaceTrack(),
-            # CurrentRaceSurface(),
             # CurrentRaceClass(),
             # CurrentRaceCategory(),
             # CurrentRaceType(),
             # CurrentRaceTypeDetail(),
 
-
+            CurrentDistance(),
+            CurrentRaceSurface(),
 
             MinutesIntoDay(),
 
@@ -157,16 +156,24 @@ class FeatureManager:
             DrawBias(),
             TravelDistance(),
 
+            HorsePurseRate(),
+
+            Gender(),
+            HasTrainerMultipleHorses(),
+
+            BreederWinRate(), OwnerWinRate(),
 
 
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+            DamWinRate(), SireWinRate(),
+            DamPercentageBeaten(), SirePercentageBeaten()
 
             # Needs improvement in regards with different start counts
 
             # CurrentSpeedFigure(),
 
-            # HasTrainerMultipleHorses(),
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+
             # CurrentRating(),
             #
             # LifeTimeStartCount(),
@@ -175,13 +182,9 @@ class FeatureManager:
             #
             # #
             # #
-            # Gender(),
             #
             # HasJockeyChanged(),
             # HasTrainerChanged(),
-
-            # BreederWinRate(), OwnerWinRate(),
-            # DamWinRate(), SireWinRate(),
 
             # CurrentGoing(),
 
@@ -203,7 +206,6 @@ class FeatureManager:
             #-----------------------------------------------------------------
             #Needs improvement:
 
-            # HorsePurseRate(),
 
             # HorseTopFinish()
             # MaxPastRatingExtractor(),
@@ -341,7 +343,6 @@ class FeatureManager:
             # JockeySurfacePurseRate(), JockeyTrackPurseRate(),
             # TrainerClassPurseRate(),
             #
-            # SirePercentageBeaten(), DamPercentageBeaten(),
             # HorseJockeyPercentageBeaten(), HorseTrainerPercentageBeaten(), HorseBreederPercentageBeaten(),
             #
             # JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),

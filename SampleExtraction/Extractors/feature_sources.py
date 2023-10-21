@@ -364,10 +364,10 @@ class DrawBiasSource(FeatureSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         track_name = race_card_track_to_win_time_track(race_card.track_name)
         post_position = str(horse.post_position)
-        if post_position != "-1":
+        if post_position != "-1" and horse.horse_distance > 0 and race_card.distance > 0:
             self.update_average(
                 self.draw_bias[track_name][post_position],
-                horse.place,
+                horse.horse_distance / race_card.distance,
                 race_card.date,
                 DRAW_BIAS_CALCULATOR,
             )
@@ -394,7 +394,7 @@ class SpeedFiguresSource(FeatureSource):
             RaceCard.reset_track_variant_estimate()
             self.is_first_pre_update = False
 
-        if race_card.race_result is not None:
+        if race_card.win_time > 0:
             self.update_track_variant(race_card)
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
@@ -402,7 +402,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def post_update(self, race_card: RaceCard) -> None:
         self.is_first_pre_update = True
-        if race_card.race_result is not None and race_card.race_result.win_time > 0:
+        if race_card.race_result is not None and race_card.win_time > 0:
             self.update_base_time(race_card)
             self.update_speed_figures(race_card)
             self.update_par_time(race_card)
@@ -410,7 +410,7 @@ class SpeedFiguresSource(FeatureSource):
 
     def update_track_variant(self, race_card: RaceCard) -> None:
         par_time = race_card.get_par_time_estimate["avg"]
-        win_time = race_card.race_result.win_time
+        win_time = race_card.win_time
 
         if par_time:
             track_variant = (win_time - par_time) / (win_time + par_time)
@@ -422,7 +422,7 @@ class SpeedFiguresSource(FeatureSource):
             )
 
     def update_base_time(self, race_card: RaceCard):
-        win_time = race_card.race_result.win_time
+        win_time = race_card.win_time
 
         for horse in race_card.runners:
             if horse.horse_distance >= 0:
@@ -441,7 +441,7 @@ class SpeedFiguresSource(FeatureSource):
                 self.update_variance(category=base_time_estimate, new_obs=horse_time)
 
     def update_lengths_per_second(self, race_card: RaceCard):
-        win_time = race_card.race_result.win_time
+        win_time = race_card.win_time
 
         lengths_per_second = get_lengths_per_second(race_card.distance, win_time)
 
@@ -462,7 +462,7 @@ class SpeedFiguresSource(FeatureSource):
                     base_time_estimate["avg"],
                     base_time_estimate["std"],
                     race_card.lengths_per_second_estimate["avg"],
-                    race_card.race_result.win_time,
+                    race_card.win_time,
                     race_card.distance,
                     horse.horse_distance,
                     race_card.track_variant_estimate["avg"],
@@ -481,7 +481,7 @@ class SpeedFiguresSource(FeatureSource):
                     )
 
     def update_par_time(self, race_card: RaceCard):
-        win_time = race_card.race_result.win_time
+        win_time = race_card.win_time
 
         self.update_average(
             category=race_card.get_par_time_estimate,
@@ -569,9 +569,8 @@ def get_feature_sources() -> List[FeatureSource]:
         previous_date_source,
         previous_track_name_source,
 
-        # speed_figures_source,
-
         draw_bias_source,
 
-        has_fallen_source,
+        # speed_figures_source,
+        # has_fallen_source,
     ]

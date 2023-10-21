@@ -5,6 +5,8 @@ from abc import abstractmethod, ABC
 from datetime import date
 
 import re
+from typing import List
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -186,7 +188,6 @@ class TimeFormFetcher(ABC):
     def get_time_form_soup(self, race_card: WritableRaceCard):
         status_code = 404
         while status_code == 404:
-            time_form_url = self.base_time_form_url
             track_name = self.track_name_to_timeform_name(race_card.track_name)
 
             if self.has_race_series_changed(race_card):
@@ -194,22 +195,31 @@ class TimeFormFetcher(ABC):
                 self.current_date = race_card.date
                 self.current_race_number = 1
 
-            time_form_url += f"/{track_name}"
-            time_form_url += f"/{race_card.date}"
-            time_form_url += f"/{race_card.datetime.hour}{race_card.datetime.minute}"
-            time_form_url += f"/{self.get_code_of_track_name(track_name, race_card.date)}"
-            time_form_url += f"/{self.current_race_number}"
+            possible_track_codes = self.get_possible_codes_for_track_name(track_name, race_card.date)
+
+            response = None
+
+            for track_code in possible_track_codes:
+                time_form_url = self.base_time_form_url
+                time_form_url += f"/{track_name}"
+                time_form_url += f"/{race_card.date}"
+                time_form_url += f"/{race_card.datetime.hour}{race_card.datetime.minute}"
+                time_form_url += f"/{track_code}"
+                time_form_url += f"/{self.current_race_number}"
+
+                print(time_form_url)
+                response = self.session.get(time_form_url, headers=self.headers)
+
+                # TODO: Reuse it from scraper
+                lowest_waiting_time = 12 * 0.8
+                highest_waiting_time = 12 * 1.2
+                waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
+                time.sleep(waiting_time)
+
+                if response.status_code == 200:
+                    break
 
             self.current_race_number += 1
-
-            print(time_form_url)
-            response = self.session.get(time_form_url, headers=self.headers)
-
-            #TODO: Reuse it from scraper
-            lowest_waiting_time = 12 * 0.8
-            highest_waiting_time = 12 * 1.2
-            waiting_time = random.uniform(lowest_waiting_time, highest_waiting_time)
-            time.sleep(waiting_time)
 
             if response.history:
                 time.sleep(30)
@@ -219,10 +229,6 @@ class TimeFormFetcher(ABC):
 
             if self.current_race_number > 10:
                 return None
-
-        while not response.status_code == 200:
-            response = self.session.get(time_form_url, headers=self.headers)
-            time.sleep(30)
 
         return BeautifulSoup(response.text, 'html.parser')
 
@@ -270,11 +276,11 @@ class TimeFormFetcher(ABC):
 
         return math.floor(distance_in_metres)
 
-    def get_code_of_track_name(self, track_name: str, day_of_race: date) -> int:
+    def get_possible_codes_for_track_name(self, track_name: str, day_of_race: date) -> List[int]:
         track_code = self.time_form_track_name_code[track_name]
-        if track_name == "newmarket" and day_of_race.month in [6, 7, 8] and day_of_race.year >= 2013:
-            track_code = 60
-        return track_code
+        if track_name == "newmarket":
+            return [36, 60]
+        return [track_code]
 
     def track_name_to_timeform_name(self, track_name: str) -> str:
         if "PMU" in track_name:

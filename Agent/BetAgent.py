@@ -4,7 +4,7 @@ import time
 from copy import deepcopy
 from datetime import date, timedelta
 from json import JSONDecodeError
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from tqdm import tqdm
 
@@ -32,6 +32,7 @@ class BetAgent:
     BETS_PATH = f"../data/bets_log/{datetime.datetime.now()}"
 
     def __init__(self):
+        self.event_market_lookup: Dict[RaceCard, Tuple[str, str]] = {}
         self.current_bets = []
         self.bettor = Bettor(bet_threshold=1.0)
         self.feature_manager = FeatureManager()
@@ -51,12 +52,15 @@ class BetAgent:
         scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
         self.estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
 
+        self.init_event_market_lookup()
+        print(self.event_market_lookup)
+
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
 
         train_data_collector = TrainDataCollector()
 
-        day_before_yesterday = date.today() - timedelta(days=2)
+        day_before_yesterday = date.today() - timedelta(days=1)
 
         query_date = date(
             year=2023,
@@ -102,23 +106,28 @@ class BetAgent:
 
         return test_sample_encoder.get_race_cards_sample()
 
-    def get_bet_offers_from_race_card(self, race_card: RaceCard) -> Dict[str, List[BetOffer]]:
-        bet_offers = {}
-
-        bet_offers[str(race_card.datetime)] = []
-
+    def init_event_market_lookup(self) -> None:
         market_retriever = MarketRetriever()
-        event_id, market_id = market_retriever.get_event_and_market_id(
-            country=race_card.country,
-            track_name=race_card.track_name,
-            race_number=race_card.race_number,
-        )
+        for race_card in self.upcoming_race_cards.values():
+            event_id, market_id = market_retriever.get_event_and_market_id(
+                country=race_card.country,
+                track_name=race_card.track_name,
+                race_number=race_card.race_number,
+            )
 
-        if market_id is None:
-            return bet_offers
+            if market_id is not None:
+                self.event_market_lookup[race_card] = (event_id, market_id)
+
+    def get_bet_offers_from_race_card(self, race_card: RaceCard) -> Dict[str, List[BetOffer]]:
+        if race_card not in self.event_market_lookup:
+            return {}
+
+        bet_offers = {str(race_card.datetime): []}
+
+        event_id, market_id = self.event_market_lookup[race_card]
 
         exchange_odds_requester = ExchangeOddsRequester(
-            customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTc1NDMxOTYsImlhdCI6MTY5NzUwNzE5NiwiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.BPcgQWVTx4IzsPoxavl8jRePxLNefggiXCKRXYwzGsg",
+            customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTc2MTQxODcsImlhdCI6MTY5NzU3ODE4NywiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.cfDf1bynv_uhmvZf5_JozGD4SH7YSclMHGaOOU9HJMM",
             event_id=event_id,
             market_id=market_id,
         )
@@ -134,16 +143,19 @@ class BetAgent:
             if odds > 0:
                 horse = race_card.get_horse_by_number(int(horse_number))
 
-                new_offer = BetOffer(
-                    race_card=race_card,
-                    horse_name=horse.name,
-                    odds=odds,
-                    scratched_horses=[],
-                    event_datetime=None,
-                    adjustment_factor=1.0,
-                )
+                if horse is None:
+                    print(f"Horse nr. not found: {horse_number}, at race: {race_card.race_id}")
+                else:
+                    new_offer = BetOffer(
+                        race_card=race_card,
+                        horse_name=horse.name,
+                        odds=odds,
+                        scratched_horses=[],
+                        event_datetime=None,
+                        adjustment_factor=1.0,
+                    )
 
-                bet_offers[str(race_card.datetime)].append(new_offer)
+                    bet_offers[str(race_card.datetime)].append(new_offer)
 
         return bet_offers
 

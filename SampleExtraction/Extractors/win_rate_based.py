@@ -111,22 +111,32 @@ class OwnerWinRate(FeatureExtractor):
 
 class SireWinRate(FeatureExtractor):
 
+    PLACEHOLDER_VALUE = -1
+    win_rate_source.average_attribute_groups.append(["sire"])
+
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return speed_figures_source.get_current_speed_figure(horse.sire)
+        sire_win_rate = get_win_rate_of_name(horse.sire)
+        if sire_win_rate == -1:
+            return self.PLACEHOLDER_VALUE
+        return sire_win_rate
 
 
 class DamWinRate(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0
+    PLACEHOLDER_VALUE = -1
+    win_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return speed_figures_source.get_max_speed_figure(horse.dam)
+        dam_win_rate = get_win_rate_of_name(horse.dam)
+        if dam_win_rate == -1:
+            return self.PLACEHOLDER_VALUE
+        return dam_win_rate
 
 
 class DamSireWinRate(FeatureExtractor):

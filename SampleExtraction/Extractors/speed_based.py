@@ -17,7 +17,8 @@ class CurrentSpeedFigure(FeatureExtractor):
         speed_figure = speed_figures_source.get_current_speed_figure(str(horse.subject_id))
         if speed_figure is None:
             return self.PLACEHOLDER_VALUE
-        return speed_figure / 10
+        speed_figure = (speed_figure + 20) / 100
+        return speed_figure
 
 
 class MeanSpeedDiff(FeatureExtractor):

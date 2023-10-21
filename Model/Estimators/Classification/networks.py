@@ -23,35 +23,20 @@ class SimpleMLP(nn.Module):
         super().__init__()
         self.linear_relu_stack = nn.Sequential(
 
-            nn.Linear(feature_count, 1024),
-            # nn.BatchNorm1d(20),
-            nn.ReLU(),
-
-            nn.Dropout(dropout_rate),
-
-            nn.Linear(1024, 512),
-            # nn.BatchNorm1d(20),
+            nn.Linear(feature_count, 512),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
 
             nn.Linear(512, 256),
-            # nn.BatchNorm1d(20),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
 
-            nn.Linear(256, 128),
-            # nn.BatchNorm1d(20),
-            nn.ReLU(),
-
-            nn.Dropout(dropout_rate),
-
-            nn.Linear(128, 1),
+            nn.Linear(256, 1),
         )
 
     def forward(self, x):
-        # x = nn.functional.normalize(x, dim=2)
         logits = self.linear_relu_stack(x)
         logits = torch.squeeze(logits)
         return logits

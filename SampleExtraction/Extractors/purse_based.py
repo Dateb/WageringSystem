@@ -28,13 +28,17 @@ class AveragePurse(FeatureExtractor):
 
 class HorsePurseRate(FeatureExtractor):
 
-    purse_rate_source.average_attribute_groups.append(["name"])
+    purse_rate_source.average_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_purse_rate_of_name(horse.name)
+        purse_rate = purse_rate_source.get_average_of_name(str(horse.subject_id))
+
+        if purse_rate == -1:
+            return -1
+        return purse_rate / 10000
 
 
 class JockeyPurseRate(FeatureExtractor):
@@ -236,7 +240,7 @@ class TrainerClassPurseRate(FeatureExtractor):
 
 
 def get_purse_rate_of_name(name: str) -> float:
-    show_rate = purse_rate_source.get_average_of_name(name)
-    if show_rate == -1:
+    purse_rate = purse_rate_source.get_average_of_name(name)
+    if purse_rate == -1:
         return float('NaN')
-    return show_rate
+    return purse_rate

@@ -100,7 +100,10 @@ class SirePercentageBeaten(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_percentage_beaten_of_name(horse.sire)
+        sire_percentage_beaten = get_percentage_beaten_of_name(horse.sire)
+        if sire_percentage_beaten == -1:
+            return self.PLACEHOLDER_VALUE
+        return sire_percentage_beaten
 
 
 class DamPercentageBeaten(FeatureExtractor):
@@ -111,7 +114,10 @@ class DamPercentageBeaten(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_percentage_beaten_of_name(horse.dam)
+        dam_percentage_beaten = get_percentage_beaten_of_name(horse.dam)
+        if dam_percentage_beaten == -1:
+            return self.PLACEHOLDER_VALUE
+        return dam_percentage_beaten
 
 
 class DamSirePercentageBeaten(FeatureExtractor):

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, time
 from typing import Dict, Tuple
 
 import websocket
@@ -10,8 +11,18 @@ class MarketRetriever:
 
     def __init__(self):
         self.scraper = get_scraper()
-        self.today_markets_url = "https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange=TODAY"
+        self.today_markets_url = self.get_markets_url()
         self.today_markets_raw = self.scraper.request_data(self.today_markets_url)
+
+    def get_markets_url(self) -> str:
+        time_range = "TODAY"
+
+        current_time = datetime.now().time()
+
+        if time(20, 0) <= current_time or current_time <= time(2, 0):
+            time_range = "TOMORROW"
+
+        return f"https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange={time_range}"
 
     def get_event_and_market_id(self, country: str, track_name: str, race_number: int) -> Tuple[str, str]:
         for country_data in self.today_markets_raw:
@@ -26,10 +37,8 @@ class MarketRetriever:
                         market_id = market_data["id"]
 
                         n_tries = 0
-                        while market_type != "Place":
+                        while True:
                             n_tries += 1
-                            if n_tries > 4:
-                                return None, None
 
                             market_id_parts = market_id.split(".")
                             market_id = f"{market_id_parts[0]}.{str(int(market_id_parts[1]) + 1)}"
@@ -38,7 +47,15 @@ class MarketRetriever:
                             if "marketName" in market_info:
                                 market_type = market_info["marketName"]
 
-                        return event_id, market_id
+                            print(track_name)
+
+                            if market_type == "Place":
+                                if market_info:
+                                    if market_info["event"]['venue'] == track_name:
+                                        return event_id, market_id
+
+                            if n_tries > 4:
+                                return None, None
 
 
 class ExchangeOddsRequester:

@@ -45,6 +45,11 @@ class RaceCard:
         self.country = event["country"]
         self.race_result = None
         raw_result = raw_race_card["result"]
+
+        self.win_time = -1
+        if "winTimeSeconds" in raw_result:
+            self.win_time = raw_result["winTimeSeconds"]
+
         self.has_results = False
 
         if raw_result:
@@ -63,6 +68,7 @@ class RaceCard:
         self.places_num = 1
         if "placesNum" in race:
             self.places_num = int(race["placesNum"])
+
         self.race_number = race["raceNumber"]
         self.distance = race["distance"]
 
@@ -104,7 +110,7 @@ class RaceCard:
                 if horse.betfair_win_sp >= 1:
                     horse.sp_win_prob = (1 / horse.betfair_win_sp) * (1 / self.overround)
 
-        self.race_result: RaceResult = RaceResult(self.horses, self.places_num)
+        self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
 
         self.__base_attributes = {
@@ -155,9 +161,6 @@ class RaceCard:
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
 
-    def __remove_non_starters(self):
-        self.horses = [horse for horse in self.horses if not horse.is_scratched]
-
     def to_array(self) -> ndarray:
         total_values = []
         for horse in self.horses:
@@ -166,8 +169,12 @@ class RaceCard:
         return total_values
 
     def get_horse_by_number(self, horse_number: int) -> Horse:
-        horse_with_number = [horse for horse in self.horses if horse.number == horse_number][0]
-        return horse_with_number
+        horses_with_number = [horse for horse in self.horses if horse.number == horse_number]
+
+        if not horses_with_number:
+            return None
+
+        return horses_with_number[0]
 
     def get_horse_by_place(self, place: int) -> Horse:
         horse_with_place = [horse for horse in self.horses if horse.place == place]
@@ -191,9 +198,11 @@ class RaceCard:
         return best_matched_horse
 
     def get_horse_by_jockey(self, jockey_name: str) -> Horse:
+        print(self.race_id)
+        print([horse.name for horse in self.horses])
         best_matched_horse = None
         best_common_substring_fraction = 0.5
-        jockey_name_a = jockey_name.split(" ")[1]
+        jockey_name_a = jockey_name.split(" ")[-1]
 
         for horse in self.horses:
             jockey_name_b = horse.jockey.last_name
