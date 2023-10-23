@@ -17,7 +17,7 @@ class BetEvaluator:
             if race_key in self.win_results:
                 horse_name = bet.bet_offer.horse_name.upper()
                 if horse_name in self.win_results[race_key].horse_names:
-                    bet.payout -= bet.stakes
+                    bet.loss = bet.stakes
 
                     if self.is_winning_bet(race_key, horse_name):
                         if simulate_conf.MARKET_TYPE == "WIN":
@@ -26,7 +26,7 @@ class BetEvaluator:
                             potential_winning = bet.stakes * (bet.bet_offer.odds - 1)
                             win_amount = potential_winning * bet.bet_offer.adjustment_factor + bet.stakes
 
-                        bet.payout += win_amount * (1 - Bet.WIN_COMMISSION)
+                        bet.win = win_amount * (1 - Bet.WIN_COMMISSION)
 
     @abstractmethod
     def is_winning_bet(self, race_key: str, horse_name: str) -> bool:

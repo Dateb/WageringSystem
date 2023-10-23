@@ -29,7 +29,8 @@ class Bet:
 
     bet_offer: BetOffer
     stakes: float
-    payout: float
+    win: float
+    loss: float
     probability_estimate: float
     probability_start: float
 
@@ -44,6 +45,10 @@ class Bet:
                    "-----------------------------------\n")
 
         return bet_str
+
+    @property
+    def payout(self) -> float:
+        return self.win - self.loss
 
 
 #TODO: Separate data parsing from container functions
@@ -181,7 +186,8 @@ class Bettor:
                         new_bet = Bet(
                             bet_offer,
                             stakes,
-                            payout=0.0,
+                            win=0.0,
+                            loss=0.0,
                             probability_estimate=probability_estimate,
                             probability_start=horse.sp_win_prob
                         )
