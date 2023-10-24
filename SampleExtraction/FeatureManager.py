@@ -6,7 +6,7 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
     CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage, TravelDistance, Temperature, \
     AirPressure, Humidity, WindSpeed, WindDirection, Cloudiness, RainVolume, WeatherType
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
-    HasEyeShield, HasTongueStrap
+    HasEyeShield, HasTongueStrap, HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, HasFirstTimeCheekPieces
 from SampleExtraction.Extractors.feature_sources import get_feature_sources
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, HasWon
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
@@ -105,6 +105,11 @@ class FeatureManager:
             # Does not work because of error: ValueError: invalid literal for int() with base 10: 'B'
             # CurrentRaceClass(),
 
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+
+            # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
+
             CurrentDistance(),
             CurrentRaceSurface(),
 
@@ -164,8 +169,9 @@ class FeatureManager:
             HorsePurseRate(),
 
             HorseScratchedRate(),
-            JockeyScratchedRate(),
-            TrainerScratchedRate(),
+
+            # JockeyScratchedRate(),
+            # TrainerScratchedRate(),
 
             Gender(),
             HasTrainerMultipleHorses(),
@@ -175,9 +181,6 @@ class FeatureManager:
             DamWinRate(), SireWinRate(),
             DamPercentageBeaten(), SirePercentageBeaten(),
             DamPurseRate(), SirePurseRate(),
-
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # HighestLifetimeWinProbability(),
 

@@ -41,9 +41,9 @@ class Horse:
         self.rating = raw_data["rating"]
         self.homeland = raw_data["homeland"]
 
-        self.equipments = []
+        self.equipments = set()
         if "equipCode" in raw_data and raw_data["equipCode"]:
-            self.equipments = raw_data["equipCode"].split("+")
+            self.equipments = set(raw_data["equipCode"].split("+"))
 
         self.place = self.__extract_place(raw_data)
         self.relevance = 0

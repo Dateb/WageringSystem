@@ -200,6 +200,24 @@ class MaxValueSource(FeatureSource, ABC):
         return None
 
 
+class EquipmentAlreadyWornSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        already_worn_equipments = self.get_previous_of_name(str(horse.subject_id))
+
+        self.insert_previous_value(race_card, horse, horse.equipments.union(already_worn_equipments))
+
+    def get_previous_of_name(self, name: str):
+        previous_elem = self.previous_values[name]
+        if "previous" in previous_elem:
+            return previous_elem["previous"]
+        return set()
+
+
 class MaxWinProbabilitySource(MaxValueSource):
 
     def __init__(self):
@@ -609,6 +627,8 @@ previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
 previous_race_going_source: PreviousRaceGoingSource = PreviousRaceGoingSource()
 previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
 
+equipment_already_worn_source: EquipmentAlreadyWornSource = EquipmentAlreadyWornSource()
+
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
 previous_date_source: PreviousDateSource = PreviousDateSource()
@@ -637,6 +657,8 @@ def get_feature_sources() -> List[FeatureSource]:
 
         previous_date_source,
         previous_track_name_source,
+
+        equipment_already_worn_source,
 
         draw_bias_source,
 
