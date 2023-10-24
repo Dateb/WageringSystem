@@ -15,7 +15,7 @@ from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, Comin
     PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.odds_based import HighestOddsWin, RacebetsWinProbability, \
+from SampleExtraction.Extractors.odds_based import HighestLifetimeWinProbability, RacebetsWinProbability, \
     BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog, \
     IndustryMarketWinProbabilityDiff, BetfairOverround
 from SampleExtraction.Extractors.past_performance_based import HasFallen, HasPastPerformance
@@ -40,6 +40,7 @@ from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseR
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
     JockeySurfacePurseRate, TrainerSurfacePurseRate, JockeyTrackPurseRate, TrainerTrackPurseRate, JockeyClassPurseRate, \
     TrainerClassPurseRate, AveragePurse
+from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeyShowRate, TrainerShowRate, BreederShowRate, \
     OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
     HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
@@ -95,10 +96,14 @@ class FeatureManager:
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
             # CurrentRaceTrack(),
-            # CurrentRaceClass(),
-            # CurrentRaceCategory(),
             # CurrentRaceType(),
             # CurrentRaceTypeDetail(),
+
+            # Does not work cause of new categories:
+            # CurrentRaceCategory(),
+
+            # Does not work because of error: ValueError: invalid literal for int() with base 10: 'B'
+            # CurrentRaceClass(),
 
             CurrentDistance(),
             CurrentRaceSurface(),
@@ -158,21 +163,27 @@ class FeatureManager:
 
             HorsePurseRate(),
 
+            HorseScratchedRate(),
+            JockeyScratchedRate(),
+            TrainerScratchedRate(),
+
             Gender(),
             HasTrainerMultipleHorses(),
 
             BreederWinRate(), OwnerWinRate(),
 
-
             DamWinRate(), SireWinRate(),
-            DamPercentageBeaten(), SirePercentageBeaten()
+            DamPercentageBeaten(), SirePercentageBeaten(),
+            DamPurseRate(), SirePurseRate(),
+
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+
+            # HighestLifetimeWinProbability(),
 
             # Needs improvement in regards with different start counts
 
             # CurrentSpeedFigure(),
-
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # CurrentRating(),
             #
@@ -241,7 +252,6 @@ class FeatureManager:
             # JockeyPercentageBeaten(),
             #
             # OwnerShowRate(),
-            # SirePurseRate(),
             #
             # JockeyClassPurseRate(),
             #
@@ -270,7 +280,6 @@ class FeatureManager:
             # TrainerDistancePercentageBeaten(),
             #
             # JockeyDistancePercentageBeaten(),
-            # DamPurseRate(),
             #
             # HorsePercentageBeaten(),
             # AirPressure(),

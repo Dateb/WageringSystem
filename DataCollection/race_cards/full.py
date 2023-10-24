@@ -10,6 +10,7 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
     def __init__(self, remove_non_starters: bool = True, collect_results: bool = True):
         super().__init__(remove_non_starters)
         self.collect_results = collect_results
+        self.last_injection_worked = False
         if collect_results:
             self.time_form_injector = TimeFormInjector(ResultTimeformFetcher())
         else:
@@ -21,7 +22,19 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
         raw_race_card_injector = RawRaceCardInjector(race_card)
 
         if race_card.n_horses > 1:
-            self.time_form_injector.inject_time_form_attributes(race_card)
+            try:
+                self.time_form_injector.inject_time_form_attributes(race_card)
+                self.last_injection_worked = True
+            except:
+                self.time_form_injector.time_form_collector.current_race_number -= 1
+                print(f"failed injection for race: {race_card.race_id}")
+
+                if not self.last_injection_worked:
+                    print("ERROR: major mismatching between racebets and timeform source.")
+                    raise Exception
+
+                self.last_injection_worked = False
+
         else:
             print("#horses <= 1. Injection of timeform attributes is skipped.")
 

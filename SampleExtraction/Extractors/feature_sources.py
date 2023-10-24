@@ -120,6 +120,16 @@ class CategoryAverageSource(FeatureSource, ABC):
         return -1
 
 
+class ScratchedHorseCategoryAverageSource(CategoryAverageSource, ABC):
+
+    def __init__(self):
+        super().__init__()
+
+    def post_update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            self.update_horse(race_card, horse)
+
+
 class PreviousValueSource(FeatureSource, ABC):
     def __init__(self):
         super().__init__()
@@ -154,6 +164,50 @@ class PreviousValueSource(FeatureSource, ABC):
         if "previous" in previous_elem:
             return previous_elem["previous"]
         return None
+
+
+class MaxValueSource(FeatureSource, ABC):
+
+    def __init__(self):
+        super().__init__()
+        self.max_values = nested_dict()
+        self.max_value_attribute_groups = []
+
+    def insert_value(self, race_card: RaceCard, horse: Horse, value):
+        for attribute_group in self.max_value_attribute_groups:
+            attribute_group_key = self.get_attribute_group_key(race_card, horse, attribute_group)
+
+            self.update_max(
+                self.max_values[attribute_group_key],
+                value,
+            )
+
+    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
+        attribute_group_key = ""
+        for attribute in attribute_group:
+            if attribute in horse.__dict__:
+                attribute_key = getattr(horse, attribute)
+            else:
+                attribute_key = getattr(race_card, attribute)
+            attribute_group_key += f"{attribute_key}_"
+
+        return attribute_group_key[:-1]
+
+    def get_max_of_name(self, name: str) -> float:
+        max_elem = self.max_values[name]
+        if "max" in max_elem:
+            return max_elem["max"]
+        return None
+
+
+class MaxWinProbabilitySource(MaxValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.max_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_value(race_card, horse, horse.sp_win_prob)
 
 
 class LifeTimeStartCountSource(PreviousValueSource):
@@ -341,6 +395,15 @@ class PurseRateSource(CategoryAverageSource):
         self.insert_value_into_avg(race_card, horse, horse.purse)
 
 
+class ScratchedRateSource(ScratchedHorseCategoryAverageSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_value_into_avg(race_card, horse, int(horse.is_scratched))
+
+
 class PercentageBeatenSource(CategoryAverageSource):
 
     def __init__(self):
@@ -526,10 +589,14 @@ win_rate_source: WinRateSource = WinRateSource()
 show_rate_source: ShowRateSource = ShowRateSource()
 purse_rate_source: PurseRateSource = PurseRateSource()
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
+scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
 
 life_time_start_count_source: LifeTimeStartCountSource = LifeTimeStartCountSource()
 life_time_win_count_source: LifeTimeWinCountSource = LifeTimeWinCountSource()
 life_time_place_count_source: LifeTimePlaceCountSource = LifeTimePlaceCountSource()
+
+#Max based sources:
+max_win_prob_source: MaxWinProbabilitySource = MaxWinProbabilitySource()
 
 #Previous value based sources:
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
@@ -555,9 +622,11 @@ has_fallen_source: HasFallenSource = HasFallenSource()
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
-        win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source,
+        win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source, scratched_rate_source,
 
         life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,
+
+        max_win_prob_source,
 
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,

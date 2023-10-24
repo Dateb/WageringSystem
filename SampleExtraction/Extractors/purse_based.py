@@ -126,7 +126,10 @@ class SirePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_purse_rate_of_name(horse.sire)
+        sire_purse_rate = get_purse_rate_of_name(horse.sire)
+        if sire_purse_rate == -1:
+            return self.PLACEHOLDER_VALUE
+        return sire_purse_rate / 10000
 
 
 class DamPurseRate(FeatureExtractor):
@@ -137,7 +140,11 @@ class DamPurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_purse_rate_of_name(horse.dam)
+        dam_purse_rate = get_purse_rate_of_name(horse.dam)
+        if dam_purse_rate == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return dam_purse_rate / 10000
 
 
 class DamSirePurseRate(FeatureExtractor):
@@ -242,5 +249,5 @@ class TrainerClassPurseRate(FeatureExtractor):
 def get_purse_rate_of_name(name: str) -> float:
     purse_rate = purse_rate_source.get_average_of_name(name)
     if purse_rate == -1:
-        return float('NaN')
+        return -1
     return purse_rate

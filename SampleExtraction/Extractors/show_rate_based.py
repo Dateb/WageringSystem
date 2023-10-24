@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import show_rate_source
+from SampleExtraction.Extractors.feature_sources import show_rate_source, scratched_rate_source
 
 
 class HorseShowRate(FeatureExtractor):

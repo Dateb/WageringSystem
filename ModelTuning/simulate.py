@@ -44,9 +44,6 @@ def optimize_model_configuration():
     for race_card_file_name in tqdm(train_sample_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
-        for race_card in race_cards.values():
-            race_card.horses = race_card.runners
-
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         train_sample_encoder.add_race_cards_arr(arr_of_race_cards)
 
@@ -58,9 +55,6 @@ def optimize_model_configuration():
 
     for race_card_file_name in tqdm(validation_sample_file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
-
-        for race_card in race_cards.values():
-            race_card.horses = race_card.runners
 
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         validation_sample_encoder.add_race_cards_arr(arr_of_race_cards)
