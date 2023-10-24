@@ -1,7 +1,8 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import win_rate_source, speed_figures_source
+from SampleExtraction.Extractors.feature_sources import win_rate_source, speed_figures_source, \
+    horse_name_to_subject_id_source
 
 
 class HorseWinRate(FeatureExtractor):
@@ -119,8 +120,13 @@ class SireWinRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         sire_win_rate = get_win_rate_of_name(horse.sire)
+
         if sire_win_rate == -1:
             return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
+            return self.PLACEHOLDER_VALUE
+
         return sire_win_rate
 
 
@@ -136,6 +142,11 @@ class DamWinRate(FeatureExtractor):
         dam_win_rate = get_win_rate_of_name(horse.dam)
         if dam_win_rate == -1:
             return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
+            print('yellow')
+            return self.PLACEHOLDER_VALUE
+
         return dam_win_rate
 
 

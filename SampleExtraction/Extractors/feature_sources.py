@@ -87,6 +87,26 @@ class FeatureSource(ABC):
         category["previous"] = new_obs
 
 
+class HorseNameToSubjectIdSource(FeatureSource):
+
+    def __init__(self):
+        super().__init__()
+        self.names_to_subject_id = {}
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.name not in self.names_to_subject_id:
+            self.names_to_subject_id[horse.name] = []
+
+        if str(horse.subject_id) not in self.names_to_subject_id[horse.name]:
+            self.names_to_subject_id[horse.name].append(str(horse.subject_id))
+
+    def get_n_ids_of_horse_name(self, horse_name: str) -> int:
+        if horse_name not in self.names_to_subject_id:
+            return 1
+
+        return len(self.names_to_subject_id[horse_name])
+
+
 class CategoryAverageSource(FeatureSource, ABC):
     def __init__(self):
         super().__init__()
@@ -117,6 +137,7 @@ class CategoryAverageSource(FeatureSource, ABC):
 
         if "avg" in average_elem and average_elem["count"] >= 3:
             return average_elem["avg"]
+
         return -1
 
 
@@ -602,6 +623,8 @@ class HasFallenSource(FeatureSource):
         return self.has_fallen[horse.subject_id]
 
 
+horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
+
 # Average based sources:
 win_rate_source: WinRateSource = WinRateSource()
 show_rate_source: ShowRateSource = ShowRateSource()
@@ -642,6 +665,8 @@ has_fallen_source: HasFallenSource = HasFallenSource()
 
 def get_feature_sources() -> List[FeatureSource]:
     return [
+        horse_name_to_subject_id_source,
+
         win_rate_source, show_rate_source, purse_rate_source, percentage_beaten_source, scratched_rate_source,
 
         life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,

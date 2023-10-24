@@ -3,7 +3,7 @@ from statistics import mean
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import purse_rate_source
+from SampleExtraction.Extractors.feature_sources import purse_rate_source, horse_name_to_subject_id_source
 
 
 class AveragePurse(FeatureExtractor):
@@ -127,8 +127,13 @@ class SirePurseRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         sire_purse_rate = get_purse_rate_of_name(horse.sire)
+
         if sire_purse_rate == -1:
             return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
+            return self.PLACEHOLDER_VALUE
+
         return sire_purse_rate / 10000
 
 
@@ -141,7 +146,11 @@ class DamPurseRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         dam_purse_rate = get_purse_rate_of_name(horse.dam)
+
         if dam_purse_rate == -1:
+            return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
             return self.PLACEHOLDER_VALUE
 
         return dam_purse_rate / 10000

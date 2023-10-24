@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import percentage_beaten_source
+from SampleExtraction.Extractors.feature_sources import percentage_beaten_source, horse_name_to_subject_id_source
 
 
 class HorsePercentageBeaten(FeatureExtractor):
@@ -101,8 +101,13 @@ class SirePercentageBeaten(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         sire_percentage_beaten = get_percentage_beaten_of_name(horse.sire)
+
         if sire_percentage_beaten == -1:
             return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
+            return self.PLACEHOLDER_VALUE
+
         return sire_percentage_beaten
 
 
@@ -115,8 +120,13 @@ class DamPercentageBeaten(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         dam_percentage_beaten = get_percentage_beaten_of_name(horse.dam)
+
         if dam_percentage_beaten == -1:
             return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
+            return self.PLACEHOLDER_VALUE
+
         return dam_percentage_beaten
 
 
