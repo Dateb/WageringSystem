@@ -39,7 +39,7 @@ from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseR
     BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
     HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
     JockeySurfacePurseRate, TrainerSurfacePurseRate, JockeyTrackPurseRate, TrainerTrackPurseRate, JockeyClassPurseRate, \
-    TrainerClassPurseRate, AveragePurse
+    TrainerClassPurseRate
 from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeyShowRate, TrainerShowRate, BreederShowRate, \
     OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
@@ -51,10 +51,11 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYear
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
     AbsoluteTime
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
-from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SireWinRate, OwnerWinRate, HorseWinRate, \
-    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, DamWinRate, \
+from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SirePlacePercentile, OwnerWinRate, HorseWinRate, \
+    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, DamPlacePercentile, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
-    JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate
+    JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate, HorsePlacePercentile, \
+    HorseRelativeDistanceBehind, DamRelativeDistanceBehind, SireRelativeDistanceBehind
 
 
 class FeatureManager:
@@ -68,7 +69,6 @@ class FeatureManager:
 
         self.base_features = [
             # HasWon(),
-            # CurrentRaceTrack(),
             # BetfairWinMarketWinProbability(),
 
             # IsFavorite(),
@@ -109,6 +109,12 @@ class FeatureManager:
             # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
+
+            HorseWinRate(),
+            HorseShowRate(),
+            HorsePlacePercentile(),
+            HorseRelativeDistanceBehind(),
+            HorsePurseRate(),
 
             CurrentDistance(),
             CurrentRaceSurface(),
@@ -166,8 +172,6 @@ class FeatureManager:
             DrawBias(),
             TravelDistance(),
 
-            HorsePurseRate(),
-
             HorseScratchedRate(),
 
             # JockeyScratchedRate(),
@@ -178,9 +182,10 @@ class FeatureManager:
 
             BreederWinRate(), OwnerWinRate(),
 
-            DamWinRate(), SireWinRate(),
-            DamPercentageBeaten(), SirePercentageBeaten(),
-            DamPurseRate(), SirePurseRate(),
+            DamPlacePercentile(), DamRelativeDistanceBehind(),
+            SirePlacePercentile(), SireRelativeDistanceBehind(),
+            # DamPercentageBeaten(), SirePercentageBeaten(),
+            # DamPurseRate(), SirePurseRate(),
 
             # HighestLifetimeWinProbability(),
 
@@ -213,8 +218,6 @@ class FeatureManager:
             # Not using form table:
             #
             #
-
-            # HorseWinRate(),
             # DamSireWinRate(),
 
             #-----------------------------------------------------------------

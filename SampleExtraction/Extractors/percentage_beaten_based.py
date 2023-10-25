@@ -94,8 +94,6 @@ class OwnerPercentageBeaten(FeatureExtractor):
 
 class SirePercentageBeaten(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["sire"])
-
     def __init__(self):
         super().__init__()
 
@@ -113,8 +111,6 @@ class SirePercentageBeaten(FeatureExtractor):
 
 class DamPercentageBeaten(FeatureExtractor):
 
-    percentage_beaten_source.average_attribute_groups.append(["dam"])
-
     def __init__(self):
         super().__init__()
 
@@ -131,8 +127,6 @@ class DamPercentageBeaten(FeatureExtractor):
 
 
 class DamSirePercentageBeaten(FeatureExtractor):
-
-    percentage_beaten_source.average_attribute_groups.append(["dam_sire"])
 
     def __init__(self):
         super().__init__()

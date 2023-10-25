@@ -1,29 +1,7 @@
-from statistics import mean
-
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.feature_sources import purse_rate_source, horse_name_to_subject_id_source
-
-
-class AveragePurse(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        past_forms = horse.form_table.past_forms
-
-        if not past_forms:
-            return self.PLACEHOLDER_VALUE
-
-        purses = [past_form.purse for past_form in past_forms]
-
-        #TODO: total purse could be 0 which is a placeholder for non-horses
-
-        return mean(purses)
 
 
 class HorsePurseRate(FeatureExtractor):
@@ -120,8 +98,6 @@ class OwnerPurseRate(FeatureExtractor):
 
 class SirePurseRate(FeatureExtractor):
 
-    purse_rate_source.average_attribute_groups.append(["sire"])
-
     def __init__(self):
         super().__init__()
 
@@ -138,8 +114,6 @@ class SirePurseRate(FeatureExtractor):
 
 
 class DamPurseRate(FeatureExtractor):
-
-    purse_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
         super().__init__()

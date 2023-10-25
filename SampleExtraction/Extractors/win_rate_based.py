@@ -2,22 +2,50 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.feature_sources import win_rate_source, speed_figures_source, \
-    horse_name_to_subject_id_source
+    horse_name_to_subject_id_source, average_place_percentile_source, average_relative_distance_behind_source
 
 
 class HorseWinRate(FeatureExtractor):
 
     PLACEHOLDER_VALUE = 0
-    win_rate_source.average_attribute_groups.append(["name"])
+    win_rate_source.average_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        win_rate = get_win_rate_of_name(horse.name)
+        win_rate = get_win_rate_of_name(str(horse.subject_id))
         if win_rate == -1:
             return self.PLACEHOLDER_VALUE
         return win_rate
+
+
+class HorsePlacePercentile(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        average_place_percentile = average_place_percentile_source.get_average_of_name(str(horse.subject_id))
+        if average_place_percentile == -1:
+            return self.PLACEHOLDER_VALUE
+        return average_place_percentile
+
+
+class HorseRelativeDistanceBehind(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        average_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(str(horse.subject_id))
+
+        if average_relative_distance_behind is None:
+            return self.PLACEHOLDER_VALUE
+
+        return average_relative_distance_behind
 
 
 # class JockeyWinRate(FeatureExtractor):
@@ -110,44 +138,80 @@ class OwnerWinRate(FeatureExtractor):
         return owner_win_rate
 
 
-class SireWinRate(FeatureExtractor):
+class SirePlacePercentile(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
-    win_rate_source.average_attribute_groups.append(["sire"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        sire_win_rate = get_win_rate_of_name(horse.sire)
+        sire_place_percentile = average_place_percentile_source.get_average_of_name(horse.sire)
 
-        if sire_win_rate == -1:
+        if sire_place_percentile == -1:
             return self.PLACEHOLDER_VALUE
 
         if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
             return self.PLACEHOLDER_VALUE
 
-        return sire_win_rate
+        return sire_place_percentile
 
 
-class DamWinRate(FeatureExtractor):
+class SireRelativeDistanceBehind(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
-    win_rate_source.average_attribute_groups.append(["dam"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        dam_win_rate = get_win_rate_of_name(horse.dam)
-        if dam_win_rate == -1:
+        sire_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(horse.sire)
+
+        if sire_relative_distance_behind == -1:
+            return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
+            return self.PLACEHOLDER_VALUE
+
+        return sire_relative_distance_behind
+
+
+class DamPlacePercentile(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        dam_place_percentile = average_place_percentile_source.get_average_of_name(horse.dam)
+
+        if dam_place_percentile == -1:
             return self.PLACEHOLDER_VALUE
 
         if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
-            print('yellow')
             return self.PLACEHOLDER_VALUE
 
-        return dam_win_rate
+        return dam_place_percentile
+
+
+class DamRelativeDistanceBehind(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        dam_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(horse.dam)
+
+        if dam_relative_distance_behind == -1:
+            return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
+            return self.PLACEHOLDER_VALUE
+
+        return dam_relative_distance_behind
 
 
 class DamSireWinRate(FeatureExtractor):

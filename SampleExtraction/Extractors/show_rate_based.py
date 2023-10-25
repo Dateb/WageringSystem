@@ -6,13 +6,17 @@ from SampleExtraction.Extractors.feature_sources import show_rate_source, scratc
 
 class HorseShowRate(FeatureExtractor):
 
-    show_rate_source.average_attribute_groups.append(["name"])
+    show_rate_source.average_attribute_groups.append(["subject_id"])
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(horse.name)
+        show_rate = show_rate_source.get_average_of_name(str(horse.subject_id))
+        if show_rate == -1:
+            return self.PLACEHOLDER_VALUE
+        return show_rate
 
 
 class JockeyShowRate(FeatureExtractor):
