@@ -681,6 +681,12 @@ win_rate_source: WinRateSource = WinRateSource()
 average_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
 average_place_percentile_source.average_attribute_groups.append(["name"])
 
+sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
+sire_siblings_place_percentile_source.average_attribute_groups.append(["sire"])
+
+dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
+dam_siblings_place_percentile_source.average_attribute_groups.append(["dam"])
+
 average_relative_distance_behind_source: AverageRelativeDistanceBehindSource = AverageRelativeDistanceBehindSource()
 average_relative_distance_behind_source.average_attribute_groups.append(["name"])
 
@@ -750,6 +756,9 @@ def get_feature_sources() -> List[FeatureSource]:
         equipment_already_worn_source,
 
         draw_bias_source,
+
+        sire_siblings_place_percentile_source,
+        dam_siblings_place_percentile_source,
 
         # speed_figures_source,
         # has_fallen_source,

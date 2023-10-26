@@ -15,7 +15,7 @@ class BetEvaluator:
         for bet in bets:
             race_key = str(bet.bet_offer.race_card.datetime)
             if race_key in self.win_results:
-                horse_name = bet.bet_offer.horse_name.upper()
+                horse_name = bet.bet_offer.horse.name.upper()
                 if horse_name in self.win_results[race_key].horse_names:
                     bet.loss = bet.stakes
 

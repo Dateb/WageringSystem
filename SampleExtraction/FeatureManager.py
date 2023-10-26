@@ -19,6 +19,8 @@ from SampleExtraction.Extractors.odds_based import HighestLifetimeWinProbability
     BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog, \
     IndustryMarketWinProbabilityDiff, BetfairOverround
 from SampleExtraction.Extractors.past_performance_based import HasFallen, HasPastPerformance
+from SampleExtraction.Extractors.pedigree_based import DamPlacePercentile, DamRelativeDistanceBehind, \
+    SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -51,11 +53,11 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYear
 from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
     AbsoluteTime
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
-from SampleExtraction.Extractors.win_rate_based import BreederWinRate, SirePlacePercentile, OwnerWinRate, HorseWinRate, \
-    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, DamPlacePercentile, \
+from SampleExtraction.Extractors.win_rate_based import BreederWinRate, OwnerWinRate, HorseWinRate, \
+    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, \
     DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
     JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate, HorsePlacePercentile, \
-    HorseRelativeDistanceBehind, DamRelativeDistanceBehind, SireRelativeDistanceBehind
+    HorseRelativeDistanceBehind
 
 
 class FeatureManager:
@@ -110,6 +112,9 @@ class FeatureManager:
 
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
 
+            CurrentRaceSurface(),
+            Gender(),
+
             HorseWinRate(),
             HorseShowRate(),
             HorsePlacePercentile(),
@@ -117,7 +122,6 @@ class FeatureManager:
             HorsePurseRate(),
 
             CurrentDistance(),
-            CurrentRaceSurface(),
 
             MinutesIntoDay(),
 
@@ -177,13 +181,16 @@ class FeatureManager:
             # JockeyScratchedRate(),
             # TrainerScratchedRate(),
 
-            Gender(),
             HasTrainerMultipleHorses(),
 
             BreederWinRate(), OwnerWinRate(),
 
             DamPlacePercentile(), DamRelativeDistanceBehind(),
             SirePlacePercentile(), SireRelativeDistanceBehind(),
+
+            SireSiblingsPlacePercentile(),
+            DamSiblingsPlacePercentile(),
+
             # DamPercentageBeaten(), SirePercentageBeaten(),
             # DamPurseRate(), SirePurseRate(),
 

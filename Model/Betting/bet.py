@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import List, Dict
 
+from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from datetime import datetime, timedelta
 
@@ -14,14 +15,14 @@ from ModelTuning import simulate_conf
 class BetOffer:
 
     race_card: RaceCard
-    horse_name: str
+    horse: Horse
     odds: float
     scratched_horses: List[str]
     event_datetime: datetime
     adjustment_factor: float
 
     def __str__(self) -> str:
-        return f"Odds for {self.horse_name}: {self.odds}"
+        return f"Odds for {self.horse.name}: {self.odds}"
 
 
 @dataclass
@@ -105,18 +106,26 @@ class BetfairOfferContainer:
                             scratched_horses = self.get_scratched_horses(market_definition["runners"])
 
                     if "rc" in market_condition:
-                        if event_datetime < race_card.datetime:
-                            new_offers = [
-                                BetOffer(
+                        if event_datetime < race_card.off_time:
+                            new_offers = []
+                            for offer_data in market_condition["rc"]:
+                                horse_name = horse_id_to_name_map[offer_data["id"]]
+                                horse = race_card.get_horse_by_name(horse_name)
+                                if horse is None:
+                                    print(f"Could not find horse: {horse_name} on race: {race_card.race_id}")
+                                    print(f"race datetime: {race_datetime}")
+                                    print("-----------------------------------------")
+
+                                bef_offer = BetOffer(
                                     race_card=race_card,
-                                    horse_name=horse_id_to_name_map[offer_data["id"]],
+                                    horse=horse,
                                     odds=offer_data["ltp"],
                                     scratched_horses=scratched_horses,
                                     event_datetime=event_datetime,
                                     adjustment_factor=1.0
                                 )
-                                for offer_data in market_condition["rc"]
-                            ]
+                                new_offers.append(bef_offer)
+
                             betfair_offers += new_offers
 
                 adjustment_factor_lookup = {}
@@ -158,7 +167,12 @@ class BetfairOfferContainer:
 
         datetime_str = f"{date_str} {time_str}"
 
-        return datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S") + timedelta(hours=2)
+        market_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+
+        if market_datetime.date().month < 4:
+            return market_datetime + timedelta(hours=1)
+        else:
+            return market_datetime + timedelta(hours=2)
 
 
 class Bettor:
@@ -173,26 +187,25 @@ class Bettor:
         for race_datetime, race_offers in offers.items():
             if race_datetime in probability_estimates.probability_estimates:
                 for bet_offer in race_offers:
-                    horse = bet_offer.race_card.get_horse_by_name(bet_offer.horse_name)
-
-                    probability_estimate = probability_estimates.get_horse_win_probability(
-                        race_datetime,
-                        bet_offer.horse_name,
-                        bet_offer.scratched_horses
-                    )
-
-                    stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
-                    if stakes > 0.005:
-                        new_bet = Bet(
-                            bet_offer,
-                            stakes,
-                            win=0.0,
-                            loss=0.0,
-                            probability_estimate=probability_estimate,
-                            probability_start=horse.sp_win_prob
+                    if bet_offer.horse is not None:
+                        probability_estimate = probability_estimates.get_horse_win_probability(
+                            race_datetime,
+                            bet_offer.horse.name,
+                            bet_offer.scratched_horses
                         )
-                        bets.append(new_bet)
-                        self.already_taken_offers[(race_datetime, bet_offer.horse_name)] = True
+
+                        stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
+                        if stakes > 0.005:
+                            new_bet = Bet(
+                                bet_offer,
+                                stakes,
+                                win=0.0,
+                                loss=0.0,
+                                probability_estimate=probability_estimate,
+                                probability_start=bet_offer.horse.sp_win_prob
+                            )
+                            bets.append(new_bet)
+                            self.already_taken_offers[(race_datetime, bet_offer.horse.name)] = True
 
         return bets
 
@@ -203,7 +216,7 @@ class Bettor:
             offer_probability = 1 / bet_offer.odds
 
             if (probability_estimate > self.bet_threshold * offer_probability
-                    and (race_datetime, bet_offer.horse_name) not in self.already_taken_offers):
+                    and (race_datetime, bet_offer.horse.name) not in self.already_taken_offers):
                 stakes = (bet_offer.odds * probability_estimate - 1) / (bet_offer.odds - 1)
 
         return stakes
