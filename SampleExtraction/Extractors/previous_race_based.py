@@ -11,6 +11,7 @@ from SampleExtraction.Extractors.feature_sources import previous_win_prob_source
 class PreviousWinProbability(FeatureExtractor):
 
     previous_win_prob_source.previous_value_attribute_groups.append(["subject_id"])
+    PLACEHOLDER_VALUE = float('NaN')
 
     def __init__(self):
         super().__init__()

@@ -108,10 +108,11 @@ class HorseNameToSubjectIdSource(FeatureSource):
 
 
 class CategoryAverageSource(FeatureSource, ABC):
-    def __init__(self):
+    def __init__(self, average_calculator: OnlineCalculator = CATEGORY_AVERAGE_CALCULATOR):
         super().__init__()
         self.averages = nested_dict()
         self.average_attribute_groups = []
+        self.average_calculator = average_calculator
 
     def insert_value_into_avg(self, race_card: RaceCard, horse: Horse, value):
         for attribute_group in self.average_attribute_groups:
@@ -129,7 +130,7 @@ class CategoryAverageSource(FeatureSource, ABC):
                 self.averages[attribute_group_key],
                 value,
                 race_card.date,
-                CATEGORY_AVERAGE_CALCULATOR,
+                self.average_calculator,
             )
 
     def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
@@ -325,7 +326,7 @@ class PreviousPlacePercentileSource(PreviousValueSource):
 class AverageRelativeDistanceBehindSource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
         self.average_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
@@ -687,6 +688,12 @@ sire_siblings_place_percentile_source.average_attribute_groups.append(["sire"])
 dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
 dam_siblings_place_percentile_source.average_attribute_groups.append(["dam"])
 
+sire_and_dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
+sire_and_dam_siblings_place_percentile_source.average_attribute_groups.append(["sire", "dam"])
+
+dam_sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
+dam_sire_siblings_place_percentile_source.average_attribute_groups.append(["dam_sire"])
+
 average_relative_distance_behind_source: AverageRelativeDistanceBehindSource = AverageRelativeDistanceBehindSource()
 average_relative_distance_behind_source.average_attribute_groups.append(["name"])
 
@@ -759,6 +766,8 @@ def get_feature_sources() -> List[FeatureSource]:
 
         sire_siblings_place_percentile_source,
         dam_siblings_place_percentile_source,
+        sire_and_dam_siblings_place_percentile_source,
+        dam_sire_siblings_place_percentile_source,
 
         # speed_figures_source,
         # has_fallen_source,

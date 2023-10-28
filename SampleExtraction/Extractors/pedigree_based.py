@@ -3,7 +3,8 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.Extractors.feature_sources import average_relative_distance_behind_source, \
     horse_name_to_subject_id_source, average_place_percentile_source, sire_siblings_place_percentile_source, \
-    dam_siblings_place_percentile_source
+    dam_siblings_place_percentile_source, sire_and_dam_siblings_place_percentile_source, \
+    dam_sire_siblings_place_percentile_source
 
 
 class SireSiblingsPlacePercentile(FeatureExtractor):
@@ -79,6 +80,42 @@ class DamSiblingsPlacePercentile(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         return dam_siblings_place_percentile
+
+
+class SireAndDamSiblingsPlacePercentile(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        key = sire_and_dam_siblings_place_percentile_source.get_attribute_group_key(race_card, horse, ["sire", "dam"])
+        sire_and_dam_sibling_place_percentile = sire_and_dam_siblings_place_percentile_source.get_average_of_name(key)
+
+        if sire_and_dam_sibling_place_percentile == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return sire_and_dam_sibling_place_percentile
+
+
+class DamSireSiblingsPlacePercentile(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        dam_sire_siblings_place_percentile = dam_sire_siblings_place_percentile_source.get_average_of_name(horse.dam_sire)
+
+        if dam_sire_siblings_place_percentile == -1:
+            return self.PLACEHOLDER_VALUE
+
+        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam_sire) > 1:
+            return self.PLACEHOLDER_VALUE
+
+        return dam_sire_siblings_place_percentile
 
 
 class DamPlacePercentile(FeatureExtractor):

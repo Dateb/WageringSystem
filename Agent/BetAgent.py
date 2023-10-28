@@ -1,22 +1,20 @@
 import datetime
 import pickle
-import time
+from time import sleep
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta, time
 from json import JSONDecodeError
 from typing import List, Dict, Tuple
 
+import requests
 from tqdm import tqdm
 
 from Agent.exchange_odds_request import ExchangeOddsRequester, MarketRetriever
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
-from DataCollection.current_races.fetch import TodayRaceCardsFetcher
-from DataCollection.race_cards.base import BaseRaceCardsCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import Bettor, BetOffer
-from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -29,9 +27,10 @@ from SampleExtraction.SampleEncoder import SampleEncoder
 
 class BetAgent:
 
-    BETS_PATH = f"../data/bets_log/{datetime.datetime.now()}"
+    BETS_PATH = f"../data/bets_log/{datetime.now()}"
 
     def __init__(self):
+        self.customer_id = self.get_customer_id()
         self.event_market_lookup: Dict[RaceCard, Tuple[str, str]] = {}
         self.current_bets = []
         self.bettor = Bettor(bet_threshold=1.0)
@@ -45,7 +44,8 @@ class BetAgent:
 
         self.init_feature_sources()
 
-        race_cards_sample = self.get_upcoming_race_cards_sample()
+        self.upcoming_race_cards = self.get_upcoming_race_cards_sample()
+        race_cards_sample = self.race_cards_to_sample()
 
         self.estimator.score_test_sample(race_cards_sample)
 
@@ -76,7 +76,7 @@ class BetAgent:
         race_cards_loader = RaceCardsPersistence("race_cards")
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
+        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
             race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
             if self.columns is None:
@@ -84,20 +84,27 @@ class BetAgent:
 
             race_cards_array_factory.race_cards_to_array(race_cards)
 
-    def get_upcoming_race_cards_sample(self) -> RaceCardsSample:
+    def get_upcoming_race_cards_sample(self) -> Dict[str, RaceCard]:
         print("Scraping race cards of upcoming races...")
 
-        race_ids = DayCollector().get_open_race_ids_of_day(datetime.date.today())
+        current_time = datetime.now().time()
 
-        race_ids = race_ids
+        day_to_collect = date.today()
+
+        if time(20, 0) <= current_time or current_time <= time(24, 0):
+            day_to_collect += timedelta(days=1)
+
+        race_ids = DayCollector().get_open_race_ids_of_day(day_to_collect)
+
+        race_ids = race_ids[0:2]
+        print(race_ids)
 
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
 
-        self.upcoming_race_cards = {str(race_card.datetime): race_card for race_card in race_cards}
+        return {str(race_card.datetime): race_card for race_card in race_cards}
 
-        print(list(self.upcoming_race_cards.keys()))
-
+    def race_cards_to_sample(self) -> RaceCardsSample:
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
         test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
@@ -118,6 +125,8 @@ class BetAgent:
             if market_id is not None:
                 self.event_market_lookup[race_card] = (event_id, market_id)
 
+        print(self.event_market_lookup)
+
     def get_bet_offers_from_race_card(self, race_card: RaceCard) -> Dict[str, List[BetOffer]]:
         if race_card not in self.event_market_lookup:
             return {}
@@ -127,7 +136,7 @@ class BetAgent:
         event_id, market_id = self.event_market_lookup[race_card]
 
         exchange_odds_requester = ExchangeOddsRequester(
-            customer_id="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTc2MTQxODcsImlhdCI6MTY5NzU3ODE4NywiYWNjb3VudElkIjoiUElXSVhfNjNhOWZmZjA4ZDM0MiIsInN0YXR1cyI6ImFjdGl2ZSIsInBvbGljaWVzIjpbIjE5IiwiNTQiLCI4NSIsIjEwNSIsIjIwIiwiMTA3IiwiMTA4IiwiMTEwIiwiMTEzIiwiMTI5IiwiMTMwIiwiMTMxIiwiMTMzIl0sImFjY1R5cGUiOiJCSUFCIiwibG9nZ2VkSW5BY2NvdW50SWQiOiJQSVdJWF82M2E5ZmZmMDhkMzQyIiwic3ViX2NvX2RvbWFpbnMiOm51bGwsImxldmVsIjoiQklBQiIsImN1cnJlbmN5IjoiRVVSIn0.cfDf1bynv_uhmvZf5_JozGD4SH7YSclMHGaOOU9HJMM",
+            customer_id=self.customer_id,
             event_id=event_id,
             market_id=market_id,
         )
@@ -148,7 +157,7 @@ class BetAgent:
                 else:
                     new_offer = BetOffer(
                         race_card=race_card,
-                        horse_name=horse.name,
+                        horse=horse,
                         odds=odds,
                         scratched_horses=[],
                         event_datetime=None,
@@ -159,10 +168,24 @@ class BetAgent:
 
         return bet_offers
 
+    def get_customer_id(self) -> str:
+        login_response = requests.post(
+            "https://api.piwi247.com/api/users/login",
+            data={
+                "email": "daniel.tebart@googlemail.com",
+                "password": "Ds*#de!@6846",
+                "loginType": 1,
+                "remember": False
+            }
+        )
+
+        login_response_data = login_response.json()["data"]
+        return login_response_data["token"]["orbit"]["access_token"]
+
     def run(self):
         while True:
             for race_card in self.upcoming_race_cards.values():
-                time.sleep(1)
+                sleep(1)
                 bet_offers = self.get_bet_offers_from_race_card(race_card)
 
                 bets = self.bettor.bet(bet_offers, self.estimation_result)

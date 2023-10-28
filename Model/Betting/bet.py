@@ -213,10 +213,10 @@ class Bettor:
         stakes = 0
 
         if probability_estimate is not None:
-            offer_probability = 1 / bet_offer.odds
+            if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
+                ev = bet_offer.odds * probability_estimate
 
-            if (probability_estimate > self.bet_threshold * offer_probability
-                    and (race_datetime, bet_offer.horse.name) not in self.already_taken_offers):
-                stakes = (bet_offer.odds * probability_estimate - 1) / (bet_offer.odds - 1)
+                if ev > 1 + self.bet_threshold:
+                    stakes = (ev - 1) / (bet_offer.odds - 1)
 
         return stakes

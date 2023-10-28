@@ -71,8 +71,11 @@ class CurrentRaceClass(FeatureExtractor):
     def __init__(self):
         super().__init__()
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(race_card.race_class)
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        race_class = race_card.race_class
+        if not race_class.isnumeric():
+            return self.PLACEHOLDER_VALUE
+        return int(race_class) / 6
 
 
 class CurrentRaceCategory(FeatureExtractor):

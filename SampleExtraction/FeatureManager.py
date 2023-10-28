@@ -20,7 +20,8 @@ from SampleExtraction.Extractors.odds_based import HighestLifetimeWinProbability
     IndustryMarketWinProbabilityDiff, BetfairOverround
 from SampleExtraction.Extractors.past_performance_based import HasFallen, HasPastPerformance
 from SampleExtraction.Extractors.pedigree_based import DamPlacePercentile, DamRelativeDistanceBehind, \
-    SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile
+    SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile, \
+    SireAndDamSiblingsPlacePercentile, DamSireSiblingsPlacePercentile
 from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
     TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
     DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
@@ -105,12 +106,14 @@ class FeatureManager:
             # CurrentRaceCategory(),
 
             # Does not work because of error: ValueError: invalid literal for int() with base 10: 'B'
-            # CurrentRaceClass(),
+            CurrentRaceClass(),
 
             # HasBlinkers(), HasHood(), HasCheekPieces(),
             # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
+
+            PreviousWinProbability(),
 
             CurrentRaceSurface(),
             Gender(),
@@ -130,8 +133,6 @@ class FeatureManager:
 
             WeekDaySin(),
             WeekDayCos(),
-
-            PreviousWinProbability(),
 
             PreviousSameSurfaceWinProbability(),
             PreviousSameTrackWinProbability(),
@@ -178,9 +179,6 @@ class FeatureManager:
 
             HorseScratchedRate(),
 
-            # JockeyScratchedRate(),
-            # TrainerScratchedRate(),
-
             HasTrainerMultipleHorses(),
 
             BreederWinRate(), OwnerWinRate(),
@@ -190,6 +188,11 @@ class FeatureManager:
 
             SireSiblingsPlacePercentile(),
             DamSiblingsPlacePercentile(),
+            SireAndDamSiblingsPlacePercentile(),
+            DamSireSiblingsPlacePercentile(),
+
+            # JockeyScratchedRate(),
+            # TrainerScratchedRate(),
 
             # DamPercentageBeaten(), SirePercentageBeaten(),
             # DamPurseRate(), SirePurseRate(),

@@ -51,6 +51,7 @@ class NNClassifier(Estimator):
 
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
+        validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
 
         train_race_card_loader = TrainRaceCardLoader(
