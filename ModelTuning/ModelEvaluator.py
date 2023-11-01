@@ -61,7 +61,8 @@ class ModelEvaluator:
         offer_container = self.get_bet_offer_container(test_race_cards)
 
         for bet_threshold in bet_thresholds:
-            bets = Bettor(bet_threshold=bet_threshold).bet(offer_container.race_offers, estimation_result)
+            bettor = Bettor(bet_threshold=bet_threshold)
+            bets = bettor.bet(offer_container.race_offers, estimation_result)
 
             bet_evaluator.insert_payouts_into_bets(bets)
 
@@ -74,6 +75,8 @@ class ModelEvaluator:
                 best_bets = bets
                 best_payout_sum = payout_score
                 print(f"New best score: {best_payout_sum} at threshold: {bet_threshold}")
+
+            print(f"Offer acceptance rate: {bettor.offer_acceptance_rate}")
 
         return best_bets
 

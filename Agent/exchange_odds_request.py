@@ -1,10 +1,26 @@
 import json
 from datetime import datetime, time
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import websocket
 
 from DataCollection.Scraper import get_scraper
+from Model.Betting.bet import BetOffer
+
+
+class Market:
+
+    def __init__(self, event_id: str, market_id: str):
+        self.event_id = event_id
+        self.market_id = market_id
+        self.horse_number_by_exchange_id = {}
+
+
+class RawMarketOffer:
+
+    def __init__(self, market: Market, odds_by_horse_number: Dict[str, float]):
+        self.market = market
+        self.odds_by_horse_number = odds_by_horse_number
 
 
 class MarketRetriever:
@@ -24,7 +40,7 @@ class MarketRetriever:
 
         return f"https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange={time_range}"
 
-    def get_event_and_market_id(self, country: str, track_name: str, race_number: int) -> Tuple[str, str]:
+    def get_market(self, country: str, track_name: str, race_number: int) -> Market:
         for country_data in self.today_markets_raw:
             if country in country_data["name"]:
                 events_raw = country_data["events"]
@@ -32,90 +48,111 @@ class MarketRetriever:
                     if track_name in event_data["name"]:
                         market_data = event_data["markets"][race_number - 1]
                         event_id = event_data["id"]
+                        base_market_id = market_data["id"]
 
-                        market_type = ""
-                        market_id = market_data["id"]
+                        start_time_timestamp = int(market_data["startTime"]) / 1000
+                        start_time = datetime.utcfromtimestamp(start_time_timestamp)
 
-                        n_tries = 0
-                        while True:
-                            n_tries += 1
+                        start_time_minute = str(start_time.minute)
+                        if len(start_time_minute) == 1:
+                            start_time_minute = f"0{start_time_minute}"
+                        market_list_url = f"https://exch.piwi247.com/customer/api/race/{event_id}.{start_time.hour}{start_time_minute}"
 
-                            market_id_parts = market_id.split(".")
-                            market_id = f"{market_id_parts[0]}.{str(int(market_id_parts[1]) + 1)}"
+                        print(market_list_url)
+                        market_list_data = self.scraper.request_data(market_list_url)
 
-                            market_info = self.scraper.request_data(f"https://exch.piwi247.com/customer/api/market/{market_id}")
-                            if "marketName" in market_info:
-                                market_type = market_info["marketName"]
+                        markets = market_list_data["children"]
 
-                            print(track_name)
+                        place_market_id = ""
+                        for market in markets:
+                            if market["marketType"] == "PLACE":
+                                place_market_id = market["id"]
 
-                            if market_type == "Place":
-                                if market_info:
-                                    if market_info["event"]['venue'] == track_name:
-                                        return event_id, market_id
-
-                            if n_tries > 4:
-                                return None, None
+                        if place_market_id:
+                            return Market(event_id, place_market_id)
+                        else:
+                            return None
 
 
 class ExchangeOddsRequester:
 
-    def __init__(self, customer_id: str, event_id: str, market_id: str):
+    def __init__(self, customer_id: str, markets: List[Market]):
         websocket.enableTrace(False)
         self.web_socket = websocket.WebSocket()
         self.scraper = get_scraper()
 
         self.customer_id = customer_id
-        self.event_id = event_id
-        self.market_id = market_id
+        self.markets = markets
 
-        self.market_data = self.get_market_data()
-        print(self.market_data)
-        self.horse_number_by_exchange_id = self.extract_number_by_internal_id(self.market_data)
+        for market in markets:
+            market_data = self.get_market_data(market)
+            market.horse_number_by_exchange_id = self.extract_number_by_internal_id(market_data)
 
-        self.current_odds_data = {}
-        self.current_odds = {}
-        self.open_race_connection()
-
-    def get_odds_from_exchange(self) -> Dict[str, float]:
-        self.open_race_connection()
-        self.close_race_connection()
-        odds_by_internal_id = self.extract_odds_by_internal_id(self.current_odds_data)
+    def get_odds_by_horse_number_from_message(self, market: Market, message) -> Dict[str, float]:
+        odds_by_internal_id = self.extract_odds_by_internal_id(message)
 
         exchange_odds = {
-            self.horse_number_by_exchange_id[internal_id]: odds_by_internal_id[internal_id]
-            for internal_id in self.horse_number_by_exchange_id
+            market.horse_number_by_exchange_id[internal_id]: odds_by_internal_id[internal_id]
+            for internal_id in odds_by_internal_id
         }
 
         return exchange_odds
 
-    def open_race_connection(self):
+    def get_market_from_message(self, message) -> Market:
+        for market in self.markets:
+            if market.market_id == message["id"]:
+                return market
+
+    def open_race_connection(self) -> RawMarketOffer:
         self.web_socket.connect(
-            url="wss://exch.piwi247.com/customer/ws/market-prices/485/vewdhysm/websocket",
+            url="wss://exch.piwi247.com/customer/ws/multiple-market-prices/585/e95aa9c5-7a6e-40cd-8060-4de2f796e09d/websocket",
             cookie=f"BIAB_CUSTOMER={self.customer_id}",
         )
         self.web_socket.recv()
 
-        request = '["{\\"eventId\\":\\"'
-        request += self.event_id
-        request += '\\",\\"marketId\\":\\"'
-        request += self.market_id
-        request += '\\",\\"applicationType\\":\\"WEB\\"}"]'
-        self.web_socket.send(request)
-        self.current_odds_data = self.get_current_odds_data()
+        opening_request = '["['
+
+        for market in self.markets:
+            opening_request += '{\\"marketId\\":\\"'
+            opening_request += market.market_id
+            opening_request += '\\",\\"eventId\\":\\"'
+            opening_request += market.event_id
+            opening_request += '\\",\\"applicationType\\":\\"WEB\\"}'
+
+            if market != self.markets[-1]:
+                opening_request += ","
+
+        opening_request += ']"]'
+        print(opening_request)
+        self.web_socket.send(opening_request)
+
+        message = self.web_socket.recv()
+
+        opening_odds_message = json.loads(json.loads(message[2:-1]))
+
+        market = self.get_market_from_message(opening_odds_message)
+        odds_by_horse_number = self.get_odds_by_horse_number_from_message(market, opening_odds_message)
+
+        return RawMarketOffer(market, odds_by_horse_number)
 
     def close_race_connection(self):
         self.web_socket.close()
 
-    def get_current_odds_data(self) -> dict:
+    def poll_raw_market_offer(self) -> RawMarketOffer:
         message = self.web_socket.recv()
 
         if message == "h":
-            return self.current_odds_data
+            return None
 
-        current_odds_data = json.loads(json.loads(message[2:-1]))
+        message = json.loads(json.loads(message[2:-1]))
 
-        return current_odds_data
+        if "rc" not in message:
+            return None
+
+        market = self.get_market_from_message(message)
+        odds_by_horse_number = self.get_odds_by_horse_number_from_message(market, message)
+
+        return RawMarketOffer(market, odds_by_horse_number)
 
     def extract_odds_by_internal_id(self, current_odds_data: dict) -> dict:
         odds_by_internal_id = {}
@@ -124,9 +161,9 @@ class ExchangeOddsRequester:
 
         return odds_by_internal_id
 
-    def get_market_data(self) -> dict:
+    def get_market_data(self, market: Market) -> dict:
         return self.scraper.request_data(
-            url=f"https://exch.piwi247.com/customer/api/market/{self.market_id}"
+            url=f"https://exch.piwi247.com/customer/api/market/{market.market_id}"
         )
 
     def extract_number_by_internal_id(self, market_data: dict) -> dict:
@@ -142,5 +179,5 @@ if __name__ == "__main__":
         event_id="32009638",
         market_id="1.208384078"
     )
-    odds = ex_odds_requester.get_odds_from_exchange()
+    odds = ex_odds_requester.get_odds_by_horse_number_from_message()
     print(odds)

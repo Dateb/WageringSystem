@@ -4,12 +4,12 @@ from time import sleep
 from copy import deepcopy
 from datetime import datetime, date, timedelta, time
 from json import JSONDecodeError
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 import requests
 from tqdm import tqdm
 
-from Agent.exchange_odds_request import ExchangeOddsRequester, MarketRetriever
+from Agent.exchange_odds_request import ExchangeOddsRequester, MarketRetriever, Market, RawMarketOffer
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -25,15 +25,39 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 
+class RaceCardMarketMap:
+    def __init__(self):
+        self.race_card_to_market = {}
+        self.market_to_race_card = {}
+
+    def add(self, race_card: RaceCard, market: Market):
+        self.race_card_to_market[race_card] = market
+        self.market_to_race_card[market] = race_card
+
+    def get_race_card(self, market: Market) -> RaceCard:
+        return self.market_to_race_card[market]
+
+    def get_market(self, race_card: RaceCard) -> Market:
+        return self.race_card_to_market[race_card]
+
+    def get_race_cards(self) -> List[RaceCard]:
+        return list(self.market_to_race_card.values())
+
+    def get_markets(self) -> List[Market]:
+        return list(self.race_card_to_market.values())
+
+
+
+
 class BetAgent:
 
     BETS_PATH = f"../data/bets_log/{datetime.now()}"
 
     def __init__(self):
         self.customer_id = self.get_customer_id()
-        self.event_market_lookup: Dict[RaceCard, Tuple[str, str]] = {}
+        self.race_card_market_map = RaceCardMarketMap()
         self.current_bets = []
-        self.bettor = Bettor(bet_threshold=1.0)
+        self.bettor = Bettor(bet_threshold=0.0)
         self.feature_manager = FeatureManager()
         self.columns = None
 
@@ -44,7 +68,7 @@ class BetAgent:
 
         self.init_feature_sources()
 
-        self.upcoming_race_cards = self.get_upcoming_race_cards_sample()
+        self.upcoming_race_cards = self.get_upcoming_race_cards()
         race_cards_sample = self.race_cards_to_sample()
 
         self.estimator.score_test_sample(race_cards_sample)
@@ -52,8 +76,30 @@ class BetAgent:
         scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
         self.estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
 
-        self.init_event_market_lookup()
-        print(self.event_market_lookup)
+        print(self.estimation_result.probability_estimates)
+
+        self.init_race_card_market_map()
+
+        self.exchange_odds_requester = ExchangeOddsRequester(
+            customer_id=self.customer_id,
+            markets=self.race_card_market_map.get_markets()
+        )
+
+        opening_market_offer = self.exchange_odds_requester.open_race_connection()
+        opening_bet_offers = self.raw_market_offer_to_bet_offers(opening_market_offer)
+
+        for bet_offer in opening_bet_offers:
+            print(bet_offer)
+
+        race_card = opening_bet_offers[0].race_card
+        bet_offers = {str(race_card.datetime): opening_bet_offers}
+        bets = self.bettor.bet(bet_offers, self.estimation_result)
+
+        if bets:
+            self.current_bets += bets
+
+            with open(self.BETS_PATH, "wb") as f:
+                pickle.dump(self.current_bets, f)
 
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
@@ -76,7 +122,7 @@ class BetAgent:
         race_cards_loader = RaceCardsPersistence("race_cards")
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names[0:2]):
+        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
             race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
             if self.columns is None:
@@ -84,23 +130,25 @@ class BetAgent:
 
             race_cards_array_factory.race_cards_to_array(race_cards)
 
-    def get_upcoming_race_cards_sample(self) -> Dict[str, RaceCard]:
+    def get_upcoming_race_cards(self) -> Dict[str, RaceCard]:
         print("Scraping race cards of upcoming races...")
 
         current_time = datetime.now().time()
 
         day_to_collect = date.today()
 
-        if time(20, 0) <= current_time or current_time <= time(24, 0):
+        if time(20, 0) <= current_time <= time(23, 59):
             day_to_collect += timedelta(days=1)
 
         race_ids = DayCollector().get_open_race_ids_of_day(day_to_collect)
 
-        race_ids = race_ids[0:2]
+        race_ids = race_ids
         print(race_ids)
 
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
+
+        race_cards = [race_card for race_card in race_cards if race_card.category == "HCP"]
 
         return {str(race_card.datetime): race_card for race_card in race_cards}
 
@@ -113,42 +161,24 @@ class BetAgent:
 
         return test_sample_encoder.get_race_cards_sample()
 
-    def init_event_market_lookup(self) -> None:
+    def init_race_card_market_map(self) -> None:
         market_retriever = MarketRetriever()
         for race_card in self.upcoming_race_cards.values():
-            event_id, market_id = market_retriever.get_event_and_market_id(
+            market = market_retriever.get_market(
                 country=race_card.country,
                 track_name=race_card.track_name,
                 race_number=race_card.race_number,
             )
 
-            if market_id is not None:
-                self.event_market_lookup[race_card] = (event_id, market_id)
+            if market is not None:
+                self.race_card_market_map.add(race_card, market)
 
-        print(self.event_market_lookup)
+    def raw_market_offer_to_bet_offers(self, raw_market_offer: RawMarketOffer) -> List[BetOffer]:
+        race_card = self.race_card_market_map.get_race_card(raw_market_offer.market)
 
-    def get_bet_offers_from_race_card(self, race_card: RaceCard) -> Dict[str, List[BetOffer]]:
-        if race_card not in self.event_market_lookup:
-            return {}
+        bet_offers = []
 
-        bet_offers = {str(race_card.datetime): []}
-
-        event_id, market_id = self.event_market_lookup[race_card]
-
-        exchange_odds_requester = ExchangeOddsRequester(
-            customer_id=self.customer_id,
-            event_id=event_id,
-            market_id=market_id,
-        )
-
-        while True:
-            try:
-                exchange_odds = exchange_odds_requester.get_odds_from_exchange()
-            except JSONDecodeError:
-                continue
-            break
-
-        for horse_number, odds in exchange_odds.items():
+        for horse_number, odds in raw_market_offer.odds_by_horse_number.items():
             if odds > 0:
                 horse = race_card.get_horse_by_number(int(horse_number))
 
@@ -164,7 +194,7 @@ class BetAgent:
                         adjustment_factor=1.0,
                     )
 
-                    bet_offers[str(race_card.datetime)].append(new_offer)
+                    bet_offers.append(new_offer)
 
         return bet_offers
 
@@ -184,20 +214,23 @@ class BetAgent:
 
     def run(self):
         while True:
-            for race_card in self.upcoming_race_cards.values():
-                sleep(1)
-                bet_offers = self.get_bet_offers_from_race_card(race_card)
+            sleep(1)
+            raw_market_offer = self.exchange_odds_requester.poll_raw_market_offer()
+
+            if raw_market_offer is not None:
+                bet_offers = self.raw_market_offer_to_bet_offers(raw_market_offer)
+
+                race_card = bet_offers[0].race_card
+                bet_offers = {str(race_card.datetime): bet_offers}
 
                 bets = self.bettor.bet(bet_offers, self.estimation_result)
 
                 if bets:
-                    print(f"Found new Bets: {bets}.\n Writing them now...")
+                    print("Writing new bets...")
                     self.current_bets += bets
 
                     with open(self.BETS_PATH, "wb") as f:
                         pickle.dump(self.current_bets, f)
-                else:
-                    print(f"No new bets at: {race_card.name}")
 
 
 def main():

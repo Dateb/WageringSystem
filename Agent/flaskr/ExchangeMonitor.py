@@ -53,7 +53,7 @@ class ExchangeMonitor:
 
     def serve_monitor_data(self) -> MonitorData:
         if self.exchange_odds_requester is not None:
-            race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_odds_from_exchange())
+            race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_odds_by_horse_number_from_message())
             updated_race_card = race_cards_injector.inject_newest_odds_into_horses(self.current_full_race_card)
             estimation_result = self.model.estimate_race_card(updated_race_card)
             betting_slip = self.model.bet_model.bettor.bet(estimation_result)

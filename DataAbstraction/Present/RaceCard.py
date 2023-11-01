@@ -204,13 +204,16 @@ class RaceCard:
         best_matched_horse = None
         best_common_substring_fraction = 0.5
         jockey_name_a = jockey_name.split(" ")[-1]
+        print(jockey_name_a)
 
         for horse in self.horses:
-            jockey_name_b = horse.jockey.last_name
-            common_substring_fraction = get_name_similarity(jockey_name_a, jockey_name_b)
-            if common_substring_fraction > best_common_substring_fraction:
-                best_matched_horse = horse
-                best_common_substring_fraction = common_substring_fraction
+            if horse.jockey.last_name:
+                jockey_name_b = horse.jockey.last_name
+                print(f"jockey last name: {jockey_name_b}")
+                common_substring_fraction = get_name_similarity(jockey_name_a, jockey_name_b)
+                if common_substring_fraction > best_common_substring_fraction:
+                    best_matched_horse = horse
+                    best_common_substring_fraction = common_substring_fraction
 
         print(f"Matched jockey {jockey_name_a} with:")
         print(f"{best_matched_horse.jockey.last_name}")

@@ -445,7 +445,7 @@ class PreviousTrackNameSource(PreviousValueSource):
 class WinRateSource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value_into_avg(race_card, horse, horse.has_won)
@@ -454,17 +454,17 @@ class WinRateSource(CategoryAverageSource):
 class ShowRateSource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        show_indicator = int(1 <= horse.place <= 3)
+        show_indicator = int(1 <= horse.place <= race_card.places_num)
         self.insert_value_into_avg(race_card, horse, show_indicator)
 
 
 class AveragePlacePercentileSource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
         self.average_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
@@ -479,7 +479,7 @@ class AveragePlacePercentileSource(CategoryAverageSource):
 class PurseRateSource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value_into_avg(race_card, horse, horse.purse)

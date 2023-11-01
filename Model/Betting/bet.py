@@ -180,6 +180,8 @@ class Bettor:
     def __init__(self, bet_threshold: float):
         self.bet_threshold = bet_threshold
         self.already_taken_offers = {}
+        self.offer_accepted_count = 0
+        self.offer_rejected_count = 0
 
     def bet(self, offers: Dict[str, List[BetOffer]], probability_estimates: ProbabilityEstimates) -> List[Bet]:
         bets = []
@@ -214,9 +216,16 @@ class Bettor:
 
         if probability_estimate is not None:
             if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
-                ev = bet_offer.odds * probability_estimate
+                ev = bet_offer.odds * (1 - Bet.WIN_COMMISSION) * probability_estimate
 
                 if ev > 1 + self.bet_threshold:
+                    self.offer_accepted_count += 1
                     stakes = (ev - 1) / (bet_offer.odds - 1)
+                else:
+                    self.offer_rejected_count += 1
 
         return stakes
+
+    @property
+    def offer_acceptance_rate(self) -> float:
+        return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)

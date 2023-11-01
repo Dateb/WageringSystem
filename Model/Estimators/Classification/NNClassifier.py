@@ -113,7 +113,8 @@ class NNClassifier(Estimator):
         scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
 
-        self.test_epoch(test_race_card_loader.dataloader)
+        # TODO: The test epoch should work when n=1
+        # self.test_epoch(test_race_card_loader.dataloader)
 
     def tune_setting(self, train_sample: RaceCardsSample) -> None:
         pass
@@ -201,7 +202,14 @@ class NNClassifier(Estimator):
         scores = np.zeros(np.sum(group_counts))
 
         horse_idx = 0
-        for i in range(len(group_counts)):
+        num_races = len(group_counts)
+
+        if num_races == 1:
+            for j in range(group_counts[0]):
+                scores[j] = predictions[j]
+            return scores
+
+        for i in range(num_races):
             group_count = group_counts[i]
             for j in range(group_count):
                 scores[horse_idx] = predictions[i, j]
