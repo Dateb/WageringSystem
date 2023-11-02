@@ -5,11 +5,11 @@ from statistics import geometric_mean
 from typing import Dict, List
 
 import numpy as np
-from numpy import mean, std
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bettor, Bet, BetfairOfferContainer
+from Model.Betting.bet import Bettor, Bet
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
+from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Estimator import Estimator
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
