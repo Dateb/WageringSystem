@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import percentage_beaten_source, horse_name_to_subject_id_source
+from SampleExtraction.feature_sources.feature_sources import percentage_beaten_source, horse_name_to_subject_id_source
 
 
 class HorsePercentageBeaten(FeatureExtractor):

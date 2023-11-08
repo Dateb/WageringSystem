@@ -1,5 +1,5 @@
 import random
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
@@ -11,64 +11,134 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
+from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
+class FeaturePaddingTransformer:
+
+    def __init__(self, padding_size_per_group: int):
+        self.padding_size_per_group = padding_size_per_group
+
+    def transform(self, features: ndarray, group_counts: ndarray) -> ndarray:
+        n_groups = len(group_counts)
+
+        n_feature_values = features.shape[1]
+        padded_features = np.zeros((n_groups, self.padding_size_per_group, n_feature_values))
+
+        group_member_idx = 0
+        for i in range(n_groups):
+            group_count = group_counts[i]
+
+            for j in range(group_count):
+                padded_features[i, j, :] = features[group_member_idx]
+
+                group_member_idx += 1
+
+        return padded_features
+
+
+class LabelPaddingTransformer:
+
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
+        pass
+
+
+class ClassificationLabelPaddingTransformer(LabelPaddingTransformer):
+
+    def __init__(self):
+        super().__init__()
+
+    def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
+        n_groups = len(group_counts)
+        padded_labels = np.zeros(n_groups)
+
+        group_member_idx = 0
+        for i in range(n_groups):
+            group_count = group_counts[i]
+
+            for j in range(group_count):
+                if labels[group_member_idx]:
+                    padded_labels[i] = j
+
+                group_member_idx += 1
+
+        return padded_labels
+
+
+class RegressionLabelPaddingTransformer(LabelPaddingTransformer):
+
+    def __init__(self):
+        super().__init__()
+
+    def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
+        n_groups = len(group_counts)
+        padded_labels = np.zeros((n_groups, 20), dtype=float)
+
+        group_member_idx = 0
+        for i in range(n_groups):
+            group_count = group_counts[i]
+
+            for j in range(group_count):
+                padded_labels[i, j] = labels[group_member_idx]
+                group_member_idx += 1
+
+        return padded_labels
+
+
 class RaceCardLoader(ABC):
 
-    def __init__(self, sample: RaceCardsSample, horses_per_race_padding_size: int):
-        self.horses_per_race_padding_size = horses_per_race_padding_size
+    def __init__(
+            self,
+            sample: RaceCardsSample,
+            feature_padding_transformer: FeaturePaddingTransformer,
+            label_padding_transformer: LabelPaddingTransformer
+    ):
+        self.feature_padding_transformer = feature_padding_transformer
+        self.label_padding_transformer = label_padding_transformer
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)
-        tensor_y = torch.Tensor(y).type(torch.LongTensor)
+
+        if simulate_conf.LEARNING_MODE == "Classification":
+            label_dtype = torch.LongTensor
+        else:
+            label_dtype = torch.FloatTensor
+
+        tensor_y = torch.Tensor(y).type(label_dtype)
 
         dataset = TensorDataset(tensor_x, tensor_y)
 
         return DataLoader(dataset, batch_size=256, shuffle=True)
 
-    def get_padded_features_and_labels(
-            self,
-            horse_features: ndarray,
-            horses_win_indicator: ndarray,
-            group_counts: ndarray,
-            n_permutations_per_race: int,
-            shuffle_horse_values: bool = True
-    ):
-        n_feature_values = horse_features.shape[1]
-        padded_horse_features = np.zeros((len(group_counts), self.horses_per_race_padding_size, n_feature_values))
-        padded_horse_labels = np.zeros((len(group_counts)))
-
-        print(len(group_counts))
-        print(sum(horses_win_indicator))
-
-        horse_idx = 0
-        for i in range(len(group_counts)):
-            group_count = group_counts[i]
-
-            for j in range(group_count):
-                padded_horse_features[i, j, :] = horse_features[horse_idx]
-                if horses_win_indicator[horse_idx]:
-                    padded_horse_labels[i] = j
-
-                horse_idx += 1
-
-        return padded_horse_features, padded_horse_labels
-
 
 class TrainRaceCardLoader(RaceCardLoader):
 
-    def __init__(self, sample: RaceCardsSample, feature_manager: FeatureManager, horses_per_race_padding_size: int,
-                 missing_values_imputer: SimpleImputer, one_hot_encoder: OneHotEncoder):
-        super().__init__(sample, horses_per_race_padding_size)
+    def __init__(
+            self,
+            sample: RaceCardsSample,
+            feature_manager: FeatureManager,
+            missing_values_imputer: SimpleImputer,
+            one_hot_encoder: OneHotEncoder,
+            feature_padding_transformer: FeaturePaddingTransformer,
+            label_padding_transformer: LabelPaddingTransformer
+    ):
+        super().__init__(sample, feature_padding_transformer, label_padding_transformer)
 
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
         #TODO: Remove redundancy
         horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
-        horses_win_indicator = sample.race_cards_dataframe[Horse.LABEL_KEY].to_numpy()
+        if simulate_conf.LEARNING_MODE == "Classification":
+            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
+        else:
+            horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
 
         numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
 
@@ -77,16 +147,11 @@ class TrainRaceCardLoader(RaceCardLoader):
 
         horses_features = np.concatenate((numerical_horse_features, one_hot_horses_features), axis=1)
 
-        # missing_values_imputer.fit(horses_features, horses_win_indicator)
+        # missing_values_imputer.fit(horses_features, horse_labels)
         # horses_features = missing_values_imputer.transform(horses_features)
 
-        x, y = self.get_padded_features_and_labels(
-            horses_features,
-            horses_win_indicator,
-            self.group_counts,
-            n_permutations_per_race=1,
-            shuffle_horse_values=False,
-        )
+        x = self.feature_padding_transformer.transform(horses_features, self.group_counts)
+        y = self.label_padding_transformer.transform(horse_labels, self.group_counts)
 
         self.n_feature_values = horses_features.shape[1]
         self.dataloader = self.create_dataloader(x, y)
@@ -94,15 +159,25 @@ class TrainRaceCardLoader(RaceCardLoader):
 
 class TestRaceCardLoader(RaceCardLoader):
 
-    def __init__(self, sample: RaceCardsSample, feature_manager: FeatureManager, horses_per_race_padding_size: int,
-                 missing_values_imputer: SimpleImputer, one_hot_encoder: OneHotEncoder):
-        super().__init__(sample, horses_per_race_padding_size)
+    def __init__(
+            self,
+            sample: RaceCardsSample,
+            feature_manager: FeatureManager,
+            missing_values_imputer: SimpleImputer,
+            one_hot_encoder: OneHotEncoder,
+            feature_padding_transformer: FeaturePaddingTransformer,
+            label_padding_transformer: LabelPaddingTransformer
+    ):
+        super().__init__(sample, feature_padding_transformer, label_padding_transformer)
 
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
         horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
-        horses_win_indicator = sample.race_cards_dataframe[Horse.LABEL_KEY].to_numpy()
+        if simulate_conf.LEARNING_MODE == "Classification":
+            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
+        else:
+            horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
 
         numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
 
@@ -112,13 +187,8 @@ class TestRaceCardLoader(RaceCardLoader):
 
         # horses_features = missing_values_imputer.transform(horses_features)
 
-        x, y = self.get_padded_features_and_labels(
-            horses_features,
-            horses_win_indicator,
-            self.group_counts,
-            n_permutations_per_race=1,
-            shuffle_horse_values=False
-        )
+        x = self.feature_padding_transformer.transform(horses_features, self.group_counts)
+        y = self.label_padding_transformer.transform(horse_labels, self.group_counts)
 
         self.dataloader = self.create_dataloader(x, y)
 

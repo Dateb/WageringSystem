@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import purse_rate_source, horse_name_to_subject_id_source
+from SampleExtraction.feature_sources.init import purse_rate_source, horse_name_to_subject_id_source
 
 
 class HorsePurseRate(FeatureExtractor):

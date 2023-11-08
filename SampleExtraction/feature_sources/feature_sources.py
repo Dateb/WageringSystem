@@ -163,42 +163,6 @@ class ScratchedHorseCategoryAverageSource(CategoryAverageSource, ABC):
             self.update_horse(race_card, horse)
 
 
-class PreviousValueSource(FeatureSource, ABC):
-    def __init__(self):
-        super().__init__()
-        self.previous_values = nested_dict()
-        self.previous_value_attribute_groups = []
-
-    def insert_previous_value(self, race_card: RaceCard, horse: Horse, value):
-        for attribute_group in self.previous_value_attribute_groups:
-            attribute_group_key = self.get_attribute_group_key(race_card, horse, attribute_group)
-
-            self.update_previous(
-                self.previous_values[attribute_group_key],
-                value,
-            )
-
-    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
-        attribute_group_key = ""
-        for attribute in attribute_group:
-            if attribute in horse.__dict__:
-                attribute_key = getattr(horse, attribute)
-            else:
-                attribute_key = getattr(race_card, attribute)
-            attribute_group_key += f"{attribute_key}_"
-
-        return attribute_group_key[:-1]
-
-    def delete_previous_values(self, race_card: RaceCard, horse: Horse) -> None:
-        self.previous_values[str(horse.subject_id)] = nested_dict()
-
-    def get_previous_of_name(self, name: str) -> float:
-        previous_elem = self.previous_values[name]
-        if "previous" in previous_elem:
-            return previous_elem["previous"]
-        return None
-
-
 class MaxValueSource(FeatureSource, ABC):
 
     def __init__(self):
@@ -233,24 +197,6 @@ class MaxValueSource(FeatureSource, ABC):
         return None
 
 
-class EquipmentAlreadyWornSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        already_worn_equipments = self.get_previous_of_name(str(horse.subject_id))
-
-        self.insert_previous_value(race_card, horse, horse.equipments.union(already_worn_equipments))
-
-    def get_previous_of_name(self, name: str):
-        previous_elem = self.previous_values[name]
-        if "previous" in previous_elem:
-            return previous_elem["previous"]
-        return set()
-
-
 class MaxWinProbabilitySource(MaxValueSource):
 
     def __init__(self):
@@ -259,68 +205,6 @@ class MaxWinProbabilitySource(MaxValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value(race_card, horse, horse.sp_win_prob)
-
-
-class LifeTimeStartCountSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        start_count = self.get_previous_of_name(str(horse.subject_id))
-
-        if start_count is None:
-            start_count = 0
-
-        self.insert_previous_value(race_card, horse, start_count + 1)
-
-
-class LifeTimeWinCountSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        win_count = self.get_previous_of_name(str(horse.subject_id))
-
-        if win_count is None:
-            win_count = 0
-
-        if horse.place == 1:
-            self.insert_previous_value(race_card, horse, win_count + 1)
-
-
-class LifeTimePlaceCountSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        place_count = self.get_previous_of_name(str(horse.subject_id))
-
-        if place_count is None:
-            place_count = 0
-
-        if 1 <= horse.place <= race_card.places_num:
-            self.insert_previous_value(race_card, horse, place_count + 1)
-
-
-class PreviousPlacePercentileSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.place > 0 and len(race_card.runners) > 1:
-            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
-            self.insert_previous_value(race_card, horse, previous_place_percentile)
-        else:
-            # self.delete_previous_values(race_card, horse)
-            self.insert_previous_value(race_card, horse, 1)
 
 
 class AverageRelativeDistanceBehindSource(CategoryAverageSource):
@@ -346,100 +230,14 @@ class AverageRelativeDistanceBehindSource(CategoryAverageSource):
             # self.delete_previous_values(race_card, horse)
             self.insert_value_into_avg(race_card, horse, -1)
 
-
-class PreviousRelativeDistanceBehindSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.previous_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.horse_distance >= 0 and race_card.distance > 0:
-            if horse.place == 1:
-                second_place_horse = race_card.get_horse_by_place(2)
-                second_place_distance = 0
-                if second_place_horse is not None:
-                    second_place_distance = second_place_horse.horse_distance
-
-                relative_distance_ahead = second_place_distance / race_card.distance
-                self.insert_previous_value(race_card, horse, relative_distance_ahead)
-            else:
-                relative_distance_behind = -(horse.horse_distance / race_card.distance)
-                self.insert_previous_value(race_card, horse, relative_distance_behind)
-        else:
-            # self.delete_previous_values(race_card, horse)
-            self.insert_previous_value(race_card, horse, -1)
-
-
-class PreviousWinProbSource(PreviousValueSource):
+class WinProbabilitySource(CategoryAverageSource):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, horse.sp_win_prob)
-
-
-class PreviousWeightSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.jockey.weight > 0:
-            self.insert_previous_value(race_card, horse, horse.jockey.weight)
-
-
-class PreviousDistanceSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, race_card.distance)
-
-
-class PreviousRaceGoingSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, race_card.going)
-
-
-class PreviousRaceClassSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, race_card.race_class)
-
-
-class PreviousTrainerSource(PreviousValueSource):
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, horse.trainer_name)
-
-
-class PreviousDateSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, race_card.datetime)
-
-class PreviousTrackNameSource(PreviousValueSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, race_card.track_name)
+        if horse.sp_win_prob > 0:
+            self.insert_value_into_avg(race_card, horse, horse.sp_win_prob)
 
 
 class WinRateSource(CategoryAverageSource):
@@ -672,103 +470,3 @@ class HasFallenSource(FeatureSource):
             self.has_fallen[horse.subject_id] = False
             return False
         return self.has_fallen[horse.subject_id]
-
-
-horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
-
-# Average based sources:
-win_rate_source: WinRateSource = WinRateSource()
-
-average_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-average_place_percentile_source.average_attribute_groups.append(["name"])
-
-sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-sire_siblings_place_percentile_source.average_attribute_groups.append(["sire"])
-
-dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-dam_siblings_place_percentile_source.average_attribute_groups.append(["dam"])
-
-sire_and_dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-sire_and_dam_siblings_place_percentile_source.average_attribute_groups.append(["sire", "dam"])
-
-dam_sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-dam_sire_siblings_place_percentile_source.average_attribute_groups.append(["dam_sire"])
-
-average_relative_distance_behind_source: AverageRelativeDistanceBehindSource = AverageRelativeDistanceBehindSource()
-average_relative_distance_behind_source.average_attribute_groups.append(["name"])
-
-show_rate_source: ShowRateSource = ShowRateSource()
-purse_rate_source: PurseRateSource = PurseRateSource()
-
-
-percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
-scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
-
-life_time_start_count_source: LifeTimeStartCountSource = LifeTimeStartCountSource()
-life_time_win_count_source: LifeTimeWinCountSource = LifeTimeWinCountSource()
-life_time_place_count_source: LifeTimePlaceCountSource = LifeTimePlaceCountSource()
-
-#Max based sources:
-max_win_prob_source: MaxWinProbabilitySource = MaxWinProbabilitySource()
-
-#Previous value based sources:
-previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
-previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
-previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
-previous_track_name_source: PreviousTrackNameSource = PreviousTrackNameSource()
-
-previous_weight_source: PreviousWeightSource = PreviousWeightSource()
-previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
-previous_race_going_source: PreviousRaceGoingSource = PreviousRaceGoingSource()
-previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
-
-equipment_already_worn_source: EquipmentAlreadyWornSource = EquipmentAlreadyWornSource()
-
-previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
-
-previous_date_source: PreviousDateSource = PreviousDateSource()
-
-speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
-
-draw_bias_source: DrawBiasSource = DrawBiasSource()
-
-has_fallen_source: HasFallenSource = HasFallenSource()
-
-
-def get_feature_sources() -> List[FeatureSource]:
-    return [
-        horse_name_to_subject_id_source,
-
-        win_rate_source, show_rate_source,
-
-        average_place_percentile_source,
-        average_relative_distance_behind_source,
-
-        purse_rate_source, percentage_beaten_source, scratched_rate_source,
-
-        life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,
-
-        max_win_prob_source,
-
-        previous_win_prob_source,
-        previous_place_percentile_source, previous_relative_distance_behind_source,
-        previous_weight_source,
-
-        previous_distance_source, previous_race_going_source, previous_race_class_source,
-        previous_trainer_source,
-
-        previous_date_source,
-        previous_track_name_source,
-
-        equipment_already_worn_source,
-
-        draw_bias_source,
-
-        sire_siblings_place_percentile_source,
-        dam_siblings_place_percentile_source,
-        sire_and_dam_siblings_place_percentile_source,
-        dam_sire_siblings_place_percentile_source,
-
-        # speed_figures_source,
-        # has_fallen_source,
-    ]

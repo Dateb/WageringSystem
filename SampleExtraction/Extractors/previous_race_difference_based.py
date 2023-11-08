@@ -1,10 +1,8 @@
-from math import isnan
-
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import previous_distance_source, previous_trainer_source, \
-    previous_race_class_source, previous_weight_source, previous_race_going_source
+from SampleExtraction.feature_sources.init import previous_distance_source, previous_race_going_source, \
+    previous_race_class_source, previous_trainer_source, previous_jockey_source
 
 
 class DistanceDifference(FeatureExtractor):
@@ -145,7 +143,7 @@ class HasTrackChanged(FeatureExtractor):
 
 class WeightDifference(FeatureExtractor):
 
-    previous_weight_source.previous_value_attribute_groups.append(["subject_id"])
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
@@ -153,15 +151,72 @@ class WeightDifference(FeatureExtractor):
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         current_weight = horse.jockey.weight
 
-        if current_weight == -1:
+        if current_weight < 0:
             return self.PLACEHOLDER_VALUE
 
-        previous_weight = previous_weight_source.get_previous_of_name(str(horse.subject_id))
+        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_weight is None:
+        if previous_jockey is None:
             return self.PLACEHOLDER_VALUE
 
-        return (current_weight / previous_weight) / 2
+        previous_weight = previous_jockey.weight
+
+        if previous_weight < 0:
+            return self.PLACEHOLDER_VALUE
+
+        return (current_weight - previous_weight) / 100
+
+
+class AllowanceDifference(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        current_allowance = horse.jockey.allowance
+
+        if current_allowance < 0:
+            return self.PLACEHOLDER_VALUE
+
+        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_jockey is None:
+            return self.PLACEHOLDER_VALUE
+
+        previous_allowance = previous_jockey.allowance
+
+        if previous_allowance < 0:
+            return self.PLACEHOLDER_VALUE
+
+        return (current_allowance - previous_allowance) / 100
+
+
+class JockeyPlaceRateDifference(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        current_place_rate = horse.jockey.place_rate
+
+        if current_place_rate < 0:
+            return self.PLACEHOLDER_VALUE
+
+        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_jockey is None:
+            return self.PLACEHOLDER_VALUE
+
+        previous_place_rate = previous_jockey.place_rate
+
+        if previous_place_rate < 0:
+            return self.PLACEHOLDER_VALUE
+
+        return current_place_rate - previous_place_rate
 
 
 def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, horse: Horse, attribute_name: str):

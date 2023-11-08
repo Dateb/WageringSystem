@@ -1,8 +1,22 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import win_rate_source, speed_figures_source, \
-    horse_name_to_subject_id_source, average_place_percentile_source, average_relative_distance_behind_source
+from SampleExtraction.feature_sources.init import win_probability_source, win_rate_source, \
+    average_place_percentile_source, average_relative_distance_behind_source, speed_figures_source
+
+
+class HorseWinProbability(FeatureExtractor):
+
+    win_probability_source.average_attribute_groups.append(["subject_id"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        win_probability = win_probability_source.get_average_of_name(str(horse.subject_id))
+        if win_probability == -1:
+            return self.PLACEHOLDER_VALUE
+        return win_probability
 
 
 class HorseWinRate(FeatureExtractor):

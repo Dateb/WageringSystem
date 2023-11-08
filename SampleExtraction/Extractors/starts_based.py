@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import life_time_start_count_source, life_time_place_count_source, \
+from SampleExtraction.feature_sources.feature_sources import life_time_start_count_source, life_time_place_count_source, \
     life_time_win_count_source
 from SampleExtraction.time_calculation import get_day_difference
 

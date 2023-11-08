@@ -1,7 +1,7 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.feature_sources import has_fallen_source
+from SampleExtraction.feature_sources.feature_sources import has_fallen_source
 
 
 class HasPastPerformance(FeatureExtractor):

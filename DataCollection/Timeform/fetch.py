@@ -414,6 +414,9 @@ class ResultTimeformFetcher(TimeFormFetcher):
         if lengths_behind_text == "nk" or lengths_behind_text == "2-":
             return 0.3
 
+        if lengths_behind_text == "bn":
+            return 0.5
+
         if lengths_behind_text == "ds":
             return -2.0
 

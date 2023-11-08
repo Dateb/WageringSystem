@@ -2,63 +2,33 @@ from typing import List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
-    CurrentRaceClass, CurrentGoing, CurrentRaceTrack, CurrentRaceSurface, CurrentRaceType, CurrentRaceCategory, \
-    CurrentRaceTypeDetail, DrawBias, AgeFrom, AgeTo, CurrentHorseCount, WeightAdvantage, TravelDistance, Temperature, \
-    AirPressure, Humidity, WindSpeed, WindDirection, Cloudiness, RainVolume, WeatherType
-from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
-    HasEyeShield, HasTongueStrap, HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, HasFirstTimeCheekPieces
-from SampleExtraction.Extractors.feature_sources import get_feature_sources
-from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, HasWon
+    DrawBias, TravelDistance, CurrentRaceTrack, CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceClass, \
+    CurrentRaceSurface
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
-from SampleExtraction.Extractors.layoff_based import HasWonAfterLongBreak, ComingFromLayoff, HasOptimalBreak, \
-    PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
+from SampleExtraction.Extractors.layoff_based import PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.odds_based import HighestLifetimeWinProbability, RacebetsWinProbability, \
-    BetfairWinMarketWinProbability, BetfairPlaceMarketWinProbability, IsFavorite, IsUnderdog, \
-    IndustryMarketWinProbabilityDiff, BetfairOverround
-from SampleExtraction.Extractors.past_performance_based import HasFallen, HasPastPerformance
 from SampleExtraction.Extractors.pedigree_based import DamPlacePercentile, DamRelativeDistanceBehind, \
     SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile, \
     SireAndDamSiblingsPlacePercentile, DamSireSiblingsPlacePercentile
-from SampleExtraction.Extractors.percentage_beaten_based import HorsePercentageBeaten, JockeyPercentageBeaten, \
-    TrainerPercentageBeaten, BreederPercentageBeaten, OwnerPercentageBeaten, SirePercentageBeaten, DamPercentageBeaten, \
-    DamSirePercentageBeaten, HorseJockeyPercentageBeaten, HorseTrainerPercentageBeaten, HorseBreederPercentageBeaten, \
-    JockeyDistancePercentageBeaten, JockeySurfacePercentageBeaten, JockeyTrackPercentageBeaten, \
-    JockeyClassPercentageBeaten, TrainerDistancePercentageBeaten, TrainerSurfacePercentageBeaten, \
-    TrainerTrackPercentageBeaten, TrainerClassPercentageBeaten
-from SampleExtraction.Extractors.potential_based import MaxPastRatingExtractor, HorseTopFinish
-from SampleExtraction.Extractors.previous_race_based import PreviousFasterThanFraction, PulledUpPreviousRace, \
-    PreviousSlowerThanFraction, PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
+from SampleExtraction.Extractors.previous_race_based import PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
     PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
     PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
-    PreviousSameGoingWinProbability, PreviousSameGoingPlacePercentile, PreviousSameSurfaceRelativeDistanceBehind, \
+    PreviousSameSurfaceRelativeDistanceBehind, \
     PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    HasJockeyChanged, DistanceDifference, HasTrainerChanged, HasTrackChanged, WeightDifference, IsSecondRaceForJockey, \
-    RaceGoingDifference
-from SampleExtraction.Extractors.purse_based import HorsePurseRate, JockeyPurseRate, TrainerPurseRate, \
-    BreederPurseRate, OwnerPurseRate, SirePurseRate, DamPurseRate, DamSirePurseRate, HorseJockeyPurseRate, \
-    HorseTrainerPurseRate, HorseBreederPurseRate, JockeyDistancePurseRate, TrainerDistancePurseRate, \
-    JockeySurfacePurseRate, TrainerSurfacePurseRate, JockeyTrackPurseRate, TrainerTrackPurseRate, JockeyClassPurseRate, \
-    TrainerClassPurseRate
-from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate
-from SampleExtraction.Extractors.show_rate_based import HorseShowRate, JockeyShowRate, TrainerShowRate, BreederShowRate, \
-    OwnerShowRate, DamShowRate, SireShowRate, DamSireShowRate, HorseJockeyShowRate, HorseTrainerShowRate, \
-    HorseBreederShowRate, JockeyDistanceShowRate, JockeySurfaceShowRate, JockeyTrackShowRate, JockeyClassShowRate, \
-    TrainerDistanceShowRate, TrainerSurfaceShowRate, TrainerTrackShowRate, TrainerClassShowRate
-from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure, BestLifeTimeSpeedFigure, MeanSpeedDiff
-from SampleExtraction.Extractors.starts_based import LifeTimeStartCount, OneYearStartCount, TwoYearStartCount, \
-    HasFewStartsInTwoYears, LifeTimePlaceCount, LifeTimeWinCount
-from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay, \
-    AbsoluteTime
+    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, JockeyPlaceRateDifference
+from SampleExtraction.Extractors.purse_based import HorsePurseRate
+from SampleExtraction.Extractors.scratched_based import HorseScratchedRate
+from SampleExtraction.Extractors.show_rate_based import HorseShowRate
+from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, OwnerWinRate, HorseWinRate, \
-    HorseJockeyWinRate, HorseBreederWinRate, HorseTrainerWinRate, \
-    DamSireWinRate, JockeyDistanceWinRate, JockeySurfaceWinRate, TrainerDistanceWinRate, TrainerSurfaceWinRate, \
-    JockeyTrackWinRate, TrainerTrackWinRate, JockeyClassWinRate, TrainerClassWinRate, HorsePlacePercentile, \
-    HorseRelativeDistanceBehind
+    HorsePlacePercentile, \
+    HorseRelativeDistanceBehind, HorseWinProbability
+from SampleExtraction.feature_sources.init import get_feature_sources
 
 
 class FeatureManager:
@@ -98,26 +68,28 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
-            # CurrentRaceTrack(),
+            CurrentRaceTrack(),
+
+
             # CurrentRaceType(),
             # CurrentRaceTypeDetail(),
 
             # Does not work cause of new categories:
             # CurrentRaceCategory(),
 
-            # Does not work because of error: ValueError: invalid literal for int() with base 10: 'B'
-            CurrentRaceClass(),
-
             # HasBlinkers(), HasHood(), HasCheekPieces(),
             # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
 
+
+            # CurrentRaceClass(),
+            # CurrentRaceSurface(),
+            # Gender(),
+
             PreviousWinProbability(),
 
-            CurrentRaceSurface(),
-            Gender(),
-
+            HorseWinProbability(),
             HorseWinRate(),
             HorseShowRate(),
             HorsePlacePercentile(),
@@ -173,6 +145,8 @@ class FeatureManager:
             RaceClassDifference(),
 
             WeightDifference(),
+            AllowanceDifference(),
+            JockeyPlaceRateDifference(),
 
             DrawBias(),
             TravelDistance(),
@@ -216,19 +190,6 @@ class FeatureManager:
             # HasTrainerChanged(),
 
             # CurrentGoing(),
-
-            ## Uses form table:
-
-            # HasPastPerformance(),
-            # HasTrackChanged(),
-
-            # OneYearStartCount(),
-            # TwoYearStartCount(),
-
-            # Not using form table:
-            #
-            #
-            # DamSireWinRate(),
 
             #-----------------------------------------------------------------
             #Needs improvement:

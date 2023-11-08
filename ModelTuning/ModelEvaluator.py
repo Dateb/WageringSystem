@@ -5,6 +5,7 @@ from statistics import geometric_mean
 from typing import Dict, List
 
 import numpy as np
+from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bettor, Bet
@@ -56,7 +57,7 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [0.0]
+        bet_thresholds = [1.0]
 
         offer_container = self.get_bet_offer_container(test_race_cards)
 
@@ -67,7 +68,7 @@ class ModelEvaluator:
             bet_evaluator.insert_payouts_into_bets(bets)
 
             payouts = [1 + bet.payout for bet in bets]
-            payout_score = geometric_mean(payouts)
+            payout_score = mean(payouts)
 
             print(f"Thresh/score: {bet_threshold}/{payout_score}")
 

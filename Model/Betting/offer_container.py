@@ -153,7 +153,13 @@ class BetfairOfferContainer(BetOfferContainer):
 
         market_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
 
-        if market_datetime.date().month < 4:
+        if self.is_winter_time(market_datetime):
             return market_datetime + timedelta(hours=1)
         else:
             return market_datetime + timedelta(hours=2)
+
+    def is_winter_time(self, datetime) -> bool:
+        return (datetime.date().month == 3 and datetime.date().day <= 25
+                or datetime.date().month == 10 and datetime.date().day >= 29
+                or datetime.date().month <= 2
+                or datetime.date().month >= 11)

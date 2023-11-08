@@ -4,10 +4,10 @@ import pickle
 from numpy import ndarray
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Extractors import feature_sources
+from SampleExtraction.feature_sources import feature_sources
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import previous_track_name_source
+from SampleExtraction.feature_sources.init import previous_track_name_source, draw_bias_source
 from util.category_encoder import get_category_encoding
 
 
@@ -45,7 +45,7 @@ class CurrentRaceSurface(FeatureExtractor):
         self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return get_category_encoding("surface", str(race_card.surface))
+        return race_card.surface
 
 
 class CurrentRaceType(FeatureExtractor):
@@ -70,12 +70,10 @@ class CurrentRaceClass(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
+        self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        race_class = race_card.race_class
-        if not race_class.isnumeric():
-            return self.PLACEHOLDER_VALUE
-        return int(race_class) / 6
+        return race_card.race_class
 
 
 class CurrentRaceCategory(FeatureExtractor):
@@ -147,7 +145,7 @@ class DrawBias(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        draw_bias = feature_sources.draw_bias_source.get_draw_bias(race_card.track_name, horse.post_position)
+        draw_bias = draw_bias_source.get_draw_bias(race_card.track_name, horse.post_position)
         if draw_bias == -1:
             return self.PLACEHOLDER_VALUE
         return draw_bias

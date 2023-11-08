@@ -13,7 +13,7 @@ class DayCollector:
     def get_closed_race_ids_of_day(self, day: date) -> List[str]:
         races = self.__get_races_of_day(day, ["GB", "IE"])
 
-        race_ids = [race["idRace"] for race in races if race["raceStatus"] in ["FNL", "TMP"]]
+        race_ids = [race["idRace"] for race in races if race["raceStatus"] in ["FNL", "TMP", "RVW"]]
 
         return race_ids
 

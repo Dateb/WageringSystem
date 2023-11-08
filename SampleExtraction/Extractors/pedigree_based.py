@@ -1,8 +1,8 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.Extractors.feature_sources import average_relative_distance_behind_source, \
-    horse_name_to_subject_id_source, average_place_percentile_source, sire_siblings_place_percentile_source, \
+from SampleExtraction.feature_sources.init import sire_siblings_place_percentile_source, \
+    horse_name_to_subject_id_source, average_place_percentile_source, average_relative_distance_behind_source, \
     dam_siblings_place_percentile_source, sire_and_dam_siblings_place_percentile_source, \
     dam_sire_siblings_place_percentile_source
 

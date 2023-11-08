@@ -109,6 +109,7 @@ class RaceCard:
             for horse in self.horses:
                 if horse.racebets_win_sp >= 1:
                     horse.sp_win_prob = (1 / horse.racebets_win_sp) * (1 / self.overround)
+                    horse.base_attributes[Horse.REGRESSION_LABEL_KEY] = horse.sp_win_prob
 
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
@@ -307,8 +308,8 @@ class RaceCard:
         if self.overround == 0:
             self.feature_source_validity = False
 
-        if self.category not in ["HCP"]:
-            self.is_valid_sample = False
+        # if self.category not in ["HCP"]:
+        #     self.is_valid_sample = False
 
         if self.n_horses > MAX_HORSES_PER_RACE:
             self.is_valid_sample = False

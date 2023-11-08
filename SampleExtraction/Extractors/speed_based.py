@@ -5,7 +5,7 @@ import numpy as np
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import speed_figures_source
+from SampleExtraction.feature_sources.feature_sources import speed_figures_source
 
 
 class CurrentSpeedFigure(FeatureExtractor):

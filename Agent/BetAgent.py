@@ -47,8 +47,6 @@ class RaceCardMarketMap:
         return list(self.race_card_to_market.values())
 
 
-
-
 class BetAgent:
 
     BETS_PATH = f"../data/bets_log/{datetime.now()}"

@@ -4,7 +4,7 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.feature_sources import previous_date_source
+from SampleExtraction.feature_sources.init import previous_date_source
 from SampleExtraction.time_calculation import get_day_difference
 
 
