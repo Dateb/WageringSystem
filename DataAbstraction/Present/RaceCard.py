@@ -10,7 +10,6 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
-from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
 from util.nested_dict import nested_dict
 from util.text_based_functions import get_name_similarity
 
@@ -311,5 +310,5 @@ class RaceCard:
         # if self.category not in ["HCP"]:
         #     self.is_valid_sample = False
 
-        if self.n_horses > MAX_HORSES_PER_RACE:
+        if self.n_horses > 20:
             self.is_valid_sample = False

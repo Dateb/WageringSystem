@@ -1,7 +1,6 @@
 import os
 import pickle
 from copy import deepcopy
-from statistics import geometric_mean
 from typing import Dict, List
 
 import numpy as np
@@ -10,12 +9,14 @@ from numpy import mean
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bettor, Bet
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
-from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
+from Model.Betting.offer_container import BetfairOfferContainer
+from Model.Betting.payout_calculation import PayoutCalculator
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Estimator import Estimator
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
 from ModelTuning import simulate_conf
-from ModelTuning.simulate_conf import MAX_HORSES_PER_RACE
+from ModelTuning.simulate_conf import OFFER_CONTAINER
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 
@@ -27,45 +28,29 @@ class ModelEvaluator:
     def get_bets_of_model(
             self,
             estimator: Estimator,
-            train_sample_encoder: SampleEncoder,
-            validation_sample_encoder: SampleEncoder,
-            test_sample_encoder: SampleEncoder,
+            train_sample: RaceCardsSample,
+            validation_sample: RaceCardsSample,
+            test_sample: RaceCardsSample,
             test_race_cards: Dict[str, RaceCard]
     ) -> List[Bet]:
-        train_sample = train_sample_encoder.get_race_cards_sample()
-        validation_sample = validation_sample_encoder.get_race_cards_sample()
-        test_sample = test_sample_encoder.get_race_cards_sample()
-
-        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
-        validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.sort_values(by="race_id")
-        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
-
-        train_sample.race_cards_dataframe = self.prune_sample(train_sample.race_cards_dataframe)
-        test_sample.race_cards_dataframe = self.prune_sample(test_sample.race_cards_dataframe)
-
         scores = estimator.predict(train_sample, validation_sample, test_sample)
 
         test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
 
-        if simulate_conf.MARKET_TYPE == "WIN":
-            bet_evaluator = WinBetEvaluator(self.race_results_container.race_results)
-            estimation_result = WinProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
-        else:
-            bet_evaluator = PlaceBetEvaluator(self.race_results_container.race_results)
-            estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(test_sample), scores)
+        estimation_result = simulate_conf.PROBABILIZER.create_estimation_result(deepcopy(test_sample), scores)
 
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [1.0]
+        bet_thresholds = [0.2, 0.5, 1.0, 1.5, 2.0]
 
-        offer_container = self.get_bet_offer_container(test_race_cards)
+        self.init_offer_container(test_race_cards)
 
         for bet_threshold in bet_thresholds:
             bettor = Bettor(bet_threshold=bet_threshold)
-            bets = bettor.bet(offer_container.race_offers, estimation_result)
+            bets = bettor.bet(OFFER_CONTAINER.race_offers, estimation_result)
 
-            bet_evaluator.insert_payouts_into_bets(bets)
+            simulate_conf.PAYOUT_CALCULATOR.insert_payouts_into_bets(bets, self.race_results_container.race_results)
 
             payouts = [1 + bet.payout for bet in bets]
             payout_score = mean(payouts)
@@ -81,21 +66,10 @@ class ModelEvaluator:
 
         return best_bets
 
-    def get_bet_offer_container(self, test_race_cards: Dict[str, RaceCard]) -> BetfairOfferContainer:
-        if not os.path.isfile("../data/bet_offer_container.dat"):
-            bet_offer_container = BetfairOfferContainer(test_race_cards)
-            with open("../data/bet_offer_container.dat", "wb") as f:
-                pickle.dump(bet_offer_container, f)
+    def init_offer_container(self, test_race_cards: Dict[str, RaceCard]):
+        if not os.path.isfile(OFFER_CONTAINER.RACE_OFFERS_PATH):
+            OFFER_CONTAINER.insert_race_cards(test_race_cards)
+            OFFER_CONTAINER.save_race_offers()
         else:
-            with open("../data/bet_offer_container.dat", "rb") as f:
-                bet_offer_container = pickle.load(f)
-
-        return bet_offer_container
-
-    def prune_sample(self, race_cards_df):
-        race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
-
-        race_ids_to_keep = race_id_counts[race_id_counts <= MAX_HORSES_PER_RACE].index
-
-        return race_cards_df[race_cards_df[RaceCard.RACE_ID_KEY].isin(race_ids_to_keep)]
+            OFFER_CONTAINER.load_race_offers()
 

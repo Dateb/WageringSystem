@@ -38,7 +38,7 @@ class BoostedTreesRanker(Estimator):
         #TODO: Max iterations are fixed here
         self.best_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=2)
 
-        self.features = self.best_configuration.feature_subset
+        self.features = self.best_configuration.selected_features
         self.feature_names = [feature.get_name() for feature in self.features]
         self.categorical_feature_names = [feature.get_name() for feature in self.features if feature.is_categorical]
 

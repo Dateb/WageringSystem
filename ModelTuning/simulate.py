@@ -4,12 +4,14 @@ from typing import List, Tuple
 import numpy as np
 from tqdm import tqdm
 
+from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
+from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from ModelTuning.simulate_conf import N_MONTHS_FORWARD_OFFSET, \
-    NN_CLASSIFIER_PARAMS, __TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE, ESTIMATOR_PATH, \
+    NN_CLASSIFIER_PARAMS, TEST_PAYOUTS_PATH, N_MONTHS_TEST_SAMPLE, ESTIMATOR_PATH, \
     CONTAINER_UPPER_LIMIT_PERCENTAGE, TRAIN_UPPER_LIMIT_PERCENTAGE
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
@@ -29,6 +31,14 @@ def split_race_card_files(file_names: List[str]) -> Tuple[List[str], List[str], 
     test_file_names = file_names[-N_MONTHS_TEST_SAMPLE:]
 
     return container_file_names, train_file_names, validation_file_names, test_file_names
+
+
+def prune_sample(race_cards_df):
+    race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
+
+    race_ids_to_keep = race_id_counts[race_id_counts <= 20].index
+
+    return race_cards_df[race_cards_df[RaceCard.RACE_ID_KEY].isin(race_ids_to_keep)]
 
 
 def optimize_model_configuration():
@@ -90,24 +100,43 @@ def optimize_model_configuration():
     model_evaluator = ModelEvaluator(race_results_container)
 
     # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
-    estimator = NNClassifier(feature_manager, model_evaluator, NN_CLASSIFIER_PARAMS)
+    estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
 
     test_race_cards = {
         race_key: race_card for race_key, race_card in test_race_cards.items()
         if race_card.category in ["HCP"]
     }
 
+    train_sample = train_sample_encoder.get_race_cards_sample()
+    validation_sample = validation_sample_encoder.get_race_cards_sample()
+    test_sample = test_sample_encoder.get_race_cards_sample()
+
+    train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
+    validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.sort_values(by="race_id")
+    test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
+
+    train_sample.race_cards_dataframe = prune_sample(train_sample.race_cards_dataframe)
+    test_sample.race_cards_dataframe = prune_sample(test_sample.race_cards_dataframe)
+
+    # bet_model_configuration_tuner = BetModelConfigurationTuner(
+    #     train_sample=train_sample,
+    #     validation_sample=validation_sample,
+    #     feature_manager=feature_manager
+    # )
+    #
+    # bet_model_configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
+
     bets = model_evaluator.get_bets_of_model(
         estimator,
-        train_sample_encoder,
-        validation_sample_encoder,
-        test_sample_encoder,
+        train_sample,
+        validation_sample,
+        test_sample,
         test_race_cards
     )
 
-    with open(__TEST_PAYOUTS_PATH, "wb") as f:
+    with open(TEST_PAYOUTS_PATH, "wb") as f:
         pickle.dump(bets, f)
-        
+
     with open(ESTIMATOR_PATH, "wb") as f:
         pickle.dump(estimator, f)
 

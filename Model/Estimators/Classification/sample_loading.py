@@ -133,8 +133,10 @@ class TrainRaceCardLoader(RaceCardLoader):
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
+        selected_feature_names = [feature.get_name() for feature in feature_manager.search_features]
+
         #TODO: Remove redundancy
-        horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
+        horses_features = sample.race_cards_dataframe[selected_feature_names]
         if simulate_conf.LEARNING_MODE == "Classification":
             horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
         else:
@@ -173,7 +175,9 @@ class TestRaceCardLoader(RaceCardLoader):
         self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
             RaceCard.RACE_ID_KEY].count().to_numpy()
 
-        horses_features = sample.race_cards_dataframe[feature_manager.feature_names]
+        selected_feature_names = [feature.get_name() for feature in feature_manager.search_features]
+
+        horses_features = sample.race_cards_dataframe[selected_feature_names]
         if simulate_conf.LEARNING_MODE == "Classification":
             horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
         else:

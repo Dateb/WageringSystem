@@ -1,14 +1,18 @@
 from abc import ABC, abstractmethod
 
-import pandas as pd
 from numpy import ndarray
 
+from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class Estimator(ABC):
 
-    def __init__(self):
+    def __init__(self, feature_manager: FeatureManager):
+        self.feature_manager = feature_manager
+
+    @abstractmethod
+    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         pass
 
     @abstractmethod

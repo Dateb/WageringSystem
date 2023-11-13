@@ -49,6 +49,9 @@ class Horse:
         self.place = self.__extract_place(raw_data)
         self.relevance = 0
 
+        self.racebets_win_odds_history = []
+        if "fixedOddsHistory" in raw_data:
+            self.racebets_win_odds_history = reversed(raw_data["fixedOddsHistory"])
         self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
 

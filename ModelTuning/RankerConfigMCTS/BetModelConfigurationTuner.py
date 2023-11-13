@@ -1,14 +1,15 @@
 import numpy as np
 from tqdm import trange
 
+from Model.Estimators.Classification.NNClassifier import NNClassifier
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationNode import BetModelConfigurationNode
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTree import BetModelConfigurationTree
+from ModelTuning.simulate_conf import NN_CLASSIFIER_PARAMS
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
-from SampleExtraction.BlockSplitter import BlockSplitter
 
 
 class BetModelConfigurationTuner:
@@ -16,15 +17,13 @@ class BetModelConfigurationTuner:
     def __init__(
             self,
             train_sample: RaceCardsSample,
+            validation_sample: RaceCardsSample,
             feature_manager: FeatureManager,
-            sample_splitter: BlockSplitter,
-            model_evaluator: ModelEvaluator,
     ):
+        self.estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
         self.train_sample = train_sample
+        self.validation_sample = validation_sample
         self.feature_manager = feature_manager
-
-        self.sample_splitter = sample_splitter
-        self.model_evaluator = model_evaluator
 
         self.__best_configuration: EstimatorConfiguration = None
         self.__max_score = -np.Inf
@@ -104,8 +103,7 @@ class BetModelConfigurationTuner:
         return self.tree.add_node(new_node, node)
 
     def __simulate(self, bet_model_configuration: EstimatorConfiguration) -> float:
-        sample, _ = self.sample_splitter.get_train_test_split()
-        return bet_model_configuration.validate_estimator(sample)
+        return bet_model_configuration.validate_estimator(self.estimator, self.train_sample, self.validation_sample)
 
     def __backup(self, front_node: BetModelConfigurationNode, score: float):
         node = front_node

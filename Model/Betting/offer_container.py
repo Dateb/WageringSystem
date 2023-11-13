@@ -1,5 +1,6 @@
 import os
-from abc import ABC
+import pickle
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import Dict, List
 
@@ -11,43 +12,58 @@ from ModelTuning import simulate_conf
 
 class BetOfferContainer(ABC):
 
-    def __init__(self, test_race_cards: Dict[str, RaceCard]):
+    RACE_OFFERS_PATH: str
+
+    def __init__(self):
         self.race_offers = {}
+
+    @abstractmethod
+    def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
+        pass
 
     def get_offers_from_race(self, race_key: str) -> List[BetOffer]:
         if race_key in self.race_offers:
             return self.race_offers[race_key]
         return []
 
+    def save_race_offers(self) -> None:
+        with open(self.RACE_OFFERS_PATH, "wb") as f:
+            pickle.dump(self.race_offers, f)
+
+    def load_race_offers(self):
+        with open(self.RACE_OFFERS_PATH, "rb") as f:
+            self.race_offers = pickle.load(f)
+
 
 class RaceBetsOfferContainer(BetOfferContainer):
 
-    def __init__(self, test_race_cards: Dict[str, RaceCard]):
-        super().__init__(test_race_cards)
+    RACE_OFFERS_PATH = "../data/racebets_race_offers.dat"
 
-        for race_card in test_race_cards.values():
+    def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
+        for race_card in race_cards.values():
             scratched_horses = [horse.name for horse in race_card.horses if horse.is_scratched]
             race_bet_offers = []
             for horse in race_card.horses:
-                bet_offer = BetOffer(
-                    race_card=race_card,
-                    horse=horse,
-                    odds=horse.racebets_win_sp,
-                    scratched_horses=scratched_horses,
-                    event_datetime=race_card.datetime,
-                    adjustment_factor=1.0
-                )
-                race_bet_offers.append(bet_offer)
+                for racebets_win_odds in horse.racebets_win_odds_history:
+                    bet_offer = BetOffer(
+                        race_card=race_card,
+                        horse=horse,
+                        odds=racebets_win_odds,
+                        scratched_horses=scratched_horses,
+                        event_datetime=race_card.datetime,
+                        adjustment_factor=1.0
+                    )
+                    race_bet_offers.append(bet_offer)
 
             self.race_offers[str(race_card.datetime)] = race_bet_offers
 
 
 class BetfairOfferContainer(BetOfferContainer):
 
-    def __init__(self, test_race_cards: Dict[str, RaceCard]):
-        super().__init__(test_race_cards)
-        self.test_race_cards_mapper = RaceDateToCardMapper(test_race_cards)
-        self.race_offers = {}
+    RACE_OFFERS_PATH = "../data/betfair_race_offers.dat"
+
+    def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
+        self.test_race_cards_mapper = RaceDateToCardMapper(race_cards)
 
         history_path = "../data/exchange_odds_history/"
 

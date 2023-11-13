@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from numpy import ndarray
+from numpy import ndarray, mean
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 
@@ -12,9 +12,7 @@ from Model.Estimators.Classification.sample_loading import TrainRaceCardLoader, 
 
 from Model.Estimators.Estimator import Estimator
 from ModelTuning import simulate_conf
-from ModelTuning.ModelEvaluator import ModelEvaluator
 from Persistence import neural_network_persistence
-from SampleExtraction.BlockSplitter import BlockSplitter
 from SampleExtraction.FeatureManager import FeatureManager
 
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -25,12 +23,9 @@ class NNClassifier(Estimator):
     def __init__(
             self,
             feature_manager: FeatureManager,
-            model_evaluator: ModelEvaluator,
             params: dict,
     ):
-        super().__init__()
-        self.feature_manager = feature_manager
-        self.model_evaluator = model_evaluator
+        super().__init__(feature_manager)
 
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
@@ -43,10 +38,8 @@ class NNClassifier(Estimator):
         )
         print(f"Using {self.device} device")
 
-        self.best_validation_loss = np.inf
-
         self.missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
-        self.one_hot_encoder = OneHotEncoder()
+        self.one_hot_encoder = OneHotEncoder(handle_unknown="ignore")
 
         self.feature_padding_transformer = FeaturePaddingTransformer(self.horses_per_race_padding_size)
 
@@ -59,9 +52,40 @@ class NNClassifier(Estimator):
         return not any(group.isna().any())
 
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
+
+        self.fit_validate(train_sample, validation_sample)
+
+        print("Model tuning completed!")
+        self.score_test_sample(test_sample)
+
+        return test_sample.race_cards_dataframe["score"]
+
+    def score_test_sample(self, test_sample: RaceCardsSample):
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(
+            self.filter_group)
+
+        test_race_card_loader = TestRaceCardLoader(
+            test_sample,
+            self.feature_manager,
+            missing_values_imputer=self.missing_values_imputer,
+            one_hot_encoder=self.one_hot_encoder,
+            feature_padding_transformer=self.feature_padding_transformer,
+            label_padding_transformer=self.label_padding_transformer
+        )
+
+        self.test_epoch(test_race_card_loader.dataloader)
+
+        with torch.no_grad():
+            self.network.eval()
+            predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
+
+        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
+        test_sample.race_cards_dataframe["score"] = scores
+
+    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
         validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
-        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
 
         train_race_card_loader = TrainRaceCardLoader(
             train_sample,
@@ -92,41 +116,29 @@ class NNClassifier(Estimator):
             eps=self.params["eps"]
         )
 
+        best_scheduler_metric = np.inf
+
         while self.scheduler.optimizer.param_groups[-1]['lr'] > self.params["lr_to_stop"]:
             current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
             print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
-            self.fit_epoch(train_race_card_loader.dataloader)
-            self.validate_epoch(validation_race_card_loader.dataloader)
+
+            train_loss = self.fit_epoch(train_race_card_loader.dataloader)
+            validation_loss = self.validate_epoch(validation_race_card_loader.dataloader)
+
+            scheduler_metric = abs(validation_loss - train_loss) * mean([train_loss, validation_loss])
+
+            self.scheduler.step(scheduler_metric)
+
+            if scheduler_metric < best_scheduler_metric:
+                best_scheduler_metric = scheduler_metric
+                neural_network_persistence.save(self.network)
+
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
                 neural_network_persistence.load_state_into_neural_network(self.network)
 
-        print("Model tuning completed!")
-
-        self.test_epoch_per_month(train_sample)
-        self.score_test_sample(test_sample)
-
-        return test_sample.race_cards_dataframe["score"]
-
-    def score_test_sample(self, test_sample: RaceCardsSample):
-        test_race_card_loader = TestRaceCardLoader(
-            test_sample,
-            self.feature_manager,
-            missing_values_imputer=self.missing_values_imputer,
-            one_hot_encoder=self.one_hot_encoder,
-            feature_padding_transformer=self.feature_padding_transformer,
-            label_padding_transformer=self.label_padding_transformer
-        )
-
-        with torch.no_grad():
-            self.network.eval()
-            predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
-
-        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
-        test_sample.race_cards_dataframe["score"] = scores
-
-        self.test_epoch_per_month(test_sample)
+        return best_scheduler_metric
 
     def tune_setting(self, train_sample: RaceCardsSample) -> None:
         pass
@@ -138,14 +150,14 @@ class NNClassifier(Estimator):
         size = len(train_dataloader.dataset)
         num_batches = len(train_dataloader)
 
-        train_loss, correct = 0, 0
+        train_loss, train_accuracy = 0, 0
         self.network.train()
         for batch_idx, (X, y) in enumerate(train_dataloader):
             X, y = X.to(self.device), y.to(self.device)
 
             pred = self.network(X)
 
-            batch_loss = self.loss_function(pred, y)
+            batch_loss = self.get_batch_loss(pred, y)
 
             batch_loss.backward()
 
@@ -156,15 +168,16 @@ class NNClassifier(Estimator):
 
             train_loss += batch_loss.item()
 
-            # correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            train_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         train_loss /= num_batches
-        correct /= size
+        train_accuracy /= size
 
-        print(f"Train Error: \n Avg loss: {train_loss:>8f} \n")
-        # print(f"Accuracy: {(100 * correct):>0.1f}%")
+        print(f"Train Avg loss/Accuracy: {train_loss:>8f}/{(100 * train_accuracy):>0.1f}%")
 
-    def validate_epoch(self, validation_dataloader: DataLoader):
+        return train_loss
+
+    def validate_epoch(self, validation_dataloader: DataLoader) -> float:
         size = len(validation_dataloader.dataset)
         num_batches = len(validation_dataloader)
 
@@ -177,23 +190,18 @@ class NNClassifier(Estimator):
 
                 pred = self.network(X)
 
-                loss = self.loss_function(pred, y)
+                loss = self.get_batch_loss(pred, y)
 
                 validation_loss += loss.item()
 
-                # validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
+                validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         validation_loss /= num_batches
         validation_accuracy /= size
 
-        print(f"Validation Error: \n Avg loss: {validation_loss:>8f} \n")
-        # print(f"Accuracy: {(100 * correct):>0.1f}%")
+        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
 
-        self.scheduler.step(validation_loss)
-
-        if validation_loss < self.best_validation_loss:
-            self.best_validation_loss = validation_loss
-            neural_network_persistence.save(self.network)
+        return validation_loss
 
     def test_epoch_per_month(self, test_sample: RaceCardsSample):
         for year_month in test_sample.year_months:
@@ -224,7 +232,7 @@ class NNClassifier(Estimator):
                 if pred.dim() == 1:
                     pred = pred.unsqueeze(0)
 
-                loss = self.loss_function(pred, y)
+                loss = self.get_batch_loss(pred, y)
 
                 test_loss += loss.item()
                 correct += (pred.argmax(1) == y).type(torch.float).sum().item()
@@ -232,7 +240,10 @@ class NNClassifier(Estimator):
         test_loss /= num_batches
         correct /= size
 
-        print(f"Avg loss/Accuracy: {test_loss:>8f}/{(100 * correct):>0.1f}%")
+        print(f"Test Avg loss/Accuracy: {test_loss:>8f}/{(100 * correct):>0.1f}%")
+
+    def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
+        return self.loss_function(pred, y)
 
     def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
         scores = np.zeros(np.sum(group_counts))

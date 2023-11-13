@@ -17,7 +17,7 @@ class AgentModel:
 
     def __init__(self):
         bet_model_configuration = self.load_bet_model_configuration()
-        self.feature_manager = FeatureManager(features=bet_model_configuration.feature_subset)
+        self.feature_manager = FeatureManager(features=bet_model_configuration.selected_features)
 
         self.race_cards_loader = RaceCardsPersistence("race_cards")
 

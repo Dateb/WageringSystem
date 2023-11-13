@@ -3,7 +3,7 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     DrawBias, TravelDistance, CurrentRaceTrack, CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceClass, \
-    CurrentRaceSurface
+    CurrentRaceSurface, CurrentGoing, CurrentRaceCategory
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
@@ -62,30 +62,25 @@ class FeatureManager:
             self.features = self.base_features + self.search_features
 
         self.feature_names = [feature.get_name() for feature in self.features]
-        self.numerical_feature_names = [feature.get_name() for feature in self.features if not feature.is_categorical]
-        self.categorical_feature_names = [feature.get_name() for feature in self.features if feature.is_categorical]
+        self.selected_features = self.features
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
             CurrentRaceTrack(),
-
-
-            # CurrentRaceType(),
-            # CurrentRaceTypeDetail(),
-
-            # Does not work cause of new categories:
-            # CurrentRaceCategory(),
+            CurrentRaceClass(),
+            CurrentRaceSurface(),
+            CurrentRaceType(),
+            CurrentRaceTypeDetail(),
+            CurrentRaceCategory(),
 
             # HasBlinkers(), HasHood(), HasCheekPieces(),
             # HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
 
-
-            # CurrentRaceClass(),
-            # CurrentRaceSurface(),
-            # Gender(),
+            Gender(),
+            CurrentGoing(),
 
             PreviousWinProbability(),
 
@@ -188,8 +183,6 @@ class FeatureManager:
             #
             # HasJockeyChanged(),
             # HasTrainerChanged(),
-
-            # CurrentGoing(),
 
             #-----------------------------------------------------------------
             #Needs improvement:
@@ -335,10 +328,17 @@ class FeatureManager:
             # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
             #
             # MeanSpeedDiff(),
-            # CurrentRaceTypeDetail(),
         ]
 
         return default_features
+
+    @property
+    def numerical_feature_names(self) -> List[str]:
+        return [feature.get_name() for feature in self.selected_features if not feature.is_categorical]
+
+    @property
+    def categorical_feature_names(self) -> List[str]:
+        return [feature.get_name() for feature in self.selected_features if feature.is_categorical]
 
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
