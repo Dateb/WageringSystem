@@ -5,7 +5,7 @@ import numpy as np
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import speed_figures_source
+from SampleExtraction.feature_sources.init import speed_figures_source
 
 
 class CurrentSpeedFigure(FeatureExtractor):
@@ -17,8 +17,7 @@ class CurrentSpeedFigure(FeatureExtractor):
         speed_figure = speed_figures_source.get_current_speed_figure(str(horse.subject_id))
         if speed_figure is None:
             return self.PLACEHOLDER_VALUE
-        speed_figure = (speed_figure + 20) / 100
-        return speed_figure
+        return speed_figure / 100
 
 
 class MeanSpeedDiff(FeatureExtractor):

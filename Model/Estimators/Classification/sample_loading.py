@@ -25,16 +25,19 @@ class FeaturePaddingTransformer:
         n_groups = len(group_counts)
 
         n_feature_values = features.shape[1]
-        padded_features = np.zeros((n_groups, self.padding_size_per_group, n_feature_values))
+        padded_features = np.zeros((n_groups, self.padding_size_per_group, n_feature_values + 1))
 
         group_member_idx = 0
         for i in range(n_groups):
             group_count = group_counts[i]
 
             for j in range(group_count):
-                padded_features[i, j, :] = features[group_member_idx]
+                padded_features[i, j, :] = np.concatenate([features[group_member_idx], [0]])
 
                 group_member_idx += 1
+
+            for j in range(group_count, self.padding_size_per_group):
+                padded_features[i, j, n_feature_values] = 1
 
         return padded_features
 

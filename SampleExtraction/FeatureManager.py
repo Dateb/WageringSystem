@@ -4,6 +4,8 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     DrawBias, TravelDistance, CurrentRaceTrack, CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceClass, \
     CurrentRaceSurface, CurrentGoing, CurrentRaceCategory
+from SampleExtraction.Extractors.equipment_based import HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, \
+    HasFirstTimeCheekPieces
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
@@ -23,7 +25,9 @@ from SampleExtraction.Extractors.previous_race_difference_based import RaceClass
 from SampleExtraction.Extractors.purse_based import HorsePurseRate
 from SampleExtraction.Extractors.scratched_based import HorseScratchedRate
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate
-from SampleExtraction.Extractors.time_based import DayOfYearCos, DayOfYearSin, WeekDayCos, WeekDaySin, MinutesIntoDay
+from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
+from SampleExtraction.Extractors.time_based import WeekDayCos, WeekDaySin, MinutesIntoDay, MonthCos, MonthSin, \
+    DayOfMonthCos, DayOfMonthSin
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, OwnerWinRate, HorseWinRate, \
     HorsePlacePercentile, \
@@ -67,6 +71,8 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         default_features = [
+            # CurrentSpeedFigure(),
+
             CurrentRaceTrack(),
             CurrentRaceClass(),
             CurrentRaceSurface(),
@@ -95,8 +101,11 @@ class FeatureManager:
 
             MinutesIntoDay(),
 
-            DayOfYearSin(),
-            DayOfYearCos(),
+            MonthCos(),
+            MonthSin(),
+
+            DayOfMonthCos(),
+            DayOfMonthSin(),
 
             WeekDaySin(),
             WeekDayCos(),
@@ -170,19 +179,12 @@ class FeatureManager:
 
             # Needs improvement in regards with different start counts
 
-            # CurrentSpeedFigure(),
-
             # CurrentRating(),
             #
             # LifeTimeStartCount(),
             # LifeTimeWinCount(),
             # LifeTimePlaceCount(),
             #
-            # #
-            # #
-            #
-            # HasJockeyChanged(),
-            # HasTrainerChanged(),
 
             #-----------------------------------------------------------------
             #Needs improvement:
@@ -192,10 +194,6 @@ class FeatureManager:
             # MaxPastRatingExtractor(),
 
             # BestLifeTimeSpeedFigure(),
-
-            # Not helping but not hurting:
-
-            # Increasing loss when included:
 
             # PreviousFasterThanFraction(),
             # PreviousSlowerThanFraction(),

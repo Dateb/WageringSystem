@@ -33,14 +33,6 @@ def split_race_card_files(file_names: List[str]) -> Tuple[List[str], List[str], 
     return container_file_names, train_file_names, validation_file_names, test_file_names
 
 
-def prune_sample(race_cards_df):
-    race_id_counts = race_cards_df[RaceCard.RACE_ID_KEY].value_counts()
-
-    race_ids_to_keep = race_id_counts[race_id_counts <= 20].index
-
-    return race_cards_df[race_cards_df[RaceCard.RACE_ID_KEY].isin(race_ids_to_keep)]
-
-
 def optimize_model_configuration():
     feature_manager = FeatureManager()
 
@@ -114,9 +106,6 @@ def optimize_model_configuration():
     train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
     validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.sort_values(by="race_id")
     test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
-
-    train_sample.race_cards_dataframe = prune_sample(train_sample.race_cards_dataframe)
-    test_sample.race_cards_dataframe = prune_sample(test_sample.race_cards_dataframe)
 
     # bet_model_configuration_tuner = BetModelConfigurationTuner(
     #     train_sample=train_sample,

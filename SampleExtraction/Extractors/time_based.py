@@ -9,31 +9,50 @@ from DataAbstraction.Present.Horse import Horse
 HOUR_MAX = 24
 MINUTE_MAX = 60
 MONTH_MAX = 12
+DAY_OF_MONTH_MAX = 31
 
-DAY_OF_YEAR_MAX = 367
 WEEKDAY_MAX = 7
 
 MINUTES_INTO_DAY_MAX = 1440
 
 
-class DayOfYearCos(FeatureExtractor):
+class MonthCos(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        day_of_year = race_card.date.timetuple().tm_yday
-        return np.cos(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
+        month = race_card.date.timetuple().tm_mon
+        return np.cos(2 * np.pi * month / MONTH_MAX)
 
 
-class DayOfYearSin(FeatureExtractor):
+class MonthSin(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        day_of_year = race_card.date.timetuple().tm_yday
-        return np.sin(2 * np.pi * day_of_year / DAY_OF_YEAR_MAX)
+        month = race_card.date.timetuple().tm_mon
+        return np.sin(2 * np.pi * month / MONTH_MAX)
+
+class DayOfMonthCos(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        day_of_month = race_card.date.timetuple().tm_mday
+        return np.cos(2 * np.pi * day_of_month / DAY_OF_MONTH_MAX)
+
+
+class DayOfMonthSin(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        day_of_month = race_card.date.timetuple().tm_mday
+        return np.sin(2 * np.pi * day_of_month / DAY_OF_MONTH_MAX)
 
 
 class MinutesIntoDay(FeatureExtractor):

@@ -33,8 +33,8 @@ else:
     OFFER_CONTAINER = BetfairOfferContainer()
     PAYOUT_CALCULATOR = BetfairPayoutCalculator(BET_EVALUATOR)
 
-CONTAINER_UPPER_LIMIT_PERCENTAGE = 0.2
-TRAIN_UPPER_LIMIT_PERCENTAGE = 0.8
+CONTAINER_UPPER_LIMIT_PERCENTAGE = 0.1
+TRAIN_UPPER_LIMIT_PERCENTAGE = 0.9
 
 N_MONTHS_TEST_SAMPLE = 10
 N_MONTHS_FORWARD_OFFSET = 0
@@ -47,6 +47,6 @@ NN_CLASSIFIER_PARAMS = {
     "threshold": 1e-4,
     "eps": 1e-10,
     "lr_to_stop": 1e-3,
-    "dropout_rate": 0.2,
+    "dropout_rate": 0.5,
     "horses_per_race_padding_size": 20
 }
