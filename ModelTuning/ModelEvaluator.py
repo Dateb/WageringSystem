@@ -42,7 +42,7 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [0.5, 1.0, 1.5, 2.0]
+        bet_thresholds = [0.5, 1.0]
 
         self.init_offer_container(test_race_cards)
 

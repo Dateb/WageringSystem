@@ -51,7 +51,7 @@ class Horse:
 
         self.racebets_win_odds_history = []
         if "fixedOddsHistory" in raw_data:
-            self.racebets_win_odds_history = reversed(raw_data["fixedOddsHistory"])
+            self.racebets_win_odds_history = list(reversed(raw_data["fixedOddsHistory"]))
         self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
 
@@ -61,6 +61,8 @@ class Horse:
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
+        self.pulled_up = int('finalPosition' not in raw_data and not raw_data["scratched"])
+
         self.horse_distance = -1
         # self.horse_distance = self.__extract_horse_distance(raw_data)
 

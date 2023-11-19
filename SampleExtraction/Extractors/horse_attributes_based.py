@@ -18,7 +18,7 @@ class Age(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int(horse.age) / 10
+        return int(horse.age) / 15
 
 
 class Gender(FeatureExtractor):
@@ -73,6 +73,16 @@ class CurrentRating(FeatureExtractor):
             race_type = "FLT"
 
         return self.MIDDLE_RATINGS_PER_CLASS[race_type][int(race_card.race_class)] / 150
+
+
+class PostPosition(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        self.is_categorical = True
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return str(horse.post_position)
 
 
 class DoesHeadToHead(FeatureExtractor):

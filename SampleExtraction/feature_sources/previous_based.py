@@ -147,12 +147,23 @@ class PreviousRaceClassSource(PreviousValueSource):
         self.insert_previous_value(race_card, horse, race_card.race_class)
 
 
-class PreviousTrainerSource(PreviousValueSource):
+class PreviousPulledUpSource(PreviousValueSource):
+
     def __init__(self):
         super().__init__()
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_previous_value(race_card, horse, horse.trainer_name)
+        self.insert_previous_value(race_card, horse, horse.pulled_up)
+
+
+class PreviousTrainerSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, horse.trainer)
 
 
 class PreviousDateSource(PreviousValueSource):

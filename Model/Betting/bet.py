@@ -94,7 +94,7 @@ class Bettor:
 
                 if ev > 1 + self.bet_threshold:
                     self.offer_accepted_count += 1
-                    stakes = (ev - 1) / (bet_offer.odds - 1)
+                    stakes = (ev - (1 + self.bet_threshold)) / (bet_offer.odds - 1)
                 else:
                     self.offer_rejected_count += 1
 

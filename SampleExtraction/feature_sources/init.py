@@ -3,12 +3,12 @@ from typing import List
 from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, WinProbabilitySource, \
     WinRateSource, AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
     PercentageBeatenSource, ScratchedRateSource, MaxWinProbabilitySource, SpeedFiguresSource, DrawBiasSource, \
-    HasFallenSource, FeatureSource
+    HasFallenSource, FeatureSource, PulledUpRateSource, DistancePreferenceSource
 from SampleExtraction.feature_sources.previous_based import LifeTimeStartCountSource, LifeTimeWinCountSource, \
     LifeTimePlaceCountSource, PreviousWinProbSource, PreviousPlacePercentileSource, \
     PreviousRelativeDistanceBehindSource, PreviousTrackNameSource, PreviousDistanceSource, \
     PreviousRaceGoingSource, PreviousRaceClassSource, EquipmentAlreadyWornSource, PreviousTrainerSource, \
-    PreviousDateSource, PreviousJockeySource
+    PreviousDateSource, PreviousJockeySource, PreviousPulledUpSource
 
 horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
 
@@ -40,6 +40,7 @@ purse_rate_source: PurseRateSource = PurseRateSource()
 
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
+pulled_up_rate_source: PulledUpRateSource = PulledUpRateSource()
 
 life_time_start_count_source: LifeTimeStartCountSource = LifeTimeStartCountSource()
 life_time_win_count_source: LifeTimeWinCountSource = LifeTimeWinCountSource()
@@ -50,6 +51,7 @@ max_win_prob_source: MaxWinProbabilitySource = MaxWinProbabilitySource()
 
 #Previous value based sources:
 previous_jockey_source: PreviousJockeySource = PreviousJockeySource()
+previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
@@ -60,9 +62,9 @@ previous_distance_source: PreviousDistanceSource = PreviousDistanceSource()
 previous_race_going_source: PreviousRaceGoingSource = PreviousRaceGoingSource()
 previous_race_class_source: PreviousRaceClassSource = PreviousRaceClassSource()
 
-equipment_already_worn_source: EquipmentAlreadyWornSource = EquipmentAlreadyWornSource()
+previous_pulled_up_source: PreviousPulledUpSource = PreviousPulledUpSource()
 
-previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
+equipment_already_worn_source: EquipmentAlreadyWornSource = EquipmentAlreadyWornSource()
 
 previous_date_source: PreviousDateSource = PreviousDateSource()
 
@@ -71,6 +73,8 @@ speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
 has_fallen_source: HasFallenSource = HasFallenSource()
+
+distance_preference_source: DistancePreferenceSource = DistancePreferenceSource()
 
 
 def get_feature_sources() -> List[FeatureSource]:
@@ -82,7 +86,7 @@ def get_feature_sources() -> List[FeatureSource]:
         average_place_percentile_source,
         average_relative_distance_behind_source,
 
-        purse_rate_source, percentage_beaten_source, scratched_rate_source,
+        purse_rate_source, percentage_beaten_source, scratched_rate_source, pulled_up_rate_source,
 
         life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,
 
@@ -91,6 +95,8 @@ def get_feature_sources() -> List[FeatureSource]:
         previous_jockey_source,
         previous_win_prob_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
+
+        previous_pulled_up_source,
 
         previous_distance_source, previous_race_going_source, previous_race_class_source,
         previous_trainer_source,
@@ -106,6 +112,8 @@ def get_feature_sources() -> List[FeatureSource]:
         dam_siblings_place_percentile_source,
         sire_and_dam_siblings_place_percentile_source,
         dam_sire_siblings_place_percentile_source,
+
+        distance_preference_source
 
         # speed_figures_source,
         # has_fallen_source,

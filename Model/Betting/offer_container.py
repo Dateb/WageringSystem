@@ -44,7 +44,7 @@ class RaceBetsOfferContainer(BetOfferContainer):
             scratched_horses = [horse.name for horse in race_card.horses if horse.is_scratched]
             race_bet_offers = []
             for horse in race_card.horses:
-                for racebets_win_odds in horse.racebets_win_odds_history:
+                for racebets_win_odds in horse.racebets_win_odds_history[0:2]:
                     bet_offer = BetOffer(
                         race_card=race_card,
                         horse=horse,

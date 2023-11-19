@@ -3,10 +3,10 @@ from typing import List
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
     DrawBias, TravelDistance, CurrentRaceTrack, CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceClass, \
-    CurrentRaceSurface, CurrentGoing, CurrentRaceCategory
+    CurrentRaceSurface, CurrentGoing, CurrentRaceCategory, AgeFrom, AgeTo, CurrentPurse
 from SampleExtraction.Extractors.equipment_based import HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, \
-    HasFirstTimeCheekPieces
-from SampleExtraction.Extractors.horse_attributes_based import Age, Gender
+    HasFirstTimeCheekPieces, HasBlinkers, HasHood, HasCheekPieces, HasVisor, HasEyeCovers, HasEyeShield
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, PostPosition
 from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyWinRate, JockeyPlaceRate, \
     JockeyEarningsRate
 from SampleExtraction.Extractors.layoff_based import PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
@@ -15,15 +15,19 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.pedigree_based import DamPlacePercentile, DamRelativeDistanceBehind, \
     SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile, \
     SireAndDamSiblingsPlacePercentile, DamSireSiblingsPlacePercentile
-from SampleExtraction.Extractors.previous_race_based import PreviousRelativeDistanceBehind, PreviousWinProbability, PreviousPlacePercentile, \
+from SampleExtraction.Extractors.preference_based import DistancePreference
+from SampleExtraction.Extractors.previous_race_based import PreviousRelativeDistanceBehind, PreviousWinProbability, \
+    PreviousPlacePercentile, \
     PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
     PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
     PreviousSameSurfaceRelativeDistanceBehind, \
-    PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind
+    PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind, PulledUpPreviousRace
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, JockeyPlaceRateDifference
+    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, JockeyPlaceRateDifference, \
+    TrainerPlaceRateDifference
 from SampleExtraction.Extractors.purse_based import HorsePurseRate
-from SampleExtraction.Extractors.scratched_based import HorseScratchedRate
+from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate, \
+    HorsePulledUpRate
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
 from SampleExtraction.Extractors.time_based import WeekDayCos, WeekDaySin, MinutesIntoDay, MonthCos, MonthSin, \
@@ -79,16 +83,22 @@ class FeatureManager:
             CurrentRaceType(),
             CurrentRaceTypeDetail(),
             CurrentRaceCategory(),
-
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasVisor(), HasEyeCovers(), HasEyeShield(),
-
-            # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
-
-            Gender(),
             CurrentGoing(),
+            CurrentDistance(),
+            CurrentPurse(),
+
+            CurrentRating(),
+            Age(),
+            Gender(),
+            AgeFrom(), AgeTo(),
+            PostPosition(),
+
+            # DistancePreference(),
 
             PreviousWinProbability(),
+
+            HorsePulledUpRate(),
+            PulledUpPreviousRace(),
 
             HorseWinProbability(),
             HorseWinRate(),
@@ -96,8 +106,6 @@ class FeatureManager:
             HorsePlacePercentile(),
             HorseRelativeDistanceBehind(),
             HorsePurseRate(),
-
-            CurrentDistance(),
 
             MinutesIntoDay(),
 
@@ -142,7 +150,6 @@ class FeatureManager:
 
             JockeyWeight(),
             WeightAllowance(),
-            Age(),
 
             DistanceDifference(),
             RaceGoingDifference(),
@@ -150,12 +157,16 @@ class FeatureManager:
 
             WeightDifference(),
             AllowanceDifference(),
+
             JockeyPlaceRateDifference(),
+            TrainerPlaceRateDifference(),
 
             DrawBias(),
             TravelDistance(),
 
             HorseScratchedRate(),
+            JockeyScratchedRate(),
+            TrainerScratchedRate(),
 
             HasTrainerMultipleHorses(),
 
@@ -169,8 +180,10 @@ class FeatureManager:
             SireAndDamSiblingsPlacePercentile(),
             DamSireSiblingsPlacePercentile(),
 
-            # JockeyScratchedRate(),
-            # TrainerScratchedRate(),
+            HasBlinkers(), HasHood(), HasCheekPieces(),
+            HasVisor(), HasEyeCovers(), HasEyeShield(),
+
+            # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
 
             # DamPercentageBeaten(), SirePercentageBeaten(),
             # DamPurseRate(), SirePurseRate(),
@@ -179,7 +192,6 @@ class FeatureManager:
 
             # Needs improvement in regards with different start counts
 
-            # CurrentRating(),
             #
             # LifeTimeStartCount(),
             # LifeTimeWinCount(),
@@ -277,13 +289,11 @@ class FeatureManager:
             # HasWonAfterLongBreak(),
             # ComingFromLayoff(),
             #
-            # CurrentRaceType(),
             #
             # HasFewStartsInTwoYears(),
             # HasTongueStrap(),
             #
             #
-            # PulledUpPreviousRace(),
             #
             # Temperature(),
             # WindSpeed(),
@@ -293,16 +303,8 @@ class FeatureManager:
             #
             # PreviousFasterThanNumber(),
             #
-            # CurrentRaceSurface(),
             # HasFallen(),
-            # IsUnderdog(),
             #
-            #
-            # AgeFrom(), AgeTo(),
-            #
-            #
-            #
-            # HasOptimalBreak(),
             #
             # HorseJockeyWinRate(), HorseTrainerWinRate(),
             #

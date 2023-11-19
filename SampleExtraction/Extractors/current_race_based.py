@@ -11,6 +11,15 @@ from SampleExtraction.feature_sources.init import previous_track_name_source, dr
 from util.category_encoder import get_category_encoding
 
 
+class CurrentPurse(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return race_card.purse / 100000
+
+
 class CurrentHorseCount(FeatureExtractor):
 
     def __init__(self):
@@ -113,7 +122,7 @@ class AgeFrom(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_from
+        return race_card.age_from / 15
 
 
 class AgeTo(FeatureExtractor):
@@ -122,7 +131,7 @@ class AgeTo(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_to
+        return race_card.age_to / 15
 
 
 class HasTrainerMultipleHorses(FeatureExtractor):

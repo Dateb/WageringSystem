@@ -219,6 +219,32 @@ class JockeyPlaceRateDifference(FeatureExtractor):
         return current_place_rate - previous_place_rate
 
 
+class TrainerPlaceRateDifference(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = 0
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        current_place_rate = horse.trainer.place_rate
+
+        if current_place_rate < 0:
+            return self.PLACEHOLDER_VALUE
+
+        previous_trainer = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_trainer is None:
+            return self.PLACEHOLDER_VALUE
+
+        previous_place_rate = previous_trainer.place_rate
+
+        if previous_place_rate < 0:
+            return self.PLACEHOLDER_VALUE
+
+        return current_place_rate - previous_place_rate
+
+
 def get_difference_of_current_and_previous_attribute_value(race_card: RaceCard, horse: Horse, attribute_name: str):
     try:
         current_attribute_value = float(getattr(race_card, attribute_name))

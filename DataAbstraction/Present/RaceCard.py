@@ -87,7 +87,8 @@ class RaceCard:
         self.surface = race["trackSurface"]
         self.age_from = race["ageFrom"]
         self.age_to = race["ageTo"]
-        self.purse = race["purseDetails"]
+        self.purse = int(race["purse"])
+        self.purse_details = race["purseDetails"]
         self.race_status = race["raceStatus"]
         self.is_open = self.race_status == "OPN"
 
@@ -154,7 +155,7 @@ class RaceCard:
     def set_horse_results(self) -> None:
         if self.race_result:
             for horse in self.horses:
-                horse.set_purse(self.purse)
+                horse.set_purse(self.purse_details)
 
     def set_date(self, raw_race_card: dict):
         self.date_raw = raw_race_card["race"]["postTime"]

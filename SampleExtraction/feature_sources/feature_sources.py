@@ -5,6 +5,8 @@ from sqlite3 import Date
 from statistics import mean
 from typing import List
 
+import numpy as np
+
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
@@ -105,6 +107,50 @@ class HorseNameToSubjectIdSource(FeatureSource):
             return 1
 
         return len(self.names_to_subject_id[horse_name])
+
+
+class DistancePreferenceSource(FeatureSource):
+
+    def __init__(self):
+        super().__init__()
+        self.horse_past_form = {}
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        horse_id = str(horse.subject_id)
+
+        if horse_id not in self.horse_past_form:
+            self.horse_past_form[horse_id] = {}
+            self.horse_past_form[horse_id]["distances"] = []
+            self.horse_past_form[horse_id]["sp"] = []
+
+        if race_card.distance > 0 and horse.betfair_win_sp > 0:
+            self.horse_past_form[horse_id]["distances"].append(race_card.distance)
+            self.horse_past_form[horse_id]["sp"].append(horse.betfair_win_sp)
+
+    def get_preference_of_horse(self, race_card: RaceCard, horse: Horse) -> float:
+        horse_id = str(horse.subject_id)
+
+        if horse_id not in self.horse_past_form:
+            return -1.0
+
+        n_past_distances = len(self.horse_past_form[horse_id]["distances"])
+        if n_past_distances < 3:
+            return -1.0
+
+        similar_distance_sp = []
+
+        for i in range(n_past_distances):
+            past_distance = self.horse_past_form[horse_id]["distances"][i]
+
+            if race_card.distance * 0.9 <= past_distance <= race_card.distance * 1.1:
+                similar_distance_sp.append(self.horse_past_form[horse_id]["sp"][i])
+
+        if not similar_distance_sp:
+            return -1.0
+
+        return mean(similar_distance_sp) / 1000
+
+
 
 
 class CategoryAverageSource(FeatureSource, ABC):
@@ -226,9 +272,6 @@ class AverageRelativeDistanceBehindSource(CategoryAverageSource):
             else:
                 relative_distance_behind = -(horse.horse_distance / race_card.distance)
                 self.insert_value_into_avg(race_card, horse, relative_distance_behind)
-        else:
-            # self.delete_previous_values(race_card, horse)
-            self.insert_value_into_avg(race_card, horse, -1)
 
 class WinProbabilitySource(CategoryAverageSource):
 
@@ -269,9 +312,6 @@ class AveragePlacePercentileSource(CategoryAverageSource):
         if horse.place > 0 and len(race_card.runners) > 1:
             place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
             self.insert_value_into_avg(race_card, horse, place_percentile)
-        else:
-            # self.delete_previous_values(race_card, horse)
-            self.insert_value_into_avg(race_card, horse, 1)
 
 
 class PurseRateSource(CategoryAverageSource):
@@ -290,6 +330,15 @@ class ScratchedRateSource(ScratchedHorseCategoryAverageSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value_into_avg(race_card, horse, int(horse.is_scratched))
+
+
+class PulledUpRateSource(CategoryAverageSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_value_into_avg(race_card, horse, horse.pulled_up)
 
 
 class PercentageBeatenSource(CategoryAverageSource):

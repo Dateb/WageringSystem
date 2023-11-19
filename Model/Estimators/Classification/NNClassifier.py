@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import torch
 from numpy import ndarray, mean
 from sklearn.impute import SimpleImputer
@@ -65,6 +66,9 @@ class NNClassifier(Estimator):
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(
             self.filter_group)
 
+        races_to_remove = test_sample.race_cards_dataframe.groupby('race_id').filter(lambda group: all(group["PreviousWinProbability"] == -1))["race_id"]
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe[~test_sample.race_cards_dataframe["race_id"].isin(races_to_remove)]
+
         test_race_card_loader = TestRaceCardLoader(
             test_sample,
             self.feature_manager,
@@ -85,7 +89,14 @@ class NNClassifier(Estimator):
 
     def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
+
+        races_to_remove = train_sample.race_cards_dataframe.groupby('race_id').filter(lambda group: all(group["PreviousWinProbability"] == -1))["race_id"]
+        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe[~train_sample.race_cards_dataframe["race_id"].isin(races_to_remove)]
+
         validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.groupby("race_id", sort=True).filter(self.filter_group)
+
+        races_to_remove = validation_sample.race_cards_dataframe.groupby('race_id').filter(lambda group: all(group["PreviousWinProbability"] == -1))["race_id"]
+        validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe[~validation_sample.race_cards_dataframe["race_id"].isin(races_to_remove)]
 
         train_race_card_loader = TrainRaceCardLoader(
             train_sample,
@@ -117,6 +128,8 @@ class NNClassifier(Estimator):
         )
 
         best_scheduler_metric = np.inf
+        best_train_loss = np.inf
+        best_validation_loss = np.inf
 
         while self.scheduler.optimizer.param_groups[-1]['lr'] > self.params["lr_to_stop"]:
             current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
@@ -130,12 +143,15 @@ class NNClassifier(Estimator):
             self.scheduler.step(scheduler_metric)
 
             if scheduler_metric < best_scheduler_metric:
+                best_train_loss = train_loss
+                best_validation_loss = validation_loss
                 best_scheduler_metric = scheduler_metric
                 neural_network_persistence.save(self.network)
 
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
+                print(f"restarting at model with train/validation loss: {best_train_loss}/{best_validation_loss}")
                 neural_network_persistence.load_state_into_neural_network(self.network)
 
         return best_scheduler_metric

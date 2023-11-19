@@ -9,7 +9,7 @@ class JockeyWinRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.jockey.win_rate == -1:
+        if horse.jockey.win_rate == -1 or horse.jockey.num_races < 10:
             return self.PLACEHOLDER_VALUE
         return horse.jockey.win_rate
 
@@ -20,7 +20,7 @@ class JockeyPlaceRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.jockey.place_rate == -1:
+        if horse.jockey.place_rate == -1 or horse.jockey.num_races < 10:
             return self.PLACEHOLDER_VALUE
         return horse.jockey.place_rate
 
@@ -31,7 +31,7 @@ class JockeyEarningsRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.jockey.earnings_rate == -1:
+        if horse.jockey.earnings_rate == -1 or horse.jockey.num_races < 10:
             return self.PLACEHOLDER_VALUE
 
         return horse.jockey.earnings_rate / 300000

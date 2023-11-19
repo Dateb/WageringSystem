@@ -1,7 +1,7 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.feature_sources.init import scratched_rate_source
+from SampleExtraction.feature_sources.init import scratched_rate_source, pulled_up_rate_source
 
 
 class HorseScratchedRate(FeatureExtractor):
@@ -13,6 +13,17 @@ class HorseScratchedRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return scratched_rate_source.get_average_of_name(str(horse.subject_id))
+
+
+class HorsePulledUpRate(FeatureExtractor):
+
+    pulled_up_rate_source.average_attribute_groups.append(["subject_id"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return pulled_up_rate_source.get_average_of_name(str(horse.subject_id))
 
 
 class JockeyScratchedRate(FeatureExtractor):

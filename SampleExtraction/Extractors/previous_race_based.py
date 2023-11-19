@@ -5,7 +5,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.feature_sources.init import previous_win_prob_source, previous_place_percentile_source, \
-    previous_relative_distance_behind_source
+    previous_relative_distance_behind_source, previous_pulled_up_source
 from SampleExtraction.feature_sources.previous_based import PreviousValueSource
 
 
@@ -187,9 +187,17 @@ class PreviousSlowerThanFraction(FeatureExtractor):
 
 
 class PulledUpPreviousRace(FeatureExtractor):
+    previous_pulled_up_source.previous_value_attribute_groups.append(["subject_id"])
+
+    PLACEHOLDER_VALUE = 0
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(horse.previous_performance == "PU")
+        previous_pulled_up = previous_pulled_up_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_pulled_up is None:
+            return self.PLACEHOLDER_VALUE
+
+        return previous_pulled_up
