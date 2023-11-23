@@ -1,65 +1,94 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.feature_sources.feature_sources import WinProbabilitySource, WinRateSource, \
+    AveragePlacePercentileSource, AverageRelativeDistanceBehindSource
 from SampleExtraction.feature_sources.init import win_probability_source, win_rate_source, \
-    average_place_percentile_source, average_relative_distance_behind_source, speed_figures_source
+    average_place_percentile_source, average_relative_distance_behind_source, speed_figures_source, FEATURE_SOURCES
 
 
 class HorseWinProbability(FeatureExtractor):
 
-    win_probability_source.average_attribute_groups.append(["subject_id"])
-
-    def __init__(self):
+    def __init__(self, window_size=5):
         super().__init__()
+        self.window_size = window_size
+        self.win_probability_source = WinProbabilitySource(window_size)
+        self.win_probability_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.win_probability_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        win_probability = win_probability_source.get_average_of_name(str(horse.subject_id))
+        win_probability = self.win_probability_source.get_average_of_name(str(horse.subject_id))
         if win_probability == -1:
             return self.PLACEHOLDER_VALUE
         return win_probability
+
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
 
 
 class HorseWinRate(FeatureExtractor):
 
     PLACEHOLDER_VALUE = 0
-    win_rate_source.average_attribute_groups.append(["subject_id"])
 
-    def __init__(self):
+    def __init__(self, window_size=5):
         super().__init__()
+        self.window_size = window_size
+        self.win_rate_source = WinRateSource(window_size)
+        self.win_rate_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.win_rate_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        win_rate = get_win_rate_of_name(str(horse.subject_id))
+        win_rate = self.win_rate_source.get_average_of_name(str(horse.subject_id))
+
         if win_rate == -1:
             return self.PLACEHOLDER_VALUE
+
         return win_rate
+
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
 
 
 class HorsePlacePercentile(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
 
-    def __init__(self):
+    def __init__(self, window_size=5):
         super().__init__()
+        self.window_size = window_size
+        self.place_percentile_source = AveragePlacePercentileSource(window_size)
+        self.place_percentile_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.place_percentile_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        average_place_percentile = average_place_percentile_source.get_average_of_name(str(horse.subject_id))
+        average_place_percentile = self.place_percentile_source.get_average_of_name(str(horse.subject_id))
         if average_place_percentile == -1:
             return self.PLACEHOLDER_VALUE
         return average_place_percentile
 
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
+
 
 class HorseRelativeDistanceBehind(FeatureExtractor):
 
-    def __init__(self):
+    def __init__(self, window_size=5):
         super().__init__()
+        self.window_size = window_size
+        self.relative_distance_behind_source = AverageRelativeDistanceBehindSource(window_size)
+        self.relative_distance_behind_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.relative_distance_behind_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        average_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(str(horse.subject_id))
+        average_relative_distance_behind = self.relative_distance_behind_source.get_average_of_name(str(horse.subject_id))
 
         if average_relative_distance_behind is None:
             return self.PLACEHOLDER_VALUE
 
         return average_relative_distance_behind
+
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
 
 
 # class JockeyWinRate(FeatureExtractor):

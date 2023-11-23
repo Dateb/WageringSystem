@@ -15,28 +15,33 @@ from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.Extractors.pedigree_based import DamPlacePercentile, DamRelativeDistanceBehind, \
     SireRelativeDistanceBehind, SirePlacePercentile, SireSiblingsPlacePercentile, DamSiblingsPlacePercentile, \
     SireAndDamSiblingsPlacePercentile, DamSireSiblingsPlacePercentile
+from SampleExtraction.Extractors.potential_based import BestClassPlace
 from SampleExtraction.Extractors.preference_based import DistancePreference
 from SampleExtraction.Extractors.previous_race_based import PreviousRelativeDistanceBehind, PreviousWinProbability, \
     PreviousPlacePercentile, \
     PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
     PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
     PreviousSameSurfaceRelativeDistanceBehind, \
-    PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind, PulledUpPreviousRace
+    PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind, PulledUpPreviousRace, \
+    PreviousSameSurfaceVelocity, PreviousSameTrackVelocity, PreviousSameRaceClassVelocity, HasPreviousRaces
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, JockeyPlaceRateDifference, \
-    TrainerPlaceRateDifference
-from SampleExtraction.Extractors.purse_based import HorsePurseRate
+    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, PreviousJockeyWinRate, \
+    TrainerEarningsRateDifference, PreviousJockeyPlaceRate, PreviousJockeyEarningsRate, PreviousTrainerWinRate, \
+    PreviousTrainerPlaceRate, PreviousTrainerEarningsRate, OwnerWinRateDifference
+from SampleExtraction.Extractors.purse_based import HorsePurseRate, DamPurseRate
 from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate, \
     HorsePulledUpRate
 from SampleExtraction.Extractors.show_rate_based import HorseShowRate
 from SampleExtraction.Extractors.speed_based import CurrentSpeedFigure
+from SampleExtraction.Extractors.starts_based import LifeTimeStartCount
 from SampleExtraction.Extractors.time_based import WeekDayCos, WeekDaySin, MinutesIntoDay, MonthCos, MonthSin, \
     DayOfMonthCos, DayOfMonthSin
 from SampleExtraction.Extractors.trainer_based import TrainerWinRate, TrainerPlaceRate, TrainerEarningsRate
+from SampleExtraction.Extractors.velocity_based import PreviousVelocity, DamVelocity, SireVelocity
 from SampleExtraction.Extractors.win_rate_based import BreederWinRate, OwnerWinRate, HorseWinRate, \
     HorsePlacePercentile, \
     HorseRelativeDistanceBehind, HorseWinProbability
-from SampleExtraction.feature_sources.init import get_feature_sources
+from SampleExtraction.feature_sources.init import FEATURE_SOURCES
 
 
 class FeatureManager:
@@ -74,6 +79,13 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
+        window_sizes = [3, 5, 7]
+        win_prob_features = [HorseWinProbability(window_size=i) for i in window_sizes]
+        win_rate_features = [HorseWinRate(window_size=i) for i in window_sizes]
+        show_rate_features = [HorseShowRate(window_size=i) for i in window_sizes]
+        place_percentile_features = [HorsePlacePercentile(window_size=i) for i in window_sizes]
+        relative_distance_behind_features = [HorseRelativeDistanceBehind(window_size=i) for i in window_sizes]
+
         default_features = [
             # CurrentSpeedFigure(),
 
@@ -95,16 +107,9 @@ class FeatureManager:
 
             # DistancePreference(),
 
-            PreviousWinProbability(),
-
             HorsePulledUpRate(),
             PulledUpPreviousRace(),
 
-            HorseWinProbability(),
-            HorseWinRate(),
-            HorseShowRate(),
-            HorsePlacePercentile(),
-            HorseRelativeDistanceBehind(),
             HorsePurseRate(),
 
             MinutesIntoDay(),
@@ -118,9 +123,20 @@ class FeatureManager:
             WeekDaySin(),
             WeekDayCos(),
 
+            HasPreviousRaces(),
+
+            PreviousWinProbability(),
+
             PreviousSameSurfaceWinProbability(),
             PreviousSameTrackWinProbability(),
             PreviousSameRaceClassWinProbability(),
+
+            PreviousVelocity(),
+
+            PreviousSameSurfaceVelocity(),
+            PreviousSameTrackVelocity(),
+            PreviousSameRaceClassVelocity(),
+
 
             PreviousPlacePercentile(),
 
@@ -144,9 +160,17 @@ class FeatureManager:
             JockeyPlaceRate(),
             JockeyEarningsRate(),
 
+            PreviousJockeyWinRate(),
+            PreviousJockeyPlaceRate(),
+            PreviousJockeyEarningsRate(),
+
             TrainerWinRate(),
             TrainerPlaceRate(),
             TrainerEarningsRate(),
+
+            PreviousTrainerWinRate(),
+            PreviousTrainerPlaceRate(),
+            PreviousTrainerEarningsRate(),
 
             JockeyWeight(),
             WeightAllowance(),
@@ -158,8 +182,8 @@ class FeatureManager:
             WeightDifference(),
             AllowanceDifference(),
 
-            JockeyPlaceRateDifference(),
-            TrainerPlaceRateDifference(),
+            TrainerEarningsRateDifference(),
+            OwnerWinRateDifference(),
 
             DrawBias(),
             TravelDistance(),
@@ -183,17 +207,22 @@ class FeatureManager:
             HasBlinkers(), HasHood(), HasCheekPieces(),
             HasVisor(), HasEyeCovers(), HasEyeShield(),
 
+            BestClassPlace(),
+            LifeTimeStartCount(),
+
+            DamVelocity(), SireVelocity(),
+
+            # DamPurseRate(), SirePurseRate(),
+
             # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
 
             # DamPercentageBeaten(), SirePercentageBeaten(),
-            # DamPurseRate(), SirePurseRate(),
 
             # HighestLifetimeWinProbability(),
 
             # Needs improvement in regards with different start counts
 
             #
-            # LifeTimeStartCount(),
             # LifeTimeWinCount(),
             # LifeTimePlaceCount(),
             #
@@ -221,7 +250,6 @@ class FeatureManager:
             # DamSirePercentageBeaten(),
             #
             # JockeyClassShowRate(),
-            # SireShowRate(),
             #
             # JockeyPurseRate(),
             # BreederPercentageBeaten(),
@@ -267,7 +295,6 @@ class FeatureManager:
             # JockeyDistancePurseRate(),
             #
             # AbsoluteTime(),
-            # DamShowRate(),
             #
             # TrainerDistancePurseRate(),
             # HorseBreederPurseRate(),
@@ -328,7 +355,7 @@ class FeatureManager:
             # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
             #
             # MeanSpeedDiff(),
-        ]
+        ] + win_prob_features + win_rate_features + show_rate_features + place_percentile_features + relative_distance_behind_features
 
         return default_features
 
@@ -353,14 +380,14 @@ class FeatureManager:
                 horse.set_feature_value(feature_extractor.get_name(), feature_value)
 
     def pre_update_feature_sources(self, race_card: RaceCard) -> None:
-        feature_sources = get_feature_sources()
+        feature_sources = FEATURE_SOURCES
 
         if race_card.has_results:
             for feature_source in feature_sources:
                 feature_source.pre_update(race_card)
 
     def post_update_feature_sources(self, race_cards: List[RaceCard]) -> None:
-        feature_sources = get_feature_sources()
+        feature_sources = FEATURE_SOURCES
 
         for race_card in race_cards:
             if race_card.has_results and race_card.feature_source_validity:

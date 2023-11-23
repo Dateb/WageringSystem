@@ -6,6 +6,7 @@ from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.feature_sources import FeatureSource
 from util.nested_dict import nested_dict
+from util.speed_calculator import get_velocity, LENGTHS_PER_SECOND, get_lengths_per_second
 
 
 class PreviousValueSource(FeatureSource, ABC):
@@ -52,6 +53,16 @@ class PreviousJockeySource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_previous_value(race_card, horse, horse.jockey)
+
+
+class PreviousOwnerSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        self.insert_previous_value(race_card, horse, horse.owner)
 
 
 class EquipmentAlreadyWornSource(PreviousValueSource):
@@ -117,6 +128,8 @@ class PreviousWinProbSource(PreviousValueSource):
         super().__init__()
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.sp_win_prob == 0:
+            print(f"yellow: {race_card.race_id}")
         self.insert_previous_value(race_card, horse, horse.sp_win_prob)
 
 
@@ -127,6 +140,23 @@ class PreviousDistanceSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_previous_value(race_card, horse, race_card.distance)
+
+
+class PreviousVelocitySource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
+            lengths_per_second = get_lengths_per_second(
+                race_card.track_name,
+                race_card.race_type,
+                race_card.surface,
+                race_card.going
+            )
+            velocity = get_velocity(race_card.win_time, lengths_per_second, horse.horse_distance, race_card.distance)
+            self.insert_previous_value(race_card, horse, velocity)
 
 
 class PreviousRaceGoingSource(PreviousValueSource):
@@ -229,3 +259,19 @@ class LifeTimePlaceCountSource(PreviousValueSource):
 
         if 1 <= horse.place <= race_card.places_num:
             self.insert_previous_value(race_card, horse, place_count + 1)
+
+
+class BestClassPlaceSource(PreviousValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.previous_value_attribute_groups.append(["subject_id"])
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if 1 <= horse.place <= 3 and race_card.race_class not in ["A", "B"]:
+            best_class = self.get_previous_of_name(str(horse.subject_id))
+
+            race_class_num = int(race_card.race_class)
+
+            if best_class is None or race_class_num < best_class:
+                self.insert_previous_value(race_card, horse, race_class_num)

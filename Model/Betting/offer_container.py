@@ -115,21 +115,21 @@ class BetfairOfferContainer(BetOfferContainer):
                             new_offers = []
                             for offer_data in market_condition["rc"]:
                                 horse_name = horse_id_to_name_map[offer_data["id"]]
-                                horse = race_card.get_horse_by_name(horse_name)
+                                horse = race_card.get_horse_by_horse_name(horse_name)
                                 if horse is None:
                                     print(f"Could not find horse: {horse_name} on race: {race_card.race_id}")
                                     print(f"race datetime: {race_datetime}")
                                     print("-----------------------------------------")
-
-                                bef_offer = BetOffer(
-                                    race_card=race_card,
-                                    horse=horse,
-                                    odds=offer_data["ltp"],
-                                    scratched_horses=scratched_horses,
-                                    event_datetime=event_datetime,
-                                    adjustment_factor=1.0
-                                )
-                                new_offers.append(bef_offer)
+                                else:
+                                    bef_offer = BetOffer(
+                                        race_card=race_card,
+                                        horse=horse,
+                                        odds=offer_data["ltp"],
+                                        scratched_horses=scratched_horses,
+                                        event_datetime=event_datetime,
+                                        adjustment_factor=1.0
+                                    )
+                                    new_offers.append(bef_offer)
 
                             betfair_offers += new_offers
 

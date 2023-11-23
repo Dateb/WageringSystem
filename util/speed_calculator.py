@@ -1,5 +1,7 @@
 from collections import deque
+from enum import Enum
 
+LENGTHS_PER_SECOND = 5
 METERS_PER_LENGTH: float = 2.4
 __speed_figures_distribution = deque(maxlen=1000)
 
@@ -45,20 +47,61 @@ def compute_speed_figure(
     return speed_figure
 
 
-def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):
-    if not lengths_per_second:
-        lengths_per_second = 5
+def get_velocity(win_time: float, lengths_per_second: float, horse_distance: float, race_distance: float):
+    horse_time = get_horse_time(win_time, lengths_per_second, horse_distance)
 
+    return race_distance / horse_time
+
+
+def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):
     seconds_behind_winner = ((1 / lengths_per_second) * horse_distance)
 
     return win_time + seconds_behind_winner
 
 
-def get_lengths_per_second(distance: float, win_time: float) -> float:
-    meters_per_second = distance / win_time
-    lengths_per_second = meters_per_second / METERS_PER_LENGTH
+class Going(Enum):
+    # Going Code: Lower leads to faster times, higher leads to slower times.
+    SOLID = 2
+    GOOD = 3
+    SOFT = 4
 
-    return lengths_per_second
+
+class RaceType(Enum):
+
+    FLAT = "G"
+    JUMP = "J"
+
+
+# TODO: Arab and Pony races should be same as jump category, NH races are separate category
+def get_lengths_per_second(track_name: str, race_type: str, surface: str, going: float) -> float:
+    # conversion according to:
+    # https://www.britishhorseracing.com/wp-content/uploads/2014/04/Lengths-Per-Second-Scale-Tables-2019.pdf
+    if race_type == RaceType.FLAT.value:
+        if surface == "TRF":
+            if going <= Going.GOOD.value:
+                return 6
+            if going >= Going.SOFT.value:
+                return 5
+
+            return 5.5
+
+        if surface == "EQT":
+            if track_name in ["Kempton", "Lingfield", "Wolverhampton", "Newcastle", "Chelmsford", "Chelmsford City"]:
+                return 6
+            if track_name in ["Southwell"]:
+                return 5
+            # TODO: Chelmsford and Chelmsford are in the data
+            # print("length conversion failed:")
+            # print(track_name)
+
+    if race_type == RaceType.JUMP.value:
+        if going <= Going.GOOD.value:
+            return 5
+        if going >= Going.SOFT.value:
+            return 4
+        return 4.5
+
+    return 5.0
 
 
 def is_horse_distance_too_far_from_winner(race_distance: float, horse_distance: float) -> bool:
@@ -85,8 +128,3 @@ def race_card_track_to_win_time_track(track_name: str) -> str:
     if "PMU" in track_name:
         return track_name[:-4]
     return track_name
-
-#gut-fest: 2.5
-#gut: 3
-#gut-weich: 3.5
-#weich: 4

@@ -10,7 +10,7 @@ import numpy as np
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second, is_horse_distance_too_far_from_winner
+    get_horse_time, get_lengths_per_second, is_horse_distance_too_far_from_winner, get_velocity
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
@@ -255,8 +255,8 @@ class MaxWinProbabilitySource(MaxValueSource):
 
 class AverageRelativeDistanceBehindSource(CategoryAverageSource):
 
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
         self.average_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
@@ -273,10 +273,11 @@ class AverageRelativeDistanceBehindSource(CategoryAverageSource):
                 relative_distance_behind = -(horse.horse_distance / race_card.distance)
                 self.insert_value_into_avg(race_card, horse, relative_distance_behind)
 
+
 class WinProbabilitySource(CategoryAverageSource):
 
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.sp_win_prob > 0:
@@ -285,8 +286,8 @@ class WinProbabilitySource(CategoryAverageSource):
 
 class WinRateSource(CategoryAverageSource):
 
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value_into_avg(race_card, horse, horse.has_won)
@@ -294,8 +295,8 @@ class WinRateSource(CategoryAverageSource):
 
 class ShowRateSource(CategoryAverageSource):
 
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         show_indicator = int(1 <= horse.place <= race_card.places_num)
@@ -304,14 +305,30 @@ class ShowRateSource(CategoryAverageSource):
 
 class AveragePlacePercentileSource(CategoryAverageSource):
 
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
-        self.average_attribute_groups.append(["subject_id"])
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.place > 0 and len(race_card.runners) > 1:
             place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
             self.insert_value_into_avg(race_card, horse, place_percentile)
+
+
+class AverageVelocitySource(CategoryAverageSource):
+
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
+            lengths_per_second = get_lengths_per_second(
+                race_card.track_name,
+                race_card.race_type,
+                race_card.surface,
+                race_card.going
+            )
+            velocity = get_velocity(race_card.win_time, lengths_per_second, horse.horse_distance, race_card.distance)
+            self.insert_value_into_avg(race_card, horse, velocity)
 
 
 class PurseRateSource(CategoryAverageSource):

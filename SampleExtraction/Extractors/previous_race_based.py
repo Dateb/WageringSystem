@@ -5,8 +5,22 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.feature_sources.init import previous_win_prob_source, previous_place_percentile_source, \
-    previous_relative_distance_behind_source, previous_pulled_up_source
+    previous_relative_distance_behind_source, previous_pulled_up_source, previous_velocity_source
 from SampleExtraction.feature_sources.previous_based import PreviousValueSource
+
+
+class HasPreviousRaces(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        previous_win_prob = previous_win_prob_source.get_previous_of_name(str(horse.subject_id))
+
+        if previous_win_prob is None:
+            return 0.0
+
+        return 1.0
 
 
 class PreviousWinProbability(FeatureExtractor):
@@ -54,10 +68,22 @@ class PreviousSameSurfaceWinProbability(PreviousSameAttributeDifference):
         super().__init__(previous_win_prob_source, ["subject_id", "surface"])
 
 
+class PreviousSameSurfaceVelocity(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_velocity_source, ["subject_id", "surface"])
+
+
 class PreviousSameGoingWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "going"])
+
+
+class PreviousSameGoingVelocity(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_velocity_source, ["subject_id", "going"])
 
 
 class PreviousSameTrackWinProbability(PreviousSameAttributeDifference):
@@ -66,10 +92,22 @@ class PreviousSameTrackWinProbability(PreviousSameAttributeDifference):
         super().__init__(previous_win_prob_source, ["subject_id", "track_name"])
 
 
+class PreviousSameTrackVelocity(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_velocity_source, ["subject_id", "track_name"])
+
+
 class PreviousSameRaceClassWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "race_class"])
+
+
+class PreviousSameRaceClassVelocity(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_velocity_source, ["subject_id", "race_class"])
 
 
 class PreviousSameSurfacePlacePercentile(PreviousSameAttributeDifference):

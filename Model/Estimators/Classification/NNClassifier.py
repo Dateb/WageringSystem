@@ -138,7 +138,7 @@ class NNClassifier(Estimator):
             train_loss = self.fit_epoch(train_race_card_loader.dataloader)
             validation_loss = self.validate_epoch(validation_race_card_loader.dataloader)
 
-            scheduler_metric = abs(validation_loss - train_loss) * mean([train_loss, validation_loss])
+            scheduler_metric = validation_loss
 
             self.scheduler.step(scheduler_metric)
 

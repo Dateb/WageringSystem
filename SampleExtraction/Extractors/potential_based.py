@@ -1,6 +1,28 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
+from SampleExtraction.feature_sources.init import best_class_place_source
+
+
+class BestClassPlace(FeatureExtractor):
+
+    PLACEHOLDER_VALUE = -1
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        best_class_place = best_class_place_source.get_previous_of_name(str(horse.subject_id))
+
+        if best_class_place is None:
+            return self.PLACEHOLDER_VALUE
+
+        if race_card.race_class in ["A", "B"]:
+            return self.PLACEHOLDER_VALUE
+
+        race_class_difference = int(race_card.race_class) - best_class_place
+
+        return race_class_difference / 6
 
 
 class HorseTopFinish(FeatureExtractor):

@@ -3,12 +3,13 @@ from typing import List
 from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, WinProbabilitySource, \
     WinRateSource, AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
     PercentageBeatenSource, ScratchedRateSource, MaxWinProbabilitySource, SpeedFiguresSource, DrawBiasSource, \
-    HasFallenSource, FeatureSource, PulledUpRateSource, DistancePreferenceSource
+    HasFallenSource, FeatureSource, PulledUpRateSource, DistancePreferenceSource, AverageVelocitySource
 from SampleExtraction.feature_sources.previous_based import LifeTimeStartCountSource, LifeTimeWinCountSource, \
     LifeTimePlaceCountSource, PreviousWinProbSource, PreviousPlacePercentileSource, \
     PreviousRelativeDistanceBehindSource, PreviousTrackNameSource, PreviousDistanceSource, \
     PreviousRaceGoingSource, PreviousRaceClassSource, EquipmentAlreadyWornSource, PreviousTrainerSource, \
-    PreviousDateSource, PreviousJockeySource, PreviousPulledUpSource
+    PreviousDateSource, PreviousJockeySource, PreviousPulledUpSource, BestClassPlaceSource, PreviousVelocitySource, \
+    PreviousOwnerSource
 
 horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
 
@@ -35,8 +36,10 @@ average_relative_distance_behind_source: AverageRelativeDistanceBehindSource = A
 average_relative_distance_behind_source.average_attribute_groups.append(["name"])
 
 show_rate_source: ShowRateSource = ShowRateSource()
+
 purse_rate_source: PurseRateSource = PurseRateSource()
 
+dam_and_sire_average_velocity_source: AverageVelocitySource = AverageVelocitySource()
 
 percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
@@ -52,8 +55,10 @@ max_win_prob_source: MaxWinProbabilitySource = MaxWinProbabilitySource()
 #Previous value based sources:
 previous_jockey_source: PreviousJockeySource = PreviousJockeySource()
 previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
+previous_owner_source: PreviousOwnerSource = PreviousOwnerSource()
 
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
+previous_velocity_source = PreviousVelocitySource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
 previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
 previous_track_name_source: PreviousTrackNameSource = PreviousTrackNameSource()
@@ -76,9 +81,10 @@ has_fallen_source: HasFallenSource = HasFallenSource()
 
 distance_preference_source: DistancePreferenceSource = DistancePreferenceSource()
 
+best_class_place_source: BestClassPlaceSource = BestClassPlaceSource()
 
-def get_feature_sources() -> List[FeatureSource]:
-    return [
+
+FEATURE_SOURCES = [
         horse_name_to_subject_id_source,
 
         win_probability_source, win_rate_source, show_rate_source,
@@ -93,13 +99,16 @@ def get_feature_sources() -> List[FeatureSource]:
         max_win_prob_source,
 
         previous_jockey_source,
+        previous_trainer_source,
+        previous_owner_source,
+
         previous_win_prob_source,
+        previous_velocity_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
 
         previous_pulled_up_source,
 
         previous_distance_source, previous_race_going_source, previous_race_class_source,
-        previous_trainer_source,
 
         previous_date_source,
         previous_track_name_source,
@@ -113,7 +122,11 @@ def get_feature_sources() -> List[FeatureSource]:
         sire_and_dam_siblings_place_percentile_source,
         dam_sire_siblings_place_percentile_source,
 
-        distance_preference_source
+        distance_preference_source,
+
+        best_class_place_source,
+
+        dam_and_sire_average_velocity_source,
 
         # speed_figures_source,
         # has_fallen_source,

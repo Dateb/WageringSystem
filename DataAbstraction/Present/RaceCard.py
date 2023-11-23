@@ -185,7 +185,14 @@ class RaceCard:
             return None
         return horse_with_place[0]
 
-    def get_horse_by_name(self, horse_name: str) -> Horse:
+    def get_horse_by_names(self, horse_name: str, jockey_name: str) -> Horse:
+        horse = self.get_horse_by_horse_name(horse_name)
+        if horse is None:
+            horse = self.get_horse_by_jockey(jockey_name)
+
+        return horse
+
+    def get_horse_by_horse_name(self, horse_name: str) -> Horse:
         best_matched_horse = None
         best_common_substring_fraction = 0.5
         horse_name_a = horse_name.replace("'", "").upper().replace(" ", "").replace(".", "")

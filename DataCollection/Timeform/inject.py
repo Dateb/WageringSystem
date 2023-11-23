@@ -42,7 +42,7 @@ class TimeFormInjector:
 
     def write_horse_attributes(self, race_card: WritableRaceCard, time_form_attributes: dict):
         for horse_name in time_form_attributes["horses"]:
-            horse = race_card.get_horse_by_name(horse_name)
+            horse = race_card.get_horse_by_horse_name(horse_name)
 
             if horse is None:
                 print(f"Horse name not found: {horse_name}, try to find horse by jockey...")

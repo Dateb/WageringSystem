@@ -92,7 +92,7 @@ class Bettor:
             if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
                 ev = bet_offer.odds * (1 - Bet.WIN_COMMISSION) * probability_estimate
 
-                if ev > 1 + self.bet_threshold:
+                if ev > 1 + self.bet_threshold and bet_offer.odds > 1:
                     self.offer_accepted_count += 1
                     stakes = (ev - (1 + self.bet_threshold)) / (bet_offer.odds - 1)
                 else:

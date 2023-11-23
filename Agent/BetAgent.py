@@ -55,7 +55,7 @@ class BetAgent:
         self.customer_id = self.get_customer_id()
         self.race_card_market_map = RaceCardMarketMap()
         self.current_bets = []
-        self.bettor = Bettor(bet_threshold=0.0)
+        self.bettor = Bettor(bet_threshold=0.5)
         self.feature_manager = FeatureManager()
         self.columns = None
 
