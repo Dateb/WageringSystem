@@ -1,7 +1,7 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import ShowRateSource
+from SampleExtraction.feature_sources.average_based import ShowRateSource
 from SampleExtraction.feature_sources.init import show_rate_source, FEATURE_SOURCES, dam_and_sire_average_velocity_source
 
 

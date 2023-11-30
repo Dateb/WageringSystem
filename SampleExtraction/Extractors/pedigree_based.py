@@ -1,13 +1,13 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.feature_sources.init import sire_siblings_place_percentile_source, \
+from SampleExtraction.feature_sources.init import sire_siblings_momentum_source, \
     horse_name_to_subject_id_source, average_place_percentile_source, average_relative_distance_behind_source, \
-    dam_siblings_place_percentile_source, sire_and_dam_siblings_place_percentile_source, \
-    dam_sire_siblings_place_percentile_source
+    dam_siblings_momentum_source, sire_and_dam_siblings_momentum_source, \
+    dam_sire_siblings_momentum_source
 
 
-class SireSiblingsPlacePercentile(FeatureExtractor):
+class SireSiblingsMomentum(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
 
@@ -15,15 +15,16 @@ class SireSiblingsPlacePercentile(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        sire_siblings_place_percentile = sire_siblings_place_percentile_source.get_average_of_name(horse.sire)
+        key = sire_siblings_momentum_source.get_attribute_group_key(race_card, horse, ["sire", "age"])
+        sire_siblings_momentum = sire_siblings_momentum_source.get_average_of_name(key)
 
-        if sire_siblings_place_percentile == -1:
+        if sire_siblings_momentum == -1:
             return self.PLACEHOLDER_VALUE
 
         if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
             return self.PLACEHOLDER_VALUE
 
-        return sire_siblings_place_percentile
+        return sire_siblings_momentum
 
 
 class SirePlacePercentile(FeatureExtractor):
@@ -63,7 +64,7 @@ class SireRelativeDistanceBehind(FeatureExtractor):
 
         return sire_relative_distance_behind
 
-class DamSiblingsPlacePercentile(FeatureExtractor):
+class DamSiblingsMomentum(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
 
@@ -71,18 +72,19 @@ class DamSiblingsPlacePercentile(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        dam_siblings_place_percentile = dam_siblings_place_percentile_source.get_average_of_name(horse.dam)
+        key = dam_siblings_momentum_source.get_attribute_group_key(race_card, horse, ["dam", "age"])
+        dam_siblings_momentum = dam_siblings_momentum_source.get_average_of_name(key)
 
-        if dam_siblings_place_percentile == -1:
+        if dam_siblings_momentum == -1:
             return self.PLACEHOLDER_VALUE
 
         if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
             return self.PLACEHOLDER_VALUE
 
-        return dam_siblings_place_percentile
+        return dam_siblings_momentum
 
 
-class SireAndDamSiblingsPlacePercentile(FeatureExtractor):
+class SireAndDamSiblingsMomentum(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
 
@@ -90,16 +92,16 @@ class SireAndDamSiblingsPlacePercentile(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        key = sire_and_dam_siblings_place_percentile_source.get_attribute_group_key(race_card, horse, ["sire", "dam"])
-        sire_and_dam_sibling_place_percentile = sire_and_dam_siblings_place_percentile_source.get_average_of_name(key)
+        key = sire_and_dam_siblings_momentum_source.get_attribute_group_key(race_card, horse, ["sire", "dam", "age"])
+        sire_and_dam_siblings_momentum = sire_and_dam_siblings_momentum_source.get_average_of_name(key)
 
-        if sire_and_dam_sibling_place_percentile == -1:
+        if sire_and_dam_siblings_momentum == -1:
             return self.PLACEHOLDER_VALUE
 
-        return sire_and_dam_sibling_place_percentile
+        return sire_and_dam_siblings_momentum
 
 
-class DamSireSiblingsPlacePercentile(FeatureExtractor):
+class DamSireSiblingsMomentum(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1
 
@@ -107,15 +109,16 @@ class DamSireSiblingsPlacePercentile(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        dam_sire_siblings_place_percentile = dam_sire_siblings_place_percentile_source.get_average_of_name(horse.dam_sire)
+        key = dam_sire_siblings_momentum_source.get_attribute_group_key(race_card, horse, ["dam_sire", "age"])
+        dam_sire_siblings_momentum = dam_sire_siblings_momentum_source.get_average_of_name(key)
 
-        if dam_sire_siblings_place_percentile == -1:
+        if dam_sire_siblings_momentum == -1:
             return self.PLACEHOLDER_VALUE
 
         if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam_sire) > 1:
             return self.PLACEHOLDER_VALUE
 
-        return dam_sire_siblings_place_percentile
+        return dam_sire_siblings_momentum
 
 
 class DamPlacePercentile(FeatureExtractor):

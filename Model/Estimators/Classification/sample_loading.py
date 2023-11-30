@@ -3,10 +3,11 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
+import pandas as pd
 import torch
 from numpy import ndarray
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 
 from DataAbstraction.Present.Horse import Horse
@@ -99,11 +100,48 @@ class RaceCardLoader(ABC):
     def __init__(
             self,
             sample: RaceCardsSample,
+            feature_manager: FeatureManager,
+            one_hot_encoder: OneHotEncoder,
+            standard_scaler: StandardScaler,
             feature_padding_transformer: FeaturePaddingTransformer,
             label_padding_transformer: LabelPaddingTransformer
     ):
+        self.feature_manager = feature_manager
+        self.one_hot_encoder = one_hot_encoder
+        self.standard_scaler = standard_scaler
         self.feature_padding_transformer = feature_padding_transformer
         self.label_padding_transformer = label_padding_transformer
+
+        self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
+            RaceCard.RACE_ID_KEY].count().to_numpy()
+
+        selected_feature_names = [feature.get_name() for feature in feature_manager.search_features]
+
+        horse_features = sample.race_cards_dataframe[selected_feature_names]
+        if simulate_conf.LEARNING_MODE == "Classification":
+            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
+        else:
+            horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
+
+        numerical_horse_features = self.standardize_numerical_features(horse_features[feature_manager.numerical_feature_names])
+
+        one_hot_horse_features = self.one_hot_encode_cat_features(horse_features[feature_manager.categorical_feature_names])
+
+        horse_features = np.concatenate((numerical_horse_features, one_hot_horse_features), axis=1)
+
+        x = self.feature_padding_transformer.transform(horse_features, self.group_counts)
+        y = self.label_padding_transformer.transform(horse_labels, self.group_counts)
+
+        self.n_feature_values = horse_features.shape[1]
+        self.dataloader = self.create_dataloader(x, y)
+
+    @abstractmethod
+    def one_hot_encode_cat_features(self, cat_horse_features: pd.DataFrame) -> ndarray:
+        pass
+
+    @abstractmethod
+    def standardize_numerical_features(self, numerical_horse_features: pd.DataFrame) -> ndarray:
+        pass
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)
@@ -122,81 +160,19 @@ class RaceCardLoader(ABC):
 
 class TrainRaceCardLoader(RaceCardLoader):
 
-    def __init__(
-            self,
-            sample: RaceCardsSample,
-            feature_manager: FeatureManager,
-            missing_values_imputer: SimpleImputer,
-            one_hot_encoder: OneHotEncoder,
-            feature_padding_transformer: FeaturePaddingTransformer,
-            label_padding_transformer: LabelPaddingTransformer
-    ):
-        super().__init__(sample, feature_padding_transformer, label_padding_transformer)
+    def standardize_numerical_features(self, numerical_horse_features: pd.DataFrame) -> ndarray:
+        self.standard_scaler.fit(numerical_horse_features)
+        return self.standard_scaler.transform(numerical_horse_features)
 
-        self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
-            RaceCard.RACE_ID_KEY].count().to_numpy()
-
-        selected_feature_names = [feature.get_name() for feature in feature_manager.search_features]
-
-        #TODO: Remove redundancy
-        horses_features = sample.race_cards_dataframe[selected_feature_names]
-        if simulate_conf.LEARNING_MODE == "Classification":
-            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
-        else:
-            horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
-
-        numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
-
-        one_hot_encoder.fit(horses_features[feature_manager.categorical_feature_names])
-        one_hot_horses_features = one_hot_encoder.transform(horses_features[feature_manager.categorical_feature_names]).toarray()
-
-        horses_features = np.concatenate((numerical_horse_features, one_hot_horses_features), axis=1)
-
-        # missing_values_imputer.fit(horses_features, horse_labels)
-        # horses_features = missing_values_imputer.transform(horses_features)
-
-        x = self.feature_padding_transformer.transform(horses_features, self.group_counts)
-        y = self.label_padding_transformer.transform(horse_labels, self.group_counts)
-
-        self.n_feature_values = horses_features.shape[1]
-        self.dataloader = self.create_dataloader(x, y)
+    def one_hot_encode_cat_features(self, cat_horse_features: pd.DataFrame) -> ndarray:
+        self.one_hot_encoder.fit(cat_horse_features)
+        return self.one_hot_encoder.transform(cat_horse_features).toarray()
 
 
 class TestRaceCardLoader(RaceCardLoader):
 
-    def __init__(
-            self,
-            sample: RaceCardsSample,
-            feature_manager: FeatureManager,
-            missing_values_imputer: SimpleImputer,
-            one_hot_encoder: OneHotEncoder,
-            feature_padding_transformer: FeaturePaddingTransformer,
-            label_padding_transformer: LabelPaddingTransformer
-    ):
-        super().__init__(sample, feature_padding_transformer, label_padding_transformer)
+    def standardize_numerical_features(self, numerical_horse_features: pd.DataFrame) -> ndarray:
+        return self.standard_scaler.transform(numerical_horse_features)
 
-        self.group_counts = sample.race_cards_dataframe.groupby(RaceCard.RACE_ID_KEY, sort=True)[
-            RaceCard.RACE_ID_KEY].count().to_numpy()
-
-        selected_feature_names = [feature.get_name() for feature in feature_manager.search_features]
-
-        horses_features = sample.race_cards_dataframe[selected_feature_names]
-        if simulate_conf.LEARNING_MODE == "Classification":
-            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
-        else:
-            horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
-
-        numerical_horse_features = horses_features[feature_manager.numerical_feature_names].to_numpy()
-
-        one_hot_horses_features = one_hot_encoder.transform(horses_features[feature_manager.categorical_feature_names]).toarray()
-
-        horses_features = np.concatenate((numerical_horse_features, one_hot_horses_features), axis=1)
-
-        # horses_features = missing_values_imputer.transform(horses_features)
-
-        x = self.feature_padding_transformer.transform(horses_features, self.group_counts)
-        y = self.label_padding_transformer.transform(horse_labels, self.group_counts)
-
-        self.dataloader = self.create_dataloader(x, y)
-
-        self.x_tensor = self.dataloader.dataset.tensors[0]
+    def one_hot_encode_cat_features(self, cat_horse_features: pd.DataFrame) -> ndarray:
+        return self.one_hot_encoder.transform(cat_horse_features).toarray()

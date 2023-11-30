@@ -16,7 +16,7 @@ class HorsePurseRate(FeatureExtractor):
 
         if purse_rate == -1:
             return -1
-        return purse_rate / 10000
+        return purse_rate
 
 
 class JockeyPurseRate(FeatureExtractor):

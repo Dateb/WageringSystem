@@ -1,10 +1,10 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import WinProbabilitySource, WinRateSource, \
-    AveragePlacePercentileSource, AverageRelativeDistanceBehindSource
-from SampleExtraction.feature_sources.init import win_probability_source, win_rate_source, \
-    average_place_percentile_source, average_relative_distance_behind_source, speed_figures_source, FEATURE_SOURCES
+from SampleExtraction.feature_sources.average_based import WinProbabilitySource, WinRateSource, \
+    AveragePlacePercentileSource, AverageMomentumSource
+from SampleExtraction.feature_sources.init import win_rate_source, FEATURE_SOURCES, \
+    window_time_length_source
 
 
 class HorseWinProbability(FeatureExtractor):
@@ -70,22 +70,40 @@ class HorsePlacePercentile(FeatureExtractor):
         return f"{type(self).__name__}_{self.window_size}"
 
 
-class HorseRelativeDistanceBehind(FeatureExtractor):
+class HorseMomentum(FeatureExtractor):
 
     def __init__(self, window_size=5):
         super().__init__()
         self.window_size = window_size
-        self.relative_distance_behind_source = AverageRelativeDistanceBehindSource(window_size)
-        self.relative_distance_behind_source.average_attribute_groups.append(["subject_id"])
-        FEATURE_SOURCES.append(self.relative_distance_behind_source)
+        self.momentum_source = AverageMomentumSource(window_size)
+        self.momentum_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.momentum_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        average_relative_distance_behind = self.relative_distance_behind_source.get_average_of_name(str(horse.subject_id))
+        average_momentum = self.momentum_source.get_average_of_name(str(horse.subject_id))
 
-        if average_relative_distance_behind is None:
+        if average_momentum == -1:
             return self.PLACEHOLDER_VALUE
 
-        return average_relative_distance_behind
+        return average_momentum
+
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
+
+
+class WindowTimeLength(FeatureExtractor):
+
+    def __init__(self, window_size=5):
+        super().__init__()
+        self.window_size = window_size
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        window_time_length = window_time_length_source.get_day_count_of_window(horse, self.window_size)
+
+        if window_time_length is None:
+            return self.PLACEHOLDER_VALUE
+
+        return window_time_length
 
     def get_name(self) -> str:
         return f"{type(self).__name__}_{self.window_size}"
@@ -179,15 +197,6 @@ class OwnerWinRate(FeatureExtractor):
         if owner_win_rate == -1:
             return self.PLACEHOLDER_VALUE
         return owner_win_rate
-
-
-class DamSireWinRate(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return speed_figures_source.get_current_speed_figure(horse.dam_sire)
 
 
 class JockeyDistanceWinRate(FeatureExtractor):

@@ -1,16 +1,15 @@
+import collections
 from abc import abstractmethod, ABC
 from collections import deque
 from math import sqrt
 from sqlite3 import Date
 from statistics import mean
-from typing import List
-
-import numpy as np
+from typing import List, Dict
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second, is_horse_distance_too_far_from_winner, get_velocity
+    get_horse_time, get_lengths_per_second
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
@@ -151,64 +150,6 @@ class DistancePreferenceSource(FeatureSource):
         return mean(similar_distance_sp) / 1000
 
 
-
-
-class CategoryAverageSource(FeatureSource, ABC):
-    def __init__(self, average_calculator: OnlineCalculator = CATEGORY_AVERAGE_CALCULATOR):
-        super().__init__()
-        self.averages = nested_dict()
-        self.average_attribute_groups = []
-        self.average_calculator = average_calculator
-
-    def insert_value_into_avg(self, race_card: RaceCard, horse: Horse, value):
-        for attribute_group in self.average_attribute_groups:
-            attribute_group_key = ""
-            for attribute in attribute_group:
-                if attribute in horse.__dict__:
-                    attribute_key = getattr(horse, attribute)
-                else:
-                    attribute_key = getattr(race_card, attribute)
-                attribute_group_key += f"{attribute_key}_"
-
-            attribute_group_key = attribute_group_key[:-1]
-
-            self.update_average(
-                self.averages[attribute_group_key],
-                value,
-                race_card.date,
-                self.average_calculator,
-            )
-
-    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
-        attribute_group_key = ""
-        for attribute in attribute_group:
-            if attribute in horse.__dict__:
-                attribute_key = getattr(horse, attribute)
-            else:
-                attribute_key = getattr(race_card, attribute)
-            attribute_group_key += f"{attribute_key}_"
-
-        return attribute_group_key[:-1]
-
-    def get_average_of_name(self, name: str) -> float:
-        average_elem = self.averages[name]
-
-        if "avg" in average_elem:
-            return average_elem["avg"]
-
-        return -1
-
-
-class ScratchedHorseCategoryAverageSource(CategoryAverageSource, ABC):
-
-    def __init__(self):
-        super().__init__()
-
-    def post_update(self, race_card: RaceCard):
-        for horse in race_card.horses:
-            self.update_horse(race_card, horse)
-
-
 class MaxValueSource(FeatureSource, ABC):
 
     def __init__(self):
@@ -251,125 +192,6 @@ class MaxWinProbabilitySource(MaxValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         self.insert_value(race_card, horse, horse.sp_win_prob)
-
-
-class AverageRelativeDistanceBehindSource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-        self.average_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.horse_distance >= 0 and race_card.distance > 0:
-            if horse.place == 1:
-                second_place_horse = race_card.get_horse_by_place(2)
-                second_place_distance = 0
-                if second_place_horse is not None:
-                    second_place_distance = second_place_horse.horse_distance
-
-                relative_distance_ahead = second_place_distance / race_card.distance
-                self.insert_value_into_avg(race_card, horse, relative_distance_ahead)
-            else:
-                relative_distance_behind = -(horse.horse_distance / race_card.distance)
-                self.insert_value_into_avg(race_card, horse, relative_distance_behind)
-
-
-class WinProbabilitySource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.sp_win_prob > 0:
-            self.insert_value_into_avg(race_card, horse, horse.sp_win_prob)
-
-
-class WinRateSource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_value_into_avg(race_card, horse, horse.has_won)
-
-
-class ShowRateSource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        show_indicator = int(1 <= horse.place <= race_card.places_num)
-        self.insert_value_into_avg(race_card, horse, show_indicator)
-
-
-class AveragePlacePercentileSource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.place > 0 and len(race_card.runners) > 1:
-            place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
-            self.insert_value_into_avg(race_card, horse, place_percentile)
-
-
-class AverageVelocitySource(CategoryAverageSource):
-
-    def __init__(self, window_size=5):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
-            lengths_per_second = get_lengths_per_second(
-                race_card.track_name,
-                race_card.race_type,
-                race_card.surface,
-                race_card.going
-            )
-            velocity = get_velocity(race_card.win_time, lengths_per_second, horse.horse_distance, race_card.distance)
-            self.insert_value_into_avg(race_card, horse, velocity)
-
-
-class PurseRateSource(CategoryAverageSource):
-
-    def __init__(self):
-        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=8, fading_factor=0.1))
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_value_into_avg(race_card, horse, horse.purse)
-
-
-class ScratchedRateSource(ScratchedHorseCategoryAverageSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_value_into_avg(race_card, horse, int(horse.is_scratched))
-
-
-class PulledUpRateSource(CategoryAverageSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_value_into_avg(race_card, horse, horse.pulled_up)
-
-
-class PercentageBeatenSource(CategoryAverageSource):
-
-    def __init__(self):
-        super().__init__()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        n_horses = race_card.n_horses
-
-        # TODO: n_horses is 1 sometimes. This should be looked into
-        if horse.place >= 1 and n_horses >= 2:
-            percentage_beaten = (n_horses - horse.place) / (n_horses - 1)
-            self.insert_value_into_avg(race_card, horse, percentage_beaten)
 
 
 class DrawBiasSource(FeatureSource):
@@ -536,3 +358,39 @@ class HasFallenSource(FeatureSource):
             self.has_fallen[horse.subject_id] = False
             return False
         return self.has_fallen[horse.subject_id]
+
+
+class WindowTimeLengthSource(FeatureSource):
+
+    def __init__(self, window_size=5):
+        super().__init__()
+        self.window_size = window_size
+        self.race_dates_of_horse: Dict[str, collections.deque] = {}
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        horse_key = str(horse.subject_id)
+        new_race_date = race_card.date
+
+        if horse_key not in self.race_dates_of_horse:
+            self.race_dates_of_horse[horse_key] = collections.deque(maxlen=self.window_size)
+
+        self.race_dates_of_horse[horse_key].append(new_race_date)
+
+    def get_day_count_of_window(self, horse: Horse, window_size: int) -> int:
+        horse_key = str(horse.subject_id)
+
+        if horse_key not in self.race_dates_of_horse:
+            return None
+
+        n_race_dates = len(self.race_dates_of_horse[horse_key])
+
+        if n_race_dates < window_size:
+            window_start_date = self.race_dates_of_horse[horse_key][0]
+        else:
+            window_start_date = self.race_dates_of_horse[horse_key][-window_size]
+
+        window_end_date = self.race_dates_of_horse[horse_key][-1]
+
+        window_day_count = (window_end_date - window_start_date).days
+
+        return window_day_count

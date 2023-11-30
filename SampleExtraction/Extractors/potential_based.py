@@ -22,7 +22,7 @@ class BestClassPlace(FeatureExtractor):
 
         race_class_difference = int(race_card.race_class) - best_class_place
 
-        return race_class_difference / 6
+        return race_class_difference
 
 
 class HorseTopFinish(FeatureExtractor):

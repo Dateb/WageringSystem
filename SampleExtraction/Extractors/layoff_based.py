@@ -25,7 +25,7 @@ class Layoff(FeatureExtractor, ABC):
             return self.PLACEHOLDER_VALUE
 
         layoff = (race_card.datetime - previous_datetime).days
-        return layoff / 1000
+        return layoff
 
 
 class PreviousRaceLayoff(Layoff):

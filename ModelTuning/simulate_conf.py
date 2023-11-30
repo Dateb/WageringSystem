@@ -10,7 +10,7 @@ if LEARNING_MODE == "Classification":
 else:
     LOSS_FUNCTION = nn.KLDivLoss(reduction="batchmean")
 
-MARKET_TYPE = "PLACE"
+MARKET_TYPE = "WIN"
 MARKET_SOURCE = "Betfair"
 
 CONTAINER_UPPER_LIMIT_PERCENTAGE = 0.1

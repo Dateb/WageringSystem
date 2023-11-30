@@ -17,7 +17,7 @@ class CurrentPurse(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.purse / 100000
+        return race_card.purse
 
 
 class CurrentHorseCount(FeatureExtractor):
@@ -35,7 +35,7 @@ class CurrentDistance(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return float(race_card.distance) / 10000
+        return float(race_card.distance)
 
 
 class CurrentRaceTrack(FeatureExtractor):
@@ -101,7 +101,7 @@ class CurrentGoing(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return float(race_card.going) / 10
+        return float(race_card.going)
 
 
 class WeightAdvantage(FeatureExtractor):
@@ -122,7 +122,7 @@ class AgeFrom(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_from / 15
+        return race_card.age_from
 
 
 class AgeTo(FeatureExtractor):
@@ -131,7 +131,7 @@ class AgeTo(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_to / 15
+        return race_card.age_to
 
 
 class HasTrainerMultipleHorses(FeatureExtractor):
@@ -189,7 +189,7 @@ class TravelDistance(FeatureExtractor):
 
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
-        return travel_distance / 1000
+        return travel_distance
 
 
 class WeatherType(FeatureExtractor):

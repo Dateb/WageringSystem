@@ -1,39 +1,20 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.feature_sources.init import average_place_percentile_source
 
 
-class TrainerWinRate(FeatureExtractor):
+class TrainerPlacePercentile(FeatureExtractor):
 
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.trainer.win_rate == -1 or horse.trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return horse.trainer.win_rate
-
-
-class TrainerPlaceRate(FeatureExtractor):
+    average_place_percentile_source.average_attribute_groups.append(["trainer_name"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.trainer.place_rate == -1 or horse.trainer.num_races < 10:
+        average_place_percentile = average_place_percentile_source.get_average_of_name(horse.trainer_name)
+
+        if average_place_percentile == -1:
             return self.PLACEHOLDER_VALUE
 
-        return horse.trainer.place_rate
-
-
-class TrainerEarningsRate(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if horse.trainer.earnings_rate == -1 or horse.trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return horse.trainer.earnings_rate / 300000
+        return average_place_percentile

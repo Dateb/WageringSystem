@@ -1,9 +1,13 @@
 import json
 from datetime import datetime, time
+from time import sleep
 from typing import Dict, Tuple, List
 
 import websocket
+from websocket import WebSocketConnectionClosedException
 
+from Agent.odds_requesting.offer_requester import OfferRequester
+from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
 from Model.Betting.bet import BetOffer
 
@@ -23,12 +27,35 @@ class RawMarketOffer:
         self.odds_by_horse_number = odds_by_horse_number
 
 
+class RaceCardMarketMap:
+    def __init__(self):
+        self.race_card_to_market = {}
+        self.market_to_race_card = {}
+
+    def add(self, race_card: RaceCard, market: Market):
+        self.race_card_to_market[race_card] = market
+        self.market_to_race_card[market] = race_card
+
+    def get_race_card(self, market: Market) -> RaceCard:
+        return self.market_to_race_card[market]
+
+    def get_market(self, race_card: RaceCard) -> Market:
+        return self.race_card_to_market[race_card]
+
+    def get_race_cards(self) -> List[RaceCard]:
+        return list(self.market_to_race_card.values())
+
+    def get_markets(self) -> List[Market]:
+        return list(self.race_card_to_market.values())
+
+
 class MarketRetriever:
 
-    def __init__(self):
+    def __init__(self, market_type: str):
         self.scraper = get_scraper()
         self.today_markets_url = self.get_markets_url()
         self.today_markets_raw = self.scraper.request_data(self.today_markets_url)
+        self.market_type = market_type
 
     def get_markets_url(self) -> str:
         time_range = "TODAY"
@@ -48,7 +75,6 @@ class MarketRetriever:
                     if track_name in event_data["name"]:
                         market_data = event_data["markets"][race_number - 1]
                         event_id = event_data["id"]
-                        base_market_id = market_data["id"]
 
                         start_time_timestamp = int(market_data["startTime"]) / 1000
                         start_time = datetime.utcfromtimestamp(start_time_timestamp)
@@ -65,7 +91,7 @@ class MarketRetriever:
 
                         place_market_id = ""
                         for market in markets:
-                            if market["marketType"] == "PLACE":
+                            if market["marketType"] == self.market_type:
                                 place_market_id = market["id"]
 
                         if place_market_id:
@@ -74,19 +100,70 @@ class MarketRetriever:
                             return None
 
 
-class ExchangeOddsRequester:
+class ExchangeOfferRequester(OfferRequester):
 
-    def __init__(self, customer_id: str, markets: List[Market]):
+    def __init__(self, customer_id: str, market_type: str, upcoming_race_cards: Dict[str, RaceCard]):
+        super().__init__(upcoming_race_cards)
+        self.customer_id = customer_id
+        self.market_type = market_type
+
+        self.race_card_market_map = RaceCardMarketMap()
+
+        self.init_race_card_market_map()
+        self.markets = self.race_card_market_map.get_markets()
+
         websocket.enableTrace(False)
         self.web_socket = websocket.WebSocket()
         self.scraper = get_scraper()
 
-        self.customer_id = customer_id
-        self.markets = markets
-
-        for market in markets:
+        for market in self.markets:
             market_data = self.get_market_data(market)
             market.horse_number_by_exchange_id = self.extract_number_by_internal_id(market_data)
+
+        self.open_race_connection()
+
+    def init_race_card_market_map(self) -> None:
+        market_retriever = MarketRetriever(self.market_type)
+        for race_card in self.upcoming_race_cards.values():
+            market = market_retriever.get_market(
+                country=race_card.country,
+                track_name=race_card.track_name,
+                race_number=race_card.race_number,
+            )
+
+            if market is not None:
+                self.race_card_market_map.add(race_card, market)
+
+    def get_bet_offers(self) -> List[BetOffer]:
+        raw_market_offer = self.poll_raw_market_offer()
+        if raw_market_offer is not None:
+            return self.raw_market_offer_to_bet_offers(raw_market_offer)
+
+
+    def raw_market_offer_to_bet_offers(self, raw_market_offer: RawMarketOffer) -> List[BetOffer]:
+        race_card = self.race_card_market_map.get_race_card(raw_market_offer.market)
+
+        bet_offers = []
+
+        for horse_number, odds in raw_market_offer.odds_by_horse_number.items():
+            if odds > 0:
+                horse = race_card.get_horse_by_number(int(horse_number))
+
+                if horse is None:
+                    print(f"Horse nr. not found: {horse_number}, at race: {race_card.race_id}")
+                else:
+                    new_offer = BetOffer(
+                        race_card=race_card,
+                        horse=horse,
+                        odds=odds,
+                        scratched_horses=[],
+                        event_datetime=None,
+                        adjustment_factor=1.0,
+                    )
+
+                    bet_offers.append(new_offer)
+
+        return bet_offers
 
     def get_odds_by_horse_number_from_message(self, market: Market, message) -> Dict[str, float]:
         odds_by_internal_id = self.extract_odds_by_internal_id(message)
@@ -103,7 +180,7 @@ class ExchangeOddsRequester:
             if market.market_id == message["id"]:
                 return market
 
-    def open_race_connection(self) -> RawMarketOffer:
+    def open_race_connection(self) -> None:
         self.web_socket.connect(
             url="wss://exch.piwi247.com/customer/ws/multiple-market-prices/585/e95aa9c5-7a6e-40cd-8060-4de2f796e09d/websocket",
             cookie=f"BIAB_CUSTOMER={self.customer_id}",
@@ -133,13 +210,22 @@ class ExchangeOddsRequester:
         market = self.get_market_from_message(opening_odds_message)
         odds_by_horse_number = self.get_odds_by_horse_number_from_message(market, opening_odds_message)
 
-        return RawMarketOffer(market, odds_by_horse_number)
-
     def close_race_connection(self):
         self.web_socket.close()
 
     def poll_raw_market_offer(self) -> RawMarketOffer:
-        message = self.web_socket.recv()
+        while True:
+            try:
+                message = self.web_socket.recv()
+
+                break
+            except OSError as error:
+                print(f"Encountered error during odds receipt: {error}")
+                sleep(60)
+            except WebSocketConnectionClosedException as error:
+                print("Websocket was closed. Trying to reconnect...")
+
+                self.open_race_connection()
 
         if message == "h":
             return None
@@ -175,7 +261,7 @@ class ExchangeOddsRequester:
 
 
 if __name__ == "__main__":
-    ex_odds_requester = ExchangeOddsRequester(
+    ex_odds_requester = ExchangeOfferRequester(
         event_id="32009638",
         market_id="1.208384078"
     )

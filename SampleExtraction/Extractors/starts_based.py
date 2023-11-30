@@ -17,7 +17,7 @@ class LifeTimeStartCount(FeatureExtractor):
 
         if start_count is None:
             return self.PLACEHOLDER_VALUE
-        return start_count / 100
+        return start_count
 
 
 class LifeTimeWinCount(FeatureExtractor):

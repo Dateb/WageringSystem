@@ -149,13 +149,7 @@ class PreviousVelocitySource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
-            lengths_per_second = get_lengths_per_second(
-                race_card.track_name,
-                race_card.race_type,
-                race_card.surface,
-                race_card.going
-            )
-            velocity = get_velocity(race_card.win_time, lengths_per_second, horse.horse_distance, race_card.distance)
+            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
             self.insert_previous_value(race_card, horse, velocity)
 
 

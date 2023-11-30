@@ -1,9 +1,8 @@
-from typing import List
-
-from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, WinProbabilitySource, \
-    WinRateSource, AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
-    PercentageBeatenSource, ScratchedRateSource, MaxWinProbabilitySource, SpeedFiguresSource, DrawBiasSource, \
-    HasFallenSource, FeatureSource, PulledUpRateSource, DistancePreferenceSource, AverageVelocitySource
+from SampleExtraction.feature_sources.average_based import WinProbabilitySource, WinRateSource, \
+    AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
+    AverageMomentumSource, ScratchedRateSource, PulledUpRateSource
+from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, MaxWinProbabilitySource, \
+    DrawBiasSource, WindowTimeLengthSource
 from SampleExtraction.feature_sources.previous_based import LifeTimeStartCountSource, LifeTimeWinCountSource, \
     LifeTimePlaceCountSource, PreviousWinProbSource, PreviousPlacePercentileSource, \
     PreviousRelativeDistanceBehindSource, PreviousTrackNameSource, PreviousDistanceSource, \
@@ -20,17 +19,17 @@ win_rate_source: WinRateSource = WinRateSource()
 average_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
 average_place_percentile_source.average_attribute_groups.append(["name"])
 
-sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-sire_siblings_place_percentile_source.average_attribute_groups.append(["sire"])
+sire_siblings_momentum_source: AverageMomentumSource = AverageMomentumSource()
+sire_siblings_momentum_source.average_attribute_groups.append(["sire", "age"])
 
-dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-dam_siblings_place_percentile_source.average_attribute_groups.append(["dam"])
+dam_siblings_momentum_source: AverageMomentumSource = AverageMomentumSource()
+dam_siblings_momentum_source.average_attribute_groups.append(["dam", "age"])
 
-sire_and_dam_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-sire_and_dam_siblings_place_percentile_source.average_attribute_groups.append(["sire", "dam"])
+sire_and_dam_siblings_momentum_source: AverageMomentumSource = AverageMomentumSource()
+sire_and_dam_siblings_momentum_source.average_attribute_groups.append(["sire", "dam", "age"])
 
-dam_sire_siblings_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
-dam_sire_siblings_place_percentile_source.average_attribute_groups.append(["dam_sire"])
+dam_sire_siblings_momentum_source: AverageMomentumSource = AverageMomentumSource()
+dam_sire_siblings_momentum_source.average_attribute_groups.append(["dam_sire", "age"])
 
 average_relative_distance_behind_source: AverageRelativeDistanceBehindSource = AverageRelativeDistanceBehindSource()
 average_relative_distance_behind_source.average_attribute_groups.append(["name"])
@@ -39,9 +38,8 @@ show_rate_source: ShowRateSource = ShowRateSource()
 
 purse_rate_source: PurseRateSource = PurseRateSource()
 
-dam_and_sire_average_velocity_source: AverageVelocitySource = AverageVelocitySource()
+dam_and_sire_average_velocity_source: AverageMomentumSource = AverageMomentumSource()
 
-percentage_beaten_source: PercentageBeatenSource = PercentageBeatenSource()
 scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
 pulled_up_rate_source: PulledUpRateSource = PulledUpRateSource()
 
@@ -73,15 +71,11 @@ equipment_already_worn_source: EquipmentAlreadyWornSource = EquipmentAlreadyWorn
 
 previous_date_source: PreviousDateSource = PreviousDateSource()
 
-speed_figures_source: SpeedFiguresSource = SpeedFiguresSource()
-
 draw_bias_source: DrawBiasSource = DrawBiasSource()
 
-has_fallen_source: HasFallenSource = HasFallenSource()
-
-distance_preference_source: DistancePreferenceSource = DistancePreferenceSource()
-
 best_class_place_source: BestClassPlaceSource = BestClassPlaceSource()
+
+window_time_length_source: WindowTimeLengthSource = WindowTimeLengthSource(window_size=7)
 
 
 FEATURE_SOURCES = [
@@ -92,7 +86,7 @@ FEATURE_SOURCES = [
         average_place_percentile_source,
         average_relative_distance_behind_source,
 
-        purse_rate_source, percentage_beaten_source, scratched_rate_source, pulled_up_rate_source,
+        purse_rate_source, scratched_rate_source, pulled_up_rate_source,
 
         life_time_start_count_source, life_time_win_count_source, life_time_place_count_source,
 
@@ -117,17 +111,15 @@ FEATURE_SOURCES = [
 
         draw_bias_source,
 
-        sire_siblings_place_percentile_source,
-        dam_siblings_place_percentile_source,
-        sire_and_dam_siblings_place_percentile_source,
-        dam_sire_siblings_place_percentile_source,
+        sire_siblings_momentum_source,
+        dam_siblings_momentum_source,
+        sire_and_dam_siblings_momentum_source,
+        dam_sire_siblings_momentum_source,
 
-        distance_preference_source,
 
         best_class_place_source,
 
         dam_and_sire_average_velocity_source,
 
-        # speed_figures_source,
-        # has_fallen_source,
+        window_time_length_source,
     ]

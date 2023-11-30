@@ -2,7 +2,7 @@ import datetime
 from typing import List
 
 from Agent.AgentModel import AgentModel
-from Agent.exchange_odds_request import ExchangeOddsRequester
+from Agent.odds_requesting.exchange_offer_requester import ExchangeOfferRequester
 from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -35,13 +35,13 @@ class ExchangeMonitor:
 
         self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(self.race_cards[0].race_id)
 
-        self.exchange_odds_requester: ExchangeOddsRequester = None
+        self.exchange_odds_requester: ExchangeOfferRequester = None
 
     def open_race(self, customer_id, event_id: str, market_id: str) -> None:
         if self.exchange_odds_requester is not None:
             self.exchange_odds_requester.close_race_connection()
 
-        self.exchange_odds_requester = ExchangeOddsRequester(
+        self.exchange_odds_requester = ExchangeOfferRequester(
             customer_id=customer_id,
             event_id=event_id,
             market_id=market_id,

@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from numpy import ndarray, mean
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from torch.utils.data import DataLoader
 
@@ -39,8 +39,8 @@ class NNClassifier(Estimator):
         )
         print(f"Using {self.device} device")
 
-        self.missing_values_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         self.one_hot_encoder = OneHotEncoder(handle_unknown="ignore")
+        self.standard_scaler = StandardScaler()
 
         self.feature_padding_transformer = FeaturePaddingTransformer(self.horses_per_race_padding_size)
 
@@ -72,8 +72,8 @@ class NNClassifier(Estimator):
         test_race_card_loader = TestRaceCardLoader(
             test_sample,
             self.feature_manager,
-            missing_values_imputer=self.missing_values_imputer,
             one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
             feature_padding_transformer=self.feature_padding_transformer,
             label_padding_transformer=self.label_padding_transformer
         )
@@ -82,7 +82,7 @@ class NNClassifier(Estimator):
 
         with torch.no_grad():
             self.network.eval()
-            predictions = self.network(test_race_card_loader.x_tensor.to(self.device))
+            predictions = self.network(test_race_card_loader.dataloader.dataset.tensors[0].to(self.device))
 
         scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
@@ -101,8 +101,8 @@ class NNClassifier(Estimator):
         train_race_card_loader = TrainRaceCardLoader(
             train_sample,
             self.feature_manager,
-            missing_values_imputer=self.missing_values_imputer,
             one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
             feature_padding_transformer=self.feature_padding_transformer,
             label_padding_transformer=self.label_padding_transformer
         )
@@ -110,8 +110,8 @@ class NNClassifier(Estimator):
         validation_race_card_loader = TestRaceCardLoader(
             validation_sample,
             self.feature_manager,
-            missing_values_imputer=self.missing_values_imputer,
             one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
             feature_padding_transformer=self.feature_padding_transformer,
             label_padding_transformer=self.label_padding_transformer,
         )
@@ -226,8 +226,8 @@ class NNClassifier(Estimator):
             monthly_race_cards_loader = TestRaceCardLoader(
                 monthly_sample,
                 self.feature_manager,
-                missing_values_imputer=self.missing_values_imputer,
                 one_hot_encoder=self.one_hot_encoder,
+                standard_scaler=self.standard_scaler,
                 feature_padding_transformer=self.feature_padding_transformer,
                 label_padding_transformer=self.label_padding_transformer
             )

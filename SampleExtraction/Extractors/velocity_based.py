@@ -18,7 +18,7 @@ class PreviousVelocity(FeatureExtractor):
         if previous_velocity is None:
             return self.PLACEHOLDER_VALUE
 
-        return previous_velocity / 25
+        return previous_velocity
 
 
 class SireVelocity(FeatureExtractor):
@@ -33,7 +33,7 @@ class SireVelocity(FeatureExtractor):
         if average_velocity == -1:
             return self.PLACEHOLDER_VALUE
 
-        return average_velocity / 25
+        return average_velocity
 
 
 class DamVelocity(FeatureExtractor):
@@ -47,4 +47,4 @@ class DamVelocity(FeatureExtractor):
         if average_velocity == -1:
             return self.PLACEHOLDER_VALUE
 
-        return average_velocity / 25
+        return average_velocity

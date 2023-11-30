@@ -3,20 +3,20 @@ import pickle
 from time import sleep
 from copy import deepcopy
 from datetime import datetime, date, timedelta, time
-from json import JSONDecodeError
-from typing import List, Dict
+from typing import Dict
 
 import requests
 from tqdm import tqdm
 
-from Agent.exchange_odds_request import ExchangeOddsRequester, MarketRetriever, Market, RawMarketOffer
+from Agent.odds_requesting.bookie_offer_requester import BookieOfferRequester
+from Agent.odds_requesting.exchange_offer_requester import ExchangeOfferRequester
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Model.Betting.bet import Bettor, BetOffer
+from Model.Betting.bet import Bettor
 from Model.Estimators.Classification.NNClassifier import NNClassifier
-from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer
+from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
@@ -25,35 +25,20 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
 
 
-class RaceCardMarketMap:
-    def __init__(self):
-        self.race_card_to_market = {}
-        self.market_to_race_card = {}
-
-    def add(self, race_card: RaceCard, market: Market):
-        self.race_card_to_market[race_card] = market
-        self.market_to_race_card[market] = race_card
-
-    def get_race_card(self, market: Market) -> RaceCard:
-        return self.market_to_race_card[market]
-
-    def get_market(self, race_card: RaceCard) -> Market:
-        return self.race_card_to_market[race_card]
-
-    def get_race_cards(self) -> List[RaceCard]:
-        return list(self.market_to_race_card.values())
-
-    def get_markets(self) -> List[Market]:
-        return list(self.race_card_to_market.values())
-
-
 class BetAgent:
 
     BETS_PATH = f"../data/bets_log/{datetime.now()}"
 
     def __init__(self):
-        self.customer_id = self.get_customer_id()
-        self.race_card_market_map = RaceCardMarketMap()
+        self.market_type = "WIN"
+        self.offer_source = "Betfair"
+        self.betting_mode = "Write"
+
+        if self.market_type == "WIN":
+            self.probabilizer = WinProbabilizer()
+        else:
+            self.probabilizer = PlaceProbabilizer()
+
         self.current_bets = []
         self.bettor = Bettor(bet_threshold=0.5)
         self.feature_manager = FeatureManager()
@@ -64,40 +49,27 @@ class BetAgent:
         with open(ESTIMATOR_PATH, "rb") as f:
             self.estimator: NNClassifier = pickle.load(f)
 
+        self.upcoming_race_cards = self.get_upcoming_race_cards()
         self.init_feature_sources()
 
-        self.upcoming_race_cards = self.get_upcoming_race_cards()
         race_cards_sample = self.race_cards_to_sample()
 
         self.estimator.score_test_sample(race_cards_sample)
 
         scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
-        self.estimation_result = PlaceProbabilizer().create_estimation_result(deepcopy(race_cards_sample), scores)
+        self.estimation_result = self.probabilizer.create_estimation_result(deepcopy(race_cards_sample), scores)
 
         print(self.estimation_result.probability_estimates)
 
-        self.init_race_card_market_map()
-
-        self.exchange_odds_requester = ExchangeOddsRequester(
-            customer_id=self.customer_id,
-            markets=self.race_card_market_map.get_markets()
-        )
-
-        opening_market_offer = self.exchange_odds_requester.open_race_connection()
-        opening_bet_offers = self.raw_market_offer_to_bet_offers(opening_market_offer)
-
-        for bet_offer in opening_bet_offers:
-            print(bet_offer)
-
-        race_card = opening_bet_offers[0].race_card
-        bet_offers = {str(race_card.datetime): opening_bet_offers}
-        bets = self.bettor.bet(bet_offers, self.estimation_result)
-
-        if bets:
-            self.current_bets += bets
-
-            with open(self.BETS_PATH, "wb") as f:
-                pickle.dump(self.current_bets, f)
+        if self.offer_source == "Betfair":
+            customer_id = self.get_customer_id()
+            self.offer_requester = ExchangeOfferRequester(
+                customer_id=customer_id,
+                market_type=self.market_type,
+                upcoming_race_cards=self.upcoming_race_cards
+            )
+        else:
+            self.offer_requester = BookieOfferRequester(self.upcoming_race_cards)
 
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
@@ -159,43 +131,6 @@ class BetAgent:
 
         return test_sample_encoder.get_race_cards_sample()
 
-    def init_race_card_market_map(self) -> None:
-        market_retriever = MarketRetriever()
-        for race_card in self.upcoming_race_cards.values():
-            market = market_retriever.get_market(
-                country=race_card.country,
-                track_name=race_card.track_name,
-                race_number=race_card.race_number,
-            )
-
-            if market is not None:
-                self.race_card_market_map.add(race_card, market)
-
-    def raw_market_offer_to_bet_offers(self, raw_market_offer: RawMarketOffer) -> List[BetOffer]:
-        race_card = self.race_card_market_map.get_race_card(raw_market_offer.market)
-
-        bet_offers = []
-
-        for horse_number, odds in raw_market_offer.odds_by_horse_number.items():
-            if odds > 0:
-                horse = race_card.get_horse_by_number(int(horse_number))
-
-                if horse is None:
-                    print(f"Horse nr. not found: {horse_number}, at race: {race_card.race_id}")
-                else:
-                    new_offer = BetOffer(
-                        race_card=race_card,
-                        horse=horse,
-                        odds=odds,
-                        scratched_horses=[],
-                        event_datetime=None,
-                        adjustment_factor=1.0,
-                    )
-
-                    bet_offers.append(new_offer)
-
-        return bet_offers
-
     def get_customer_id(self) -> str:
         login_response = requests.post(
             "https://api.piwi247.com/api/users/login",
@@ -212,23 +147,27 @@ class BetAgent:
 
     def run(self):
         while True:
-            sleep(1)
-            raw_market_offer = self.exchange_odds_requester.poll_raw_market_offer()
+            bet_offers = self.offer_requester.get_bet_offers()
 
-            if raw_market_offer is not None:
-                bet_offers = self.raw_market_offer_to_bet_offers(raw_market_offer)
-
+            if bet_offers is not None:
                 race_card = bet_offers[0].race_card
                 bet_offers = {str(race_card.datetime): bet_offers}
 
                 bets = self.bettor.bet(bet_offers, self.estimation_result)
 
                 if bets:
-                    print("Writing new bets...")
                     self.current_bets += bets
+                    if self.betting_mode == "Write":
+                        print("Writing new bets...")
 
-                    with open(self.BETS_PATH, "wb") as f:
-                        pickle.dump(self.current_bets, f)
+                        with open(self.BETS_PATH, "wb") as f:
+                            pickle.dump(self.current_bets, f)
+
+                    if self.betting_mode == "Print":
+                        for bet in bets:
+                            print("Found suitable bet:")
+                            print(bet)
+                            print("---------------------")
 
 
 def main():

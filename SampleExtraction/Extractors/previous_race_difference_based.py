@@ -17,7 +17,7 @@ class DistanceDifference(FeatureExtractor):
         if previous_distance is None:
             return self.PLACEHOLDER_VALUE
 
-        return (race_card.distance / previous_distance) / 10
+        return (race_card.distance / previous_distance)
 
 
 class RaceGoingDifference(FeatureExtractor):
@@ -32,7 +32,7 @@ class RaceGoingDifference(FeatureExtractor):
         if previous_race_going is None:
             return self.PLACEHOLDER_VALUE
 
-        return (race_card.going - previous_race_going) / 10
+        return (race_card.going - previous_race_going)
 
 
 class RaceClassDifference(FeatureExtractor):
@@ -52,7 +52,7 @@ class RaceClassDifference(FeatureExtractor):
 
         race_class_difference = int(race_card.race_class) - int(previous_race_class)
 
-        return race_class_difference / 5
+        return race_class_difference
 
 
 class HasTrainerChanged(FeatureExtractor):
@@ -164,7 +164,7 @@ class WeightDifference(FeatureExtractor):
         if previous_weight < 0:
             return self.PLACEHOLDER_VALUE
 
-        return (current_weight - previous_weight) / 100
+        return current_weight - previous_weight
 
 
 class AllowanceDifference(FeatureExtractor):
@@ -190,143 +190,7 @@ class AllowanceDifference(FeatureExtractor):
         if previous_allowance < 0:
             return self.PLACEHOLDER_VALUE
 
-        return (current_allowance - previous_allowance) / 100
-
-
-class PreviousJockeyWinRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_jockey is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_jockey.win_rate == -1 or previous_jockey.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-        return previous_jockey.win_rate
-
-
-class PreviousJockeyPlaceRate(FeatureExtractor):
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_jockey is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_jockey.place_rate == -1 or previous_jockey.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_jockey.place_rate
-
-
-class PreviousJockeyEarningsRate(FeatureExtractor):
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_jockey = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_jockey is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_jockey.earnings_rate == -1 or previous_jockey.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_jockey.earnings_rate / 300000
-
-
-class PreviousTrainerWinRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_trainer = previous_trainer_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_trainer is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_trainer.win_rate == -1 or previous_trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-        return previous_trainer.win_rate
-
-
-class PreviousTrainerPlaceRate(FeatureExtractor):
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_trainer = previous_trainer_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_trainer is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_trainer.place_rate == -1 or previous_trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_trainer.place_rate
-
-
-class PreviousTrainerEarningsRate(FeatureExtractor):
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_trainer = previous_trainer_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_trainer is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_trainer.earnings_rate == -1 or previous_trainer.num_races < 10:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_trainer.earnings_rate / 300000
-
-
-class TrainerEarningsRateDifference(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        current_earnings_rate = horse.trainer.earnings_rate / 300000
-
-        if current_earnings_rate < 0:
-            return self.PLACEHOLDER_VALUE
-
-        previous_trainer = previous_jockey_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_trainer is None:
-            return self.PLACEHOLDER_VALUE
-
-        previous_earnings_rate = previous_trainer.earnings_rate / 300000
-
-        if previous_earnings_rate < 0:
-            return self.PLACEHOLDER_VALUE
-
-        earnings_rate_difference = (current_earnings_rate - previous_earnings_rate) / 2 + 0.5
-
-        return earnings_rate_difference
+        return current_allowance - previous_allowance
 
 
 class OwnerWinRateDifference(FeatureExtractor):

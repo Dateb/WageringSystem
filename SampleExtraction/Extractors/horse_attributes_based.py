@@ -18,7 +18,7 @@ class Age(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return int(horse.age) / 15
+        return int(horse.age)
 
 
 class Gender(FeatureExtractor):
@@ -62,7 +62,7 @@ class CurrentRating(FeatureExtractor):
         rating = int(float(horse.rating))
         if rating in [-1, 0]:
             return self.PLACEHOLDER_VALUE
-        return rating / 150
+        return rating
 
     def get_placeholder_rating(self, race_card: RaceCard) -> float:
         race_type = race_card.race_type_detail

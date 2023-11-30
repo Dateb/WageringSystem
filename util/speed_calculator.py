@@ -47,10 +47,15 @@ def compute_speed_figure(
     return speed_figure
 
 
-def get_velocity(win_time: float, lengths_per_second: float, horse_distance: float, race_distance: float):
-    horse_time = get_horse_time(win_time, lengths_per_second, horse_distance)
+def get_velocity(win_time: float, horse_lengths_behind: float, race_distance: float):
+    horse_m_behind = horse_lengths_behind_to_horse_m_behind(horse_lengths_behind)
+    total_m_run = race_distance - horse_m_behind
 
-    return race_distance / horse_time
+    return total_m_run / win_time
+
+
+def horse_lengths_behind_to_horse_m_behind(horse_lengths: float) -> float:
+    return horse_lengths * METERS_PER_LENGTH
 
 
 def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):
