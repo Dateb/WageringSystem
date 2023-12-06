@@ -10,8 +10,6 @@ from SampleExtraction.time_calculation import get_day_difference
 
 class Layoff(FeatureExtractor, ABC):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self, attribute_group: List[str]):
         super().__init__()
         self.attribute_group = attribute_group

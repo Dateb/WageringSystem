@@ -7,7 +7,10 @@ from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHor
 from SampleExtraction.Extractors.equipment_based import HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, \
     HasFirstTimeCheekPieces, HasBlinkers, HasHood, HasCheekPieces, HasVisor, HasEyeCovers, HasEyeShield
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, PostPosition
-from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyPlacePercentile
+from SampleExtraction.Extractors.horse_jockey_based import HorseJockeyShowRate, HorseJockeyWinProbability, \
+    HorseJockeyPlacePercentile, HorseJockeyMomentum
+from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyPlacePercentile, \
+    CurrentJockeyWeight
 from SampleExtraction.Extractors.layoff_based import PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
@@ -21,7 +24,7 @@ from SampleExtraction.Extractors.previous_race_based import PreviousRelativeDist
     PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
     PreviousSameSurfaceRelativeDistanceBehind, \
     PreviousSameTrackRelativeDistanceBehind, PreviousSameRaceClassRelativeDistanceBehind, PulledUpPreviousRace, \
-    PreviousSameSurfaceVelocity, PreviousSameTrackVelocity, PreviousSameRaceClassVelocity, HasPreviousRaces
+    PreviousSameSurfaceMomentum, PreviousSameTrackMomentum, PreviousSameRaceClassMomentum, HasPreviousRaces
 from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
     DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, OwnerWinRateDifference
 from SampleExtraction.Extractors.purse_based import HorsePurseRate, DamPurseRate
@@ -32,10 +35,10 @@ from SampleExtraction.Extractors.starts_based import LifeTimeStartCount
 from SampleExtraction.Extractors.time_based import WeekDayCos, WeekDaySin, MinutesIntoDay, MonthCos, MonthSin, \
     DayOfMonthCos, DayOfMonthSin
 from SampleExtraction.Extractors.trainer_based import TrainerPlacePercentile
-from SampleExtraction.Extractors.velocity_based import PreviousVelocity, DamVelocity, SireVelocity
-from SampleExtraction.Extractors.win_rate_based import BreederWinRate, OwnerWinRate, HorseWinRate, \
+from SampleExtraction.Extractors.velocity_based import PreviousMomentum, DamVelocity, SireVelocity
+from SampleExtraction.Extractors.win_rate_based import BreederMomentum, OwnerMomentum, HorseWinRate, \
     HorsePlacePercentile, \
-    HorseMomentum, HorseWinProbability, WindowTimeLength
+    HorseMomentum, HorseWinProbability, WindowTimeLength, HorseVelocity
 from SampleExtraction.feature_sources.init import FEATURE_SOURCES
 
 
@@ -82,22 +85,25 @@ class FeatureManager:
         momentum_features = [HorseMomentum(window_size=i) for i in window_sizes]
         window_time_length_features = [WindowTimeLength(window_size=i) for i in window_sizes]
 
-        default_features = [
+        default_features = ([
             CurrentRaceTrack(),
             CurrentRaceClass(),
             CurrentRaceSurface(),
+
             CurrentRaceType(),
             CurrentRaceTypeDetail(),
             CurrentRaceCategory(),
+
             CurrentGoing(),
             CurrentDistance(),
             CurrentPurse(),
 
             CurrentRating(),
             Age(),
+
             Gender(),
+
             AgeFrom(), AgeTo(),
-            # PostPosition(),
 
             HorsePulledUpRate(),
             PulledUpPreviousRace(),
@@ -123,7 +129,11 @@ class FeatureManager:
             PreviousSameTrackWinProbability(),
             PreviousSameRaceClassWinProbability(),
 
-            PreviousVelocity(),
+            PreviousMomentum(),
+
+            PreviousSameSurfaceMomentum(),
+            PreviousSameTrackMomentum(),
+            PreviousSameRaceClassMomentum(),
 
             PreviousPlacePercentile(),
 
@@ -146,7 +156,7 @@ class FeatureManager:
             JockeyPlacePercentile(),
             TrainerPlacePercentile(),
 
-            JockeyWeight(),
+            CurrentJockeyWeight(),
             WeightAllowance(),
 
             DistanceDifference(),
@@ -158,7 +168,6 @@ class FeatureManager:
 
             OwnerWinRateDifference(),
 
-            #TODO: Use momentum for draw bias
             DrawBias(),
 
             TravelDistance(),
@@ -169,23 +178,38 @@ class FeatureManager:
 
             HasTrainerMultipleHorses(),
 
-            BreederWinRate(), OwnerWinRate(),
-
-            DamPlacePercentile(), DamRelativeDistanceBehind(),
-            SirePlacePercentile(), SireRelativeDistanceBehind(),
-
             SireSiblingsMomentum(),
             DamSiblingsMomentum(),
             SireAndDamSiblingsMomentum(),
             DamSireSiblingsMomentum(),
 
-            # HasBlinkers(), HasHood(), HasCheekPieces(),
-            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+            HasBlinkers(), HasHood(), HasCheekPieces(),
+            HasVisor(), HasEyeCovers(), HasEyeShield(),
 
             BestClassPlace(),
             LifeTimeStartCount(),
 
+            #TODO: Replace to momentum
             DamVelocity(), SireVelocity(),
+
+            BreederMomentum(), OwnerMomentum(),
+
+
+            HorseJockeyWinProbability(),
+            HorseJockeyPlacePercentile(),
+            HorseJockeyMomentum(),
+            HorseJockeyShowRate(),
+
+
+
+
+            DamPlacePercentile(), DamRelativeDistanceBehind(),
+            SirePlacePercentile(), SireRelativeDistanceBehind(),
+
+
+
+
+            # PostPosition(),
 
             # DamPurseRate(), SirePurseRate(),
 
@@ -286,7 +310,6 @@ class FeatureManager:
             #
             # HorseBreederWinRate(),
             #
-            # HorseJockeyShowRate(),
             #
             # HasWonAfterLongBreak(),
             # ComingFromLayoff(),
@@ -330,7 +353,14 @@ class FeatureManager:
             # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
             #
             # MeanSpeedDiff(),
-        ] + win_prob_features + win_rate_features + show_rate_features + place_percentile_features + momentum_features + window_time_length_features
+        ]
+                            + win_prob_features
+                            + win_rate_features
+                            + show_rate_features
+                            + place_percentile_features
+                            + momentum_features
+                            + window_time_length_features
+                            )
 
         return default_features
 

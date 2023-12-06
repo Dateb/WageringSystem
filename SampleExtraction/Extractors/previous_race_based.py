@@ -5,7 +5,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.feature_sources.init import previous_win_prob_source, previous_place_percentile_source, \
-    previous_relative_distance_behind_source, previous_pulled_up_source, previous_velocity_source
+    previous_relative_distance_behind_source, previous_pulled_up_source, previous_momentum_source
 from SampleExtraction.feature_sources.previous_based import PreviousValueSource
 
 
@@ -26,7 +26,6 @@ class HasPreviousRaces(FeatureExtractor):
 class PreviousWinProbability(FeatureExtractor):
 
     previous_win_prob_source.previous_value_attribute_groups.append(["subject_id"])
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -54,12 +53,12 @@ class PreviousSameAttributeDifference(FeatureExtractor, ABC):
         attribute_group_key = self.previous_value_source.get_attribute_group_key(race_card, horse, self.attribute_group)
 
         previous_same_attribute_value = self.previous_value_source.get_previous_of_name(attribute_group_key)
-        previous_value = self.previous_value_source.get_previous_of_name(str(horse.subject_id))
+        # previous_value = self.previous_value_source.get_previous_of_name(str(horse.subject_id))
 
         if previous_same_attribute_value is None:
             return self.PLACEHOLDER_VALUE
 
-        return previous_same_attribute_value - previous_value
+        return previous_same_attribute_value
 
 
 class PreviousSameSurfaceWinProbability(PreviousSameAttributeDifference):
@@ -68,22 +67,10 @@ class PreviousSameSurfaceWinProbability(PreviousSameAttributeDifference):
         super().__init__(previous_win_prob_source, ["subject_id", "surface"])
 
 
-class PreviousSameSurfaceVelocity(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_velocity_source, ["subject_id", "surface"])
-
-
 class PreviousSameGoingWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "going"])
-
-
-class PreviousSameGoingVelocity(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_velocity_source, ["subject_id", "going"])
 
 
 class PreviousSameTrackWinProbability(PreviousSameAttributeDifference):
@@ -92,22 +79,34 @@ class PreviousSameTrackWinProbability(PreviousSameAttributeDifference):
         super().__init__(previous_win_prob_source, ["subject_id", "track_name"])
 
 
-class PreviousSameTrackVelocity(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_velocity_source, ["subject_id", "track_name"])
-
-
 class PreviousSameRaceClassWinProbability(PreviousSameAttributeDifference):
 
     def __init__(self):
         super().__init__(previous_win_prob_source, ["subject_id", "race_class"])
 
 
-class PreviousSameRaceClassVelocity(PreviousSameAttributeDifference):
+class PreviousSameRaceClassMomentum(PreviousSameAttributeDifference):
 
     def __init__(self):
-        super().__init__(previous_velocity_source, ["subject_id", "race_class"])
+        super().__init__(previous_momentum_source, ["subject_id", "race_class"])
+
+
+class PreviousSameTrackMomentum(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_momentum_source, ["subject_id", "track_name"])
+
+
+class PreviousSameSurfaceMomentum(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_momentum_source, ["subject_id", "surface"])
+
+
+class PreviousSameGoingMomentum(PreviousSameAttributeDifference):
+
+    def __init__(self):
+        super().__init__(previous_momentum_source, ["subject_id", "going"])
 
 
 class PreviousSameSurfacePlacePercentile(PreviousSameAttributeDifference):
@@ -225,9 +224,8 @@ class PreviousSlowerThanFraction(FeatureExtractor):
 
 
 class PulledUpPreviousRace(FeatureExtractor):
-    previous_pulled_up_source.previous_value_attribute_groups.append(["subject_id"])
 
-    PLACEHOLDER_VALUE = 0
+    previous_pulled_up_source.previous_value_attribute_groups.append(["subject_id"])
 
     def __init__(self):
         super().__init__()
@@ -238,4 +236,4 @@ class PulledUpPreviousRace(FeatureExtractor):
         if previous_pulled_up is None:
             return self.PLACEHOLDER_VALUE
 
-        return previous_pulled_up
+        return int(previous_pulled_up)

@@ -6,8 +6,6 @@ from SampleExtraction.feature_sources.init import best_class_place_source
 
 class BestClassPlace(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 

@@ -9,8 +9,6 @@ from SampleExtraction.feature_sources.init import sire_siblings_momentum_source,
 
 class SireSiblingsMomentum(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -29,8 +27,6 @@ class SireSiblingsMomentum(FeatureExtractor):
 
 class SirePlacePercentile(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -48,8 +44,6 @@ class SirePlacePercentile(FeatureExtractor):
 
 class SireRelativeDistanceBehind(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -65,8 +59,6 @@ class SireRelativeDistanceBehind(FeatureExtractor):
         return sire_relative_distance_behind
 
 class DamSiblingsMomentum(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -86,8 +78,6 @@ class DamSiblingsMomentum(FeatureExtractor):
 
 class SireAndDamSiblingsMomentum(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -102,8 +92,6 @@ class SireAndDamSiblingsMomentum(FeatureExtractor):
 
 
 class DamSireSiblingsMomentum(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
@@ -123,8 +111,6 @@ class DamSireSiblingsMomentum(FeatureExtractor):
 
 class DamPlacePercentile(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-
     def __init__(self):
         super().__init__()
 
@@ -141,8 +127,6 @@ class DamPlacePercentile(FeatureExtractor):
 
 
 class DamRelativeDistanceBehind(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()

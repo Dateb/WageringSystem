@@ -12,6 +12,9 @@ class HorsePurseRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if purse_rate_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         purse_rate = purse_rate_source.get_average_of_name(str(horse.subject_id))
 
         if purse_rate == -1:

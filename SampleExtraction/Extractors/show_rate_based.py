@@ -17,6 +17,9 @@ class HorseShowRate(FeatureExtractor):
         FEATURE_SOURCES.append(self.show_rate_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if self.show_rate_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         show_rate = self.show_rate_source.get_average_of_name(str(horse.subject_id))
         if show_rate == -1:
             return self.PLACEHOLDER_VALUE
@@ -46,17 +49,6 @@ class TrainerShowRate(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         return get_show_rate_of_name(horse.trainer_name)
-
-
-class HorseJockeyShowRate(FeatureExtractor):
-
-    show_rate_source.average_attribute_groups.append(["name", "jockey_name"])
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return get_show_rate_of_name(f"{horse.name}_{horse.jockey_name}")
 
 
 class HorseTrainerShowRate(FeatureExtractor):

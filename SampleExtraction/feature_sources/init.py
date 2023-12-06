@@ -1,4 +1,4 @@
-from SampleExtraction.feature_sources.average_based import WinProbabilitySource, WinRateSource, \
+from SampleExtraction.feature_sources.average_based import AverageWinProbabilitySource, WinRateSource, \
     AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
     AverageMomentumSource, ScratchedRateSource, PulledUpRateSource
 from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, MaxWinProbabilitySource, \
@@ -7,17 +7,20 @@ from SampleExtraction.feature_sources.previous_based import LifeTimeStartCountSo
     LifeTimePlaceCountSource, PreviousWinProbSource, PreviousPlacePercentileSource, \
     PreviousRelativeDistanceBehindSource, PreviousTrackNameSource, PreviousDistanceSource, \
     PreviousRaceGoingSource, PreviousRaceClassSource, EquipmentAlreadyWornSource, PreviousTrainerSource, \
-    PreviousDateSource, PreviousJockeySource, PreviousPulledUpSource, BestClassPlaceSource, PreviousVelocitySource, \
+    PreviousDateSource, PreviousJockeySource, PreviousPulledUpSource, BestClassPlaceSource, PreviousMomentumSource, \
     PreviousOwnerSource
 
 horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
 
 # Average based sources:
-win_probability_source:  WinProbabilitySource = WinProbabilitySource()
 win_rate_source: WinRateSource = WinRateSource()
+
+average_win_probability_source:  AverageWinProbabilitySource = AverageWinProbabilitySource()
 
 average_place_percentile_source: AveragePlacePercentileSource = AveragePlacePercentileSource()
 average_place_percentile_source.average_attribute_groups.append(["name"])
+
+average_momentum_source: AverageMomentumSource = AverageMomentumSource()
 
 sire_siblings_momentum_source: AverageMomentumSource = AverageMomentumSource()
 sire_siblings_momentum_source.average_attribute_groups.append(["sire", "age"])
@@ -56,7 +59,7 @@ previous_trainer_source: PreviousTrainerSource = PreviousTrainerSource()
 previous_owner_source: PreviousOwnerSource = PreviousOwnerSource()
 
 previous_win_prob_source: PreviousWinProbSource = PreviousWinProbSource()
-previous_velocity_source = PreviousVelocitySource()
+previous_momentum_source = PreviousMomentumSource()
 previous_place_percentile_source: PreviousPlacePercentileSource = PreviousPlacePercentileSource()
 previous_relative_distance_behind_source: PreviousRelativeDistanceBehindSource = PreviousRelativeDistanceBehindSource()
 previous_track_name_source: PreviousTrackNameSource = PreviousTrackNameSource()
@@ -81,8 +84,9 @@ window_time_length_source: WindowTimeLengthSource = WindowTimeLengthSource(windo
 FEATURE_SOURCES = [
         horse_name_to_subject_id_source,
 
-        win_probability_source, win_rate_source, show_rate_source,
+        average_win_probability_source, win_rate_source, show_rate_source,
 
+        average_momentum_source,
         average_place_percentile_source,
         average_relative_distance_behind_source,
 
@@ -97,7 +101,7 @@ FEATURE_SOURCES = [
         previous_owner_source,
 
         previous_win_prob_source,
-        previous_velocity_source,
+        previous_momentum_source,
         previous_place_percentile_source, previous_relative_distance_behind_source,
 
         previous_pulled_up_source,

@@ -1,10 +1,10 @@
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.average_based import WinProbabilitySource, WinRateSource, \
-    AveragePlacePercentileSource, AverageMomentumSource
+from SampleExtraction.feature_sources.average_based import AverageWinProbabilitySource, WinRateSource, \
+    AveragePlacePercentileSource, AverageMomentumSource, AverageVelocitySource
 from SampleExtraction.feature_sources.init import win_rate_source, FEATURE_SOURCES, \
-    window_time_length_source
+    window_time_length_source, average_momentum_source
 
 
 class HorseWinProbability(FeatureExtractor):
@@ -12,12 +12,16 @@ class HorseWinProbability(FeatureExtractor):
     def __init__(self, window_size=5):
         super().__init__()
         self.window_size = window_size
-        self.win_probability_source = WinProbabilitySource(window_size)
+        self.win_probability_source = AverageWinProbabilitySource(window_size)
         self.win_probability_source.average_attribute_groups.append(["subject_id"])
         FEATURE_SOURCES.append(self.win_probability_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if self.win_probability_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         win_probability = self.win_probability_source.get_average_of_name(str(horse.subject_id))
+
         if win_probability == -1:
             return self.PLACEHOLDER_VALUE
         return win_probability
@@ -38,6 +42,9 @@ class HorseWinRate(FeatureExtractor):
         FEATURE_SOURCES.append(self.win_rate_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if self.win_rate_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         win_rate = self.win_rate_source.get_average_of_name(str(horse.subject_id))
 
         if win_rate == -1:
@@ -61,10 +68,34 @@ class HorsePlacePercentile(FeatureExtractor):
         FEATURE_SOURCES.append(self.place_percentile_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if self.place_percentile_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         average_place_percentile = self.place_percentile_source.get_average_of_name(str(horse.subject_id))
         if average_place_percentile == -1:
             return self.PLACEHOLDER_VALUE
         return average_place_percentile
+
+    def get_name(self) -> str:
+        return f"{type(self).__name__}_{self.window_size}"
+
+
+class HorseVelocity(FeatureExtractor):
+
+    def __init__(self, window_size=5):
+        super().__init__()
+        self.window_size = window_size
+        self.velocity_source = AverageVelocitySource(window_size)
+        self.velocity_source.average_attribute_groups.append(["subject_id"])
+        FEATURE_SOURCES.append(self.velocity_source)
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        velocity = self.velocity_source.get_average_of_name(str(horse.subject_id))
+
+        if velocity == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return velocity
 
     def get_name(self) -> str:
         return f"{type(self).__name__}_{self.window_size}"
@@ -80,6 +111,9 @@ class HorseMomentum(FeatureExtractor):
         FEATURE_SOURCES.append(self.momentum_source)
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if self.momentum_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         average_momentum = self.momentum_source.get_average_of_name(str(horse.subject_id))
 
         if average_momentum == -1:
@@ -169,34 +203,42 @@ class HorseBreederWinRate(FeatureExtractor):
         return get_win_rate_of_name(f"{horse.name}_{horse.breeder}")
 
 
-class BreederWinRate(FeatureExtractor):
+class BreederMomentum(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = -1
-    win_rate_source.average_attribute_groups.append(["breeder"])
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        breeder_win_rate = get_win_rate_of_name(horse.breeder)
-        if breeder_win_rate == -1:
-            return self.PLACEHOLDER_VALUE
-        return breeder_win_rate
-
-
-class OwnerWinRate(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
-    win_rate_source.average_attribute_groups.append(["owner"])
+    average_momentum_source.average_attribute_groups.append(["breeder"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        owner_win_rate = get_win_rate_of_name(horse.owner)
-        if owner_win_rate == -1:
+        if average_momentum_source.get_count_of_name(horse.breeder) < 20:
             return self.PLACEHOLDER_VALUE
-        return owner_win_rate
+
+        breeder_momentum = average_momentum_source.get_average_of_name(horse.breeder)
+
+        if breeder_momentum == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return breeder_momentum
+
+
+class OwnerMomentum(FeatureExtractor):
+
+    average_momentum_source.average_attribute_groups.append(["owner"])
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if average_momentum_source.get_count_of_name(horse.owner) < 20:
+            return self.PLACEHOLDER_VALUE
+
+        owner_momentum = average_momentum_source.get_average_of_name(horse.owner)
+
+        if owner_momentum == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return owner_momentum
 
 
 class JockeyDistanceWinRate(FeatureExtractor):

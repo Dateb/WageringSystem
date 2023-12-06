@@ -12,9 +12,10 @@ class TrainerPlacePercentile(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        average_place_percentile = average_place_percentile_source.get_average_of_name(horse.trainer_name)
+        place_percentile_average = average_place_percentile_source.get_average_of_name(horse.trainer_name)
+        place_percentile_count = average_place_percentile_source.get_count_of_name(horse.trainer_name)
 
-        if average_place_percentile == -1:
+        if place_percentile_count < 10:
             return self.PLACEHOLDER_VALUE
 
-        return average_place_percentile
+        return place_percentile_average

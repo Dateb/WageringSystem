@@ -1,59 +1,100 @@
 import lightgbm
+import pandas as pd
+from lightgbm import Dataset
 from numpy import ndarray
+from sklearn.preprocessing import LabelEncoder
+
 from DataAbstraction.Present.Horse import Horse
+from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.Estimator import Estimator
-from ModelTuning.ModelEvaluator import ModelEvaluator
+from Model.Estimators.util.metrics import get_accuracy
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
-from SampleExtraction.BlockSplitter import BlockSplitter
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
+from sklearn.metrics import accuracy_score
 
 
 class BoostedTreesRanker(Estimator):
+    RANKING_SEED = 30
 
-    def __init__(self, feature_manager: FeatureManager, model_evaluator: ModelEvaluator, block_splitter: BlockSplitter):
-        #TODO: Dont use block splitter as a property: instead hide the validation splitting inside the tuning routine
-        super().__init__()
+    FIXED_PARAMS: dict = {
+        "boosting_type": "gbdt",
+        "objective": "xendcg",
+        "metric": "xendcg",
+        # "verbose": -1,
+        "deterministic": True,
+        "force_row_wise": True,
+        "n_jobs": -1,
+        "device": "cpu",
+
+        "seed": RANKING_SEED,
+        "data_random_seed": RANKING_SEED,
+        "feature_fraction_seed": RANKING_SEED,
+        "objective_seed": RANKING_SEED,
+        "bagging_seed": RANKING_SEED,
+        "extra_seed": RANKING_SEED,
+        "drop_seed": RANKING_SEED,
+    }
+
+    def __init__(self, feature_manager: FeatureManager):
+        super().__init__(feature_manager)
+        self.label_name = Horse.CLASSIFICATION_LABEL_KEY
         self.feature_manager = feature_manager
-        self.model_evaluator = model_evaluator
-        self.block_splitter = block_splitter
         self.booster = None
 
-    def predict(self, train_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
-        self.tune_setting(train_sample)
-        self.fit(train_sample)
+        self.categorical_feature_names = [feature.get_name() for feature in feature_manager.features if feature.is_categorical]
+        self.cat_gbt_feature_names = [f"{cat_feature_name}_gbt" for cat_feature_name in self.categorical_feature_names]
+        self.feature_names = self.feature_manager.numerical_feature_names + self.cat_gbt_feature_names
 
-        scores = self.booster.predict(test_sample.race_cards_dataframe[self.feature_names])
+        # self.parameter_set = {**self.FIXED_PARAMS}
 
-        return scores
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
 
-    def tune_setting(self, train_sample: RaceCardsSample) -> None:
-        configuration_tuner = BetModelConfigurationTuner(
-            train_sample=train_sample,
-            feature_manager=self.feature_manager,
-            sample_splitter=self.block_splitter,
-            model_evaluator=self.model_evaluator,
-        )
+        for cat_feature_name in self.categorical_feature_names:
+            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
+            train_sample.race_cards_dataframe[cat_gbt_feature_name] = train_sample.race_cards_dataframe[cat_feature_name].astype('category')
+            validation_sample.race_cards_dataframe[cat_gbt_feature_name] = validation_sample.race_cards_dataframe[cat_feature_name].astype('category')
+            test_sample.race_cards_dataframe[cat_gbt_feature_name] = test_sample.race_cards_dataframe[cat_feature_name].astype('category')
 
-        #TODO: Max iterations are fixed here
-        self.best_configuration = configuration_tuner.search_for_best_configuration(max_iter_without_improvement=2)
+        self.fit_validate(train_sample, validation_sample)
 
-        self.features = self.best_configuration.selected_features
-        self.feature_names = [feature.get_name() for feature in self.features]
-        self.categorical_feature_names = [feature.get_name() for feature in self.features if feature.is_categorical]
+        print("Model tuning completed!")
+        self.score_test_sample(test_sample)
 
-        self.num_boost_rounds = self.best_configuration.num_boost_rounds
+        train_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
+        validation_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
+        test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
-    def fit(self, train_sample: RaceCardsSample) -> None:
+        print(f"Test accuracy gbt-model: {get_accuracy(test_sample)}")
+
+        return test_sample.race_cards_dataframe["score"]
+
+    def score_test_sample(self, test_sample: RaceCardsSample):
+        race_cards_dataframe = test_sample.race_cards_dataframe
+        X = race_cards_dataframe[self.feature_names]
+        scores = self.booster.predict(X)
+
+        test_sample.race_cards_dataframe["score"] = scores
+
+    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         self.booster = lightgbm.train(
-            self.best_configuration.parameter_set,
-            train_set=self.best_configuration.get_dataset(train_sample.race_cards_dataframe),
-            categorical_feature=self.categorical_feature_names,
-            num_boost_round=self.num_boost_rounds,
+            self.FIXED_PARAMS,
+            train_set=self.get_dataset(train_sample.race_cards_dataframe),
+            categorical_feature=self.cat_gbt_feature_names,
         )
 
-        # importance_scores = self.booster.feature_importance(importance_type="gain")
-        # feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
-        # sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
-        # importance_sum = sum([importance for importance in list(feature_importances.values())])
-        # print(f"{importance_sum}: {sorted_feature_importances}")
+        self.booster.free_dataset()
+
+        return 0.0
+
+    def get_dataset(self, samples_train: pd.DataFrame) -> Dataset:
+        input_data = samples_train[self.feature_names]
+        label = samples_train[self.label_name].astype(dtype="int")
+        group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
+
+        return Dataset(
+            data=input_data,
+            label=label,
+            group=group,
+            categorical_feature=self.categorical_feature_names,
+        )

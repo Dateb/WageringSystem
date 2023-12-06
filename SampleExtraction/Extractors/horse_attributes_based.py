@@ -28,6 +28,9 @@ class Gender(FeatureExtractor):
         self.is_categorical = True
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        if horse.gender is None:
+            return ""
+
         return horse.gender
 
 

@@ -7,7 +7,7 @@ from DataAbstraction.Present.Horse import Horse
 
 class FeatureExtractor(ABC):
 
-    PLACEHOLDER_VALUE = -1
+    PLACEHOLDER_VALUE = float('NaN')
 
     def __init__(self):
         self.base_name = "default"

@@ -12,6 +12,9 @@ class HorseScratchedRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if scratched_rate_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         return scratched_rate_source.get_average_of_name(str(horse.subject_id))
 
 
@@ -23,6 +26,9 @@ class HorsePulledUpRate(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if pulled_up_rate_source.get_count_of_name(str(horse.subject_id)) < 3:
+            return self.PLACEHOLDER_VALUE
+
         return pulled_up_rate_source.get_average_of_name(str(horse.subject_id))
 
 

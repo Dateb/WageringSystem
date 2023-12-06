@@ -62,8 +62,8 @@ class CurrentRaceType(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return get_category_encoding("race_type", str(race_card.race_type))
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return race_card.race_type
 
 
 class CurrentRaceTypeDetail(FeatureExtractor):
@@ -71,8 +71,8 @@ class CurrentRaceTypeDetail(FeatureExtractor):
         super().__init__()
         self.is_categorical = True
 
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return get_category_encoding("race_type_detail", str(race_card.race_type_detail))
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return race_card.race_type_detail
 
 
 class CurrentRaceClass(FeatureExtractor):

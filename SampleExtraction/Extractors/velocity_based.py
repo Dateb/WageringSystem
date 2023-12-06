@@ -1,24 +1,22 @@
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
-from SampleExtraction.feature_sources.init import previous_velocity_source, dam_and_sire_average_velocity_source
+from SampleExtraction.feature_sources.init import previous_momentum_source, dam_and_sire_average_velocity_source
 
 
-class PreviousVelocity(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
+class PreviousMomentum(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        previous_velocity_source.previous_value_attribute_groups.append(["subject_id"])
+        previous_momentum_source.previous_value_attribute_groups.append(["subject_id"])
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_velocity = previous_velocity_source.get_previous_of_name(str(horse.subject_id))
+        previous_momentum = previous_momentum_source.get_previous_of_name(str(horse.subject_id))
 
-        if previous_velocity is None:
+        if previous_momentum is None:
             return self.PLACEHOLDER_VALUE
 
-        return previous_velocity
+        return previous_momentum
 
 
 class SireVelocity(FeatureExtractor):

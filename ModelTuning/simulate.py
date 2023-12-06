@@ -7,6 +7,7 @@ from tqdm import tqdm
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
@@ -91,9 +92,6 @@ def optimize_model_configuration():
 
     model_evaluator = ModelEvaluator(race_results_container)
 
-    # estimator = BoostedTreesRanker(feature_manager, model_evaluator, block_splitter)
-    estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
-
     test_race_cards = {
         race_key: race_card for race_key, race_card in test_race_cards.items()
         if race_card.category in ["HCP"]
@@ -107,16 +105,32 @@ def optimize_model_configuration():
     validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.sort_values(by="race_id")
     test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
 
-    # bet_model_configuration_tuner = BetModelConfigurationTuner(
-    #     train_sample=train_sample,
-    #     validation_sample=validation_sample,
-    #     feature_manager=feature_manager
+    print("Testing TreeRanker:")
+
+    gbt_estimator = BoostedTreesRanker(feature_manager)
+    # bets = model_evaluator.get_bets_of_model(
+    #     gbt_estimator,
+    #     train_sample,
+    #     validation_sample,
+    #     test_sample,
+    #     test_race_cards
     # )
-    #
-    # bet_model_configuration_tuner.search_for_best_configuration(max_iter_without_improvement=20)
+
+    print("Testing NNClassifier:")
+
+    nn_estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
+    # bets = model_evaluator.get_bets_of_model(
+    #     nn_estimator,
+    #     train_sample,
+    #     validation_sample,
+    #     test_sample,
+    #     test_race_cards
+    # )
+
+    ensemble_estimator = EnsembleAverageEstimator(feature_manager, [gbt_estimator, nn_estimator])
 
     bets = model_evaluator.get_bets_of_model(
-        estimator,
+        ensemble_estimator,
         train_sample,
         validation_sample,
         test_sample,
@@ -127,7 +141,7 @@ def optimize_model_configuration():
         pickle.dump(bets, f)
 
     with open(ESTIMATOR_PATH, "wb") as f:
-        pickle.dump(estimator, f)
+        pickle.dump(nn_estimator, f)
 
 
 if __name__ == '__main__':

@@ -142,7 +142,7 @@ class PreviousDistanceSource(PreviousValueSource):
         self.insert_previous_value(race_card, horse, race_card.distance)
 
 
-class PreviousVelocitySource(PreviousValueSource):
+class PreviousMomentumSource(PreviousValueSource):
 
     def __init__(self):
         super().__init__()
@@ -150,7 +150,9 @@ class PreviousVelocitySource(PreviousValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
             velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
-            self.insert_previous_value(race_card, horse, velocity)
+            if horse.jockey.weight > 0:
+                momentum = velocity * horse.jockey.weight
+                self.insert_previous_value(race_card, horse, momentum)
 
 
 class PreviousRaceGoingSource(PreviousValueSource):

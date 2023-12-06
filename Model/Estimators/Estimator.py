@@ -20,9 +20,5 @@ class Estimator(ABC):
         pass
 
     @abstractmethod
-    def tune_setting(self, train_sample: RaceCardsSample) -> None:
-        pass
-
-    @abstractmethod
-    def fit(self, train_sample: RaceCardsSample) -> None:
+    def score_test_sample(self, test_sample: RaceCardsSample):
         pass

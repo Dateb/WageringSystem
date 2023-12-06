@@ -7,8 +7,6 @@ from SampleExtraction.time_calculation import get_day_difference
 
 class LifeTimeStartCount(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0
-
     def __init__(self):
         super().__init__()
 

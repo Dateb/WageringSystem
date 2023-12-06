@@ -9,7 +9,7 @@ from typing import List, Dict
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second
+    get_horse_time, get_lengths_per_second, get_velocity
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
@@ -203,13 +203,16 @@ class DrawBiasSource(FeatureSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         track_name = race_card_track_to_win_time_track(race_card.track_name)
         post_position = str(horse.post_position)
-        if post_position != "-1" and horse.horse_distance > 0 and race_card.distance > 0:
-            self.update_average(
-                self.draw_bias[track_name][post_position],
-                horse.horse_distance / race_card.distance,
-                race_card.date,
-                DRAW_BIAS_CALCULATOR,
-            )
+        if post_position != "-1" and horse.horse_distance > 0 and race_card.distance > 0 and race_card.win_time > 0:
+            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
+            if horse.jockey.weight > 0:
+                momentum = velocity * horse.jockey.weight
+                self.update_average(
+                    self.draw_bias[track_name][post_position],
+                    momentum,
+                    race_card.date,
+                    DRAW_BIAS_CALCULATOR,
+                )
 
     def get_draw_bias(self, track_name: str, post_position: int):
         if track_name not in self.draw_bias or str(post_position) not in self.draw_bias[track_name]:

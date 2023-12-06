@@ -54,6 +54,14 @@ class CategoryAverageSource(FeatureSource, ABC):
 
         return -1
 
+    def get_count_of_name(self, name: str) -> int:
+        average_elem = self.averages[name]
+
+        if "avg" in average_elem:
+            return average_elem["count"]
+
+        return 0
+
 
 class AverageRelativeDistanceBehindSource(CategoryAverageSource):
 
@@ -76,7 +84,7 @@ class AverageRelativeDistanceBehindSource(CategoryAverageSource):
                 self.insert_value_into_avg(race_card, horse, relative_distance_behind)
 
 
-class WinProbabilitySource(CategoryAverageSource):
+class AverageWinProbabilitySource(CategoryAverageSource):
 
     def __init__(self, window_size=5):
         super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
@@ -116,6 +124,17 @@ class AveragePlacePercentileSource(CategoryAverageSource):
             self.insert_value_into_avg(race_card, horse, place_percentile)
 
 
+class AverageVelocitySource(CategoryAverageSource):
+
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
+            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
+            self.insert_value_into_avg(race_card, horse, velocity)
+
+
 class AverageMomentumSource(CategoryAverageSource):
 
     def __init__(self, window_size=5):
@@ -127,6 +146,16 @@ class AverageMomentumSource(CategoryAverageSource):
             if horse.jockey.weight > 0:
                 momentum = velocity * horse.jockey.weight
                 self.insert_value_into_avg(race_card, horse, momentum)
+
+
+class AverageJockeyWeightSource(CategoryAverageSource):
+
+    def __init__(self, window_size=5):
+        super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
+
+    def update_horse(self, race_card: RaceCard, horse: Horse):
+        if horse.jockey.weight > 0:
+            self.insert_value_into_avg(race_card, horse, horse.jockey.weight)
 
 
 class ScratchedHorseCategoryAverageSource(CategoryAverageSource, ABC):

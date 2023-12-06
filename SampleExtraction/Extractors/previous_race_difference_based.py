@@ -17,7 +17,7 @@ class DistanceDifference(FeatureExtractor):
         if previous_distance is None:
             return self.PLACEHOLDER_VALUE
 
-        return (race_card.distance / previous_distance)
+        return race_card.distance / previous_distance
 
 
 class RaceGoingDifference(FeatureExtractor):
@@ -32,7 +32,7 @@ class RaceGoingDifference(FeatureExtractor):
         if previous_race_going is None:
             return self.PLACEHOLDER_VALUE
 
-        return (race_card.going - previous_race_going)
+        return race_card.going - previous_race_going
 
 
 class RaceClassDifference(FeatureExtractor):
@@ -169,8 +169,6 @@ class WeightDifference(FeatureExtractor):
 
 class AllowanceDifference(FeatureExtractor):
 
-    PLACEHOLDER_VALUE = 0
-
     def __init__(self):
         super().__init__()
 
@@ -194,8 +192,6 @@ class AllowanceDifference(FeatureExtractor):
 
 
 class OwnerWinRateDifference(FeatureExtractor):
-
-    PLACEHOLDER_VALUE = -1
 
     def __init__(self):
         super().__init__()
