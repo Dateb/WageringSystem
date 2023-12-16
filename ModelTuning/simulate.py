@@ -130,7 +130,7 @@ def optimize_model_configuration():
     ensemble_estimator = EnsembleAverageEstimator(feature_manager, [gbt_estimator, nn_estimator])
 
     bets = model_evaluator.get_bets_of_model(
-        ensemble_estimator,
+        nn_estimator,
         train_sample,
         validation_sample,
         test_sample,

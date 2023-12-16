@@ -1,3 +1,4 @@
+import os
 import pickle
 from datetime import date, timedelta
 from typing import Set
@@ -11,9 +12,8 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 class CollectedDaysTracker:
 
-    COLLECTED_DAYS_FILE_NAME: str = "../data/collected_days.pickle"
-
-    def __init__(self, race_cards_persistence: RaceCardsPersistence):
+    def __init__(self, race_cards_persistence: RaceCardsPersistence, collected_days_file_name="../data/collected_days.pickle"):
+        self.collected_days_file_name = collected_days_file_name
         self.race_cards_persistence = race_cards_persistence
         self.collected_days = []
 
@@ -25,12 +25,15 @@ class CollectedDaysTracker:
         self.save_collected_days()
 
     def save_collected_days(self) -> None:
-        with open(self.COLLECTED_DAYS_FILE_NAME, 'wb') as handle:
+        with open(self.collected_days_file_name, 'wb') as handle:
             pickle.dump(self.collected_days, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def get_collected_days_from_file(self) -> Set:
-        with open(self.COLLECTED_DAYS_FILE_NAME, 'rb') as handle:
-            return pickle.load(handle)
+        if not os.path.isfile(self.collected_days_file_name):
+            return set()
+        else:
+            with open(self.collected_days_file_name, 'rb') as handle:
+                return pickle.load(handle)
 
     def get_collected_days_from_race_cards(self) -> Set:
         collected_days = set()

@@ -41,8 +41,6 @@ class PreviousWinProbability(FeatureExtractor):
 
 class PreviousSameAttributeDifference(FeatureExtractor, ABC):
 
-    PLACEHOLDER_VALUE = 0
-
     def __init__(self, previous_value_source: PreviousValueSource, attribute_group: List[str]):
         super().__init__()
         self.previous_value_source = previous_value_source
@@ -145,38 +143,6 @@ class PreviousPlacePercentile(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         return previous_place_percentile
-
-
-class PreviousRelativeDistanceBehind(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_relative_distance_behind = previous_relative_distance_behind_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_relative_distance_behind is None:
-            return self.PLACEHOLDER_VALUE
-
-        return previous_relative_distance_behind
-
-
-class PreviousSameRaceClassRelativeDistanceBehind(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_relative_distance_behind_source, ["subject_id", "race_class"])
-
-
-class PreviousSameTrackRelativeDistanceBehind(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_relative_distance_behind_source, ["subject_id", "track_name"])
-
-
-class PreviousSameSurfaceRelativeDistanceBehind(PreviousSameAttributeDifference):
-
-    def __init__(self):
-        super().__init__(previous_relative_distance_behind_source, ["subject_id", "surface"])
 
 
 class PreviousFasterThanFraction(FeatureExtractor):

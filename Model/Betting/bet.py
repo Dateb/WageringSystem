@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Dict
 
@@ -49,7 +50,7 @@ class Bet:
         return self.win - self.loss
 
 
-class Bettor:
+class Bettor(ABC):
 
     def __init__(self, bet_threshold: float):
         self.bet_threshold = bet_threshold
@@ -85,21 +86,35 @@ class Bettor:
 
         return bets
 
+    @abstractmethod
+    def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
+        pass
+
+    @property
+    def offer_acceptance_rate(self) -> float:
+        return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)
+
+
+class RacebetsBettor(Bettor):
+
+    BET_TAX = 0.05
+
     def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
         stakes = 0
 
         if probability_estimate is not None:
             if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
-                ev = bet_offer.odds * (1 - Bet.WIN_COMMISSION) * probability_estimate
+                adjusted_odds = bet_offer.odds - self.BET_TAX
 
-                if ev > 1 + self.bet_threshold and bet_offer.odds > 1:
-                    self.offer_accepted_count += 1
-                    stakes = (ev - (1 + self.bet_threshold)) / (bet_offer.odds - 1)
-                else:
-                    self.offer_rejected_count += 1
+                if adjusted_odds > 1:
+                    odds_p = 1 / adjusted_odds
+                    p_residual = 1 - odds_p
+                    if probability_estimate > (odds_p + self.bet_threshold * p_residual):
+                        ev = adjusted_odds * probability_estimate
+
+                        self.offer_accepted_count += 1
+                        stakes = (ev - 1) / (adjusted_odds - 1)
+                    else:
+                        self.offer_rejected_count += 1
 
         return stakes
-
-    @property
-    def offer_acceptance_rate(self) -> float:
-        return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)

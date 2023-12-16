@@ -6,7 +6,7 @@ from DataAbstraction.Present.Jockey import Jockey
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.feature_sources import FeatureSource
 from util.nested_dict import nested_dict
-from util.speed_calculator import get_velocity, LENGTHS_PER_SECOND, get_lengths_per_second
+from util.speed_calculator import get_velocity, LENGTHS_PER_SECOND, get_lengths_per_second, get_momentum
 
 
 class PreviousValueSource(FeatureSource, ABC):
@@ -148,11 +148,9 @@ class PreviousMomentumSource(PreviousValueSource):
         super().__init__()
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
-            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
-            if horse.jockey.weight > 0:
-                momentum = velocity * horse.jockey.weight
-                self.insert_previous_value(race_card, horse, momentum)
+        momentum = get_momentum(race_card, horse)
+        if momentum > 0:
+            self.insert_previous_value(race_card, horse, momentum)
 
 
 class PreviousRaceGoingSource(PreviousValueSource):

@@ -6,7 +6,7 @@ import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bettor, Bet
+from Model.Betting.bet import Bettor, Bet, RacebetsBettor
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
@@ -53,12 +53,15 @@ class ModelEvaluator:
         best_payout_sum = -np.inf
         best_bets = []
 
-        bet_thresholds = [0.5]
+        bet_thresholds = [0.05]
 
         self.init_offer_container(test_race_cards)
 
         for bet_threshold in bet_thresholds:
-            bettor = Bettor(bet_threshold=bet_threshold)
+            if simulate_conf.MARKET_SOURCE == "Racebets":
+                bettor = RacebetsBettor(bet_threshold)
+            else:
+                bettor = RacebetsBettor(bet_threshold)
             bets = bettor.bet(self.offer_container.race_offers, estimation_result)
 
             self.payout_calculator.insert_payouts_into_bets(bets, self.race_results_container.race_results)

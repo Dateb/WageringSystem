@@ -1,8 +1,13 @@
+import json
+from typing import Dict
+
 import requests
 import time
 import random
 from requests import Session, Response
 from requests_ip_rotator import ApiGateway
+import chardet
+import brotli
 
 
 class Scraper:
@@ -51,10 +56,13 @@ class Scraper:
         return self.__session.get(url, headers=headers).cookies.get_dict()
 
     def request_data(self, url: str) -> dict:
+        return self.request_data_with_header(url, self.__headers)
+
+    def request_data_with_header(self, url: str, header: Dict, avg_wait_seconds: float = 2.0):
         result = {}
         for _ in range(self.__n_request_tries):
-            response = self.__session.get(url=url, headers=self.__headers)
-            self.__wait_random_amount_of_seconds(2.0)
+            response = self.__session.get(url=url, headers=header)
+            self.__wait_random_amount_of_seconds(avg_wait_seconds)
             if response.status_code == 200:
                 result = response.json()
                 return result

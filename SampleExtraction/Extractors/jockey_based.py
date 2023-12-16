@@ -2,24 +2,25 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.feature_sources.average_based import AverageJockeyWeightSource
-from SampleExtraction.feature_sources.init import average_place_percentile_source, FEATURE_SOURCES
+from SampleExtraction.feature_sources.init import average_place_percentile_source, FEATURE_SOURCES, \
+    average_momentum_source
 
 
-class JockeyPlacePercentile(FeatureExtractor):
+class JockeyMomentum(FeatureExtractor):
 
-    average_place_percentile_source.average_attribute_groups.append(["jockey_name"])
+    average_momentum_source.average_attribute_groups.append(["jockey_name"])
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        place_percentile_average = average_place_percentile_source.get_average_of_name(horse.jockey_name)
-        place_percentile_count = average_place_percentile_source.get_count_of_name(horse.jockey_name)
+        momentum_average = average_momentum_source.get_average_of_name(horse.jockey_name)
+        momentum_count = average_momentum_source.get_count_of_name(horse.jockey_name)
 
-        if place_percentile_count < 10:
+        if momentum_count < 10:
             return self.PLACEHOLDER_VALUE
 
-        return place_percentile_average
+        return momentum_average
 
 
 class CurrentJockeyWeight(FeatureExtractor):

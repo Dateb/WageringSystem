@@ -24,7 +24,7 @@ class RaceCard:
 
     base_times: defaultdict = nested_dict()
     length_modifier: defaultdict = nested_dict()
-    par_time: defaultdict = nested_dict()
+    par_momentum: defaultdict = nested_dict()
     track_variant: defaultdict = nested_dict()
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
@@ -207,26 +207,19 @@ class RaceCard:
         return best_matched_horse
 
     def get_horse_by_jockey(self, jockey_name: str) -> Horse:
-        print(self.race_id)
-        print([horse.name for horse in self.horses])
         best_matched_horse = None
         best_common_substring_fraction = 0.5
         jockey_name_a = jockey_name.split(" ")[-1]
-        print(jockey_name_a)
 
         for horse in self.horses:
             if horse.jockey.last_name:
                 jockey_name_b = horse.jockey.last_name
-                print(f"jockey last name: {jockey_name_b}")
                 common_substring_fraction = get_name_similarity(jockey_name_a, jockey_name_b)
                 if common_substring_fraction > best_common_substring_fraction:
                     best_matched_horse = horse
                     best_common_substring_fraction = common_substring_fraction
 
-        print(f"Matched jockey {jockey_name_a} with:")
-        print(f"{best_matched_horse.jockey.last_name}")
         return best_matched_horse
-
 
     @property
     def values(self) -> List:
@@ -263,15 +256,14 @@ class RaceCard:
         return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
 
     @property
-    def lengths_per_second_estimate(self) -> dict:
-        return RaceCard.length_modifier[self.distance_category][self.race_type_detail]
-
-    @property
-    def get_par_time_estimate(self) -> dict:
-        return RaceCard.par_time[self.distance_category][self.race_class][self.race_type_detail]
+    def get_par_momentum_estimate(self) -> dict:
+        return RaceCard.par_momentum[self.race_class][self.race_type_detail]
 
     @property
     def track_variant_estimate(self) -> dict:
+        if self.track_name not in RaceCard.track_variant:
+            RaceCard.track_variant[self.track_name] = {"count": 0}
+
         return RaceCard.track_variant[self.track_name]
 
     @property
@@ -298,7 +290,7 @@ class RaceCard:
 
     @staticmethod
     def reset_track_variant_estimate() -> None:
-        RaceCard.track_variant = nested_dict()
+        RaceCard.track_variant = {}
 
     def get_distance_category(self) -> float:
         distance_increment = max(int(self.distance / 1000) * 100, 50)
@@ -310,6 +302,9 @@ class RaceCard:
             self.feature_source_validity = False
 
         if self.num_winners > 1:
+            self.is_valid_sample = False
+
+        if self.country != "GB":
             self.is_valid_sample = False
 
         if self.overround == 0:

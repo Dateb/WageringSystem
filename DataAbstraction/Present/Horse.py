@@ -61,7 +61,11 @@ class Horse:
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place == 1 else 0
-        self.pulled_up = int('finalPosition' not in raw_data and not raw_data["scratched"])
+
+        self.pulled_up = 0
+        if "resultFinishDNF" in raw_data:
+            if raw_data["resultFinishDNF"] == "PU":
+                self.pulled_up = 1
 
         self.horse_distance = -1
         # self.horse_distance = self.__extract_horse_distance(raw_data)
@@ -103,7 +107,10 @@ class Horse:
         }
 
         self.__features = {}
-        self.speed_figure = None
+        self.finish_time = -1
+        if "finishTime" in raw_data:
+            if raw_data["finishTime"] is not None and raw_data["resultFinishDNF"] is None:
+                self.finish_time = float(raw_data["finishTime"])
 
     def set_betting_odds(self, new_odds: float):
         self.base_attributes[self.CURRENT_PLACE_ODDS_KEY] = new_odds

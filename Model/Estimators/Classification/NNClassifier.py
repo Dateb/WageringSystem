@@ -188,7 +188,7 @@ class NNClassifier(Estimator):
         validation_loss /= num_batches
         validation_accuracy /= size
 
-        # print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
+        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
 
         return validation_loss
 

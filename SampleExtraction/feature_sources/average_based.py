@@ -5,7 +5,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.feature_sources import FeatureSource, CATEGORY_AVERAGE_CALCULATOR
 from util.nested_dict import nested_dict
-from util.speed_calculator import get_lengths_per_second, get_velocity
+from util.speed_calculator import get_lengths_per_second, get_velocity, get_momentum
 from util.stats_calculator import ExponentialOnlineCalculator, OnlineCalculator
 
 
@@ -130,9 +130,10 @@ class AverageVelocitySource(CategoryAverageSource):
         super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
-            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
-            self.insert_value_into_avg(race_card, horse, velocity)
+        if race_card.distance > 0:
+            velocity = get_velocity(race_card.win_time, horse.horse_distance, horse.finish_time, race_card.distance)
+            if velocity > 0:
+                self.insert_value_into_avg(race_card, horse, velocity)
 
 
 class AverageMomentumSource(CategoryAverageSource):
@@ -141,11 +142,9 @@ class AverageMomentumSource(CategoryAverageSource):
         super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if race_card.win_time > 0 and horse.horse_distance >= 0 and race_card.distance > 0:
-            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
-            if horse.jockey.weight > 0:
-                momentum = velocity * horse.jockey.weight
-                self.insert_value_into_avg(race_card, horse, momentum)
+        momentum = get_momentum(race_card, horse)
+        if momentum > 0:
+            self.insert_value_into_avg(race_card, horse, momentum)
 
 
 class AverageJockeyWeightSource(CategoryAverageSource):

@@ -2,7 +2,7 @@ from SampleExtraction.feature_sources.average_based import AverageWinProbability
     AveragePlacePercentileSource, AverageRelativeDistanceBehindSource, ShowRateSource, PurseRateSource, \
     AverageMomentumSource, ScratchedRateSource, PulledUpRateSource
 from SampleExtraction.feature_sources.feature_sources import HorseNameToSubjectIdSource, MaxWinProbabilitySource, \
-    DrawBiasSource, WindowTimeLengthSource
+    DrawBiasSource, WindowTimeLengthSource, TrackVariantSource
 from SampleExtraction.feature_sources.previous_based import LifeTimeStartCountSource, LifeTimeWinCountSource, \
     LifeTimePlaceCountSource, PreviousWinProbSource, PreviousPlacePercentileSource, \
     PreviousRelativeDistanceBehindSource, PreviousTrackNameSource, PreviousDistanceSource, \
@@ -41,7 +41,7 @@ show_rate_source: ShowRateSource = ShowRateSource()
 
 purse_rate_source: PurseRateSource = PurseRateSource()
 
-dam_and_sire_average_velocity_source: AverageMomentumSource = AverageMomentumSource()
+dam_and_sire_average_momentum_source: AverageMomentumSource = AverageMomentumSource()
 
 scratched_rate_source: ScratchedRateSource = ScratchedRateSource()
 pulled_up_rate_source: PulledUpRateSource = PulledUpRateSource()
@@ -79,6 +79,8 @@ draw_bias_source: DrawBiasSource = DrawBiasSource()
 best_class_place_source: BestClassPlaceSource = BestClassPlaceSource()
 
 window_time_length_source: WindowTimeLengthSource = WindowTimeLengthSource(window_size=7)
+
+track_variant_source: TrackVariantSource = TrackVariantSource()
 
 
 FEATURE_SOURCES = [
@@ -123,7 +125,9 @@ FEATURE_SOURCES = [
 
         best_class_place_source,
 
-        dam_and_sire_average_velocity_source,
+        dam_and_sire_average_momentum_source,
 
         window_time_length_source,
+
+        track_variant_source,
     ]

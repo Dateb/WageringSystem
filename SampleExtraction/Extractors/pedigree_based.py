@@ -25,39 +25,6 @@ class SireSiblingsMomentum(FeatureExtractor):
         return sire_siblings_momentum
 
 
-class SirePlacePercentile(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        sire_place_percentile = average_place_percentile_source.get_average_of_name(horse.sire)
-
-        if sire_place_percentile == -1:
-            return self.PLACEHOLDER_VALUE
-
-        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
-            return self.PLACEHOLDER_VALUE
-
-        return sire_place_percentile
-
-
-class SireRelativeDistanceBehind(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        sire_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(horse.sire)
-
-        if sire_relative_distance_behind == -1:
-            return self.PLACEHOLDER_VALUE
-
-        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.sire) > 1:
-            return self.PLACEHOLDER_VALUE
-
-        return sire_relative_distance_behind
-
 class DamSiblingsMomentum(FeatureExtractor):
 
     def __init__(self):
@@ -107,37 +74,3 @@ class DamSireSiblingsMomentum(FeatureExtractor):
             return self.PLACEHOLDER_VALUE
 
         return dam_sire_siblings_momentum
-
-
-class DamPlacePercentile(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        dam_place_percentile = average_place_percentile_source.get_average_of_name(horse.dam)
-
-        if dam_place_percentile == -1:
-            return self.PLACEHOLDER_VALUE
-
-        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
-            return self.PLACEHOLDER_VALUE
-
-        return dam_place_percentile
-
-
-class DamRelativeDistanceBehind(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        dam_relative_distance_behind = average_relative_distance_behind_source.get_average_of_name(horse.dam)
-
-        if dam_relative_distance_behind == -1:
-            return self.PLACEHOLDER_VALUE
-
-        if horse_name_to_subject_id_source.get_n_ids_of_horse_name(horse.dam) > 1:
-            return self.PLACEHOLDER_VALUE
-
-        return dam_relative_distance_behind

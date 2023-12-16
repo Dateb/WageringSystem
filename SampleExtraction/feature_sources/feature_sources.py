@@ -9,17 +9,14 @@ from typing import List, Dict
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second, get_velocity
+    get_horse_time, get_lengths_per_second, get_velocity, get_momentum, get_uncorrected_momentum
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 
 
 CATEGORY_AVERAGE_CALCULATOR = SimpleOnlineCalculator()
-BASE_TIME_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
-HORSE_SPEED_CALCULATOR = ExponentialOnlineCalculator(fading_factor=0.1)
-LENGTH_MODIFIER_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
-PAR_TIME_CALCULATOR = ExponentialOnlineCalculator(window_size=100, fading_factor=0.1)
-DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000, fading_factor=0.1)
+PAR_MOMENTUM_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
+DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 
 
 class FeatureSource(ABC):
@@ -203,10 +200,9 @@ class DrawBiasSource(FeatureSource):
     def update_horse(self, race_card: RaceCard, horse: Horse):
         track_name = race_card_track_to_win_time_track(race_card.track_name)
         post_position = str(horse.post_position)
-        if post_position != "-1" and horse.horse_distance > 0 and race_card.distance > 0 and race_card.win_time > 0:
-            velocity = get_velocity(race_card.win_time, horse.horse_distance, race_card.distance)
-            if horse.jockey.weight > 0:
-                momentum = velocity * horse.jockey.weight
+        if post_position != "-1" and race_card.distance > 0:
+            momentum = get_momentum(race_card, horse)
+            if momentum > 0:
                 self.update_average(
                     self.draw_bias[track_name][post_position],
                     momentum,
@@ -220,11 +216,10 @@ class DrawBiasSource(FeatureSource):
         return self.draw_bias[track_name][str(post_position)]["avg"]
 
 
-class SpeedFiguresSource(FeatureSource):
+class TrackVariantSource(FeatureSource):
 
     def __init__(self):
         super().__init__()
-        self.speed_figures = nested_dict()
         self.is_first_pre_update = True
 
     def warmup(self, race_cards: List[RaceCard]):
@@ -236,114 +231,41 @@ class SpeedFiguresSource(FeatureSource):
             RaceCard.reset_track_variant_estimate()
             self.is_first_pre_update = False
 
-        if race_card.win_time > 0:
-            self.update_track_variant(race_card)
+        self.update_track_variant(race_card)
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         pass
 
     def post_update(self, race_card: RaceCard) -> None:
         self.is_first_pre_update = True
-        if race_card.race_result is not None and race_card.win_time > 0:
-            self.update_base_time(race_card)
-            self.update_speed_figures(race_card)
-            self.update_par_time(race_card)
-            self.update_lengths_per_second(race_card)
+        if race_card.race_result is not None:
+            self.update_par_momentum(race_card)
 
     def update_track_variant(self, race_card: RaceCard) -> None:
-        par_time = race_card.get_par_time_estimate["avg"]
-        win_time = race_card.win_time
-
-        if par_time:
-            track_variant = (win_time - par_time) / (win_time + par_time)
-            self.update_average(
-                category=race_card.track_variant_estimate,
-                new_obs=track_variant,
-                new_obs_date=race_card.date,
-                online_calculator=SimpleOnlineCalculator(),
-            )
-
-    def update_base_time(self, race_card: RaceCard):
-        win_time = race_card.win_time
-
-        for horse in race_card.runners:
-            if horse.horse_distance >= 0:
-                horse_time = get_horse_time(
-                    win_time,
-                    race_card.lengths_per_second_estimate["avg"],
-                    horse.horse_distance,
-                )
-                base_time_estimate = race_card.get_base_time_estimate(horse.number)
-                self.update_average(
-                    category=base_time_estimate,
-                    new_obs=horse_time,
-                    new_obs_date=race_card.date,
-                    online_calculator=BASE_TIME_CALCULATOR,
-                )
-                self.update_variance(category=base_time_estimate, new_obs=horse_time)
-
-    def update_lengths_per_second(self, race_card: RaceCard):
-        win_time = race_card.win_time
-
-        lengths_per_second = get_lengths_per_second(race_card.distance, win_time)
-
-        self.update_average(
-            category=race_card.lengths_per_second_estimate,
-            new_obs=lengths_per_second,
-            new_obs_date=race_card.date,
-            online_calculator=LENGTH_MODIFIER_CALCULATOR,
-        )
-
-    def update_speed_figures(self, race_card: RaceCard):
+        par_momentum = race_card.get_par_momentum_estimate["avg"]
         for horse in race_card.horses:
-            base_time_estimate = race_card.get_base_time_estimate(horse.number)
-            if not horse.is_scratched and "count" in base_time_estimate and base_time_estimate['count'] > 20:
-                base_time_estimate = race_card.get_base_time_estimate(horse.number)
-                speed_figure = compute_speed_figure(
-                    race_card.race_id,
-                    base_time_estimate["avg"],
-                    base_time_estimate["std"],
-                    race_card.lengths_per_second_estimate["avg"],
-                    race_card.win_time,
-                    race_card.distance,
-                    horse.horse_distance,
-                    race_card.track_variant_estimate["avg"],
+            momentum = get_uncorrected_momentum(race_card, horse)
+
+            if par_momentum and momentum > 0:
+                track_variant = par_momentum / momentum
+                self.update_average(
+                    category=race_card.track_variant_estimate,
+                    new_obs=track_variant,
+                    new_obs_date=race_card.date,
+                    online_calculator=SimpleOnlineCalculator(),
                 )
 
-                if speed_figure is not None:
-                    self.update_max(
-                        category=self.speed_figures[str(horse.subject_id)],
-                        new_obs=speed_figure,
-                    )
-                    self.update_average(
-                        category=self.speed_figures[str(horse.subject_id)],
-                        new_obs=speed_figure,
-                        new_obs_date=race_card.date,
-                        online_calculator=HORSE_SPEED_CALCULATOR,
-                    )
+    def update_par_momentum(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            momentum = get_uncorrected_momentum(race_card, horse)
 
-    def update_par_time(self, race_card: RaceCard):
-        win_time = race_card.win_time
-
-        self.update_average(
-            category=race_card.get_par_time_estimate,
-            new_obs=win_time,
-            new_obs_date=race_card.date,
-            online_calculator=PAR_TIME_CALCULATOR,
-        )
-
-    def get_current_speed_figure(self, category: str):
-        if category not in self.speed_figures:
-            return None
-
-        current_speed_figure = self.speed_figures[category]["avg"]
-        return current_speed_figure
-
-    def get_max_speed_figure(self, category: str):
-        if category not in self.speed_figures:
-            return 0
-
-        return self.speed_figures[category]["max"]
+            if momentum > 0:
+                self.update_average(
+                    category=race_card.get_par_momentum_estimate,
+                    new_obs=momentum,
+                    new_obs_date=race_card.date,
+                    online_calculator=PAR_MOMENTUM_CALCULATOR,
+                )
 
 
 class HasFallenSource(FeatureSource):
