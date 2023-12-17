@@ -4,7 +4,7 @@ from collections import deque
 from math import sqrt
 from sqlite3 import Date
 from statistics import mean
-from typing import List, Dict
+from typing import List, Dict, Callable
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -19,10 +19,44 @@ PAR_MOMENTUM_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 
 
+class FeatureValueGroup:
+
+    attributes: List[str]
+    value_calculator: Callable[[RaceCard, Horse], float]
+
+    def __init__(self, attributes: List[str], value_calculator: Callable[[RaceCard, Horse], float]):
+        self.attributes = attributes
+        self.value_calculator = value_calculator
+        self.value_name = value_calculator.__name__
+
+    def get_key(self, race_card: RaceCard, horse: Horse) -> str:
+        key = ""
+        for attribute in self.attributes:
+            if attribute in horse.__dict__:
+                attribute_key = getattr(horse, attribute)
+            else:
+                attribute_key = getattr(race_card, attribute)
+            key += f"{attribute_key}_"
+
+        key += self.value_name
+        return key
+
+    @property
+    def name(self) -> str:
+        return f"{self.attributes}/{self.value_name}"
+
+
 class FeatureSource(ABC):
 
     def __init__(self):
-        pass
+        self.feature_values = nested_dict()
+        self.feature_value_groups: List[FeatureValueGroup] = []
+        self.feature_value_group_names: List[str] = []
+
+    def register_feature_value_group(self, feature_value_group: FeatureValueGroup):
+        if feature_value_group.name not in self.feature_value_group_names:
+            self.feature_value_groups.append(feature_value_group)
+            self.feature_value_group_names.append(feature_value_group.name)
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -36,8 +70,22 @@ class FeatureSource(ABC):
             if not horse.is_scratched:
                 self.update_horse(race_card, horse)
 
-    @abstractmethod
     def update_horse(self, race_card: RaceCard, horse: Horse):
+        for feature_value_group in self.feature_value_groups:
+            feature_value_group_key = feature_value_group.get_key(race_card, horse)
+            new_feature_value = feature_value_group.value_calculator(race_card, horse)
+
+            self.update_statistic(self.feature_values[feature_value_group_key], new_feature_value)
+
+    def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
+        feature_value_group_key = feature_value_group.get_key(race_card, horse)
+        feature_value_group = self.feature_values[feature_value_group_key]
+        if "value" in feature_value_group:
+            return feature_value_group["value"]
+        return None
+
+    @abstractmethod
+    def update_statistic(self, category: dict, new_feature_value: float) -> None:
         pass
 
     def update_average(self, category: dict, new_obs: float, new_obs_date: Date, online_calculator: OnlineCalculator) -> None:
@@ -81,8 +129,13 @@ class FeatureSource(ABC):
         if not category["max"] or new_obs > category["max"]:
             category["max"] = new_obs
 
-    def update_previous(self, category: dict, new_obs: float) -> None:
-        category["previous"] = new_obs
+
+class PreviousValueSource(FeatureSource, ABC):
+    def __init__(self):
+        super().__init__()
+
+    def update_statistic(self, category: dict, new_obs: float) -> None:
+        category["value"] = new_obs
 
 
 class HorseNameToSubjectIdSource(FeatureSource):

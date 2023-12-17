@@ -9,42 +9,6 @@ from util.nested_dict import nested_dict
 from util.speed_calculator import get_velocity, LENGTHS_PER_SECOND, get_lengths_per_second, get_momentum
 
 
-class PreviousValueSource(FeatureSource, ABC):
-    def __init__(self):
-        super().__init__()
-        self.previous_values = nested_dict()
-        self.previous_value_attribute_groups = []
-
-    def insert_previous_value(self, race_card: RaceCard, horse: Horse, value):
-        for attribute_group in self.previous_value_attribute_groups:
-            attribute_group_key = self.get_attribute_group_key(race_card, horse, attribute_group)
-
-            self.update_previous(
-                self.previous_values[attribute_group_key],
-                value,
-            )
-
-    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
-        attribute_group_key = ""
-        for attribute in attribute_group:
-            if attribute in horse.__dict__:
-                attribute_key = getattr(horse, attribute)
-            else:
-                attribute_key = getattr(race_card, attribute)
-            attribute_group_key += f"{attribute_key}_"
-
-        return attribute_group_key[:-1]
-
-    def delete_previous_values(self, race_card: RaceCard, horse: Horse) -> None:
-        self.previous_values[str(horse.subject_id)] = nested_dict()
-
-    def get_previous_of_name(self, name: str) -> float:
-        previous_elem = self.previous_values[name]
-        if "previous" in previous_elem:
-            return previous_elem["previous"]
-        return None
-
-
 class PreviousJockeySource(PreviousValueSource):
 
     def __init__(self):

@@ -7,7 +7,6 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources import feature_sources
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.init import previous_track_name_source, draw_bias_source
 from util.category_encoder import get_category_encoding
 
 
@@ -162,34 +161,34 @@ class DrawBias(FeatureExtractor):
 unknown_location_list = []
 
 
-class TravelDistance(FeatureExtractor):
-
-    previous_track_name_source.previous_value_attribute_groups.append(["subject_id"])
-
-    def __init__(self):
-        super().__init__()
-        with open("../data/locations.json", "r") as f:
-            self.locations = json.load(f)
-        self.beeline_distances: ndarray = pickle.load(open("../data/beeline_distances.bin", "rb"))
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_track_name = previous_track_name_source.get_previous_of_name(str(horse.subject_id))
-
-        if previous_track_name is None:
-            return self.PLACEHOLDER_VALUE
-
-        if previous_track_name not in self.locations:
-            if previous_track_name not in unknown_location_list:
-                unknown_location_list.append(previous_track_name)
-                print(unknown_location_list)
-            return self.PLACEHOLDER_VALUE
-
-        location_id_current = self.locations[race_card.track_name]["location_id"]
-        location_id_previous = self.locations[previous_track_name]["location_id"]
-
-        travel_distance = self.beeline_distances[location_id_current][location_id_previous]
-
-        return travel_distance
+# class TravelDistance(FeatureExtractor):
+#
+#     previous_track_name_source.previous_value_attribute_groups.append(["subject_id"])
+#
+#     def __init__(self):
+#         super().__init__()
+#         with open("../data/locations.json", "r") as f:
+#             self.locations = json.load(f)
+#         self.beeline_distances: ndarray = pickle.load(open("../data/beeline_distances.bin", "rb"))
+#
+#     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+#         previous_track_name = previous_track_name_source.get_previous_of_name(str(horse.subject_id))
+#
+#         if previous_track_name is None:
+#             return self.PLACEHOLDER_VALUE
+#
+#         if previous_track_name not in self.locations:
+#             if previous_track_name not in unknown_location_list:
+#                 unknown_location_list.append(previous_track_name)
+#                 print(unknown_location_list)
+#             return self.PLACEHOLDER_VALUE
+#
+#         location_id_current = self.locations[race_card.track_name]["location_id"]
+#         location_id_previous = self.locations[previous_track_name]["location_id"]
+#
+#         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
+#
+#         return travel_distance
 
 
 class WeatherType(FeatureExtractor):

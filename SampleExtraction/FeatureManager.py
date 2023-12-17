@@ -1,44 +1,12 @@
 from typing import List
 
-from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.Extractors.current_race_based import HasTrainerMultipleHorses, CurrentDistance, \
-    DrawBias, TravelDistance, CurrentRaceTrack, CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceClass, \
-    CurrentRaceSurface, CurrentGoing, CurrentRaceCategory, AgeFrom, AgeTo, CurrentPurse
-from SampleExtraction.Extractors.equipment_based import HasFirstTimeBlinkers, HasFirstTimeVisor, HasFirstTimeHood, \
-    HasFirstTimeCheekPieces, HasBlinkers, HasHood, HasCheekPieces, HasVisor, HasEyeCovers, HasEyeShield
-from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, CurrentRating, PostPosition
-from SampleExtraction.Extractors.horse_jockey_based import HorseJockeyShowRate, HorseJockeyWinProbability, \
-    HorseJockeyPlacePercentile, HorseJockeyMomentum
-from SampleExtraction.Extractors.jockey_based import JockeyWeight, WeightAllowance, JockeyMomentum, \
-    CurrentJockeyWeight
-from SampleExtraction.Extractors.layoff_based import PreviousRaceLayoff, SameTrackLayoff, SameClassLayoff, SameSurfaceLayoff
-from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.Extractors.odds_based import BetfairWinMarketWinProbability
-from SampleExtraction.Extractors.pedigree_based import SireSiblingsMomentum, DamSiblingsMomentum, \
-    SireAndDamSiblingsMomentum, DamSireSiblingsMomentum
-from SampleExtraction.Extractors.potential_based import BestClassPlace
-from SampleExtraction.Extractors.previous_race_based import PreviousWinProbability, \
-    PreviousPlacePercentile, \
-    PreviousSameSurfaceWinProbability, PreviousSameTrackWinProbability, PreviousSameRaceClassWinProbability, \
-    PreviousSameSurfacePlacePercentile, PreviousSameTrackPlacePercentile, PreviousSameRaceClassPlacePercentile, \
-    PulledUpPreviousRace, \
-    PreviousSameSurfaceMomentum, PreviousSameTrackMomentum, PreviousSameRaceClassMomentum, HasPreviousRaces
-from SampleExtraction.Extractors.previous_race_difference_based import RaceClassDifference, \
-    DistanceDifference, WeightDifference, RaceGoingDifference, AllowanceDifference, OwnerWinRateDifference
-from SampleExtraction.Extractors.purse_based import HorsePurseRate, DamPurseRate
-from SampleExtraction.Extractors.scratched_based import HorseScratchedRate, JockeyScratchedRate, TrainerScratchedRate, \
-    HorsePulledUpRate
-from SampleExtraction.Extractors.show_rate_based import HorseShowRate
-from SampleExtraction.Extractors.starts_based import LifeTimeStartCount
-from SampleExtraction.Extractors.time_based import WeekDayCos, WeekDaySin, MinutesIntoDay, MonthCos, MonthSin, \
-    DayOfMonthCos, DayOfMonthSin
-from SampleExtraction.Extractors.trainer_based import TrainerMomentum
-from SampleExtraction.Extractors.velocity_based import PreviousMomentum, DamMomentum, SireMomentum
-from SampleExtraction.Extractors.win_rate_based import BreederMomentum, OwnerMomentum, HorseWinRate, \
-    HorsePlacePercentile, \
-    HorseMomentum, HorseWinProbability, WindowTimeLength, HorseVelocity
-from SampleExtraction.feature_sources.init import FEATURE_SOURCES
+from DataAbstraction.Present.RaceCard import RaceCard
+from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor
+from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack
+from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup
+from SampleExtraction.feature_sources.init import FEATURE_SOURCES, previous_value_source
+from SampleExtraction.feature_sources.value_calculators import win_probability
 
 
 class FeatureManager:
@@ -76,123 +44,127 @@ class FeatureManager:
 
     def get_search_features(self) -> List[FeatureExtractor]:
         window_sizes = [3, 5, 7]
-        win_prob_features = [HorseWinProbability(window_size=i) for i in window_sizes]
-        win_rate_features = [HorseWinRate(window_size=i) for i in window_sizes]
-        show_rate_features = [HorseShowRate(window_size=i) for i in window_sizes]
-        place_percentile_features = [HorsePlacePercentile(window_size=i) for i in window_sizes]
-        momentum_features = [HorseMomentum(window_size=i) for i in window_sizes]
-        window_time_length_features = [WindowTimeLength(window_size=i) for i in window_sizes]
+        # win_prob_features = [HorseWinProbability(window_size=i) for i in window_sizes]
+        # win_rate_features = [HorseWinRate(window_size=i) for i in window_sizes]
+        # show_rate_features = [HorseShowRate(window_size=i) for i in window_sizes]
+        # place_percentile_features = [HorsePlacePercentile(window_size=i) for i in window_sizes]
+        # momentum_features = [HorseMomentum(window_size=i) for i in window_sizes]
+        # window_time_length_features = [WindowTimeLength(window_size=i) for i in window_sizes]
+
+        horse_win_prob = FeatureValueGroup(["subject_id"], win_probability)
+        jockey_win_prob = FeatureValueGroup(["jockey_name"], win_probability)
+        trainer_win_prob = FeatureValueGroup(["trainer_name"], win_probability)
 
         default_features = [
             # BetfairWinMarketWinProbability(),
 
+            FeatureSourceExtractor(previous_value_source, horse_win_prob),
+            FeatureSourceExtractor(previous_value_source, jockey_win_prob),
+            FeatureSourceExtractor(previous_value_source, trainer_win_prob)
 
-
-            PreviousWinProbability(),
-
-            CurrentRaceTrack(),
-            CurrentRaceClass(),
-            CurrentRaceSurface(),
-
-            CurrentRaceType(),
-            CurrentRaceTypeDetail(),
-            CurrentRaceCategory(),
-
-            CurrentGoing(),
-            CurrentDistance(),
-            CurrentPurse(),
-
-            CurrentRating(),
-            Age(),
-
-            Gender(),
-
-            AgeFrom(), AgeTo(),
-
-            HorsePulledUpRate(),
-            PulledUpPreviousRace(),
-
-            HorsePurseRate(),
-
-            MinutesIntoDay(),
-
-            MonthCos(),
-            MonthSin(),
-
-            DayOfMonthCos(),
-            DayOfMonthSin(),
-
-            WeekDaySin(),
-            WeekDayCos(),
-
-            HasPreviousRaces(),
-
-            PreviousSameSurfaceWinProbability(),
-            PreviousSameTrackWinProbability(),
-            PreviousSameRaceClassWinProbability(),
-
-            PreviousMomentum(),
-
-            PreviousSameSurfaceMomentum(),
-            PreviousSameTrackMomentum(),
-            PreviousSameRaceClassMomentum(),
-
-            PreviousPlacePercentile(),
-
-            PreviousSameSurfacePlacePercentile(),
-            PreviousSameTrackPlacePercentile(),
-            PreviousSameRaceClassPlacePercentile(),
-
-            PreviousRaceLayoff(),
-
-            SameTrackLayoff(),
-            SameClassLayoff(),
-            SameSurfaceLayoff(),
-
-            JockeyMomentum(),
-            TrainerMomentum(),
-
-            CurrentJockeyWeight(),
-            WeightAllowance(),
-
-            DistanceDifference(),
-            RaceGoingDifference(),
-            RaceClassDifference(),
-
-            WeightDifference(),
-            AllowanceDifference(),
-
-            OwnerWinRateDifference(),
-
-            DrawBias(),
-
-            TravelDistance(),
-
-            HorseScratchedRate(),
-            JockeyScratchedRate(),
-            TrainerScratchedRate(),
-
-            HasTrainerMultipleHorses(),
-
-            SireSiblingsMomentum(),
-            DamSiblingsMomentum(),
-            SireAndDamSiblingsMomentum(),
-            DamSireSiblingsMomentum(),
-
-            HasBlinkers(), HasHood(), HasCheekPieces(),
-            HasVisor(), HasEyeCovers(), HasEyeShield(),
-
-            BestClassPlace(),
-            LifeTimeStartCount(),
-
-            DamMomentum(), SireMomentum(),
-
-            BreederMomentum(), OwnerMomentum(),
-
-            HorseJockeyWinProbability(),
-            HorseJockeyPlacePercentile(),
-            HorseJockeyMomentum(),
-            HorseJockeyShowRate(),
+            # CurrentRaceTrack(),
+            # CurrentRaceClass(),
+            # CurrentRaceSurface(),
+            #
+            # CurrentRaceType(),
+            # CurrentRaceTypeDetail(),
+            # CurrentRaceCategory(),
+            #
+            # CurrentGoing(),
+            # CurrentDistance(),
+            # CurrentPurse(),
+            #
+            # CurrentRating(),
+            # Age(),
+            #
+            # Gender(),
+            #
+            # AgeFrom(), AgeTo(),
+            #
+            # HorsePulledUpRate(),
+            # PulledUpPreviousRace(),
+            #
+            # HorsePurseRate(),
+            #
+            # MinutesIntoDay(),
+            #
+            # MonthCos(),
+            # MonthSin(),
+            #
+            # DayOfMonthCos(),
+            # DayOfMonthSin(),
+            #
+            # WeekDaySin(),
+            # WeekDayCos(),
+            #
+            # HasPreviousRaces(),
+            #
+            # PreviousSameSurfaceWinProbability(),
+            # PreviousSameTrackWinProbability(),
+            # PreviousSameRaceClassWinProbability(),
+            #
+            # PreviousMomentum(),
+            #
+            # PreviousSameSurfaceMomentum(),
+            # PreviousSameTrackMomentum(),
+            # PreviousSameRaceClassMomentum(),
+            #
+            # PreviousPlacePercentile(),
+            #
+            # PreviousSameSurfacePlacePercentile(),
+            # PreviousSameTrackPlacePercentile(),
+            # PreviousSameRaceClassPlacePercentile(),
+            #
+            # PreviousRaceLayoff(),
+            #
+            # SameTrackLayoff(),
+            # SameClassLayoff(),
+            # SameSurfaceLayoff(),
+            #
+            # JockeyMomentum(),
+            # TrainerMomentum(),
+            #
+            # CurrentJockeyWeight(),
+            # WeightAllowance(),
+            #
+            # DistanceDifference(),
+            # RaceGoingDifference(),
+            # RaceClassDifference(),
+            #
+            # WeightDifference(),
+            # AllowanceDifference(),
+            #
+            # OwnerWinRateDifference(),
+            #
+            # DrawBias(),
+            #
+            # TravelDistance(),
+            #
+            # HorseScratchedRate(),
+            # JockeyScratchedRate(),
+            # TrainerScratchedRate(),
+            #
+            # HasTrainerMultipleHorses(),
+            #
+            # SireSiblingsMomentum(),
+            # DamSiblingsMomentum(),
+            # SireAndDamSiblingsMomentum(),
+            # DamSireSiblingsMomentum(),
+            #
+            # HasBlinkers(), HasHood(), HasCheekPieces(),
+            # HasVisor(), HasEyeCovers(), HasEyeShield(),
+            #
+            # BestClassPlace(),
+            # LifeTimeStartCount(),
+            #
+            # DamMomentum(), SireMomentum(),
+            #
+            # BreederMomentum(), OwnerMomentum(),
+            #
+            # HorseJockeyWinProbability(),
+            # HorseJockeyPlacePercentile(),
+            # HorseJockeyMomentum(),
+            # HorseJockeyShowRate(),
 
 
 
@@ -341,7 +313,7 @@ class FeatureManager:
             # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
             #
             # MeanSpeedDiff(),
-        ] + win_prob_features + win_rate_features + show_rate_features + place_percentile_features + momentum_features + window_time_length_features
+        ]
 
         return default_features
 
