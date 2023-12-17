@@ -86,25 +86,12 @@ class Bettor(ABC):
 
         return bets
 
-    @abstractmethod
-    def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
-        pass
-
-    @property
-    def offer_acceptance_rate(self) -> float:
-        return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)
-
-
-class RacebetsBettor(Bettor):
-
-    BET_TAX = 0.05
-
     def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
         stakes = 0
 
         if probability_estimate is not None:
             if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
-                adjusted_odds = bet_offer.odds - self.BET_TAX
+                adjusted_odds = self.get_adjusted_odds(bet_offer.odds)
 
                 if adjusted_odds > 1:
                     odds_p = 1 / adjusted_odds
@@ -118,3 +105,27 @@ class RacebetsBettor(Bettor):
                         self.offer_rejected_count += 1
 
         return stakes
+
+    @abstractmethod
+    def get_adjusted_odds(self, odds: float) -> float:
+        pass
+
+    @property
+    def offer_acceptance_rate(self) -> float:
+        return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)
+
+
+class RacebetsBettor(Bettor):
+
+    BET_TAX = 0.05
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        return odds - self.BET_TAX
+
+
+class BetfairBettor(Bettor):
+
+    WIN_COMMISSION = 0.025
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        return odds * (1 - self.WIN_COMMISSION)
