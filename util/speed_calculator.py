@@ -5,7 +5,6 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 
 LENGTHS_PER_SECOND = 5
-METERS_PER_LENGTH: float = 2.4
 __speed_figures_distribution = deque(maxlen=1000)
 
 
@@ -48,45 +47,6 @@ def compute_speed_figure(
         print("----------------------------------")
 
     return speed_figure
-
-
-def get_momentum(race_card: RaceCard, horse: Horse) -> float:
-    uncorrected_momentum = get_uncorrected_momentum(race_card, horse)
-    if uncorrected_momentum > 0:
-        track_variant = 1.0
-        if "avg" in race_card.track_variant_estimate:
-            track_variant = race_card.track_variant_estimate["avg"]
-
-        return uncorrected_momentum * track_variant
-
-    return -1
-
-
-def get_uncorrected_momentum(race_card: RaceCard, horse: Horse) -> float:
-    if horse.jockey.weight > 0:
-        velocity = get_velocity(race_card, horse)
-        if velocity > 0:
-            return velocity * horse.jockey.weight
-
-    return -1.0
-
-
-def get_velocity(race_card: RaceCard, horse: Horse) -> float:
-    if race_card.distance > 0:
-        if horse.finish_time > 0:
-            return race_card.distance / horse.finish_time
-
-        if race_card.win_time > 0 and horse.horse_distance >= 0:
-            horse_m_behind = horse_lengths_behind_to_horse_m_behind(horse.horse_distance)
-            total_m_run = race_card.distance - horse_m_behind
-
-            return total_m_run / race_card.win_time
-
-    return -1
-
-
-def horse_lengths_behind_to_horse_m_behind(horse_distance: float) -> float:
-    return horse_distance * METERS_PER_LENGTH
 
 
 def get_horse_time(win_time: float, lengths_per_second: float, horse_distance: float):

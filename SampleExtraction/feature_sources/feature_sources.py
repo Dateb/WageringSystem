@@ -9,7 +9,7 @@ from typing import List, Dict, Callable
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second, get_velocity, get_momentum, get_uncorrected_momentum
+    get_horse_time, get_lengths_per_second
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
 

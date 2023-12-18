@@ -3,10 +3,13 @@ from typing import List
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor
-from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack
+from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
+    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, AgeFrom, \
+    AgeTo
+from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender
 from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup
 from SampleExtraction.feature_sources.init import FEATURE_SOURCES, previous_value_source
-from SampleExtraction.feature_sources.value_calculators import win_probability
+from SampleExtraction.feature_sources.value_calculators import win_probability, momentum
 
 
 class FeatureManager:
@@ -52,34 +55,50 @@ class FeatureManager:
         # window_time_length_features = [WindowTimeLength(window_size=i) for i in window_sizes]
 
         horse_win_prob = FeatureValueGroup(["subject_id"], win_probability)
+        horse_momentum = FeatureValueGroup(["subject_id"], momentum)
+
+        horse_surface_win_prob = FeatureValueGroup(["subject_id", "surface"], win_probability)
+        horse_track_win_prob = FeatureValueGroup(["subject_id", "track_name"], win_probability)
+        horse_class_win_prob = FeatureValueGroup(["subject_id", "race_class"], win_probability)
+
         jockey_win_prob = FeatureValueGroup(["jockey_name"], win_probability)
         trainer_win_prob = FeatureValueGroup(["trainer_name"], win_probability)
 
+        prev_value_features = [
+            FeatureSourceExtractor(previous_value_source, horse_win_prob),
+            # FeatureSourceExtractor(previous_value_source, horse_momentum),
+
+            FeatureSourceExtractor(previous_value_source, horse_surface_win_prob),
+            FeatureSourceExtractor(previous_value_source, horse_track_win_prob),
+            FeatureSourceExtractor(previous_value_source, horse_class_win_prob),
+
+            FeatureSourceExtractor(previous_value_source, jockey_win_prob),
+            FeatureSourceExtractor(previous_value_source, trainer_win_prob),
+        ]
+
+        current_race_features = [
+            CurrentRaceTrack(),
+            CurrentRaceClass(),
+            CurrentRaceSurface(),
+
+            CurrentRaceType(),
+            CurrentRaceTypeDetail(),
+            CurrentRaceCategory(),
+
+            CurrentGoing(),
+            CurrentDistance(),
+            CurrentPurse(),
+
+            CurrentRating(),
+            Age(),
+
+            Gender(),
+
+            AgeFrom(), AgeTo(),
+        ]
+
         default_features = [
             # BetfairWinMarketWinProbability(),
-
-            FeatureSourceExtractor(previous_value_source, horse_win_prob),
-            FeatureSourceExtractor(previous_value_source, jockey_win_prob),
-            FeatureSourceExtractor(previous_value_source, trainer_win_prob)
-
-            # CurrentRaceTrack(),
-            # CurrentRaceClass(),
-            # CurrentRaceSurface(),
-            #
-            # CurrentRaceType(),
-            # CurrentRaceTypeDetail(),
-            # CurrentRaceCategory(),
-            #
-            # CurrentGoing(),
-            # CurrentDistance(),
-            # CurrentPurse(),
-            #
-            # CurrentRating(),
-            # Age(),
-            #
-            # Gender(),
-            #
-            # AgeFrom(), AgeTo(),
             #
             # HorsePulledUpRate(),
             # PulledUpPreviousRace(),
@@ -99,9 +118,6 @@ class FeatureManager:
             #
             # HasPreviousRaces(),
             #
-            # PreviousSameSurfaceWinProbability(),
-            # PreviousSameTrackWinProbability(),
-            # PreviousSameRaceClassWinProbability(),
             #
             # PreviousMomentum(),
             #
@@ -315,7 +331,7 @@ class FeatureManager:
             # MeanSpeedDiff(),
         ]
 
-        return default_features
+        return current_race_features + prev_value_features
 
     @property
     def numerical_feature_names(self) -> List[str]:
