@@ -43,4 +43,4 @@ class FeatureSourceExtractor(FeatureExtractor):
         return feature_value
 
     def get_name(self) -> str:
-        return f"{type(self.feature_source).__name__}_{self.feature_value_group.name}"
+        return f"{self.feature_source.get_name()}_{self.feature_value_group.name}"

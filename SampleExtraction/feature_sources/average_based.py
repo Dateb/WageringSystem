@@ -5,7 +5,6 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.feature_sources import FeatureSource, CATEGORY_AVERAGE_CALCULATOR
 from util.nested_dict import nested_dict
-from util.speed_calculator import get_lengths_per_second, get_velocity, get_momentum
 from util.stats_calculator import ExponentialOnlineCalculator, OnlineCalculator
 
 

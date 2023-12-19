@@ -29,7 +29,8 @@ class NNClassifier(Estimator):
 
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
-        self.loss_function = self.params["loss_function"]
+        # self.loss_function = self.params["loss_function"]
+        self.loss_function = torch.nn.MSELoss()
 
         self.device = (
             "cuda"
@@ -117,7 +118,7 @@ class NNClassifier(Estimator):
             train_loss = self.fit_epoch(train_dataloader)
             validation_loss = self.validate_epoch(validation_dataloader)
 
-            scheduler_metric = validation_loss
+            scheduler_metric = max([train_loss, validation_loss])
 
             self.scheduler.step(scheduler_metric)
 
@@ -130,7 +131,7 @@ class NNClassifier(Estimator):
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
-                print(f"restarting at model with train/validation loss: {best_train_loss}/{best_validation_loss}")
+                print(f"restarting at model with train/validation loss: {best_train_loss * 100}/{best_validation_loss * 100}")
                 neural_network_persistence.load_state_into_neural_network(self.network)
 
         return best_scheduler_metric
@@ -188,7 +189,7 @@ class NNClassifier(Estimator):
         validation_loss /= num_batches
         validation_accuracy /= size
 
-        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
+        print(f"Validation Avg loss/Accuracy: {validation_loss * 100:>8f}/{(100 * validation_accuracy):>0.1f}%")
 
         return validation_loss
 
@@ -230,10 +231,14 @@ class NNClassifier(Estimator):
         test_loss /= num_batches
         correct /= size
 
-        print(f"Test Avg loss/Accuracy: {test_loss:>8f}/{(100 * correct):>0.1f}%")
+        print(f"Test Avg loss/Accuracy: {test_loss * 100:>8f}/{(100 * correct):>0.1f}%")
 
     def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
-        return self.loss_function(pred, y)
+        y_one_hot = torch.nn.functional.one_hot(y, num_classes=20).to(torch.float32)
+        pred_prob = torch.nn.Softmax(dim=1)(pred)
+
+        batch_loss = self.loss_function(pred_prob, y_one_hot)
+        return batch_loss
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)

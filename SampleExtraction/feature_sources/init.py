@@ -1,6 +1,14 @@
-from SampleExtraction.feature_sources.feature_sources import PreviousValueSource
+from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, AverageValueSource
 
 previous_value_source: PreviousValueSource = PreviousValueSource()
+
+avg_window_3_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=3, min_obs_thresh=3)
+avg_window_5_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=5, min_obs_thresh=3)
+avg_window_7_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=7, min_obs_thresh=3)
+
+avg_window_3_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=3, min_obs_thresh=10)
+avg_window_5_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=5, min_obs_thresh=10)
+avg_window_7_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=7, min_obs_thresh=10)
 
 # horse_name_to_subject_id_source: HorseNameToSubjectIdSource = HorseNameToSubjectIdSource()
 #
@@ -74,5 +82,8 @@ previous_value_source: PreviousValueSource = PreviousValueSource()
 
 
 FEATURE_SOURCES = [
-    previous_value_source
+    previous_value_source,
+    avg_window_3_min_obs_3_source,
+    avg_window_5_min_obs_3_source,
+    avg_window_7_min_obs_3_source,
     ]

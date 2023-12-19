@@ -7,8 +7,12 @@ from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, Cur
     CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, AgeFrom, \
     AgeTo
 from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender
+from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance
+from SampleExtraction.Extractors.time_based import MinutesIntoDay, MonthCos, MonthSin, DayOfMonthCos, DayOfMonthSin, \
+    WeekDaySin, WeekDayCos
 from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup
-from SampleExtraction.feature_sources.init import FEATURE_SOURCES, previous_value_source
+from SampleExtraction.feature_sources.init import FEATURE_SOURCES, previous_value_source, avg_window_3_min_obs_3_source, \
+    avg_window_5_min_obs_3_source, avg_window_7_min_obs_3_source
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum
 
 
@@ -46,7 +50,7 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
-        window_sizes = [3, 5, 7]
+        # window_sizes = [3, 5, 7]
         # win_prob_features = [HorseWinProbability(window_size=i) for i in window_sizes]
         # win_rate_features = [HorseWinRate(window_size=i) for i in window_sizes]
         # show_rate_features = [HorseShowRate(window_size=i) for i in window_sizes]
@@ -62,18 +66,34 @@ class FeatureManager:
         horse_class_win_prob = FeatureValueGroup(["subject_id", "race_class"], win_probability)
 
         jockey_win_prob = FeatureValueGroup(["jockey_name"], win_probability)
+        jockey_momentum = FeatureValueGroup(["jockey_name"], momentum)
+
         trainer_win_prob = FeatureValueGroup(["trainer_name"], win_probability)
+        trainer_momentum = FeatureValueGroup(["trainer_name"], momentum)
 
         prev_value_features = [
             FeatureSourceExtractor(previous_value_source, horse_win_prob),
-            # FeatureSourceExtractor(previous_value_source, horse_momentum),
+            FeatureSourceExtractor(previous_value_source, horse_momentum),
 
             FeatureSourceExtractor(previous_value_source, horse_surface_win_prob),
             FeatureSourceExtractor(previous_value_source, horse_track_win_prob),
             FeatureSourceExtractor(previous_value_source, horse_class_win_prob),
 
             FeatureSourceExtractor(previous_value_source, jockey_win_prob),
+            FeatureSourceExtractor(previous_value_source, jockey_momentum),
+
             FeatureSourceExtractor(previous_value_source, trainer_win_prob),
+            FeatureSourceExtractor(previous_value_source, trainer_momentum),
+        ]
+
+        avg_value_features = [
+            FeatureSourceExtractor(avg_window_3_min_obs_3_source, horse_win_prob),
+            FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_win_prob),
+            FeatureSourceExtractor(avg_window_7_min_obs_3_source, horse_win_prob),
+
+            FeatureSourceExtractor(avg_window_3_min_obs_3_source, horse_momentum),
+            FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_momentum),
+            FeatureSourceExtractor(avg_window_7_min_obs_3_source, horse_momentum)
         ]
 
         current_race_features = [
@@ -90,14 +110,30 @@ class FeatureManager:
             CurrentPurse(),
 
             CurrentRating(),
-            Age(),
 
+            Age(),
             Gender(),
 
             AgeFrom(), AgeTo(),
         ]
 
+        time_features = [
+            MinutesIntoDay(),
+
+            MonthCos(),
+            MonthSin(),
+
+            DayOfMonthCos(),
+            DayOfMonthSin(),
+
+            WeekDaySin(),
+            WeekDayCos(),
+        ]
+
         default_features = [
+            # CurrentJockeyWeight(),
+            # WeightAllowance(),
+
             # BetfairWinMarketWinProbability(),
             #
             # HorsePulledUpRate(),
@@ -105,16 +141,6 @@ class FeatureManager:
             #
             # HorsePurseRate(),
             #
-            # MinutesIntoDay(),
-            #
-            # MonthCos(),
-            # MonthSin(),
-            #
-            # DayOfMonthCos(),
-            # DayOfMonthSin(),
-            #
-            # WeekDaySin(),
-            # WeekDayCos(),
             #
             # HasPreviousRaces(),
             #
@@ -140,8 +166,6 @@ class FeatureManager:
             # JockeyMomentum(),
             # TrainerMomentum(),
             #
-            # CurrentJockeyWeight(),
-            # WeightAllowance(),
             #
             # DistanceDifference(),
             # RaceGoingDifference(),
@@ -331,7 +355,7 @@ class FeatureManager:
             # MeanSpeedDiff(),
         ]
 
-        return current_race_features + prev_value_features
+        return current_race_features + prev_value_features + avg_value_features + time_features
 
     @property
     def numerical_feature_names(self) -> List[str]:

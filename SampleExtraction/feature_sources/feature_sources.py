@@ -1,6 +1,7 @@
 import collections
 from abc import abstractmethod, ABC
 from collections import deque
+from datetime import date
 from math import sqrt
 from sqlite3 import Date
 from statistics import mean
@@ -75,7 +76,7 @@ class FeatureSource(ABC):
             feature_value_group_key = feature_value_group.get_key(race_card, horse)
             new_feature_value = feature_value_group.value_calculator(race_card, horse)
 
-            self.update_statistic(self.feature_values[feature_value_group_key], new_feature_value)
+            self.update_statistic(self.feature_values[feature_value_group_key], new_feature_value, race_card.date)
 
     def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
         feature_value_group_key = feature_value_group.get_key(race_card, horse)
@@ -85,28 +86,8 @@ class FeatureSource(ABC):
         return None
 
     @abstractmethod
-    def update_statistic(self, category: dict, new_feature_value: float) -> None:
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         pass
-
-    def update_average(self, category: dict, new_obs: float, new_obs_date: Date, online_calculator: OnlineCalculator) -> None:
-        if not category["count"]:
-            category["prev_avg"] = 0
-            category["avg"] = new_obs
-            category["count"] = 1
-            category["last_obs_date"] = new_obs_date
-        else:
-            n_days_since_last_obs = (new_obs_date - category["last_obs_date"]).days
-
-            category["prev_avg"] = category["avg"]
-            category["count"] += 1
-
-            category["avg"] = online_calculator.calculate_average(
-                old_average=category["prev_avg"],
-                new_obs=new_obs,
-                n_days_since_last_obs=n_days_since_last_obs,
-                count=category["count"]
-            )
-            category["last_obs_date"] = new_obs_date
 
     def update_variance(self, category: dict, new_obs: float):
         if not category["count"]:
@@ -129,13 +110,55 @@ class FeatureSource(ABC):
         if not category["max"] or new_obs > category["max"]:
             category["max"] = new_obs
 
+    def get_name(self) -> str:
+        return self.__class__.__name__
 
-class PreviousValueSource(FeatureSource, ABC):
+
+class PreviousValueSource(FeatureSource):
     def __init__(self):
         super().__init__()
 
-    def update_statistic(self, category: dict, new_obs: float) -> None:
-        category["value"] = new_obs
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        category["value"] = new_feature_value
+
+
+class AverageValueSource(FeatureSource):
+
+    def __init__(self, window_size=5, min_obs_thresh=3):
+        super().__init__()
+        self.window_size = window_size
+        self.average_calculator = ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.0)
+        self.min_obs_thresh = min_obs_thresh
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: Date) -> None:
+        if not category["count"]:
+            category["prev_avg"] = 0
+            category["value"] = new_feature_value
+            category["count"] = 1
+            category["last_obs_date"] = value_date
+        else:
+            n_days_since_last_obs = (value_date - category["last_obs_date"]).days
+
+            category["prev_avg"] = category["value"]
+            category["count"] += 1
+
+            category["value"] = self.average_calculator.calculate_average(
+                old_average=category["prev_avg"],
+                new_obs=new_feature_value,
+                n_days_since_last_obs=n_days_since_last_obs,
+                count=category["count"]
+            )
+            category["last_obs_date"] = value_date
+
+    def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
+        feature_value_group_key = feature_value_group.get_key(race_card, horse)
+        feature_value_group = self.feature_values[feature_value_group_key]
+        if "value" in feature_value_group and feature_value_group["count"] >= self.min_obs_thresh:
+            return feature_value_group["value"]
+        return None
+
+    def get_name(self) -> str:
+        return f"{self.__class__.__name__}_{self.window_size}_{self.min_obs_thresh}"
 
 
 class HorseNameToSubjectIdSource(FeatureSource):
