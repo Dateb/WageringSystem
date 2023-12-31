@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import lightgbm
 import pandas as pd
 from lightgbm import Dataset
@@ -19,9 +21,7 @@ class BoostedTreesRanker(Estimator):
 
     FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "xendcg",
-        "metric": "xendcg",
-        # "verbose": -1,
+        "objective": "lambdarank",
         "deterministic": True,
         "force_row_wise": True,
         "n_jobs": -1,
@@ -48,33 +48,40 @@ class BoostedTreesRanker(Estimator):
 
         # self.parameter_set = {**self.FIXED_PARAMS}
 
-    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
-
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
         for cat_feature_name in self.categorical_feature_names:
             cat_gbt_feature_name = f"{cat_feature_name}_gbt"
             train_sample.race_cards_dataframe[cat_gbt_feature_name] = train_sample.race_cards_dataframe[cat_feature_name].astype('category')
             validation_sample.race_cards_dataframe[cat_gbt_feature_name] = validation_sample.race_cards_dataframe[cat_feature_name].astype('category')
-            test_sample.race_cards_dataframe[cat_gbt_feature_name] = test_sample.race_cards_dataframe[cat_feature_name].astype('category')
 
         self.fit_validate(train_sample, validation_sample)
 
         print("Model tuning completed!")
-        self.score_test_sample(test_sample)
+        test_loss = self.score_test_sample(test_sample)
 
         train_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
         validation_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
-        test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
+        # test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
         print(f"Test accuracy gbt-model: {get_accuracy(test_sample)}")
 
-        return test_sample.race_cards_dataframe["score"]
+        return test_sample.race_cards_dataframe["score"], test_loss
 
     def score_test_sample(self, test_sample: RaceCardsSample):
+        #TODO: The categorical creation/deletion is also used in the predict function. Refactor the duplication.
+        for cat_feature_name in self.categorical_feature_names:
+            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
+            test_sample.race_cards_dataframe[cat_gbt_feature_name] = test_sample.race_cards_dataframe[cat_feature_name].astype('category')
+
         race_cards_dataframe = test_sample.race_cards_dataframe
         X = race_cards_dataframe[self.feature_names]
         scores = self.booster.predict(X)
 
+        test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
+
         test_sample.race_cards_dataframe["score"] = scores
+
+        return 0
 
     def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         self.booster = lightgbm.train(

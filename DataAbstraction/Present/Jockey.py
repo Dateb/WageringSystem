@@ -1,6 +1,10 @@
 class Jockey:
 
     def __init__(self, raw_data: dict):
+        self.id = -1
+        if "idPerson" in raw_data:
+            self.id = raw_data["idPerson"]
+
         self.stats = raw_data["stats"]
         self.last_name = raw_data["lastName"]
 

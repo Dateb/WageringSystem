@@ -2,9 +2,9 @@ import re
 from datetime import timedelta
 from typing import Dict
 
+from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
-from DataCollection.TrainDataCollector import CollectedDaysTracker
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 scraper = get_scraper()
@@ -27,17 +27,143 @@ header = {
 }
 
 
-class BHAFetcher:
+class BHAInjector:
 
     def __init__(self):
         self.race_series_ids_per_year_month = {}
         self.races_data = {}
         self.current_race_date = None
         self.race_cards_loader = RaceCardsPersistence("race_cards")
-        self.collected_days_tracker = CollectedDaysTracker(
-            self.race_cards_loader,
-            collected_days_file_name="../../data/collected_bha_days.pickle"
-        )
+
+    # def fetch_all(self) -> None:
+    #     race_card_file_names = self.race_cards_loader.race_card_file_names
+    #
+    #     for race_card_file_name in reversed(race_card_file_names):
+    #         race_cards = self.race_cards_loader.load_race_card_files_writable([race_card_file_name])
+    #
+    #         date_had_injections = False
+    #
+    #         for race_card in race_cards.values():
+    #             if self.current_race_date != race_card.date:
+    #                 if self.current_race_date is not None:
+    #                     self.collected_days_tracker.collected_days.add(self.current_race_date)
+    #                     self.collected_days_tracker.save_collected_days()
+    #
+    #                     if date_had_injections:
+    #                         self.race_cards_loader.save(list(race_cards.values()))
+    #                 self.current_race_date = race_card.date
+    #                 date_had_injections = False
+    #
+    #             if race_card.country == "GB" and race_card.date not in self.collected_days_tracker.collected_days:
+    #                 race_card_data = self.fetch(race_card)
+    #                 self.inject_race_card_data(race_card, race_card_data)
+    #
+    #                 print(f"Injected: {race_card.date}/{race_card.name}/{race_card.race_id}")
+    #
+    #         if date_had_injections:
+    #             self.race_cards_loader.save(list(race_cards.values()))
+
+    def get_horse_attributes(self, horse_data: dict) -> dict:
+        horse_attributes = {
+            "finishTime": horse_data["positionFinishTime"],
+            "resultBtnDistancePFO": horse_data["resultBtnDistancePFO"],
+            "resultFinishDNF": horse_data["resultFinishDNF"],
+            "jockeyId": horse_data["jockeyId"],
+            "trainerId": horse_data["trainerId"],
+            "ownerId": horse_data["ownerId"],
+            "ratingFlat": horse_data["ratingFlat"],
+            "ratingAWT": horse_data["ratingAWT"],
+            "ratingChase": horse_data["ratingChase"],
+            "ratingHurdle": horse_data["ratingHurdle"],
+            "HRO": horse_data["HRO"],
+            "nonRunnerDeclaredReason": horse_data["nonRunnerDeclaredReason"],
+            "nonRunnerDeclaredDate": horse_data["nonRunnerDeclaredDate"],
+            "nonRunnerDeclaredTime": horse_data["nonRunnerDeclaredTime"]
+        }
+
+        return horse_attributes
+
+    def inject(self, race_card: RaceCard) -> None:
+        race_card_data = self.fetch(race_card)
+        self.inject_race_card_data(race_card, race_card_data)
+
+    def fetch(self, race_card: RaceCard) -> Dict:
+        race_card_month = race_card.datetime.month
+        race_card_year = race_card.datetime.year
+
+        race_series_ids_key = f"{race_card_year}_{race_card_month}"
+
+        if race_series_ids_key not in self.race_series_ids_per_year_month:
+            self.save_race_series_of_year_month(race_card_year, race_card_month)
+
+        race_series_id = self.get_race_series_id(race_card)
+
+        if race_series_id not in self.races_data:
+            self.save_races_of_race_series(race_card_year, race_series_id)
+
+        race_id, division_sequence = self.get_race_id(race_card, race_series_id)
+
+        race_card_url = f"https://www.britishhorseracing.com/feeds/v3/races/{race_card_year}/{race_id}/{division_sequence}/results"
+        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=1.0)
+
+        return race_card_data
+
+    def inject_race_card_data(self, race_card: RaceCard, race_card_data: Dict) -> None:
+        for horse_data in race_card_data["data"]:
+            horse = self.get_horse(race_card, horse_data)
+
+            if horse is not None:
+                horse_raw_data = horse.raw_data
+
+                horse_attributes = self.get_horse_attributes(horse_data)
+
+                for attribute in horse_attributes:
+                    horse_raw_data[attribute] = horse_attributes[attribute]
+
+    def get_horse(self, race_card: RaceCard, horse_data: Dict) -> Horse:
+        horse_name_bha = self.get_horse_name(horse_data["racehorseName"])
+
+        horse = race_card.get_horse_by_horse_name(horse_name_bha)
+
+        if horse is None:
+            if horse_data["jockeyName"] is not None:
+                horse = race_card.get_horse_by_jockey(horse_data["jockeyName"])
+
+        if horse is None:
+            horse = race_card.get_horse_by_number(int(horse_data["clothNumber"]))
+
+        if horse is None:
+            print(f"Horse not found: {horse_name_bha}")
+
+        return horse
+
+    def get_horse_name(self, horse_raw_name: str):
+        # Define a regular expression pattern to match the name
+        pattern = r'^\d+\.\s*|\s*\([A-Z]+\)$'
+
+        # Remove the prefix and suffix
+        horse_name = re.sub(pattern, '', horse_raw_name)
+
+        # Remove any leading/trailing whitespaces
+        horse_name = horse_name.strip()
+
+        return horse_name
+
+
+    def get_race_series_id(self, race_card: RaceCard) -> str:
+        year_month_key = f"{race_card.datetime.year}_{race_card.datetime.month}"
+
+        course_name = self.track_name_to_course_name(race_card.track_name)
+        race_date = str(race_card.date)
+
+        race_series_key = f"{course_name}_{race_date}"
+
+        return self.race_series_ids_per_year_month[year_month_key][race_series_key]
+
+    def get_race_id(self, race_card: RaceCard, race_series_id: str) -> str:
+        race_time = (race_card.datetime - timedelta(hours=1)).time()
+
+        return self.races_data[race_series_id][str(race_time)]
 
     def save_race_series_of_year_month(self, year: int, month: int) -> None:
         race_series_per_month_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=1000&resultsAvailable=true&year={year}"
@@ -58,125 +184,6 @@ class BHAFetcher:
 
         for race in races_of_race_series_data["data"]:
             self.races_data[race_series_id][race['raceTime']] = (race['raceId'], race['divisionSequence'])
-
-    def fetch_all(self) -> None:
-        race_card_file_names = self.race_cards_loader.race_card_file_names
-
-        for race_card_file_name in reversed(race_card_file_names):
-            race_cards = self.race_cards_loader.load_race_card_files_writable([race_card_file_name])
-
-            date_had_injections = False
-
-            for race_card in race_cards.values():
-                if self.current_race_date != race_card.date:
-                    if self.current_race_date is not None:
-                        self.collected_days_tracker.collected_days.add(self.current_race_date)
-                        self.collected_days_tracker.save_collected_days()
-
-                        if date_had_injections:
-                            self.race_cards_loader.save(list(race_cards.values()))
-                    self.current_race_date = race_card.date
-                    date_had_injections = False
-
-                if race_card.country == "GB" and race_card.date not in self.collected_days_tracker.collected_days:
-                    race_card_data = self.fetch(race_card)
-                    for horse_data in race_card_data["data"]:
-                        horse_name_bha = self.get_horse_name(horse_data["racehorseName"])
-                        horse = race_card.get_horse_by_horse_name(horse_name_bha)
-
-                        if horse is None:
-                            print(horse_name_bha)
-                            if horse_data["jockeyName"] is not None:
-                                horse = race_card.get_horse_by_jockey(horse_data["jockeyName"])
-
-                            if horse is None:
-                                horse = race_card.get_horse_by_number(int(horse_data["clothNumber"]))
-
-                                if horse is None:
-                                    print(f"Horse not found: {horse_name_bha}")
-                                    break
-
-                        horse_raw_data = horse.raw_data
-
-                        horse_attributes = self.get_horse_attributes(horse_data)
-
-                        for attribute in horse_attributes:
-                            horse_raw_data[attribute] = horse_attributes[attribute]
-
-                        date_had_injections = True
-
-                    print(f"Injected: {race_card.date}/{race_card.name}/{race_card.race_id}")
-
-            if date_had_injections:
-                self.race_cards_loader.save(list(race_cards.values()))
-
-        #TODO: Do final save for last day
-
-    def get_horse_name(self, horse_raw_name: str):
-        # Define a regular expression pattern to match the name
-        pattern = r'^\d+\.\s*|\s*\([A-Z]+\)$'
-
-        # Remove the prefix and suffix
-        horse_name = re.sub(pattern, '', horse_raw_name)
-
-        # Remove any leading/trailing whitespaces
-        horse_name = horse_name.strip()
-
-        return horse_name
-
-    def get_horse_attributes(self, horse_data: dict) -> dict:
-        horse_attributes = {
-            "finishTime": horse_data["positionFinishTime"],
-            "resultFinishDNF": horse_data["resultFinishDNF"],
-            "jockeyId": horse_data["jockeyId"],
-            "trainerId": horse_data["trainerId"],
-            "ownerId": horse_data["ownerId"],
-            "ratingFlat": horse_data["ratingFlat"],
-            "ratingAWT": horse_data["ratingAWT"],
-            "ratingChase": horse_data["ratingChase"],
-            "ratingHurdle": horse_data["ratingHurdle"],
-            "nonRunnerDeclaredReason": horse_data["nonRunnerDeclaredReason"],
-            "nonRunnerDeclaredDate": horse_data["nonRunnerDeclaredDate"],
-            "nonRunnerDeclaredTime": horse_data["nonRunnerDeclaredTime"]
-        }
-
-        return horse_attributes
-
-    def fetch(self, race_card: RaceCard) -> Dict:
-        race_card_month = race_card.datetime.month
-        race_card_year = race_card.datetime.year
-
-        race_series_ids_key = f"{race_card_year}_{race_card_month}"
-
-        if race_series_ids_key not in self.race_series_ids_per_year_month:
-            self.save_race_series_of_year_month(race_card_year, race_card_month)
-
-        race_series_id = self.get_race_series_id(race_card)
-
-        if race_series_id not in self.races_data:
-            self.save_races_of_race_series(race_card_year, race_series_id)
-
-        race_id, division_sequence = self.get_race_id(race_card, race_series_id)
-
-        race_card_url = f"https://www.britishhorseracing.com/feeds/v3/races/{race_card_year}/{race_id}/{division_sequence}/results"
-        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=5.0)
-
-        return race_card_data
-
-    def get_race_series_id(self, race_card: RaceCard) -> str:
-        year_month_key = f"{race_card.datetime.year}_{race_card.datetime.month}"
-
-        course_name = self.track_name_to_course_name(race_card.track_name)
-        race_date = str(race_card.date)
-
-        race_series_key = f"{course_name}_{race_date}"
-
-        return self.race_series_ids_per_year_month[year_month_key][race_series_key]
-
-    def get_race_id(self, race_card: RaceCard, race_series_id: str) -> str:
-        race_time = (race_card.datetime - timedelta(hours=1)).time()
-
-        return self.races_data[race_series_id][str(race_time)]
 
     def track_name_to_course_name(self, track_name: str) -> str:
         if track_name == "Lingfield":
@@ -208,9 +215,7 @@ class BHAFetcher:
 
 
 def main():
-    bha_fetcher = BHAFetcher()
-
-    bha_fetcher.fetch_all()
+    bha_fetcher = BHAInjector()
 
 
 if __name__ == '__main__':

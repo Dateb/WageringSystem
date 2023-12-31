@@ -1,6 +1,12 @@
 class Trainer:
 
     def __init__(self, raw_data: dict):
+        self.id = -1
+        if "idPerson" in raw_data:
+            self.id = raw_data["idPerson"]
+        else:
+            print('yellow')
+
         self.stats = raw_data["stats"]
 
         self.num_wins = -1

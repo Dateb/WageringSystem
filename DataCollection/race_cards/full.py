@@ -1,5 +1,6 @@
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataAbstraction.RawRaceCardInjector import RawRaceCardInjector
+from DataCollection.BHA.fetch import BHAInjector
 from DataCollection.Timeform.fetch import ResultTimeformFetcher, RaceCardTimeformFetcher
 from DataCollection.Timeform.inject import TimeFormInjector
 from DataCollection.race_cards.base import BaseRaceCardsCollector
@@ -15,6 +16,8 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
             self.time_form_injector = TimeFormInjector(ResultTimeformFetcher())
         else:
             self.time_form_injector = TimeFormInjector(RaceCardTimeformFetcher())
+
+        self.bha_injector = BHAInjector()
 
     def create_race_card(self, race_id: str) -> WritableRaceCard:
         race_card = self.get_race_card(race_id)
@@ -37,6 +40,9 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
 
         else:
             print("#horses <= 1. Injection of timeform attributes is skipped.")
+
+        if race_card.country == "GB" and self.collect_results:
+            self.bha_injector.inject(race_card)
 
         race_card = WritableRaceCard(race_id, raw_race_card_injector.raw_race_card, self.remove_non_starters)
 

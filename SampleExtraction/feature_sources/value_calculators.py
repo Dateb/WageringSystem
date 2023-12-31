@@ -1,21 +1,97 @@
+import datetime
+
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 
 
 def win_probability(race_card: RaceCard, horse: Horse) -> float:
-    return horse.betfair_win_sp
+    win_prob = horse.sp_win_prob
+
+    if win_prob > 0:
+        return win_prob
+
+    return None
+
+
+def place_percentile(race_card: RaceCard, horse: Horse) -> float:
+    if horse.place > 0 and len(race_card.runners) > 1:
+        if race_card.n_finishers == 1:
+            return 1.0
+
+        place_percentile = (horse.place - 1) / (race_card.n_finishers - 1)
+        return 1 - place_percentile
+
+    return None
+
+
+def relative_distance_behind(race_card: RaceCard, horse: Horse):
+    if horse.horse_distance >= 0 and race_card.distance > 0:
+        if horse.place == 1:
+            second_place_horse = race_card.get_horse_by_place(2)
+            second_place_distance = 0
+            if second_place_horse is not None:
+                second_place_distance = second_place_horse.horse_distance
+
+            relative_distance_ahead = second_place_distance / race_card.distance
+            return relative_distance_ahead
+        else:
+            relative_distance_behind = -(horse.horse_distance / race_card.distance)
+            return relative_distance_behind
+
+    return None
+
+
+def has_pulled_up(race_card: RaceCard, horse: Horse) -> int:
+    has_pulled_up = horse.result_finish_dnf == "PU"
+
+    return has_pulled_up
+
+
+def race_distance(race_card: RaceCard, horse: Horse) -> float:
+    race_distance = race_card.distance
+
+    if race_distance > 0:
+        return race_distance
+
+    return None
+
+
+def race_going(race_card: RaceCard, horse: Horse) -> float:
+    race_going = race_card.going
+
+    if race_going > 0:
+        return race_going
+
+    return None
+
+
+def race_class(race_card: RaceCard, horse: Horse) -> float:
+    race_class = race_card.race_class
+
+    if race_class not in ["A", "B"]:
+        return int(race_class)
+
+    return None
+
+
+def race_date(race_card: RaceCard, horse: Horse) -> datetime.date:
+    return race_card.date
+
+
+def get_track_name(race_card: RaceCard, horse: Horse) -> str:
+    return race_card.track_name
 
 
 def momentum(race_card: RaceCard, horse: Horse) -> float:
     uncorrected_momentum = get_uncorrected_momentum(race_card, horse)
     if uncorrected_momentum > 0:
         track_variant = 1.0
-        if "avg" in race_card.track_variant_estimate:
-            track_variant = race_card.track_variant_estimate["avg"]
+        if "value" in race_card.track_variant_estimate:
+            track_variant = race_card.track_variant_estimate["value"]
 
         return uncorrected_momentum * track_variant
 
-    return -1
+    return None
 
 
 def get_uncorrected_momentum(race_card: RaceCard, horse: Horse) -> float:

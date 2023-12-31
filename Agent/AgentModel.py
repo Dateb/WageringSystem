@@ -9,7 +9,7 @@ from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
-from SampleExtraction.BlockSplitter import BlockSplitter
+from SampleExtraction.data_splitting import BlockSplitter
 
 
 class AgentModel:

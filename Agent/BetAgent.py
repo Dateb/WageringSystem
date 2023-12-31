@@ -14,7 +14,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Model.Betting.bet import Bettor
+from Model.Betting.bet import RacebetsBettor
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -40,7 +40,7 @@ class BetAgent:
             self.probabilizer = PlaceProbabilizer()
 
         self.current_bets = []
-        self.bettor = Bettor(bet_threshold=0.5)
+        self.bettor = RacebetsBettor(bet_threshold=0.1)
         self.feature_manager = FeatureManager()
         self.columns = None
 

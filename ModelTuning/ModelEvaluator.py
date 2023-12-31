@@ -1,20 +1,17 @@
 import os
-from copy import deepcopy
 from typing import Dict, List
 
 import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bettor, Bet, RacebetsBettor, BetfairBettor
+from Model.Betting.bet import Bet, RacebetsBettor, BetfairBettor
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimators.Estimator import Estimator
-from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
+from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
 from ModelTuning import simulate_conf
-from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class ModelEvaluator:
@@ -24,10 +21,8 @@ class ModelEvaluator:
 
         if simulate_conf.MARKET_TYPE == "WIN":
             bet_evaluator = WinBetEvaluator()
-            self.probabilizer = WinProbabilizer()
         else:
             bet_evaluator = PlaceBetEvaluator()
-            self.probabilizer = PlaceProbabilizer()
 
         if simulate_conf.MARKET_SOURCE == "Racebets":
             self.offer_container = RaceBetsOfferContainer()
@@ -38,18 +33,9 @@ class ModelEvaluator:
 
     def get_bets_of_model(
             self,
-            estimator: Estimator,
-            train_sample: RaceCardsSample,
-            validation_sample: RaceCardsSample,
-            test_sample: RaceCardsSample,
+            estimation_result: ProbabilityEstimates,
             test_race_cards: Dict[str, RaceCard]
     ) -> List[Bet]:
-        scores = estimator.predict(train_sample, validation_sample, test_sample)
-
-        test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
-
-        estimation_result = self.probabilizer.create_estimation_result(deepcopy(test_sample), scores)
-
         best_payout_sum = -np.inf
         best_bets = []
 

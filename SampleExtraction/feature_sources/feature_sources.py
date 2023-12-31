@@ -9,6 +9,7 @@ from typing import List, Dict, Callable
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
+from SampleExtraction.feature_sources.value_calculators import get_uncorrected_momentum
 from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
     get_horse_time, get_lengths_per_second
 from util.nested_dict import nested_dict
@@ -44,7 +45,10 @@ class FeatureValueGroup:
 
     @property
     def name(self) -> str:
-        return f"{self.attributes}/{self.value_name}"
+        attribute_names = ""
+        for attribute in self.attributes:
+            attribute_names += f"{attribute}_"
+        return f"{attribute_names}{self.value_name}"
 
 
 class FeatureSource(ABC):
@@ -106,10 +110,6 @@ class FeatureSource(ABC):
             category["variance"] = variance
             category["std"] = sqrt(category["variance"])
 
-    def update_max(self, category: dict, new_obs: float) -> None:
-        if not category["max"] or new_obs > category["max"]:
-            category["max"] = new_obs
-
     def get_name(self) -> str:
         return self.__class__.__name__
 
@@ -119,7 +119,18 @@ class PreviousValueSource(FeatureSource):
         super().__init__()
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
-        category["value"] = new_feature_value
+        category["value"] = -1
+        if new_feature_value is not None:
+            category["value"] = new_feature_value
+
+
+class MaxValueSource(FeatureSource):
+    def __init__(self):
+        super().__init__()
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if new_feature_value is not None and (not category["value"] or new_feature_value > category["value"]):
+            category["value"] = new_feature_value
 
 
 class AverageValueSource(FeatureSource):
@@ -127,28 +138,32 @@ class AverageValueSource(FeatureSource):
     def __init__(self, window_size=5, min_obs_thresh=3):
         super().__init__()
         self.window_size = window_size
-        self.average_calculator = ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.0)
+        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.0)
         self.min_obs_thresh = min_obs_thresh
 
-    def update_statistic(self, category: dict, new_feature_value: float, value_date: Date) -> None:
-        if not category["count"]:
-            category["prev_avg"] = 0
-            category["value"] = new_feature_value
-            category["count"] = 1
-            category["last_obs_date"] = value_date
-        else:
-            n_days_since_last_obs = (value_date - category["last_obs_date"]).days
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: Date, average_calculator: OnlineCalculator=None) -> None:
+        if new_feature_value is not None:
+            if not category["count"]:
+                category["prev_avg"] = 0
+                category["value"] = new_feature_value
+                category["count"] = 1
+                category["last_obs_date"] = value_date
+            else:
+                n_days_since_last_obs = (value_date - category["last_obs_date"]).days
 
-            category["prev_avg"] = category["value"]
-            category["count"] += 1
+                category["prev_avg"] = category["value"]
+                category["count"] += 1
 
-            category["value"] = self.average_calculator.calculate_average(
-                old_average=category["prev_avg"],
-                new_obs=new_feature_value,
-                n_days_since_last_obs=n_days_since_last_obs,
-                count=category["count"]
-            )
-            category["last_obs_date"] = value_date
+                if average_calculator is None:
+                    average_calculator = self.track_variant_average_calculator
+
+                category["value"] = average_calculator.calculate_average(
+                    old_average=category["prev_avg"],
+                    new_obs=new_feature_value,
+                    n_days_since_last_obs=n_days_since_last_obs,
+                    count=category["count"]
+                )
+                category["last_obs_date"] = value_date
 
     def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
         feature_value_group_key = feature_value_group.get_key(race_card, horse)
@@ -223,80 +238,38 @@ class DistancePreferenceSource(FeatureSource):
         return mean(similar_distance_sp) / 1000
 
 
-class MaxValueSource(FeatureSource, ABC):
-
-    def __init__(self):
-        super().__init__()
-        self.max_values = nested_dict()
-        self.max_value_attribute_groups = []
-
-    def insert_value(self, race_card: RaceCard, horse: Horse, value):
-        for attribute_group in self.max_value_attribute_groups:
-            attribute_group_key = self.get_attribute_group_key(race_card, horse, attribute_group)
-
-            self.update_max(
-                self.max_values[attribute_group_key],
-                value,
-            )
-
-    def get_attribute_group_key(self, race_card: RaceCard, horse: Horse, attribute_group: List[str]) -> str:
-        attribute_group_key = ""
-        for attribute in attribute_group:
-            if attribute in horse.__dict__:
-                attribute_key = getattr(horse, attribute)
-            else:
-                attribute_key = getattr(race_card, attribute)
-            attribute_group_key += f"{attribute_key}_"
-
-        return attribute_group_key[:-1]
-
-    def get_max_of_name(self, name: str) -> float:
-        max_elem = self.max_values[name]
-        if "max" in max_elem:
-            return max_elem["max"]
-        return None
+# class DrawBiasSource(FeatureSource):
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.draw_bias = nested_dict()
+#
+#     def update_horse(self, race_card: RaceCard, horse: Horse):
+#         track_name = race_card_track_to_win_time_track(race_card.track_name)
+#         post_position = str(horse.post_position)
+#         if post_position != "-1" and race_card.distance > 0:
+#             momentum = get_momentum(race_card, horse)
+#             if momentum > 0:
+#                 self.update_average(
+#                     self.draw_bias[track_name][post_position],
+#                     momentum,
+#                     race_card.date,
+#                     DRAW_BIAS_CALCULATOR,
+#                 )
+#
+#     def get_draw_bias(self, track_name: str, post_position: int):
+#         if track_name not in self.draw_bias or str(post_position) not in self.draw_bias[track_name]:
+#             return -1
+#         return self.draw_bias[track_name][str(post_position)]["avg"]
 
 
-class MaxWinProbabilitySource(MaxValueSource):
-
-    def __init__(self):
-        super().__init__()
-        self.max_value_attribute_groups.append(["subject_id"])
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        self.insert_value(race_card, horse, horse.sp_win_prob)
-
-
-class DrawBiasSource(FeatureSource):
-
-    def __init__(self):
-        super().__init__()
-        self.draw_bias = nested_dict()
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        track_name = race_card_track_to_win_time_track(race_card.track_name)
-        post_position = str(horse.post_position)
-        if post_position != "-1" and race_card.distance > 0:
-            momentum = get_momentum(race_card, horse)
-            if momentum > 0:
-                self.update_average(
-                    self.draw_bias[track_name][post_position],
-                    momentum,
-                    race_card.date,
-                    DRAW_BIAS_CALCULATOR,
-                )
-
-    def get_draw_bias(self, track_name: str, post_position: int):
-        if track_name not in self.draw_bias or str(post_position) not in self.draw_bias[track_name]:
-            return -1
-        return self.draw_bias[track_name][str(post_position)]["avg"]
-
-
-class TrackVariantSource(FeatureSource):
+class TrackVariantSource(AverageValueSource):
 
     def __init__(self):
         super().__init__()
         self.is_first_pre_update = True
+        self.track_variant_average_calculator = SimpleOnlineCalculator()
+        self.par_momentum_average_calculator = SimpleOnlineCalculator()
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -318,17 +291,17 @@ class TrackVariantSource(FeatureSource):
             self.update_par_momentum(race_card)
 
     def update_track_variant(self, race_card: RaceCard) -> None:
-        par_momentum = race_card.get_par_momentum_estimate["avg"]
+        par_momentum = race_card.get_par_momentum_estimate["value"]
         for horse in race_card.horses:
             momentum = get_uncorrected_momentum(race_card, horse)
 
             if par_momentum and momentum > 0:
                 track_variant = par_momentum / momentum
-                self.update_average(
+                self.update_statistic(
                     category=race_card.track_variant_estimate,
-                    new_obs=track_variant,
-                    new_obs_date=race_card.date,
-                    online_calculator=SimpleOnlineCalculator(),
+                    new_feature_value=track_variant,
+                    value_date=race_card.date,
+                    average_calculator=self.track_variant_average_calculator
                 )
 
     def update_par_momentum(self, race_card: RaceCard):
@@ -336,11 +309,11 @@ class TrackVariantSource(FeatureSource):
             momentum = get_uncorrected_momentum(race_card, horse)
 
             if momentum > 0:
-                self.update_average(
+                self.update_statistic(
                     category=race_card.get_par_momentum_estimate,
-                    new_obs=momentum,
-                    new_obs_date=race_card.date,
-                    online_calculator=PAR_MOMENTUM_CALCULATOR,
+                    new_feature_value=momentum,
+                    value_date=race_card.date,
+                    average_calculator=self.par_momentum_average_calculator
                 )
 
 

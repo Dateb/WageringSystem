@@ -1,6 +1,10 @@
+from typing import Tuple, Any
+
 import numpy as np
 import torch
 from numpy import ndarray
+from pandas import Series, DataFrame
+from pandas.core.generic import NDFrame
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from torch.utils.data import DataLoader, TensorDataset
@@ -29,8 +33,8 @@ class NNClassifier(Estimator):
 
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
-        # self.loss_function = self.params["loss_function"]
-        self.loss_function = torch.nn.MSELoss()
+        self.loss_function = self.params["loss_function"]
+        # self.loss_function = torch.nn.MSELoss()
 
         self.device = (
             "cuda"
@@ -42,15 +46,20 @@ class NNClassifier(Estimator):
         self.one_hot_encoder = OneHotEncoder(handle_unknown="ignore")
         self.standard_scaler = StandardScaler()
 
-    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+    def predict(
+            self,
+            train_sample: RaceCardsSample,
+            validation_sample: RaceCardsSample,
+            test_sample: RaceCardsSample
+    ) -> Tuple[ndarray, float]:
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
 
         self.fit_validate(train_sample, validation_sample)
 
         print("Model tuning completed!")
-        self.score_test_sample(test_sample)
+        test_loss = self.score_test_sample(test_sample)
 
-        return test_sample.race_cards_dataframe["score"]
+        return test_sample.race_cards_dataframe["score"], test_loss
 
     def score_test_sample(self, test_sample: RaceCardsSample):
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
@@ -64,7 +73,7 @@ class NNClassifier(Estimator):
 
         test_dataloader = self.create_dataloader(test_race_card_loader.x, test_race_card_loader.y)
 
-        self.test_epoch(test_dataloader)
+        test_loss = self.run_test_epoch(test_dataloader)
 
         with torch.no_grad():
             self.network.eval()
@@ -72,6 +81,8 @@ class NNClassifier(Estimator):
 
         scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
+
+        return test_loss
 
     def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.fillna(-1)
@@ -115,10 +126,10 @@ class NNClassifier(Estimator):
             current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
             # print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
 
-            train_loss = self.fit_epoch(train_dataloader)
-            validation_loss = self.validate_epoch(validation_dataloader)
+            train_loss = self.run_train_epoch(train_dataloader)
+            validation_loss = self.run_validation_epoch(validation_dataloader)
 
-            scheduler_metric = max([train_loss, validation_loss])
+            scheduler_metric = validation_loss
 
             self.scheduler.step(scheduler_metric)
 
@@ -131,12 +142,12 @@ class NNClassifier(Estimator):
             next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
 
             if current_lr > next_lr:
-                print(f"restarting at model with train/validation loss: {best_train_loss * 100}/{best_validation_loss * 100}")
+                print(f"restarting at model with train/validation loss: {best_train_loss}/{best_validation_loss}")
                 neural_network_persistence.load_state_into_neural_network(self.network)
 
         return best_scheduler_metric
 
-    def fit_epoch(self, train_dataloader: DataLoader):
+    def run_train_epoch(self, train_dataloader: DataLoader):
         size = len(train_dataloader.dataset)
         num_batches = len(train_dataloader)
 
@@ -163,11 +174,11 @@ class NNClassifier(Estimator):
         train_loss /= num_batches
         train_accuracy /= size
 
-        # print(f"Train Avg loss/Accuracy: {train_loss:>8f}/{(100 * train_accuracy):>0.1f}%")
+        print(f"Train Avg loss/Accuracy: {train_loss:>8f}/{(100 * train_accuracy):>0.1f}%")
 
         return train_loss
 
-    def validate_epoch(self, validation_dataloader: DataLoader) -> float:
+    def run_validation_epoch(self, validation_dataloader: DataLoader) -> float:
         size = len(validation_dataloader.dataset)
         num_batches = len(validation_dataloader)
 
@@ -189,7 +200,7 @@ class NNClassifier(Estimator):
         validation_loss /= num_batches
         validation_accuracy /= size
 
-        print(f"Validation Avg loss/Accuracy: {validation_loss * 100:>8f}/{(100 * validation_accuracy):>0.1f}%")
+        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
 
         return validation_loss
 
@@ -207,13 +218,13 @@ class NNClassifier(Estimator):
             )
             test_dataloader = self.create_dataloader(monthly_race_cards_loader.x, monthly_race_cards_loader.y)
             print(f"{year_month}:")
-            self.test_epoch(test_dataloader)
+            self.run_test_epoch(test_dataloader)
 
-    def test_epoch(self, test_dataloader: DataLoader):
+    def run_test_epoch(self, test_dataloader: DataLoader) -> float:
         size = len(test_dataloader.dataset)
         num_batches = len(test_dataloader)
         self.network.eval()
-        test_loss, correct = 0, 0
+        test_loss, test_acc = 0, 0
 
         with torch.no_grad():
             for X, y in test_dataloader:
@@ -226,14 +237,18 @@ class NNClassifier(Estimator):
                 loss = self.get_batch_loss(pred, y)
 
                 test_loss += loss.item()
-                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+                test_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         test_loss /= num_batches
-        correct /= size
+        test_acc /= size
 
-        print(f"Test Avg loss/Accuracy: {test_loss * 100:>8f}/{(100 * correct):>0.1f}%")
+        print(f"Test Avg loss/Accuracy: {test_loss:>8f}/{(100 * test_acc):>0.1f}%")
+
+        return test_loss
 
     def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
+        return self.loss_function(pred, y)
+
         y_one_hot = torch.nn.functional.one_hot(y, num_classes=20).to(torch.float32)
         pred_prob = torch.nn.Softmax(dim=1)(pred)
 

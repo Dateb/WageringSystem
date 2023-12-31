@@ -102,6 +102,7 @@ class RaceCard:
             self.winner_name = first_place_horse_names[0]
 
         self.n_horses = len(self.horses)
+        self.n_finishers = len([horse for horse in self.runners if horse.place > 0])
 
         self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners if horse.racebets_win_sp > 0])
 

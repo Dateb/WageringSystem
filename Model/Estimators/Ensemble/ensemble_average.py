@@ -35,5 +35,12 @@ class EnsembleAverageEstimator(Estimator):
 
         return average_scores
 
-    def score_test_sample(self, test_sample: RaceCardsSample):
-        pass
+    def score_test_sample(self, test_sample: RaceCardsSample) -> None:
+        estimator_scores = []
+        for estimator in self.estimators:
+            estimator.score_test_sample(test_sample)
+            estimator_scores.append(test_sample.race_cards_dataframe['score'])
+
+        average_scores = np.mean(estimator_scores, axis=0)
+
+        test_sample.race_cards_dataframe['score'] = average_scores

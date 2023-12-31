@@ -40,6 +40,7 @@ class Horse:
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
         self.rating = raw_data["rating"]
+
         self.homeland = raw_data["homeland"]
 
         self.equipments = set()
@@ -55,7 +56,7 @@ class Horse:
         self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
         self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
 
-        self.sp_win_prob = 0
+        self.sp_win_prob = -1
 
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
 
@@ -76,20 +77,18 @@ class Horse:
 
         self.jockey = Jockey(raw_data["jockey"])
 
-        jockey_first_name = raw_data["jockey"]["firstName"]
-        jockey_last_name = raw_data["jockey"]["lastName"]
-
-        self.jockey_name = f"{jockey_first_name} {jockey_last_name}"
+        self.jockey_id = self.jockey.id
 
         self.trainer = Trainer(raw_data["trainer"])
 
-        trainer_first_name = raw_data["trainer"]["firstName"]
-        trainer_last_name = raw_data["trainer"]["lastName"]
-
-        self.trainer_name = f"{trainer_first_name} {trainer_last_name}"
+        self.trainer_id = self.trainer.id
 
         self.is_scratched = raw_data["scratched"]
         self.previous_performance = raw_data["ppString"].split(" - ")[0]
+
+        self.result_finish_dnf = None
+        if "resultFinishDNF" in raw_data:
+            self.result_finish_dnf = raw_data["resultFinishDNF"]
 
         if "formTable" in raw_data:
             self.form_table = FormTable(raw_data["formTable"])
@@ -109,7 +108,7 @@ class Horse:
         self.__features = {}
         self.finish_time = -1
         if "finishTime" in raw_data:
-            if raw_data["finishTime"] is not None and raw_data["resultFinishDNF"] is None:
+            if raw_data["finishTime"] is not None and self.place > 0:
                 self.finish_time = float(raw_data["finishTime"])
 
     def set_betting_odds(self, new_odds: float):
@@ -148,7 +147,7 @@ class Horse:
 
     def __extract_betfair_win_odds(self, raw_data: dict) -> float:
         if "bsp_win" not in raw_data:
-            return 0
+            return -1
         return raw_data["bsp_win"]
 
     def __extract_betfair_place_odds(self, raw_data: dict):

@@ -1,5 +1,6 @@
 from torch import nn
 
+LEARNING_CURVE_PATH = "../data/learning_curve.dat"
 TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 ESTIMATOR_PATH = "../data/estimator.dat"
 
@@ -12,12 +13,6 @@ else:
 
 MARKET_TYPE = "WIN"
 MARKET_SOURCE = "Betfair"
-
-CONTAINER_UPPER_LIMIT_PERCENTAGE = 0.1
-TRAIN_UPPER_LIMIT_PERCENTAGE = 0.8
-
-N_MONTHS_TEST_SAMPLE = 10
-N_MONTHS_FORWARD_OFFSET = 0
 
 NN_CLASSIFIER_PARAMS = {
     "loss_function": LOSS_FUNCTION,
