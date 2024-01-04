@@ -1,19 +1,51 @@
-from typing import Tuple
+from typing import Tuple, List
 
+import optuna
 import lightgbm
 import pandas as pd
-from lightgbm import Dataset
+from lightgbm import Dataset, Booster, CVBooster
 from numpy import ndarray
-from sklearn.preprocessing import LabelEncoder
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.Estimator import Estimator
 from Model.Estimators.util.metrics import get_accuracy
-from ModelTuning.RankerConfigMCTS.BetModelConfigurationTuner import BetModelConfigurationTuner
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
-from sklearn.metrics import accuracy_score
+
+
+class GBTObjective:
+    def __init__(self, fixed_params: dict, dataset: Dataset, cat_feature_names: List[str]):
+        self.fixed_params = fixed_params
+        self.dataset = dataset
+        self.cat_feature_names = cat_feature_names
+
+    def __call__(self, trial):
+        num_rounds = trial.suggest_int("num_rounds", 150, 300)
+
+        search_params = {
+            "num_leaves": trial.suggest_int("num_leaves", 10, 20),
+            "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
+            "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
+            "feature_fraction": trial.suggest_float("feature_fraction", 0.4, 1.0),
+            "bagging_fraction": trial.suggest_float("bagging_fraction", 0.4, 1.0),
+            "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
+            "min_child_samples": trial.suggest_int("min_child_samples", 60, 120),
+        }
+
+        params = {**self.fixed_params, **search_params}
+
+        eval_results = lightgbm.cv(
+            params=params,
+            train_set=self.dataset,
+            num_boost_round=num_rounds,
+            categorical_feature=self.cat_feature_names,
+            return_cvbooster=True
+        )
+
+        cv_score = eval_results["valid ndcg@1-mean"][-1]
+
+        return cv_score
 
 
 class BoostedTreesRanker(Estimator):
@@ -26,6 +58,8 @@ class BoostedTreesRanker(Estimator):
         "force_row_wise": True,
         "n_jobs": -1,
         "device": "cpu",
+        "verbose": -1,
+        "feature_pre_filter": False,
 
         "seed": RANKING_SEED,
         "data_random_seed": RANKING_SEED,
@@ -40,7 +74,7 @@ class BoostedTreesRanker(Estimator):
         super().__init__(feature_manager)
         self.label_name = Horse.CLASSIFICATION_LABEL_KEY
         self.feature_manager = feature_manager
-        self.booster = None
+        self.booster: Booster = None
 
         self.categorical_feature_names = [feature.get_name() for feature in feature_manager.features if feature.is_categorical]
         self.cat_gbt_feature_names = [f"{cat_feature_name}_gbt" for cat_feature_name in self.categorical_feature_names]
@@ -49,18 +83,11 @@ class BoostedTreesRanker(Estimator):
         # self.parameter_set = {**self.FIXED_PARAMS}
 
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
-        for cat_feature_name in self.categorical_feature_names:
-            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
-            train_sample.race_cards_dataframe[cat_gbt_feature_name] = train_sample.race_cards_dataframe[cat_feature_name].astype('category')
-            validation_sample.race_cards_dataframe[cat_gbt_feature_name] = validation_sample.race_cards_dataframe[cat_feature_name].astype('category')
-
         self.fit_validate(train_sample, validation_sample)
 
         print("Model tuning completed!")
         test_loss = self.score_test_sample(test_sample)
 
-        train_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
-        validation_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
         # test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
         print(f"Test accuracy gbt-model: {get_accuracy(test_sample)}")
@@ -84,11 +111,64 @@ class BoostedTreesRanker(Estimator):
         return 0
 
     def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+        train_val_df = pd.concat(
+            objs=[train_sample.race_cards_dataframe, validation_sample.race_cards_dataframe],
+            ignore_index=True,
+            axis=0
+        )
+
+        for cat_feature_name in self.categorical_feature_names:
+            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
+            train_val_df[cat_gbt_feature_name] = train_val_df[cat_feature_name].astype('category')
+
+        dataset = self.get_dataset(train_val_df)
+
+        # cv_objective = GBTObjective(
+        #     fixed_params=self.FIXED_PARAMS,
+        #     dataset=dataset,
+        #     cat_feature_names=self.cat_gbt_feature_names
+        # )
+        #
+        # study = optuna.create_study(direction="maximize")
+        #
+        # study.optimize(cv_objective, n_trials=100)
+        #
+        # print("Number of finished trials: {}".format(len(study.trials)))
+        #
+        # print("Best trial:")
+        # trial = study.best_trial
+        #
+        # print("  Value: {}".format(trial.value))
+        #
+        # print("  Params: ")
+        # for key, value in trial.params.items():
+        #     print("    {}: {}".format(key, value))
+
+        # search_params = trial.params
+
+        search_params = {
+            "num_rounds": 266,
+            "num_leaves": 14,
+            "lambda_l1": 7.345368276137748,
+            "lambda_l2": 1.4236994442124007,
+            "feature_fraction": 0.45775599282359614,
+            "bagging_fraction": 0.8937420818276652,
+            "bagging_freq": 7,
+            "min_child_samples": 86
+        }
+
+        params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(
-            self.FIXED_PARAMS,
-            train_set=self.get_dataset(train_sample.race_cards_dataframe),
+            params=params,
+            train_set=dataset,
             categorical_feature=self.cat_gbt_feature_names,
         )
+
+        importance_scores = self.booster.feature_importance(importance_type="gain")
+        feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
+        sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
+        importance_sum = sum([importance for importance in list(feature_importances.values())])
+        print(f"{importance_sum}: {sorted_feature_importances}")
 
         self.booster.free_dataset()
 

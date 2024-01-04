@@ -169,12 +169,12 @@ class NNClassifier(Estimator):
 
             train_loss += batch_loss.item()
 
-            train_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
+            # train_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         train_loss /= num_batches
-        train_accuracy /= size
+        # train_accuracy /= size
 
-        print(f"Train Avg loss/Accuracy: {train_loss:>8f}/{(100 * train_accuracy):>0.1f}%")
+        print(f"Train Avg loss/Accuracy: {train_loss:>8f}")
 
         return train_loss
 
@@ -195,12 +195,12 @@ class NNClassifier(Estimator):
 
                 validation_loss += loss.item()
 
-                validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
+                # validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         validation_loss /= num_batches
-        validation_accuracy /= size
+        # validation_accuracy /= size
 
-        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}/{(100 * validation_accuracy):>0.1f}%")
+        print(f"Validation Avg loss/Accuracy: {validation_loss:>8f}")
 
         return validation_loss
 
@@ -237,23 +237,17 @@ class NNClassifier(Estimator):
                 loss = self.get_batch_loss(pred, y)
 
                 test_loss += loss.item()
-                test_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
+                # test_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
 
         test_loss /= num_batches
-        test_acc /= size
+        # test_acc /= size
 
-        print(f"Test Avg loss/Accuracy: {test_loss:>8f}/{(100 * test_acc):>0.1f}%")
+        print(f"Test Avg loss/Accuracy: {test_loss:>8f}")
 
         return test_loss
 
     def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
         return self.loss_function(pred, y)
-
-        y_one_hot = torch.nn.functional.one_hot(y, num_classes=20).to(torch.float32)
-        pred_prob = torch.nn.Softmax(dim=1)(pred)
-
-        batch_loss = self.loss_function(pred_prob, y_one_hot)
-        return batch_loss
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)

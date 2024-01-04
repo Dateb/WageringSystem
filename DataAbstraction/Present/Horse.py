@@ -32,8 +32,10 @@ class Horse:
         self.dam = raw_data["dam"]
 
         self.dam_sire = raw_data["damSire"]
+
         self.breeder = raw_data["breeder"]
         self.owner = raw_data["owner"]
+
         self.age = raw_data["age"]
         self.gender = raw_data["gender"]
         self.number = raw_data["programNumber"]

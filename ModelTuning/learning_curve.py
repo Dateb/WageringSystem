@@ -1,4 +1,5 @@
 import pickle
+from math import ceil
 
 from ModelTuning.simulate import ModelSimulator
 from SampleExtraction.data_splitting import MonthDataSplitter
@@ -6,14 +7,15 @@ from SampleExtraction.data_splitting import MonthDataSplitter
 
 def save_learning_curve() -> None:
     learning_curve = {}
-    max_forward_offset = 94
+    max_forward_offset = 95
+    n_iter = int(ceil(max_forward_offset / 10)) + 1
 
-    for i in range(10):
+    for i in range(n_iter):
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
             train_upper_limit_percentage=0.8,
             n_months_test_sample=10,
-            n_months_forward_offset=max_forward_offset-(i*10)
+            n_months_forward_offset=max([max_forward_offset-(i*10), 0])
         )
         model_simulator = ModelSimulator(data_splitter)
         test_loss = model_simulator.simulate_prediction()

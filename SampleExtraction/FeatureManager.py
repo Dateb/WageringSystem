@@ -46,15 +46,17 @@ class FeatureManager:
         self.previous_value_source = PreviousValueSource()
         self.max_value_source = MaxValueSource()
 
-        self.avg_window_3_min_obs_1_source: AverageValueSource = AverageValueSource(window_size=3, min_obs_thresh=1)
+        self.avg_window_3_min_obs_1_source = AverageValueSource(window_size=3, min_obs_thresh=1)
 
-        self.avg_window_3_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=3, min_obs_thresh=3)
-        self.avg_window_5_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=5, min_obs_thresh=3)
-        self.avg_window_7_min_obs_3_source: AverageValueSource = AverageValueSource(window_size=7, min_obs_thresh=3)
+        self.avg_window_3_min_obs_3_source = AverageValueSource(window_size=3, min_obs_thresh=3)
+        self.avg_window_5_min_obs_3_source = AverageValueSource(window_size=5, min_obs_thresh=3)
+        self.avg_window_7_min_obs_3_source = AverageValueSource(window_size=7, min_obs_thresh=3)
 
-        self.avg_window_3_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=3, min_obs_thresh=10)
-        self.avg_window_5_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=5, min_obs_thresh=10)
-        self.avg_window_7_min_obs_10_source: AverageValueSource = AverageValueSource(window_size=7, min_obs_thresh=10)
+        self.avg_window_3_min_obs_10_source = AverageValueSource(window_size=3, min_obs_thresh=10)
+        self.avg_window_5_min_obs_10_source = AverageValueSource(window_size=5, min_obs_thresh=10)
+        self.avg_window_7_min_obs_10_source = AverageValueSource(window_size=7, min_obs_thresh=10)
+
+        self.avg_window_30_min_obs_10_source = AverageValueSource(window_size=30, min_obs_thresh=10)
 
         self.track_variant_source: TrackVariantSource = TrackVariantSource()
 
@@ -71,6 +73,8 @@ class FeatureManager:
             self.avg_window_3_min_obs_10_source,
             self.avg_window_5_min_obs_10_source,
             self.avg_window_7_min_obs_10_source,
+
+            self.avg_window_30_min_obs_10_source,
 
             self.track_variant_source
         ]
@@ -129,11 +133,11 @@ class FeatureManager:
         trainer_win_prob = FeatureValueGroup(["trainer_id"], win_probability)
         trainer_momentum = FeatureValueGroup(["trainer_id"], momentum)
 
-        owner_win_prob = FeatureValueGroup(["owner"], win_probability)
-        owner_momentum = FeatureValueGroup(["owner"], momentum)
-
         breeder_win_prob = FeatureValueGroup(["breeder"], win_probability)
         breeder_momentum = FeatureValueGroup(["breeder"], momentum)
+
+        owner_win_prob = FeatureValueGroup(["owner"], win_probability)
+        owner_momentum = FeatureValueGroup(["owner"], momentum)
 
         prev_value_features = [
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
@@ -211,6 +215,12 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_momentum),
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_momentum),
             FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_momentum),
+
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_win_prob),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_momentum),
+
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum)
 
             # FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_name_momentum, dam_momentum),
             # FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_name_momentum, sire_momentum),

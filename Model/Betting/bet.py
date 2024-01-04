@@ -6,7 +6,9 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from datetime import datetime
 
+from Model.Betting.staking import StakesCalculator, KellyStakesCalculator, FixedStakesCalculator
 from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
+from ModelTuning import simulate_conf
 
 
 @dataclass
@@ -52,8 +54,10 @@ class Bet:
 
 class Bettor(ABC):
 
-    def __init__(self, bet_threshold: float):
+    def __init__(self, bet_threshold: float, stakes_calculator: StakesCalculator):
         self.bet_threshold = bet_threshold
+        self.stakes_calculator = stakes_calculator
+
         self.already_taken_offers = {}
         self.offer_accepted_count = 0
         self.offer_rejected_count = 0
@@ -97,10 +101,8 @@ class Bettor(ABC):
                     odds_p = 1 / adjusted_odds
                     p_residual = 1 - odds_p
                     if probability_estimate > (odds_p + self.bet_threshold * p_residual):
-                        ev = adjusted_odds * probability_estimate
-
+                        stakes = self.stakes_calculator.get_stakes(probability_estimate, adjusted_odds)
                         self.offer_accepted_count += 1
-                        stakes = (ev - 1) / (adjusted_odds - 1)
                     else:
                         self.offer_rejected_count += 1
 
@@ -129,3 +131,27 @@ class BetfairBettor(Bettor):
 
     def get_adjusted_odds(self, odds: float) -> float:
         return odds * (1 - self.WIN_COMMISSION)
+
+
+class BettorFactory:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def create_bettor(bet_threshold: float) -> Bettor:
+        if simulate_conf.STAKES_CALCULATOR == "Kelly":
+            stakes_calculator = KellyStakesCalculator()
+        else:
+            if simulate_conf.MARKET_SOURCE == "Betfair":
+                stakes_calculator = FixedStakesCalculator(fixed_stakes=7.0)
+            else:
+                stakes_calculator = FixedStakesCalculator(fixed_stakes=0.5)
+
+        if simulate_conf.MARKET_SOURCE == "Racebets":
+            bettor = RacebetsBettor(bet_threshold=bet_threshold, stakes_calculator=stakes_calculator)
+        else:
+            bettor = BetfairBettor(bet_threshold=bet_threshold, stakes_calculator=stakes_calculator)
+
+        return bettor
+

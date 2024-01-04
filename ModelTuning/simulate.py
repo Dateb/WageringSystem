@@ -3,7 +3,9 @@ from copy import deepcopy
 
 from tqdm import tqdm
 
+from Model.Betting.bet import RacebetsBettor, BetfairBettor
 from Model.Betting.race_results_container import RaceResultsContainer
+from Model.Betting.staking import KellyStakesCalculator
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
@@ -94,14 +96,14 @@ class ModelSimulator:
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
 
         # TODO: remove saving from function
-        # test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
+        test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
 
         nn_estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
         gbt_estimator = BoostedTreesRanker(feature_manager)
 
-        estimator = gbt_estimator
-
         ensemble_estimator = EnsembleAverageEstimator(feature_manager, [gbt_estimator, nn_estimator])
+
+        estimator = gbt_estimator
 
         scores, test_loss = estimator.predict(train_sample, validation_sample, test_sample)
 

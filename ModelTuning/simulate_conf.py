@@ -13,6 +13,7 @@ else:
 
 MARKET_TYPE = "WIN"
 MARKET_SOURCE = "Betfair"
+STAKES_CALCULATOR = "Fixed"
 
 NN_CLASSIFIER_PARAMS = {
     "loss_function": LOSS_FUNCTION,

@@ -5,11 +5,12 @@ import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bet, RacebetsBettor, BetfairBettor
+from Model.Betting.bet import Bet, RacebetsBettor, BetfairBettor, Bettor, BettorFactory
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
 from Model.Betting.race_results_container import RaceResultsContainer
+from Model.Betting.staking import KellyStakesCalculator
 from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
 from ModelTuning import simulate_conf
 
@@ -18,6 +19,7 @@ class ModelEvaluator:
 
     def __init__(self, race_results_container: RaceResultsContainer):
         self.race_results_container = race_results_container
+        self.bettor_factory = BettorFactory()
 
         if simulate_conf.MARKET_TYPE == "WIN":
             bet_evaluator = WinBetEvaluator()
@@ -34,26 +36,21 @@ class ModelEvaluator:
     def get_bets_of_model(
             self,
             estimation_result: ProbabilityEstimates,
-            test_race_cards: Dict[str, RaceCard]
+            test_race_cards: Dict[str, RaceCard],
     ) -> List[Bet]:
-        best_payout_sum = -np.inf
-        best_bets = []
-
-        bet_thresholds = [0.05, 0.1]
-
         self.init_offer_container(test_race_cards)
 
+        best_payout_sum = -np.inf
+        best_bets = []
+        bet_thresholds = [0.0, 0.05]
+
         for bet_threshold in bet_thresholds:
-            if simulate_conf.MARKET_SOURCE == "Racebets":
-                bettor = RacebetsBettor(bet_threshold)
-            else:
-                bettor = BetfairBettor(bet_threshold)
+            bettor = self.bettor_factory.create_bettor(bet_threshold)
             bets = bettor.bet(self.offer_container.race_offers, estimation_result)
 
             self.payout_calculator.insert_payouts_into_bets(bets, self.race_results_container.race_results)
 
-            payouts = [1 + bet.payout for bet in bets]
-            payout_score = mean(payouts)
+            payout_score = mean([bet.payout for bet in bets])
 
             print(f"Thresh/score: {bet_threshold}/{payout_score}")
 

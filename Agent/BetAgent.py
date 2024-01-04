@@ -40,7 +40,7 @@ class BetAgent:
             self.probabilizer = PlaceProbabilizer()
 
         self.current_bets = []
-        self.bettor = RacebetsBettor(bet_threshold=0.1)
+        self.bettor = RacebetsBettor(bet_threshold=0.05)
         self.feature_manager = FeatureManager()
         self.columns = None
 
