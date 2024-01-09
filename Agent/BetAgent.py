@@ -8,13 +8,14 @@ from typing import Dict
 import requests
 from tqdm import tqdm
 
+from Agent.leakage_detection import LeakageDetector
 from Agent.odds_requesting.bookie_offer_requester import BookieOfferRequester
 from Agent.odds_requesting.exchange_offer_requester import ExchangeOfferRequester
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Model.Betting.bet import RacebetsBettor
+from Model.Betting.bet import RacebetsBettor, BettorFactory
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -39,8 +40,11 @@ class BetAgent:
         else:
             self.probabilizer = PlaceProbabilizer()
 
+        self.leakage_detector = LeakageDetector()
+
         self.current_bets = []
-        self.bettor = RacebetsBettor(bet_threshold=0.05)
+
+        self.bettor = BettorFactory().create_bettor(bet_threshold=0.05)
         self.feature_manager = FeatureManager()
         self.columns = None
 
@@ -53,6 +57,8 @@ class BetAgent:
         self.init_feature_sources()
 
         race_cards_sample = self.race_cards_to_sample()
+
+        self.leakage_detector.save_live_data(race_cards_sample)
 
         self.estimator.score_test_sample(race_cards_sample)
 
@@ -76,15 +82,13 @@ class BetAgent:
 
         train_data_collector = TrainDataCollector()
 
-        day_before_yesterday = date.today() - timedelta(days=1)
-
         query_date = date(
             year=2023,
             month=10,
             day=1,
         )
 
-        train_data_collector.collect_forward_until_newest_date(query_date, day_before_yesterday)
+        train_data_collector.collect_forward_until_newest_date(query_date, date.today())
 
     def init_feature_sources(self) -> None:
         print("Loading all race cards to initialize all feature sources...")

@@ -96,7 +96,7 @@ class ModelSimulator:
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")
 
         # TODO: remove saving from function
-        test_sample.race_cards_dataframe.to_csv("../data/test_races.csv")
+        test_sample.race_cards_dataframe.to_csv("../data/samples/test_sample.csv")
 
         nn_estimator = NNClassifier(feature_manager, NN_CLASSIFIER_PARAMS)
         gbt_estimator = BoostedTreesRanker(feature_manager)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
         train_upper_limit_percentage=0.8,
-        n_months_test_sample=10,
+        n_months_test_sample=13,
         n_months_forward_offset=0
     )
 

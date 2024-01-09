@@ -35,34 +35,6 @@ class BHAInjector:
         self.current_race_date = None
         self.race_cards_loader = RaceCardsPersistence("race_cards")
 
-    # def fetch_all(self) -> None:
-    #     race_card_file_names = self.race_cards_loader.race_card_file_names
-    #
-    #     for race_card_file_name in reversed(race_card_file_names):
-    #         race_cards = self.race_cards_loader.load_race_card_files_writable([race_card_file_name])
-    #
-    #         date_had_injections = False
-    #
-    #         for race_card in race_cards.values():
-    #             if self.current_race_date != race_card.date:
-    #                 if self.current_race_date is not None:
-    #                     self.collected_days_tracker.collected_days.add(self.current_race_date)
-    #                     self.collected_days_tracker.save_collected_days()
-    #
-    #                     if date_had_injections:
-    #                         self.race_cards_loader.save(list(race_cards.values()))
-    #                 self.current_race_date = race_card.date
-    #                 date_had_injections = False
-    #
-    #             if race_card.country == "GB" and race_card.date not in self.collected_days_tracker.collected_days:
-    #                 race_card_data = self.fetch(race_card)
-    #                 self.inject_race_card_data(race_card, race_card_data)
-    #
-    #                 print(f"Injected: {race_card.date}/{race_card.name}/{race_card.race_id}")
-    #
-    #         if date_had_injections:
-    #             self.race_cards_loader.save(list(race_cards.values()))
-
     def get_horse_attributes(self, horse_data: dict) -> dict:
         horse_attributes = {
             "finishTime": horse_data["positionFinishTime"],
@@ -97,6 +69,10 @@ class BHAInjector:
             self.save_race_series_of_year_month(race_card_year, race_card_month)
 
         race_series_id = self.get_race_series_id(race_card)
+
+        if race_series_id is None:
+            placeholder_data = {"data": []}
+            return placeholder_data
 
         if race_series_id not in self.races_data:
             self.save_races_of_race_series(race_card_year, race_series_id)
@@ -149,7 +125,6 @@ class BHAInjector:
 
         return horse_name
 
-
     def get_race_series_id(self, race_card: RaceCard) -> str:
         year_month_key = f"{race_card.datetime.year}_{race_card.datetime.month}"
 
@@ -157,6 +132,9 @@ class BHAInjector:
         race_date = str(race_card.date)
 
         race_series_key = f"{course_name}_{race_date}"
+
+        if race_series_key not in self.race_series_ids_per_year_month[year_month_key]:
+            return None
 
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
@@ -173,8 +151,9 @@ class BHAInjector:
         self.race_series_ids_per_year_month[year_month_key] = {}
 
         for race_series in race_series_of_month_data["data"]:
-            race_series_key = f"{race_series['courseName']}_{race_series['fixtureDate']}"
-            self.race_series_ids_per_year_month[year_month_key][race_series_key] = race_series["fixtureId"]
+            if 'courseName' in race_series:
+                race_series_key = f"{race_series['courseName']}_{race_series['fixtureDate']}"
+                self.race_series_ids_per_year_month[year_month_key][race_series_key] = race_series["fixtureId"]
 
     def save_races_of_race_series(self, year: int, race_series_id: str):
         self.races_data[race_series_id] = {}

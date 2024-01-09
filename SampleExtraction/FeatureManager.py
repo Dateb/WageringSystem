@@ -228,20 +228,20 @@ class FeatureManager:
 
         current_race_features = [
             CurrentRaceTrack(),
-            CurrentRaceSurface(),
+            # CurrentRaceSurface(),
 
             CurrentRaceType(),
             CurrentRaceTypeDetail(),
             CurrentRaceCategory(),
 
-            CurrentGoing(),
+            # CurrentGoing(),
             CurrentDistance(),
             CurrentRaceClass(),
 
             CurrentPurse(),
 
             # TODO: Does not consider out of handicap horses (ratings are unfortunately already corrected)
-            CurrentRating(),
+            # CurrentRating(),
 
             Age(),
             Gender(),
