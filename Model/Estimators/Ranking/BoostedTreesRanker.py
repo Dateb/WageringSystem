@@ -168,7 +168,8 @@ class BoostedTreesRanker(Estimator):
         feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
         sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
         importance_sum = sum([importance for importance in list(feature_importances.values())])
-        print(f"{importance_sum}: {sorted_feature_importances}")
+        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in sorted_feature_importances.items()}
+        print(f"{importance_sum}: {relative_feature_importances}")
 
         self.booster.free_dataset()
 

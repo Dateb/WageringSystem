@@ -164,9 +164,9 @@ unknown_location_list = []
 
 class TravelDistance(FeatureExtractor):
 
-    def __init__(self):
+    def __init__(self, previous_value_source: PreviousValueSource):
         super().__init__()
-        self.feature_source = PreviousValueSource()
+        self.feature_source = previous_value_source
 
         self.feature_value_group = FeatureValueGroup(["subject_id"], get_track_name)
 

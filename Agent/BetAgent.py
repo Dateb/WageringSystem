@@ -1,6 +1,5 @@
 import datetime
 import pickle
-from time import sleep
 from copy import deepcopy
 from datetime import datetime, date, timedelta, time
 from typing import Dict
@@ -15,15 +14,13 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Model.Betting.bet import RacebetsBettor, BettorFactory
-from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Betting.bet import BettorFactory
 from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer
-from Persistence.RaceCardPersistence import RaceCardsPersistence
-from SampleExtraction.FeatureManager import FeatureManager
+from ModelTuning.simulate import ModelSimulator
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
-from ModelTuning.simulate_conf import ESTIMATOR_PATH
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
+from SampleExtraction.data_splitting import MonthDataSplitter
 
 
 class BetAgent:
@@ -45,25 +42,36 @@ class BetAgent:
         self.current_bets = []
 
         self.bettor = BettorFactory().create_bettor(bet_threshold=0.05)
-        self.feature_manager = FeatureManager()
         self.columns = None
 
         self.update_race_card_data()
 
-        with open(ESTIMATOR_PATH, "rb") as f:
-            self.estimator: NNClassifier = pickle.load(f)
+        data_splitter = MonthDataSplitter(
+            container_upper_limit_percentage=0.1,
+            train_upper_limit_percentage=0.8,
+            n_months_test_sample=13,
+            n_months_forward_offset=0
+        )
+
+        model_simulator = ModelSimulator(data_splitter)
+
+        model_simulator.simulate_prediction()
+        model_simulator.simulate_betting()
+
+        self.leakage_detector.run()
 
         self.upcoming_race_cards = self.get_upcoming_race_cards()
-        self.init_feature_sources()
-
-        race_cards_sample = self.race_cards_to_sample()
+        race_cards_sample = self.race_cards_to_sample(model_simulator)
 
         self.leakage_detector.save_live_data(race_cards_sample)
 
-        self.estimator.score_test_sample(race_cards_sample)
-
+        model_simulator.estimator.score_test_sample(race_cards_sample)
         scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
-        self.estimation_result = self.probabilizer.create_estimation_result(deepcopy(race_cards_sample), scores)
+
+        self.estimation_result = model_simulator.probabilizer.create_estimation_result(
+            deepcopy(race_cards_sample),
+            scores
+        )
 
         print(self.estimation_result.probability_estimates)
 
@@ -90,20 +98,6 @@ class BetAgent:
 
         train_data_collector.collect_forward_until_newest_date(query_date, date.today())
 
-    def init_feature_sources(self) -> None:
-        print("Loading all race cards to initialize all feature sources...")
-
-        race_cards_loader = RaceCardsPersistence("race_cards")
-        race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
-
-        for race_card_file_name in tqdm(race_cards_loader.race_card_file_names):
-            race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
-
-            if self.columns is None:
-                self.columns = list(race_cards.values())[0].attributes + self.feature_manager.feature_names
-
-            race_cards_array_factory.race_cards_to_array(race_cards)
-
     def get_upcoming_race_cards(self) -> Dict[str, RaceCard]:
         print("Scraping race cards of upcoming races...")
 
@@ -126,9 +120,9 @@ class BetAgent:
 
         return {str(race_card.datetime): race_card for race_card in race_cards}
 
-    def race_cards_to_sample(self) -> RaceCardsSample:
-        race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
-        test_sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+    def race_cards_to_sample(self, model_simulator: ModelSimulator) -> RaceCardsSample:
+        race_cards_array_factory = RaceCardsArrayFactory(model_simulator.feature_manager)
+        test_sample_encoder = SampleEncoder(model_simulator.feature_manager.features, model_simulator.columns)
 
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(self.upcoming_race_cards)
         test_sample_encoder.add_race_cards_arr(arr_of_race_cards)

@@ -53,14 +53,17 @@ class FeatureSourceExtractor(FeatureExtractor):
         return feature_value
 
     def get_name(self) -> str:
-        return f"{self.feature_source.get_name()}_{self.update_feature_value_group.name}_{self.read_feature_value_group.name}"
+        name = f"{self.feature_source.get_name()}_{self.update_feature_value_group.name}"
+        if self.read_feature_value_group != self.update_feature_value_group:
+            name += f"_{self.read_feature_value_group.name}"
+        return name
 
 
 class LayoffExtractor(FeatureExtractor):
 
-    def __init__(self, attributes: List[str]):
+    def __init__(self, previous_value_source: PreviousValueSource, attributes: List[str]):
         super().__init__()
-        self.feature_source = PreviousValueSource()
+        self.feature_source = previous_value_source
         self.feature_value_group = FeatureValueGroup(attributes, race_date)
 
         self.feature_source.register_feature_value_group(self.feature_value_group)

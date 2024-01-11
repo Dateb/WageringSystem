@@ -7,6 +7,18 @@ import pandas as pd
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
+class BColors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 class LeakageDetector:
 
     LIVE_SAMPLE_PATH: str = '../data/samples/latest_live_sample.csv'
@@ -29,20 +41,23 @@ class LeakageDetector:
 
         mismatches = self.get_test_live_mismatches(test_df, live_df)
 
-        print("Detection run successfully with following result:")
+        print("\nLeakage detection run successfully with following result:")
+        print("----------------------------------------------------------------------------------------------")
 
         if not mismatches:
-            print("No leakage found")
+            print(f"{BColors.OKGREEN}No leakage found")
         elif len(mismatches) <= 10:
-            print("Some leakage found. Following mismatches between live and test data found:")
+            print(f"{BColors.FAIL}Some leakage found. Following mismatches between live and test data found: \n")
             for mismatch in mismatches:
-                print(mismatch)
+                print(f"-> {mismatch}")
         else:
             leakage_path = os.path.join(self.LEAKAGE_LOG_DIR_PATH, datetime.today().strftime('%Y-%m-%d'))
-            print(f">10 mismatches between live and test data found. Log mismatches at: {leakage_path}")
+            print(f"{BColors.FAIL}>10 mismatches between live and test data found. Log mismatches at: {leakage_path}")
             with open(leakage_path, 'w') as f:
                 for mismatch in mismatches:
                     f.write(f"{mismatch}\n")
+
+        print(f"{BColors.ENDC}----------------------------------------------------------------------------------------------\n")
 
     def get_test_live_mismatches(self, test_df: pd.DataFrame, live_df: pd.DataFrame) -> List[str]:
         mismatches = []

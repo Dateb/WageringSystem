@@ -175,6 +175,8 @@ class FeatureManager:
 
             FeatureSourceExtractor(self.previous_value_source, trainer_win_prob),
             FeatureSourceExtractor(self.previous_value_source, trainer_momentum),
+
+            TravelDistance(self.previous_value_source)
         ]
 
         max_value_features = [
@@ -266,10 +268,10 @@ class FeatureManager:
         ]
 
         layoff_features = [
-            LayoffExtractor(["subject_id"]),
-            LayoffExtractor(["subject_id", "track_name"]),
-            LayoffExtractor(["subject_id", "race_class"]),
-            LayoffExtractor(["subject_id", "surface"])
+            LayoffExtractor(self.previous_value_source, ["subject_id"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "track_name"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "race_class"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "surface"])
         ]
 
         default_features = [
