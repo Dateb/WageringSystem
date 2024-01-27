@@ -1,5 +1,7 @@
 from torch import nn
 
+RACE_CARDS_FOLDER_NAME = "race_cards_new"
+
 LEARNING_CURVE_PATH = "../data/learning_curve.dat"
 TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 ESTIMATOR_PATH = "../data/estimator.dat"

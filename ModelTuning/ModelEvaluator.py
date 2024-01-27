@@ -15,6 +15,10 @@ from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimat
 from ModelTuning import simulate_conf
 
 
+def reject_outliers(data, m=2):
+    return data[abs(data - np.mean(data)) < m * np.std(data)]
+
+
 class ModelEvaluator:
 
     def __init__(self, race_results_container: RaceResultsContainer):
@@ -50,7 +54,8 @@ class ModelEvaluator:
 
             self.payout_calculator.insert_payouts_into_bets(bets, self.race_results_container.race_results)
 
-            payout_score = mean([bet.payout for bet in bets])
+            payouts = [bet.payout for bet in bets]
+            payout_score = mean(payouts)
 
             print(f"Thresh/score: {bet_threshold}/{payout_score}")
 
@@ -64,7 +69,7 @@ class ModelEvaluator:
         return best_bets
 
     def init_offer_container(self, test_race_cards: Dict[str, RaceCard]):
-        if not os.path.isfile(self.offer_container.RACE_OFFERS_PATH):
+        if not os.path.isfile(self.offer_container.race_offers_path):
             self.offer_container.insert_race_cards(test_race_cards)
             self.offer_container.save_race_offers()
         else:

@@ -24,6 +24,16 @@ class BetOffer:
     def __str__(self) -> str:
         return f"Odds for {self.horse.name}: {self.odds}"
 
+    @property
+    def minutes_until_race_start(self) -> float:
+        if self.event_datetime is None:
+            return 600
+        return (self.race_card.datetime - self.event_datetime).seconds / 60
+
+    @property
+    def near_race_start(self) -> bool:
+        return self.minutes_until_race_start < 10
+
 
 @dataclass
 class Bet:
@@ -54,9 +64,10 @@ class Bet:
 
 class Bettor(ABC):
 
-    def __init__(self, bet_threshold: float, stakes_calculator: StakesCalculator):
+    def __init__(self, bet_threshold: float, stakes_calculator: StakesCalculator, max_odds_thresh: float = 20.0):
         self.bet_threshold = bet_threshold
         self.stakes_calculator = stakes_calculator
+        self.max_odds_thresh = max_odds_thresh
 
         self.already_taken_offers = {}
         self.offer_accepted_count = 0
@@ -68,7 +79,11 @@ class Bettor(ABC):
         for race_datetime, race_offers in offers.items():
             if race_datetime in probability_estimates.probability_estimates:
                 for bet_offer in race_offers:
-                    if bet_offer.horse is not None:
+                    if (
+                            bet_offer.horse is not None
+                            and not bet_offer.near_race_start
+                            and bet_offer.odds < self.max_odds_thresh
+                    ):
                         probability_estimate = probability_estimates.get_horse_win_probability(
                             race_datetime,
                             bet_offer.horse.name,
@@ -144,7 +159,10 @@ class BettorFactory:
             stakes_calculator = KellyStakesCalculator()
         else:
             if simulate_conf.MARKET_SOURCE == "Betfair":
-                stakes_calculator = FixedStakesCalculator(fixed_stakes=7.0)
+                if simulate_conf.MARKET_TYPE == "WIN":
+                    stakes_calculator = FixedStakesCalculator(fixed_stakes=7.0)
+                else:
+                    stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
             else:
                 stakes_calculator = FixedStakesCalculator(fixed_stakes=0.5)
 

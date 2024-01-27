@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher, TomorrowRaceCardsFetcher
+from DataCollection.collect_util import distance_to_meters
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
@@ -158,6 +159,7 @@ class TimeFormFetcher(ABC):
         time_form_soup = self.get_time_form_soup(race_card)
         if time_form_soup is not None:
             time_form_attributes["result"]["winTimeSeconds"] = self.get_win_time(time_form_soup)
+            time_form_attributes["race"]["num_hurdles"] = self.get_num_hurdles(time_form_soup)
             time_form_attributes["race"]["distance"] = self.get_distance(time_form_soup)
 
             horse_rows = self.get_horse_rows(time_form_soup)
@@ -177,6 +179,7 @@ class TimeFormFetcher(ABC):
                             "bsp_win": self.get_bsp_win(horse_row),
                             "bsp_place": self.get_bsp_place(horse_row),
                             "lengths_behind": self.get_lengths_behind(horse_row),
+                            "handicap_weight": self.get_handicap_weight(horse_row),
                         },
                         "util": {
                             "jockey_name": self.get_jockey_name(horse_row)
@@ -254,27 +257,7 @@ class TimeFormFetcher(ABC):
 
     def get_distance(self, time_form_soup) -> int:
         distance = time_form_soup.find("span", {"title": "Distance expressed in miles, furlongs and yards"}).text
-        return self.distance_to_meters(distance)
-
-    def distance_to_meters(self, distance: str) -> int:
-        distance_amount_per_unit = {
-            "m": 0,
-            "f": 0,
-            "y": 0,
-        }
-
-        distance_split = distance.split(sep=" ")
-
-        for distance_unit in distance_split:
-            unit = distance_unit[-1]
-            distance_amount = distance_unit[:-1]
-            if distance_amount.isnumeric() and unit in distance_amount_per_unit:
-                distance_amount_per_unit[unit] = float(distance_amount)
-
-        distance_in_metres = distance_amount_per_unit["m"] * 1609.34 + distance_amount_per_unit["f"] * 201.168 \
-                             + distance_amount_per_unit["y"] * 0.9144
-
-        return math.floor(distance_in_metres)
+        return distance_to_meters(distance)
 
     def get_possible_codes_for_track_name(self, track_name: str, day_of_race: date) -> List[int]:
         track_code = self.time_form_track_name_code[track_name]
@@ -354,11 +337,19 @@ class TimeFormFetcher(ABC):
         pass
 
     @abstractmethod
+    def get_handicap_weight(self, horse_row: BeautifulSoup) -> float:
+        pass
+
+    @abstractmethod
     def get_lengths_behind(self, time_form_soup: BeautifulSoup) -> float:
         pass
 
     @abstractmethod
     def get_win_time(self, time_form_soup: BeautifulSoup) -> float:
+        pass
+
+    @abstractmethod
+    def get_num_hurdles(self, time_form_soup: BeautifulSoup) -> float:
         pass
 
 
@@ -446,6 +437,20 @@ class ResultTimeformFetcher(TimeFormFetcher):
             rating = -1
         return int(rating)
 
+    def get_handicap_weight(self, horse_row: BeautifulSoup) -> float:
+        weight_text = horse_row.find_all("td", {"class": "rp-ageequip-hide"})[1].text
+
+        if "(" in weight_text:
+            weight_text = weight_text[weight_text.find("(")+1:weight_text.find(")")]
+            print("out of handicap found")
+
+        n_stones = int(weight_text.split("-")[0])
+        n_pounds = int(weight_text.split("-")[1])
+
+        weight = n_stones * 6.35029 + n_pounds * 0.453592
+
+        return weight
+
     def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
         bsp_win = horse_row.find("td", {"title": "Betfair Win SP", "class": "rp-result-bsp-show"}).text
 
@@ -475,6 +480,20 @@ class ResultTimeformFetcher(TimeFormFetcher):
         end_of_time_pos = win_time.find("\r")
         win_time = win_time[:end_of_time_pos]
         return self.win_time_to_seconds(win_time)
+
+    def get_num_hurdles(self, time_form_soup: BeautifulSoup) -> int:
+        num_hurdles_text_elem = time_form_soup.select_one('b:-soup-contains("Hurdles:")')
+
+        if not num_hurdles_text_elem:
+            return 0
+
+        num_hurdles = num_hurdles_text_elem.find_next_sibling(text=True).text
+        end_of_value_pos = num_hurdles.find("\r") - 2
+        num_hurdles = num_hurdles[:end_of_value_pos]
+
+        print(num_hurdles)
+
+        return int(num_hurdles)
 
 
 class RaceCardTimeformFetcher(TimeFormFetcher):
@@ -532,6 +551,25 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
             rating = int(rating_text[1:-1])
         return rating
 
+    def get_handicap_weight(self, horse_row: BeautifulSoup) -> float:
+        weight_text = horse_row.find_all("td", {"class": "rp-td-horse-weight"})[0].text
+
+        if "ex" in weight_text:
+            print(weight_text)
+            weight_text = weight_text[:-3]
+            print(weight_text)
+
+        if "(" in weight_text:
+            weight_text = weight_text[weight_text.find("(")+1:weight_text.find(")")]
+            print("out of handicap found")
+
+        n_stones = int(weight_text.split("-")[0])
+        n_pounds = int(weight_text.split("-")[1])
+
+        weight = n_stones * 6.35029 + n_pounds * 0.453592
+
+        return weight
+
     def get_bsp_win(self, horse_row: BeautifulSoup) -> float:
         return 0
 
@@ -542,6 +580,9 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
         return -1
 
     def get_lengths_behind(self, horse_row: BeautifulSoup) -> float:
+        return -1
+
+    def get_num_hurdles(self, time_form_soup: BeautifulSoup) -> int:
         return -1
 
 

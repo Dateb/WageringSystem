@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from DataAbstraction.Present.RaceCard import RaceCard
+from ModelTuning import simulate_conf
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -22,7 +23,7 @@ class MonthDataSplitter:
         self.n_months_test_sample = n_months_test_sample
         self.n_months_forward_offset = n_months_forward_offset
 
-        self.race_cards_loader = RaceCardsPersistence("race_cards")
+        self.race_cards_loader = RaceCardsPersistence(simulate_conf.RACE_CARDS_FOLDER_NAME)
         file_names = self.race_cards_loader.race_card_file_names
 
         non_test_sample_file_names = file_names[self.n_months_forward_offset:-self.n_months_test_sample]

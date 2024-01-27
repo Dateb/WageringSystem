@@ -116,24 +116,6 @@ class WeightAdvantage(FeatureExtractor):
         return race_card.mean_horse_weight / horse_weight
 
 
-class AgeFrom(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_from
-
-
-class AgeTo(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return race_card.age_to
-
-
 class HasTrainerMultipleHorses(FeatureExtractor):
 
     def __init__(self):

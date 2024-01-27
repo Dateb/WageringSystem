@@ -4,7 +4,7 @@ from time import sleep
 from typing import Dict, Tuple, List
 
 import websocket
-from websocket import WebSocketConnectionClosedException
+from websocket import WebSocketConnectionClosedException, WebSocketTimeoutException
 
 from Agent.odds_requesting.offer_requester import OfferRequester
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -35,6 +35,11 @@ class RaceCardMarketMap:
     def add(self, race_card: RaceCard, market: Market):
         self.race_card_to_market[race_card] = market
         self.market_to_race_card[market] = race_card
+
+    def delete(self, race_card: RaceCard):
+        market_of_race_card = self.get_market(race_card)
+        del self.race_card_to_market[race_card]
+        del self.market_to_race_card[market_of_race_card]
 
     def get_race_card(self, market: Market) -> RaceCard:
         return self.market_to_race_card[market]
@@ -108,6 +113,7 @@ class ExchangeOfferRequester(OfferRequester):
         self.market_type = market_type
 
         self.race_card_market_map = RaceCardMarketMap()
+        self.scratched_horses = {race_card: [] for race_card in upcoming_race_cards.values()}
 
         self.init_race_card_market_map()
         self.markets = self.race_card_market_map.get_markets()
@@ -121,6 +127,7 @@ class ExchangeOfferRequester(OfferRequester):
             market.horse_number_by_exchange_id = self.extract_number_by_internal_id(market_data)
 
         self.open_race_connection()
+        self.market_opening_request_timer = 0
 
     def init_race_card_market_map(self) -> None:
         market_retriever = MarketRetriever(self.market_type)
@@ -139,6 +146,7 @@ class ExchangeOfferRequester(OfferRequester):
         if raw_market_offer is not None:
             return self.raw_market_offer_to_bet_offers(raw_market_offer)
 
+        return []
 
     def raw_market_offer_to_bet_offers(self, raw_market_offer: RawMarketOffer) -> List[BetOffer]:
         race_card = self.race_card_market_map.get_race_card(raw_market_offer.market)
@@ -156,8 +164,8 @@ class ExchangeOfferRequester(OfferRequester):
                         race_card=race_card,
                         horse=horse,
                         odds=odds,
-                        scratched_horses=[],
-                        event_datetime=None,
+                        scratched_horses=self.scratched_horses[race_card],
+                        event_datetime=datetime.now(),
                         adjustment_factor=1.0,
                     )
 
@@ -187,6 +195,9 @@ class ExchangeOfferRequester(OfferRequester):
         )
         self.web_socket.recv()
 
+        self.send_market_opening_request()
+
+    def send_market_opening_request(self) -> None:
         opening_request = '["['
 
         for market in self.markets:
@@ -200,23 +211,23 @@ class ExchangeOfferRequester(OfferRequester):
                 opening_request += ","
 
         opening_request += ']"]'
-        print(opening_request)
         self.web_socket.send(opening_request)
-
-        message = self.web_socket.recv()
-
-        opening_odds_message = json.loads(json.loads(message[2:-1]))
-
-        market = self.get_market_from_message(opening_odds_message)
-        odds_by_horse_number = self.get_odds_by_horse_number_from_message(market, opening_odds_message)
 
     def close_race_connection(self):
         self.web_socket.close()
 
     def poll_raw_market_offer(self) -> RawMarketOffer:
+        self.market_opening_request_timer += 1
+
+        if self.market_opening_request_timer > 600:
+            self.market_opening_request_timer = 0
+            self.send_market_opening_request()
+
         while True:
             try:
+                # TODO: Error websocket._exceptions.WebSocketTimeoutException: Connection timed out while receiving (see textdump for full stacktrace)
                 message = self.web_socket.recv()
+                sleep(0.1)
 
                 break
             except OSError as error:
@@ -225,6 +236,13 @@ class ExchangeOfferRequester(OfferRequester):
             except WebSocketConnectionClosedException as error:
                 print("Websocket was closed. Trying to reconnect...")
 
+                self.close_race_connection()
+                self.open_race_connection()
+
+            except WebSocketTimeoutException as error:
+                print("Websocket timed out. Trying to reconnect...")
+
+                self.close_race_connection()
                 self.open_race_connection()
 
         if message == "h":
@@ -238,7 +256,23 @@ class ExchangeOfferRequester(OfferRequester):
         market = self.get_market_from_message(message)
         odds_by_horse_number = self.get_odds_by_horse_number_from_message(market, message)
 
+        # scratched_horses = self.get_scratched_horses(message)
+        #
+        # if scratched_horses:
+        #     self.scratched_horses[self.race_card_market_map.get_race_card(market)] = scratched_horses
+
         return RawMarketOffer(market, odds_by_horse_number)
+
+    def get_scratched_horses(self, message: dict) -> List[str]:
+        scratched_horses = []
+        if "marketDefinition" in message:
+            market_definition = message["marketDefinition"]
+            if "runners" in market_definition:
+                for runner in market_definition["runners"]:
+                    if runner["status"] == "REMOVED":
+                        scratched_horses.append(runner["name"])
+
+        return scratched_horses
 
     def extract_odds_by_internal_id(self, current_odds_data: dict) -> dict:
         odds_by_internal_id = {}
@@ -258,6 +292,14 @@ class ExchangeOfferRequester(OfferRequester):
             number_by_internal_id[horse_data["selectionId"]] = horse_data["metadata"]["CLOTH_NUMBER_ALPHA"]
 
         return number_by_internal_id
+
+    def delete_markets(self, deleted_race_card: RaceCard) -> None:
+        self.race_card_market_map.delete(deleted_race_card)
+
+        self.markets = self.race_card_market_map.get_markets()
+
+        self.close_race_connection()
+        self.open_race_connection()
 
 
 if __name__ == "__main__":

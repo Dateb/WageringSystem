@@ -69,7 +69,11 @@ class RaceCard:
             self.places_num = int(race["placesNum"])
 
         self.race_number = race["raceNumber"]
+
         self.distance = race["distance"]
+        self.adjusted_distance = self.distance
+        if "adjusted_distance" in race:
+            self.adjusted_distance = race["adjusted_distance"]
 
         self.distance_category = self.get_distance_category()
 
@@ -78,6 +82,10 @@ class RaceCard:
 
         self.race_type = race["raceType"]
         self.race_type_detail = race["raceTypeDetail"]
+
+        self.num_hurdles = 0
+        if "num_hurdles" in race:
+            self.num_hurdles = race["num_hurdles"]
 
         self.race_class = race["categoryLetter"]
 

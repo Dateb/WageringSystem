@@ -88,6 +88,8 @@ class PlaceProbabilizer(Probabilizer):
             RaceCard.PLACE_NUM_KEY: "first"
         })
 
+        print(grouped_win_information)
+
         win_information = [tuple(row) for row in grouped_win_information.values]
         place_probabilities = compute_place_probabilities(win_information)
 

@@ -13,3 +13,7 @@ class OfferRequester(ABC):
     @abstractmethod
     def get_bet_offers(self) -> List[BetOffer]:
         pass
+
+    @abstractmethod
+    def delete_markets(self, deleted_race_card: RaceCard) -> None:
+        pass

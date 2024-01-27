@@ -6,6 +6,8 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
+from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
 from ModelTuning import simulate_conf
@@ -61,7 +63,11 @@ class ModelSimulator:
         self.validation_sample = None
 
         self.feature_manager = FeatureManager()
-        self.estimator = BoostedTreesRanker(self.feature_manager)
+
+        gbt_estimator = BoostedTreesRanker(self.feature_manager)
+        nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+
+        self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_estimator, nn_estimator])
 
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
@@ -138,8 +144,8 @@ if __name__ == '__main__':
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
         train_upper_limit_percentage=0.8,
-        n_months_test_sample=3,
-        n_months_forward_offset=110
+        n_months_test_sample=10,
+        n_months_forward_offset=0
     )
 
     model_simulator = ModelSimulator(data_splitter)

@@ -5,6 +5,7 @@ from typing import Dict
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
+from DataCollection.collect_util import distance_to_meters
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 scraper = get_scraper()
@@ -77,14 +78,21 @@ class BHAInjector:
         if race_series_id not in self.races_data:
             self.save_races_of_race_series(race_card_year, race_series_id)
 
-        race_id, division_sequence = self.get_race_id(race_card, race_series_id)
+        race_dict = self.get_race_dict(race_card, race_series_id)
+        race_id = race_dict["raceId"]
+        division_sequence = race_dict["divisionSequence"]
 
         race_card_url = f"https://www.britishhorseracing.com/feeds/v3/races/{race_card_year}/{race_id}/{division_sequence}/results"
-        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=1.0)
+        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=5.0)
 
         return race_card_data
 
     def inject_race_card_data(self, race_card: RaceCard, race_card_data: Dict) -> None:
+        race_series_id = self.get_race_series_id(race_card)
+        race_dict = self.get_race_dict(race_card, race_series_id)
+
+        race_card.raw_race_card["race"]["adjusted_distance"] = distance_to_meters(race_dict["distanceChangeText"])
+
         for horse_data in race_card_data["data"]:
             horse = self.get_horse(race_card, horse_data)
 
@@ -138,7 +146,7 @@ class BHAInjector:
 
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
-    def get_race_id(self, race_card: RaceCard, race_series_id: str) -> str:
+    def get_race_dict(self, race_card: RaceCard, race_series_id: str) -> dict:
         race_time = (race_card.datetime - timedelta(hours=1)).time()
 
         return self.races_data[race_series_id][str(race_time)]
@@ -159,10 +167,14 @@ class BHAInjector:
         self.races_data[race_series_id] = {}
 
         races_of_race_series_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures/{year}/{race_series_id}/races"
-        races_of_race_series_data = scraper.request_data_with_header(races_of_race_series_url, header, avg_wait_seconds=5.0)
+        races_of_race_series_data = scraper.request_data_with_header(races_of_race_series_url, header, avg_wait_seconds=0.5)
 
         for race in races_of_race_series_data["data"]:
-            self.races_data[race_series_id][race['raceTime']] = (race['raceId'], race['divisionSequence'])
+            self.races_data[race_series_id][race['raceTime']] = {
+                "raceId": race['raceId'],
+                "divisionSequence": race['divisionSequence'],
+                "distanceChangeText": race['distanceChangeText']
+            }
 
     def track_name_to_course_name(self, track_name: str) -> str:
         if track_name == "Lingfield":

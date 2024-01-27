@@ -12,10 +12,9 @@ from ModelTuning import simulate_conf
 
 class BetOfferContainer(ABC):
 
-    RACE_OFFERS_PATH: str
-
     def __init__(self):
         self.race_offers = {}
+        self.race_offers_path = ""
 
     @abstractmethod
     def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
@@ -27,17 +26,19 @@ class BetOfferContainer(ABC):
         return []
 
     def save_race_offers(self) -> None:
-        with open(self.RACE_OFFERS_PATH, "wb") as f:
+        with open(self.race_offers_path, "wb") as f:
             pickle.dump(self.race_offers, f)
 
     def load_race_offers(self):
-        with open(self.RACE_OFFERS_PATH, "rb") as f:
+        with open(self.race_offers_path, "rb") as f:
             self.race_offers = pickle.load(f)
 
 
 class RaceBetsOfferContainer(BetOfferContainer):
 
-    RACE_OFFERS_PATH = "../data/racebets_race_offers.dat"
+    def __init__(self):
+        super().__init__()
+        self.race_offers_path = "../data/racebets_race_offers.dat"
 
     def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
         for race_card in race_cards.values():
@@ -50,7 +51,7 @@ class RaceBetsOfferContainer(BetOfferContainer):
                         horse=horse,
                         odds=racebets_win_odds,
                         scratched_horses=scratched_horses,
-                        event_datetime=race_card.datetime,
+                        event_datetime=race_card.datetime - timedelta(hours=1),
                         adjustment_factor=1.0
                     )
                     race_bet_offers.append(bet_offer)
@@ -60,24 +61,33 @@ class RaceBetsOfferContainer(BetOfferContainer):
 
 class BetfairOfferContainer(BetOfferContainer):
 
-    RACE_OFFERS_PATH = "../data/betfair_race_offers.dat"
+    def __init__(self):
+        super().__init__()
+        if simulate_conf.MARKET_TYPE == "WIN":
+            self.race_offers_path = "../data/betfair_race_win_offers.dat"
+        else:
+            self.race_offers_path = "../data/betfair_race_place_offers.dat"
 
     def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
         self.test_race_cards_mapper = RaceDateToCardMapper(race_cards)
 
+        print(self.test_race_cards_mapper.race_cards)
+
         history_path = "../data/exchange_odds_history/"
 
-        month_dirs = os.listdir(history_path)
-        for month_dir in month_dirs:
-            day_dirs = os.listdir(f"{history_path}/{month_dir}")
-            for day_dir in day_dirs:
-                race_series_dirs = os.listdir(f"{history_path}/{month_dir}/{day_dir}")
-                for race_series_dir in race_series_dirs:
-                    history_files = os.listdir(f"{history_path}/{month_dir}/{day_dir}/{race_series_dir}")
+        year_dirs = os.listdir(history_path)
+        for year_dir in year_dirs:
+            month_dirs = os.listdir(f"{history_path}/{year_dir}")
+            for month_dir in month_dirs:
+                day_dirs = os.listdir(f"{history_path}/{year_dir}/{month_dir}")
+                for day_dir in day_dirs:
+                    race_series_dirs = os.listdir(f"{history_path}/{year_dir}/{month_dir}/{day_dir}")
+                    for race_series_dir in race_series_dirs:
+                        history_files = os.listdir(f"{history_path}/{year_dir}/{month_dir}/{day_dir}/{race_series_dir}")
 
-                    for file_name in history_files:
-                        if file_name.startswith("1"):
-                            self.load_offers_from_race(f"{history_path}/{month_dir}/{day_dir}/{race_series_dir}/{file_name}")
+                        for file_name in history_files:
+                            if file_name.startswith("1"):
+                                self.load_offers_from_race(f"{history_path}/{year_dir}/{month_dir}/{day_dir}/{race_series_dir}/{file_name}")
 
     def load_offers_from_race(self, race_history_file_path: str):
         betfair_offers = []
@@ -105,6 +115,7 @@ class BetfairOfferContainer(BetOfferContainer):
                     unix_time_stamp = int(history_dict["pt"] / 1000)
                     event_datetime = datetime.fromtimestamp(unix_time_stamp)
                     market_condition = history_dict["mc"][0]
+
                     if "marketDefinition" in market_condition:
                         market_definition = history_dict["mc"][0]["marketDefinition"]
                         if "runners" in market_definition:

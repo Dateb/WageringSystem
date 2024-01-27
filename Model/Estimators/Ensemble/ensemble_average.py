@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from numpy import ndarray
@@ -21,10 +21,10 @@ class EnsembleAverageEstimator(Estimator):
 
         return 0.0
 
-    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> ndarray:
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
         estimator_scores = []
         for estimator in self.estimators:
-            scores = estimator.predict(train_sample, validation_sample, test_sample)
+            scores, test_loss = estimator.predict(train_sample, validation_sample, test_sample)
             estimator_scores.append(scores)
 
         average_scores = np.mean(estimator_scores, axis=0)
@@ -33,7 +33,7 @@ class EnsembleAverageEstimator(Estimator):
 
         print(f"Test accuracy ensemble-average: {get_accuracy(test_sample)}")
 
-        return average_scores
+        return average_scores, 0.0
 
     def score_test_sample(self, test_sample: RaceCardsSample) -> None:
         estimator_scores = []

@@ -41,7 +41,7 @@ class BetAgent:
 
         self.current_bets = []
 
-        self.bettor = BettorFactory().create_bettor(bet_threshold=0.05)
+        self.bettor = BettorFactory().create_bettor(bet_threshold=0.1)
         self.columns = None
 
         self.update_race_card_data()
@@ -49,7 +49,7 @@ class BetAgent:
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
             train_upper_limit_percentage=0.8,
-            n_months_test_sample=13,
+            n_months_test_sample=10,
             n_months_forward_offset=0
         )
 
@@ -143,11 +143,27 @@ class BetAgent:
         login_response_data = login_response.json()["data"]
         return login_response_data["token"]["orbit"]["access_token"]
 
+    def remove_expired_upcoming_race_cards(self) -> None:
+        expired_race_card_key = None
+        for key, race_card in self.upcoming_race_cards.items():
+            if datetime.now() > (race_card.datetime - timedelta(hours=0, minutes=10)):
+                expired_race_card_key = key
+
+        if expired_race_card_key is not None:
+            expired_race_card = self.upcoming_race_cards[expired_race_card_key]
+            try:
+                self.offer_requester.delete_markets(expired_race_card)
+                del self.upcoming_race_cards[expired_race_card_key]
+
+            except KeyError as error:
+                print(f"Keyerror when deleting race: {expired_race_card}: {error}")
+
     def run(self):
-        while True:
+        while self.upcoming_race_cards:
+            self.remove_expired_upcoming_race_cards()
             bet_offers = self.offer_requester.get_bet_offers()
 
-            if bet_offers is not None:
+            if bet_offers:
                 race_card = bet_offers[0].race_card
                 bet_offers = {str(race_card.datetime): bet_offers}
 

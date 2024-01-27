@@ -71,13 +71,15 @@ class Horse:
                 self.pulled_up = 1
 
         self.horse_distance = -1
-        # self.horse_distance = self.__extract_horse_distance(raw_data)
 
         self.lengths_behind = -1
         if "lengths_behind" in raw_data:
             self.lengths_behind = raw_data["lengths_behind"]
 
         self.jockey = Jockey(raw_data["jockey"])
+        self.handicap_weight = self.jockey.weight
+        if "handicap_weight" in raw_data:
+            self.handicap_weight = round(raw_data["handicap_weight"], ndigits=1)
 
         self.jockey_id = self.jockey.id
 

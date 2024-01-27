@@ -23,3 +23,15 @@ class WeightAllowance(FeatureExtractor):
         if horse.jockey.allowance == -1:
             return self.PLACEHOLDER_VALUE
         return horse.jockey.allowance
+
+
+class OutOfHandicapWeight(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if horse.jockey.weight == -1:
+            return self.PLACEHOLDER_VALUE
+
+        return horse.jockey.weight - horse.handicap_weight

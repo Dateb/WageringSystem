@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from DataCollection.DayCollector import DayCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
+from ModelTuning import simulate_conf
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 
 
@@ -20,6 +21,7 @@ class CollectedDaysTracker:
         self.collected_days = self.get_collected_days_from_file()
 
     def save_collected_days_from_race_cards(self) -> None:
+        print("Update collected races info based on loaded race cards...")
         self.collected_days = self.get_collected_days_from_race_cards()
 
         self.save_collected_days()
@@ -49,10 +51,9 @@ class CollectedDaysTracker:
 class TrainDataCollector:
 
     __TIME_OF_A_DAY = timedelta(days=1)
-    RACE_CARDS_FILE_NAME: str = "race_cards"
 
     def __init__(self):
-        self.race_cards_persistence = RaceCardsPersistence(self.RACE_CARDS_FILE_NAME)
+        self.race_cards_persistence = RaceCardsPersistence(simulate_conf.RACE_CARDS_FOLDER_NAME)
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
         # self.collected_days_tracker.save_collected_days_from_race_cards()

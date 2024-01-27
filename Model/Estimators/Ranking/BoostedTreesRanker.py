@@ -21,14 +21,14 @@ class GBTObjective:
         self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
-        num_rounds = trial.suggest_int("num_rounds", 150, 300)
+        num_rounds = trial.suggest_int("num_rounds", 150, 500)
 
         search_params = {
-            "num_leaves": trial.suggest_int("num_leaves", 10, 20),
+            "num_leaves": trial.suggest_int("num_leaves", 2, 20),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
             "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
-            "feature_fraction": trial.suggest_float("feature_fraction", 0.4, 1.0),
-            "bagging_fraction": trial.suggest_float("bagging_fraction", 0.4, 1.0),
+            "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
+            "bagging_fraction": trial.suggest_float("bagging_fraction", 0.3, 1.0),
             "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
             "min_child_samples": trial.suggest_int("min_child_samples", 60, 120),
         }
@@ -131,7 +131,7 @@ class BoostedTreesRanker(Estimator):
         #
         # study = optuna.create_study(direction="maximize")
         #
-        # study.optimize(cv_objective, n_trials=100)
+        # study.optimize(cv_objective, n_trials=20)
         #
         # print("Number of finished trials: {}".format(len(study.trials)))
         #
@@ -143,19 +143,23 @@ class BoostedTreesRanker(Estimator):
         # print("  Params: ")
         # for key, value in trial.params.items():
         #     print("    {}: {}".format(key, value))
-
+        #
         # search_params = trial.params
 
-        search_params = {
-            "num_rounds": 266,
-            "num_leaves": 14,
-            "lambda_l1": 7.345368276137748,
-            "lambda_l2": 1.4236994442124007,
-            "feature_fraction": 0.45775599282359614,
-            "bagging_fraction": 0.8937420818276652,
-            "bagging_freq": 7,
-            "min_child_samples": 86
-        }
+        search_params = {'num_rounds': 429, 'num_leaves': 4, 'lambda_l1': 4.303329281195922e-05, 'lambda_l2': 3.694893275803133e-07,
+         'feature_fraction': 0.3048859837086765, 'bagging_fraction': 0.9209115565797591, 'bagging_freq': 5,
+         'min_child_samples': 89}
+
+        # search_params = {
+        #     "num_rounds": 266,
+        #     "num_leaves": 14,
+        #     "lambda_l1": 7.345368276137748,
+        #     "lambda_l2": 1.4236994442124007,
+        #     "feature_fraction": 0.45775599282359614,
+        #     "bagging_fraction": 0.8937420818276652,
+        #     "bagging_freq": 7,
+        #     "min_child_samples": 86
+        # }
 
         params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(

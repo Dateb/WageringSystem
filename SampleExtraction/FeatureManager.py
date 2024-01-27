@@ -4,19 +4,14 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
-    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, AgeFrom, \
-    AgeTo, TravelDistance
-from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasHood, HasCheekPieces, HasVisor, HasEyeCovers, \
-    HasEyeShield
+    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, TravelDistance
 from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender
-from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance
-from SampleExtraction.Extractors.time_based import MinutesIntoDay, MonthCos, MonthSin, DayOfMonthCos, DayOfMonthSin, \
-    WeekDaySin, WeekDayCos
+from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
     TrackVariantSource, FeatureValueGroup
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, place_percentile, \
     race_distance, \
-    race_going, race_class, relative_distance_behind, has_pulled_up
+    race_going, race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight
 
 
 class FeatureManager:
@@ -89,14 +84,6 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
-        # window_sizes = [3, 5, 7]
-        # win_prob_features = [HorseWinProbability(window_size=i) for i in window_sizes]
-        # win_rate_features = [HorseWinRate(window_size=i) for i in window_sizes]
-        # show_rate_features = [HorseShowRate(window_size=i) for i in window_sizes]
-        # place_percentile_features = [HorsePlacePercentile(window_size=i) for i in window_sizes]
-        # momentum_features = [HorseMomentum(window_size=i) for i in window_sizes]
-        # window_time_length_features = [WindowTimeLength(window_size=i) for i in window_sizes]
-
         horse_win_prob = FeatureValueGroup(["subject_id"], win_probability)
 
         horse_surface_win_prob = FeatureValueGroup(["subject_id", "surface"], win_probability)
@@ -121,10 +108,12 @@ class FeatureManager:
         horse_track_relative_distance_behind = FeatureValueGroup(["subject_id", "track_name"], relative_distance_behind)
         horse_class_relative_distance_behind = FeatureValueGroup(["subject_id", "race_class"], relative_distance_behind)
 
+        horse_weight = FeatureValueGroup(["subject_id"], weight)
+
         horse_has_pulled_up = FeatureValueGroup(["subject_id"], has_pulled_up)
 
-        horse_distance = FeatureValueGroup(["subject_id"], race_distance)
-        horse_going = FeatureValueGroup(["subject_id"], race_going)
+        horse_race_adjusted_distance = FeatureValueGroup(["subject_id"], adjusted_race_distance)
+        horse_race_going = FeatureValueGroup(["subject_id"], race_going)
         horse_race_class = FeatureValueGroup(["subject_id"], race_class)
 
         jockey_win_prob = FeatureValueGroup(["jockey_id"], win_probability)
@@ -164,8 +153,8 @@ class FeatureManager:
             FeatureSourceExtractor(self.previous_value_source, horse_track_relative_distance_behind),
             FeatureSourceExtractor(self.previous_value_source, horse_class_relative_distance_behind),
 
-            FeatureSourceExtractor(self.previous_value_source, horse_distance),
-            FeatureSourceExtractor(self.previous_value_source, horse_going),
+            FeatureSourceExtractor(self.previous_value_source, horse_race_adjusted_distance),
+            FeatureSourceExtractor(self.previous_value_source, horse_race_going),
             FeatureSourceExtractor(self.previous_value_source, horse_race_class),
 
             # FeatureSourceExtractor(previous_value_source, horse_has_pulled_up),
@@ -203,6 +192,9 @@ class FeatureManager:
 
             FeatureSourceExtractor(self.max_value_source, trainer_win_prob),
             FeatureSourceExtractor(self.max_value_source, trainer_momentum),
+
+            FeatureSourceExtractor(self.max_value_source, horse_race_adjusted_distance),
+            FeatureSourceExtractor(self.max_value_source, horse_weight)
         ]
 
         horse_name_momentum = FeatureValueGroup(["name"], momentum)
@@ -222,49 +214,28 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_momentum),
 
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum)
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
 
-            # FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_name_momentum, dam_momentum),
-            # FeatureSourceExtractor(avg_window_5_min_obs_3_source, horse_name_momentum, sire_momentum),
+            # TODO: Below are sibling features. These do not exclude the performance of the horse itself (it counts itself as a sibling)
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_momentum),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_momentum),
         ]
 
         current_race_features = [
             CurrentRaceTrack(),
-            # CurrentRaceSurface(),
-
-            CurrentRaceType(),
-            CurrentRaceTypeDetail(),
             CurrentRaceCategory(),
-
-            # CurrentGoing(),
             CurrentDistance(),
             CurrentRaceClass(),
 
             CurrentPurse(),
 
-            # TODO: Does not consider out of handicap horses (ratings are unfortunately already corrected)
-            # CurrentRating(),
-
             Age(),
             Gender(),
 
-            AgeFrom(), AgeTo(),
-
             CurrentJockeyWeight(),
             WeightAllowance(),
-        ]
 
-        time_features = [
-            MinutesIntoDay(),
-
-            MonthCos(),
-            MonthSin(),
-
-            DayOfMonthCos(),
-            DayOfMonthSin(),
-
-            WeekDaySin(),
-            WeekDayCos(),
+            OutOfHandicapWeight(),
         ]
 
         layoff_features = [
@@ -274,203 +245,7 @@ class FeatureManager:
             LayoffExtractor(self.previous_value_source, ["subject_id", "surface"])
         ]
 
-        default_features = [
-
-            # BetfairWinMarketWinProbability(),
-            #
-            # HorsePulledUpRate(),
-            # PulledUpPreviousRace(),
-            #
-            # HorsePurseRate(),
-            #
-            #
-            # HasPreviousRaces(),
-            #
-            # PreviousRaceLayoff(),
-            #
-            # SameTrackLayoff(),
-            # SameClassLayoff(),
-            # SameSurfaceLayoff(),
-            #
-            #
-            #
-            # WeightDifference(),
-            # AllowanceDifference(),
-            #
-            # OwnerWinRateDifference(),
-            #
-            # DrawBias(),
-            #
-            #
-            # HorseScratchedRate(),
-            # JockeyScratchedRate(),
-            # TrainerScratchedRate(),
-            #
-            # HasTrainerMultipleHorses(),
-            #
-            # SireSiblingsMomentum(),
-            # DamSiblingsMomentum(),
-            # SireAndDamSiblingsMomentum(),
-            # DamSireSiblingsMomentum(),
-            #
-            #
-            # BestClassPlace(),
-            # LifeTimeStartCount(),
-            #
-            # DamMomentum(), SireMomentum(),
-            #
-            # HorseJockeyShowRate(),
-
-
-
-
-            # PostPosition(),
-
-            # DamPurseRate(), SirePurseRate(),
-
-            # HasFirstTimeBlinkers(), HasFirstTimeVisor(), HasFirstTimeHood(), HasFirstTimeCheekPieces(),
-
-            # DamPercentageBeaten(), SirePercentageBeaten(),
-
-            # HighestLifetimeWinProbability(),
-
-            # Needs improvement in regards with different start counts
-
-            #
-            # LifeTimeWinCount(),
-            # LifeTimePlaceCount(),
-            #
-
-            #-----------------------------------------------------------------
-            #Needs improvement:
-
-
-            # HorseTopFinish()
-            # MaxPastRatingExtractor(),
-
-            # BestLifeTimeSpeedFigure(),
-
-            # PreviousFasterThanFraction(),
-            # PreviousSlowerThanFraction(),
-            # JockeySurfaceWinRate(),
-            # AveragePurse(),
-
-            # Not tested:
-
-            # TrainerClassWinRate(),
-            # TrainerPercentageBeaten(),
-            #
-            # DamSirePurseRate(),
-            # DamSirePercentageBeaten(),
-            #
-            # JockeyClassShowRate(),
-            #
-            # JockeyPurseRate(),
-            # BreederPercentageBeaten(),
-            #
-            #
-            #
-            # BreederPurseRate(),
-            # JockeyPercentageBeaten(),
-            #
-            # OwnerShowRate(),
-            #
-            # JockeyClassPurseRate(),
-            #
-            # TrainerShowRate(),
-            # TrainerTrackPurseRate(),
-            #
-            # OwnerPercentageBeaten(),
-            # TrainerTrackPercentageBeaten(),
-            #
-            # TrainerTrackShowRate(),
-            # TrainerPurseRate(),
-            #
-            # JockeyTrackShowRate(),
-            # BreederShowRate(),
-            #
-            # HighestOddsWin(),
-            #
-            # JockeyClassPercentageBeaten(),
-            # TrainerSurfacePurseRate(),
-            #
-            # OwnerPurseRate(),
-            # TrainerClassShowRate(),
-            #
-            # Humidity(),
-            #
-            # TrainerDistancePercentageBeaten(),
-            #
-            # JockeyDistancePercentageBeaten(),
-            #
-            # HorsePercentageBeaten(),
-            # AirPressure(),
-            #
-            # JockeyDistancePurseRate(),
-            #
-            # AbsoluteTime(),
-            #
-            # TrainerDistancePurseRate(),
-            # HorseBreederPurseRate(),
-            #
-            # TrainerDistanceShowRate(),
-            # Cloudiness(),
-            #
-            #
-            # JockeyDistanceWinRate(),
-            #
-            # HorseTrainerShowRate(),
-            # HorseBreederShowRate(),
-            #
-            #
-            # HorseBreederWinRate(),
-            #
-            #
-            # HasWonAfterLongBreak(),
-            # ComingFromLayoff(),
-            #
-            #
-            # HasFewStartsInTwoYears(),
-            # HasTongueStrap(),
-            #
-            #
-            #
-            # Temperature(),
-            # WindSpeed(),
-            # WindDirection(),
-            # RainVolume(),
-            #
-            #
-            # PreviousFasterThanNumber(),
-            #
-            # HasFallen(),
-            #
-            #
-            # HorseJockeyWinRate(), HorseTrainerWinRate(),
-            #
-            # JockeyTrackWinRate(), JockeyClassWinRate(),
-            # TrainerDistanceWinRate(), TrainerSurfaceWinRate(), TrainerTrackWinRate(),
-            #
-            # HorseShowRate(), JockeyShowRate(),
-            # DamSireShowRate(),
-            #
-            # JockeyDistanceShowRate(), JockeySurfaceShowRate(),
-            # TrainerSurfaceShowRate(),
-            #
-            # HorseJockeyPurseRate(), HorseTrainerPurseRate(),
-            #
-            # JockeySurfacePurseRate(), JockeyTrackPurseRate(),
-            # TrainerClassPurseRate(),
-            #
-            # HorseJockeyPercentageBeaten(), HorseTrainerPercentageBeaten(), HorseBreederPercentageBeaten(),
-            #
-            # JockeySurfacePercentageBeaten(), JockeyTrackPercentageBeaten(),
-            # TrainerSurfacePercentageBeaten(), TrainerClassPercentageBeaten(),
-            #
-            # MeanSpeedDiff(),
-        ]
-
-        return current_race_features + prev_value_features + max_value_features + avg_value_features + time_features + layoff_features
+        return current_race_features + prev_value_features + max_value_features + avg_value_features + layoff_features
 
     @property
     def numerical_feature_names(self) -> List[str]:
