@@ -5,7 +5,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
     CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, TravelDistance
-from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender
+from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, TrainerChangeEarningsRateDiff
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
     TrackVariantSource, FeatureValueGroup
@@ -52,6 +52,7 @@ class FeatureManager:
         self.avg_window_7_min_obs_10_source = AverageValueSource(window_size=7, min_obs_thresh=10)
 
         self.avg_window_30_min_obs_10_source = AverageValueSource(window_size=30, min_obs_thresh=10)
+        self.avg_window_50_min_obs_10_source = AverageValueSource(window_size=50, min_obs_thresh=10)
 
         self.track_variant_source: TrackVariantSource = TrackVariantSource()
 
@@ -70,6 +71,7 @@ class FeatureManager:
             self.avg_window_7_min_obs_10_source,
 
             self.avg_window_30_min_obs_10_source,
+            self.avg_window_50_min_obs_10_source,
 
             self.track_variant_source
         ]
@@ -122,6 +124,8 @@ class FeatureManager:
         trainer_win_prob = FeatureValueGroup(["trainer_id"], win_probability)
         trainer_momentum = FeatureValueGroup(["trainer_id"], momentum)
 
+        trainer_class_momentum = FeatureValueGroup(["trainer_id", "race_class"], momentum)
+
         breeder_win_prob = FeatureValueGroup(["breeder"], win_probability)
         breeder_momentum = FeatureValueGroup(["breeder"], momentum)
 
@@ -159,13 +163,9 @@ class FeatureManager:
 
             # FeatureSourceExtractor(previous_value_source, horse_has_pulled_up),
 
-            FeatureSourceExtractor(self.previous_value_source, jockey_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, jockey_momentum),
+            TravelDistance(self.previous_value_source),
 
-            FeatureSourceExtractor(self.previous_value_source, trainer_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, trainer_momentum),
-
-            TravelDistance(self.previous_value_source)
+            TrainerChangeEarningsRateDiff(self.previous_value_source, self.avg_window_50_min_obs_10_source, trainer_class_momentum)
         ]
 
         max_value_features = [
@@ -216,6 +216,8 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
 
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_momentum),
+
             # TODO: Below are sibling features. These do not exclude the performance of the horse itself (it counts itself as a sibling)
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_momentum),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_momentum),
@@ -225,7 +227,6 @@ class FeatureManager:
             CurrentRaceTrack(),
             CurrentRaceCategory(),
             CurrentDistance(),
-            CurrentRaceClass(),
 
             CurrentPurse(),
 

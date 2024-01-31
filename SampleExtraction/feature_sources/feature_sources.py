@@ -119,7 +119,6 @@ class PreviousValueSource(FeatureSource):
         super().__init__()
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
-        category["value"] = -1
         if new_feature_value is not None:
             category["value"] = new_feature_value
 
@@ -149,6 +148,8 @@ class AverageValueSource(FeatureSource):
                 category["count"] = 1
                 category["last_obs_date"] = value_date
             else:
+                if new_feature_value == -1:
+                    print('yellow')
                 n_days_since_last_obs = (value_date - category["last_obs_date"]).days
 
                 category["prev_avg"] = category["value"]

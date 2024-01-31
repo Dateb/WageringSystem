@@ -11,6 +11,10 @@ class OfferRequester(ABC):
         self.upcoming_race_cards = upcoming_race_cards
 
     @abstractmethod
+    def reopen(self) -> None:
+        pass
+
+    @abstractmethod
     def get_bet_offers(self) -> List[BetOffer]:
         pass
 

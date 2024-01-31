@@ -22,12 +22,13 @@ class RaceCardLoader(ABC):
             feature_manager: FeatureManager,
             one_hot_encoder: OneHotEncoder,
             standard_scaler: StandardScaler,
+            feature_padding_transformer: FeaturePaddingTransformer
     ):
         self.feature_manager = feature_manager
         self.one_hot_encoder = one_hot_encoder
         self.standard_scaler = standard_scaler
 
-        self.feature_padding_transformer = FeaturePaddingTransformer(padding_size_per_group=20)
+        self.feature_padding_transformer = feature_padding_transformer
 
         if simulate_conf.LEARNING_MODE == "Classification":
             self.label_padding_transformer = ClassificationLabelPaddingTransformer()

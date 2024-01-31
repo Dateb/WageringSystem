@@ -266,7 +266,7 @@ class RaceCard:
 
     @property
     def get_par_momentum_estimate(self) -> dict:
-        return RaceCard.par_momentum[self.race_class][self.race_type_detail]
+        return RaceCard.par_momentum[self.race_class][self.race_type_detail][self.num_hurdles]
 
     @property
     def track_variant_estimate(self) -> dict:

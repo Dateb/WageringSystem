@@ -236,14 +236,12 @@ class ExchangeOfferRequester(OfferRequester):
             except WebSocketConnectionClosedException as error:
                 print("Websocket was closed. Trying to reconnect...")
 
-                self.close_race_connection()
-                self.open_race_connection()
+                self.reopen()
 
             except WebSocketTimeoutException as error:
                 print("Websocket timed out. Trying to reconnect...")
 
-                self.close_race_connection()
-                self.open_race_connection()
+                self.reopen()
 
         if message == "h":
             return None
@@ -298,6 +296,7 @@ class ExchangeOfferRequester(OfferRequester):
 
         self.markets = self.race_card_market_map.get_markets()
 
+    def reopen(self) -> None:
         self.close_race_connection()
         self.open_race_connection()
 

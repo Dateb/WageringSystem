@@ -131,7 +131,7 @@ class BoostedTreesRanker(Estimator):
         #
         # study = optuna.create_study(direction="maximize")
         #
-        # study.optimize(cv_objective, n_trials=20)
+        # study.optimize(cv_objective, n_trials=100)
         #
         # print("Number of finished trials: {}".format(len(study.trials)))
         #
@@ -146,9 +146,9 @@ class BoostedTreesRanker(Estimator):
         #
         # search_params = trial.params
 
-        search_params = {'num_rounds': 429, 'num_leaves': 4, 'lambda_l1': 4.303329281195922e-05, 'lambda_l2': 3.694893275803133e-07,
-         'feature_fraction': 0.3048859837086765, 'bagging_fraction': 0.9209115565797591, 'bagging_freq': 5,
-         'min_child_samples': 89}
+        search_params = {'num_rounds': 260, 'num_leaves': 6, 'lambda_l1': 6.879154128573999e-08, 'lambda_l2': 0.00018807159486807046,
+         'feature_fraction': 0.32662039781067675, 'bagging_fraction': 0.8432975169810674, 'bagging_freq': 6,
+         'min_child_samples': 93}
 
         # search_params = {
         #     "num_rounds": 266,

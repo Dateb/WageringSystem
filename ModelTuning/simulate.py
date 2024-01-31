@@ -7,6 +7,7 @@ from tqdm import tqdm
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Estimators.Classification.SVMClassifier import SVMClassifier
 from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
@@ -68,6 +69,7 @@ class ModelSimulator:
         nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
 
         self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_estimator, nn_estimator])
+        # self.estimator = gbt_estimator
 
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 

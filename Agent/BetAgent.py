@@ -155,6 +155,9 @@ class BetAgent:
                 self.offer_requester.delete_markets(expired_race_card)
                 del self.upcoming_race_cards[expired_race_card_key]
 
+                self.offer_requester.customer_id = self.get_customer_id()
+                self.offer_requester.reopen()
+
             except KeyError as error:
                 print(f"Keyerror when deleting race: {expired_race_card}: {error}")
 

@@ -13,13 +13,11 @@ class Estimator(ABC):
         self.feature_manager = feature_manager
 
     @abstractmethod
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
-        pass
-
-    @abstractmethod
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
         pass
 
-    @abstractmethod
+    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+        pass
+
     def score_test_sample(self, test_sample: RaceCardsSample):
         pass

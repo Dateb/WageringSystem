@@ -1,6 +1,10 @@
+from copy import deepcopy
+
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
+from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup
+from SampleExtraction.feature_sources.value_calculators import get_trainer_id, get_trainer
 
 
 class HasWon(FeatureExtractor):
@@ -96,3 +100,40 @@ class DoesHeadToHead(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         return int(horse.horse_id in race_card.head_to_head_horses)
+
+
+class TrainerChangeEarningsRateDiff(FeatureExtractor):
+
+    def __init__(self, previous_trainer_source: FeatureSource, performance_source: FeatureSource, trainer_performance_value: FeatureValueGroup):
+        super().__init__()
+        self.previous_trainer_source = previous_trainer_source
+        self.performance_source = performance_source
+        self.horse_trainer = FeatureValueGroup(["subject_id"], get_trainer)
+        self.trainer_performance_value = trainer_performance_value
+
+        self.previous_trainer_source.register_feature_value_group(self.horse_trainer)
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        previous_trainer = self.previous_trainer_source.get_feature_value(race_card, horse, self.horse_trainer)
+
+        if previous_trainer is not None and previous_trainer.id != horse.trainer.id:
+            prev_horse = deepcopy(horse)
+            prev_horse.trainer = previous_trainer
+            prev_horse.trainer_id = previous_trainer.id
+
+            current_trainer_value = self.performance_source.get_feature_value(
+                race_card,
+                horse,
+                self.trainer_performance_value
+            )
+
+            prev_trainer_value = self.performance_source.get_feature_value(
+                race_card,
+                prev_horse,
+                self.trainer_performance_value
+            )
+
+            if current_trainer_value is not None and prev_trainer_value is not None:
+                return current_trainer_value - prev_trainer_value
+
+        return 0.0

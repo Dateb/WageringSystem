@@ -2,6 +2,7 @@ import datetime
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
+from DataAbstraction.Present.Trainer import Trainer
 
 
 def win_probability(race_card: RaceCard, horse: Horse) -> float:
@@ -99,6 +100,14 @@ def race_date(race_card: RaceCard, horse: Horse) -> datetime.date:
 
 def get_track_name(race_card: RaceCard, horse: Horse) -> str:
     return race_card.track_name
+
+
+def get_trainer_id(race_card: RaceCard, horse: Horse) -> str:
+    return horse.trainer.id
+
+
+def get_trainer(race_card: RaceCard, horse: Horse) -> Trainer:
+    return horse.trainer
 
 
 def momentum(race_card: RaceCard, horse: Horse) -> float:

@@ -55,22 +55,6 @@ class RaceClassDifference(FeatureExtractor):
         return race_class_difference
 
 
-class HasTrainerChanged(FeatureExtractor):
-    previous_trainer_source.previous_value_attribute_groups.append(["name"])
-
-    PLACEHOLDER_VALUE = -1
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        previous_trainer_name = previous_trainer_source.get_previous_of_name(horse.name)
-        if previous_trainer_name == -1:
-            return self.PLACEHOLDER_VALUE
-
-        return int(horse.trainer_name != previous_trainer_name) + 1
-
-
 class HasJockeyChanged(FeatureExtractor):
 
     PLACEHOLDER_VALUE = -1

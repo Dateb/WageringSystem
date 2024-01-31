@@ -15,12 +15,6 @@ class EnsembleAverageEstimator(Estimator):
         super().__init__(feature_manager)
         self.estimators = estimators
 
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
-        for estimator in self.estimators:
-            estimator.fit_validate(train_sample, validation_sample)
-
-        return 0.0
-
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
         estimator_scores = []
         for estimator in self.estimators:
