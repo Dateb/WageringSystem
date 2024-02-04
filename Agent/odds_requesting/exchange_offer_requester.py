@@ -246,6 +246,7 @@ class ExchangeOfferRequester(OfferRequester):
         if message == "h":
             return None
 
+        # TODO: Line below should catch this error: json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
         message = json.loads(json.loads(message[2:-1]))
 
         if "rc" not in message:

@@ -132,6 +132,15 @@ class MaxValueSource(FeatureSource):
             category["value"] = new_feature_value
 
 
+class MinValueSource(FeatureSource):
+    def __init__(self):
+        super().__init__()
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if new_feature_value is not None and (not category["value"] or new_feature_value < category["value"]):
+            category["value"] = new_feature_value
+
+
 class AverageValueSource(FeatureSource):
 
     def __init__(self, window_size=5, min_obs_thresh=3):
@@ -149,7 +158,7 @@ class AverageValueSource(FeatureSource):
                 category["last_obs_date"] = value_date
             else:
                 if new_feature_value == -1:
-                    print('yellow')
+                    print(f'yellow. new feature value == -1. cat: {category}')
                 n_days_since_last_obs = (value_date - category["last_obs_date"]).days
 
                 category["prev_avg"] = category["value"]

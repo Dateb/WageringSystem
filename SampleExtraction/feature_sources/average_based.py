@@ -70,7 +70,7 @@ class AverageRelativeDistanceBehindSource(CategoryAverageSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.horse_distance >= 0 and race_card.distance > 0:
-            if horse.place == 1:
+            if horse.place_racebets == 1:
                 second_place_horse = race_card.get_horse_by_place(2)
                 second_place_distance = 0
                 if second_place_horse is not None:
@@ -108,7 +108,7 @@ class ShowRateSource(CategoryAverageSource):
         super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        show_indicator = int(1 <= horse.place <= race_card.places_num)
+        show_indicator = int(1 <= horse.place_racebets <= race_card.places_num)
         self.insert_value_into_avg(race_card, horse, show_indicator)
 
 
@@ -118,8 +118,8 @@ class AveragePlacePercentileSource(CategoryAverageSource):
         super().__init__(average_calculator=ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.1))
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.place > 0 and len(race_card.runners) > 1:
-            place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
+        if horse.place_racebets > 0 and len(race_card.runners) > 1:
+            place_percentile = (horse.place_racebets - 1) / (len(race_card.runners) - 1)
             self.insert_value_into_avg(race_card, horse, place_percentile)
 
 

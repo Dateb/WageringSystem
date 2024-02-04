@@ -49,7 +49,8 @@ class Horse:
         if "equipCode" in raw_data and raw_data["equipCode"]:
             self.equipments = set(raw_data["equipCode"].split("+"))
 
-        self.place = self.__extract_place(raw_data)
+        self.place_racebets = self.__extract_place(raw_data)
+        self.place = -1
         self.relevance = 0
 
         self.racebets_win_odds_history = []
@@ -63,7 +64,7 @@ class Horse:
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
 
         self.post_position = self.__extract_post_position(raw_data)
-        self.has_won = 1 if self.place == 1 else 0
+        self.has_won = 1 if self.place_racebets == 1 else 0
 
         self.pulled_up = 0
         if "resultFinishDNF" in raw_data:
@@ -104,7 +105,7 @@ class Horse:
             self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
-            self.PLACE_KEY: self.place,
+            self.PLACE_KEY: self.place_racebets,
             self.CLASSIFICATION_LABEL_KEY: self.has_won,
             self.REGRESSION_LABEL_KEY: self.sp_win_prob,
         }
@@ -112,7 +113,7 @@ class Horse:
         self.__features = {}
         self.finish_time = -1
         if "finishTime" in raw_data:
-            if raw_data["finishTime"] is not None and self.place > 0:
+            if raw_data["finishTime"] is not None and self.place_racebets > 0:
                 self.finish_time = float(raw_data["finishTime"])
 
     def set_betting_odds(self, new_odds: float):
@@ -120,7 +121,7 @@ class Horse:
 
     def set_purse(self, purse: List[int]):
         self.purse = 0
-        purse_idx = self.place - 1
+        purse_idx = self.place_racebets - 1
         if len(purse) > purse_idx >= 0:
             self.purse = purse[purse_idx]
 

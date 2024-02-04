@@ -17,13 +17,14 @@ class MonthDataSplitter:
             train_upper_limit_percentage: float,
             n_months_test_sample: int,
             n_months_forward_offset: int,
+            race_cards_folder: str
     ):
         self.container_upper_limit_percentage = container_upper_limit_percentage
         self.train_upper_limit_percentage = train_upper_limit_percentage
         self.n_months_test_sample = n_months_test_sample
         self.n_months_forward_offset = n_months_forward_offset
 
-        self.race_cards_loader = RaceCardsPersistence(simulate_conf.RACE_CARDS_FOLDER_NAME)
+        self.race_cards_loader = RaceCardsPersistence(race_cards_folder)
         file_names = self.race_cards_loader.race_card_file_names
 
         non_test_sample_file_names = file_names[self.n_months_forward_offset:-self.n_months_test_sample]

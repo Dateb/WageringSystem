@@ -54,8 +54,8 @@ class PreviousPlacePercentileSource(PreviousValueSource):
         self.previous_value_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if horse.place > 0 and len(race_card.runners) > 1:
-            previous_place_percentile = (horse.place - 1) / (len(race_card.runners) - 1)
+        if horse.place_racebets > 0 and len(race_card.runners) > 1:
+            previous_place_percentile = (horse.place_racebets - 1) / (len(race_card.runners) - 1)
             self.insert_previous_value(race_card, horse, previous_place_percentile)
         else:
             # self.delete_previous_values(race_card, horse)
@@ -70,7 +70,7 @@ class PreviousRelativeDistanceBehindSource(PreviousValueSource):
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
         if horse.horse_distance >= 0 and race_card.distance > 0:
-            if horse.place == 1:
+            if horse.place_racebets == 1:
                 second_place_horse = race_card.get_horse_by_place(2)
                 second_place_distance = 0
                 if second_place_horse is not None:
@@ -199,7 +199,7 @@ class LifeTimeWinCountSource(PreviousValueSource):
         if win_count is None:
             win_count = 0
 
-        if horse.place == 1:
+        if horse.place_racebets == 1:
             self.insert_previous_value(race_card, horse, win_count + 1)
 
 
@@ -215,7 +215,7 @@ class LifeTimePlaceCountSource(PreviousValueSource):
         if place_count is None:
             place_count = 0
 
-        if 1 <= horse.place <= race_card.places_num:
+        if 1 <= horse.place_racebets <= race_card.places_num:
             self.insert_previous_value(race_card, horse, place_count + 1)
 
 
@@ -226,7 +226,7 @@ class BestClassPlaceSource(PreviousValueSource):
         self.previous_value_attribute_groups.append(["subject_id"])
 
     def update_horse(self, race_card: RaceCard, horse: Horse):
-        if 1 <= horse.place <= 3 and race_card.race_class not in ["A", "B"]:
+        if 1 <= horse.place_racebets <= 3 and race_card.race_class not in ["A", "B"]:
             best_class = self.get_previous_of_name(str(horse.subject_id))
 
             race_class_num = int(race_card.race_class)

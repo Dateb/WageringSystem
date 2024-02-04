@@ -30,7 +30,7 @@ class GBTObjective:
             "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
             "bagging_fraction": trial.suggest_float("bagging_fraction", 0.3, 1.0),
             "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
-            "min_child_samples": trial.suggest_int("min_child_samples", 60, 120),
+            "min_child_samples": trial.suggest_int("min_child_samples", 80, 140),
         }
 
         params = {**self.fixed_params, **search_params}
@@ -146,9 +146,10 @@ class BoostedTreesRanker(Estimator):
         #
         # search_params = trial.params
 
-        search_params = {'num_rounds': 260, 'num_leaves': 6, 'lambda_l1': 6.879154128573999e-08, 'lambda_l2': 0.00018807159486807046,
-         'feature_fraction': 0.32662039781067675, 'bagging_fraction': 0.8432975169810674, 'bagging_freq': 6,
-         'min_child_samples': 93}
+        num_boost_round = 359
+        search_params = {'num_leaves': 4, 'lambda_l1': 3.37445083846817e-05, 'lambda_l2': 5.333330015582493,
+         'feature_fraction': 0.6000584556101687, 'bagging_fraction': 0.8483851452176838, 'bagging_freq': 1,
+         'min_child_samples': 115}
 
         # search_params = {
         #     "num_rounds": 266,
@@ -163,6 +164,7 @@ class BoostedTreesRanker(Estimator):
 
         params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(
+            num_boost_round=num_boost_round,
             params=params,
             train_set=dataset,
             categorical_feature=self.cat_gbt_feature_names,

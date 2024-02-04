@@ -8,7 +8,7 @@ from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, Cur
 from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, TrainerChangeEarningsRateDiff
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
-    TrackVariantSource, FeatureValueGroup
+    TrackVariantSource, FeatureValueGroup, MinValueSource
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, place_percentile, \
     race_distance, \
     race_going, race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight
@@ -40,6 +40,7 @@ class FeatureManager:
 
         self.previous_value_source = PreviousValueSource()
         self.max_value_source = MaxValueSource()
+        self.min_value_source = MinValueSource()
 
         self.avg_window_3_min_obs_1_source = AverageValueSource(window_size=3, min_obs_thresh=1)
 
@@ -59,6 +60,7 @@ class FeatureManager:
         self.feature_sources = [
             self.previous_value_source,
             self.max_value_source,
+            self.min_value_source,
 
             self.avg_window_3_min_obs_1_source,
 
@@ -124,6 +126,13 @@ class FeatureManager:
         trainer_win_prob = FeatureValueGroup(["trainer_id"], win_probability)
         trainer_momentum = FeatureValueGroup(["trainer_id"], momentum)
 
+        jockey_class_win_probability = FeatureValueGroup(["jockey_id", "race_class"], win_probability)
+        trainer_class_win_probability = FeatureValueGroup(["trainer_id", "race_class"], win_probability)
+
+        jockey_class_place_percentile = FeatureValueGroup(["jockey_id", "race_class"], place_percentile)
+        trainer_class_place_percentile = FeatureValueGroup(["trainer_id", "race_class"], place_percentile)
+
+        jockey_class_momentum = FeatureValueGroup(["jockey_id", "race_class"], momentum)
         trainer_class_momentum = FeatureValueGroup(["trainer_id", "race_class"], momentum)
 
         breeder_win_prob = FeatureValueGroup(["breeder"], win_probability)
@@ -164,8 +173,6 @@ class FeatureManager:
             # FeatureSourceExtractor(previous_value_source, horse_has_pulled_up),
 
             TravelDistance(self.previous_value_source),
-
-            TrainerChangeEarningsRateDiff(self.previous_value_source, self.avg_window_50_min_obs_10_source, trainer_class_momentum)
         ]
 
         max_value_features = [
@@ -197,6 +204,11 @@ class FeatureManager:
             FeatureSourceExtractor(self.max_value_source, horse_weight)
         ]
 
+        min_value_features = [
+            FeatureSourceExtractor(self.min_value_source, horse_race_adjusted_distance),
+            FeatureSourceExtractor(self.min_value_source, horse_weight)
+        ]
+
         horse_name_momentum = FeatureValueGroup(["name"], momentum)
         dam_momentum = FeatureValueGroup(["dam"], momentum)
         sire_momentum = FeatureValueGroup(["sire"], momentum)
@@ -216,6 +228,13 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
 
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_win_probability),
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_win_probability),
+
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_place_percentile),
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_place_percentile),
+
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_momentum),
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_momentum),
 
             # TODO: Below are sibling features. These do not exclude the performance of the horse itself (it counts itself as a sibling)
@@ -246,7 +265,11 @@ class FeatureManager:
             LayoffExtractor(self.previous_value_source, ["subject_id", "surface"])
         ]
 
-        return current_race_features + prev_value_features + max_value_features + avg_value_features + layoff_features
+        return (
+                current_race_features + prev_value_features
+                + max_value_features + min_value_features +
+                avg_value_features + layoff_features
+        )
 
     @property
     def numerical_feature_names(self) -> List[str]:

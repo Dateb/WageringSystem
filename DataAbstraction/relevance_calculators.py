@@ -20,10 +20,10 @@ def get_speed_figure_based_relevance(horse: Horse) -> int:
 
 
 def get_place_based_relevance(horse: Horse) -> int:
-    if horse.place == -1:
+    if horse.place_racebets == -1:
         return 0
 
-    relevance = max([31 - horse.place, 0])
+    relevance = max([31 - horse.place_racebets, 0])
     return relevance
 
 

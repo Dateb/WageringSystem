@@ -16,7 +16,9 @@ from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import BettorFactory
 from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer
+from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
+from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
@@ -41,7 +43,7 @@ class BetAgent:
 
         self.current_bets = []
 
-        self.bettor = BettorFactory().create_bettor(bet_threshold=0.1)
+        self.bettor = BettorFactory().create_bettor(bet_threshold=0.05)
         self.columns = None
 
         self.update_race_card_data()
@@ -50,7 +52,8 @@ class BetAgent:
             container_upper_limit_percentage=0.1,
             train_upper_limit_percentage=0.8,
             n_months_test_sample=10,
-            n_months_forward_offset=0
+            n_months_forward_offset=0,
+            race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
         )
 
         model_simulator = ModelSimulator(data_splitter)
@@ -88,7 +91,7 @@ class BetAgent:
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
 
-        train_data_collector = TrainDataCollector()
+        train_data_collector = TrainDataCollector(RaceCardsPersistence(simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME))
 
         query_date = date(
             year=2023,
@@ -175,7 +178,7 @@ class BetAgent:
                 if bets:
                     self.current_bets += bets
                     if self.betting_mode == "Write":
-                        print("Writing new bets...")
+                        print(f"{datetime.now()}: Writing new bets...")
 
                         with open(self.BETS_PATH, "wb") as f:
                             pickle.dump(self.current_bets, f)

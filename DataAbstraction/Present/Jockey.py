@@ -2,8 +2,14 @@ class Jockey:
 
     def __init__(self, raw_data: dict):
         self.id = -1
+
         if "idPerson" in raw_data:
             self.id = raw_data["idPerson"]
+
+        self.id = ""
+        if raw_data is not None:
+            if raw_data["firstName"] is not None and raw_data["firstName"]:
+                self.id = f"{raw_data['firstName'][0]}_{raw_data['lastName']}"
 
         self.stats = raw_data["stats"]
         self.last_name = raw_data["lastName"]

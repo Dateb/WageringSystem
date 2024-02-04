@@ -15,11 +15,16 @@ def win_probability(race_card: RaceCard, horse: Horse) -> float:
 
 
 def place_percentile(race_card: RaceCard, horse: Horse) -> float:
+    if horse.place > race_card.n_finishers:
+        print(f"{horse.place}/{race_card.n_finishers}/{race_card.race_id}/{horse.name}")
+        return None
+
     if horse.place > 0 and len(race_card.runners) > 1:
         if race_card.n_finishers == 1:
             return 1.0
 
         place_percentile = (horse.place - 1) / (race_card.n_finishers - 1)
+
         return 1 - place_percentile
 
     return None
@@ -27,7 +32,7 @@ def place_percentile(race_card: RaceCard, horse: Horse) -> float:
 
 def relative_distance_behind(race_card: RaceCard, horse: Horse):
     if horse.horse_distance >= 0 and race_card.adjusted_distance > 0:
-        if horse.place == 1:
+        if horse.place_racebets == 1:
             second_place_horse = race_card.get_horse_by_place(2)
             second_place_distance = 0
             if second_place_horse is not None:

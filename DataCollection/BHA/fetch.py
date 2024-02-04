@@ -158,6 +158,8 @@ class BHAInjector:
         year_month_key = f"{year}_{month}"
         self.race_series_ids_per_year_month[year_month_key] = {}
 
+        print(race_series_of_month_data)
+
         for race_series in race_series_of_month_data["data"]:
             if 'courseName' in race_series:
                 race_series_key = f"{race_series['courseName']}_{race_series['fixtureDate']}"

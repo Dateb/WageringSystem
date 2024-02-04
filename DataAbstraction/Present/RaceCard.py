@@ -105,12 +105,12 @@ class RaceCard:
         self.num_winners = len([runner for runner in self.runners if runner.has_won])
 
         self.winner_name = ""
-        first_place_horse_names = [horse.name for horse in self.horses if horse.place == 1]
+        first_place_horse_names = [horse.name for horse in self.horses if horse.place_racebets == 1]
         if first_place_horse_names:
             self.winner_name = first_place_horse_names[0]
 
         self.n_horses = len(self.horses)
-        self.n_finishers = len([horse for horse in self.runners if horse.place > 0])
+        self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
 
         self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
@@ -146,10 +146,13 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
-        placed_horses = sorted([horse for horse in self.horses if horse.place > 0], key=lambda horse: horse.place)
+        placed_horses = sorted([horse for horse in self.horses if horse.place_racebets > 0], key=lambda horse: horse.place_racebets)
 
+        placed_horse_idx = 0
         total_horse_distance = 0
         for horse in placed_horses:
+            horse.place = placed_horse_idx
+            placed_horse_idx += 1
             if horse.lengths_behind >= 0:
                 total_horse_distance += horse.lengths_behind
                 horse.horse_distance = total_horse_distance
@@ -188,7 +191,7 @@ class RaceCard:
         return horses_with_number[0]
 
     def get_horse_by_place(self, place: int) -> Horse:
-        horse_with_place = [horse for horse in self.horses if horse.place == place]
+        horse_with_place = [horse for horse in self.horses if horse.place_racebets == place]
 
         if not horse_with_place:
             return None

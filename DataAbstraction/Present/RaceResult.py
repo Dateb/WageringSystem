@@ -14,7 +14,7 @@ class RaceResult:
                 race_name="",
                 race_date_time="",
                 name="",
-                place=horse.place,
+                place=horse.place_racebets,
                 win_probability=0,
                 place_probability=0,
                 win_odds=0,

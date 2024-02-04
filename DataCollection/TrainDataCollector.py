@@ -52,11 +52,11 @@ class TrainDataCollector:
 
     __TIME_OF_A_DAY = timedelta(days=1)
 
-    def __init__(self):
-        self.race_cards_persistence = RaceCardsPersistence(simulate_conf.RACE_CARDS_FOLDER_NAME)
+    def __init__(self, race_cards_persistence: RaceCardsPersistence):
+        self.race_cards_persistence = race_cards_persistence
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
-        # self.collected_days_tracker.save_collected_days_from_race_cards()
+        self.collected_days_tracker.save_collected_days_from_race_cards()
 
         self.race_cards_collector = FullRaceCardsCollector()
         self.day_collector = DayCollector()
@@ -100,7 +100,7 @@ class TrainDataCollector:
 
 
 def main():
-    train_data_collector = TrainDataCollector()
+    train_data_collector = TrainDataCollector(RaceCardsPersistence(simulate_conf.DEV_RACE_CARDS_FOLDER_NAME))
 
     day_before_yesterday = date.today() - timedelta(days=2)
 

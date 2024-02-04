@@ -1,6 +1,7 @@
 import pickle
 from math import ceil
 
+from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
 from SampleExtraction.data_splitting import MonthDataSplitter
 
@@ -15,7 +16,8 @@ def save_learning_curve() -> None:
             container_upper_limit_percentage=0.1,
             train_upper_limit_percentage=0.8,
             n_months_test_sample=10,
-            n_months_forward_offset=max([max_forward_offset-(i*10), 0])
+            n_months_forward_offset=max([max_forward_offset-(i*10), 0]),
+            race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
         )
         model_simulator = ModelSimulator(data_splitter)
         test_loss = model_simulator.simulate_prediction()
