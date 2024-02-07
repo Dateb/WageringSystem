@@ -28,10 +28,9 @@ class RaceCardsPersistence:
             raw_races[str(race_card.date)][race_card.track_name][str(race_card.race_number)] = race_card.raw_race_card
             del race_card
 
-        file_suffixes = {date[0:7] for date in raw_races}
-        for file_suffix in file_suffixes:
-            file_name = f"{self.__data_dir_name}_{file_suffix}.json"
-            path_name = f"{self.__dir_path}/{file_name}"
+        file_names = {date[0:7] for date in raw_races}
+        for file_name in file_names:
+            path_name = f"{self.__dir_path}/{file_name}.json"
             if not os.path.isfile(path_name):
                 raw_races_of_month = {}
                 self.race_card_file_names.append(file_name)
@@ -39,9 +38,10 @@ class RaceCardsPersistence:
                 with open(path_name, "r") as f:
                     raw_races_of_month = json.load(f)
 
-            new_raw_races_of_month = [(date, raw_races[date]) for date in raw_races if date[0:7] == file_suffix]
+            new_raw_races_of_month = [(date, raw_races[date]) for date in raw_races if date[0:7] == file_name]
             for new_race in new_raw_races_of_month:
                 raw_races_of_month[new_race[0]] = new_race[1]
+
             with open(path_name, "w") as f:
                 json.dump(raw_races_of_month, f)
         print("writing done")

@@ -19,5 +19,5 @@ class OfferRequester(ABC):
         pass
 
     @abstractmethod
-    def delete_markets(self, deleted_race_card: RaceCard) -> None:
+    def delete_market_of_race_card(self, deleted_race_card: RaceCard) -> None:
         pass

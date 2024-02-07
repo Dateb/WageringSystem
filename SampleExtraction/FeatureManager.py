@@ -141,6 +141,15 @@ class FeatureManager:
         owner_win_prob = FeatureValueGroup(["owner"], win_probability)
         owner_momentum = FeatureValueGroup(["owner"], momentum)
 
+        dam_win_probability = FeatureValueGroup(["dam"], win_probability)
+        sire_win_probability = FeatureValueGroup(["sire"], win_probability)
+
+        dam_place_percentile = FeatureValueGroup(["dam"], place_percentile)
+        sire_place_percentile = FeatureValueGroup(["sire"], place_percentile)
+
+        dam_momentum = FeatureValueGroup(["dam"], momentum)
+        sire_momentum = FeatureValueGroup(["sire"], momentum)
+
         prev_value_features = [
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
 
@@ -201,17 +210,22 @@ class FeatureManager:
             FeatureSourceExtractor(self.max_value_source, trainer_momentum),
 
             FeatureSourceExtractor(self.max_value_source, horse_race_adjusted_distance),
-            FeatureSourceExtractor(self.max_value_source, horse_weight)
+            FeatureSourceExtractor(self.max_value_source, horse_weight),
+
+            FeatureSourceExtractor(self.max_value_source, dam_win_probability),
+            FeatureSourceExtractor(self.max_value_source, sire_win_probability),
+
+            FeatureSourceExtractor(self.max_value_source, dam_place_percentile),
+            FeatureSourceExtractor(self.max_value_source, sire_place_percentile),
+
+            FeatureSourceExtractor(self.max_value_source, dam_momentum),
+            FeatureSourceExtractor(self.max_value_source, sire_momentum)
         ]
 
         min_value_features = [
             FeatureSourceExtractor(self.min_value_source, horse_race_adjusted_distance),
             FeatureSourceExtractor(self.min_value_source, horse_weight)
         ]
-
-        horse_name_momentum = FeatureValueGroup(["name"], momentum)
-        dam_momentum = FeatureValueGroup(["dam"], momentum)
-        sire_momentum = FeatureValueGroup(["sire"], momentum)
 
         avg_value_features = [
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_win_prob),
@@ -237,7 +251,12 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_momentum),
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_momentum),
 
-            # TODO: Below are sibling features. These do not exclude the performance of the horse itself (it counts itself as a sibling)
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_win_probability),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_win_probability),
+
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_place_percentile),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_place_percentile),
+
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_momentum),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_momentum),
         ]

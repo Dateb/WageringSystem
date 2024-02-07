@@ -21,10 +21,10 @@ class GBTObjective:
         self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
-        num_rounds = trial.suggest_int("num_rounds", 150, 500)
+        num_rounds = trial.suggest_int("num_rounds", 250, 600)
 
         search_params = {
-            "num_leaves": trial.suggest_int("num_leaves", 2, 20),
+            "num_leaves": trial.suggest_int("num_leaves", 5, 20),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
             "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
             "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
@@ -56,10 +56,10 @@ class BoostedTreesRanker(Estimator):
         "objective": "lambdarank",
         "deterministic": True,
         "force_row_wise": True,
-        "n_jobs": -1,
         "device": "cpu",
         "verbose": -1,
         "feature_pre_filter": False,
+        "n_jobs": -1,
 
         "seed": RANKING_SEED,
         "data_random_seed": RANKING_SEED,
@@ -145,22 +145,14 @@ class BoostedTreesRanker(Estimator):
         #     print("    {}: {}".format(key, value))
         #
         # search_params = trial.params
+        #
+        # num_boost_round = trial.params["num_rounds"]
+        # del trial.params["num_rounds"]
 
-        num_boost_round = 359
-        search_params = {'num_leaves': 4, 'lambda_l1': 3.37445083846817e-05, 'lambda_l2': 5.333330015582493,
-         'feature_fraction': 0.6000584556101687, 'bagging_fraction': 0.8483851452176838, 'bagging_freq': 1,
-         'min_child_samples': 115}
-
-        # search_params = {
-        #     "num_rounds": 266,
-        #     "num_leaves": 14,
-        #     "lambda_l1": 7.345368276137748,
-        #     "lambda_l2": 1.4236994442124007,
-        #     "feature_fraction": 0.45775599282359614,
-        #     "bagging_fraction": 0.8937420818276652,
-        #     "bagging_freq": 7,
-        #     "min_child_samples": 86
-        # }
+        num_boost_round = 499
+        search_params = {'num_leaves': 7, 'lambda_l1': 0.03175802980291938, 'lambda_l2': 0.0033957082360900944,
+         'feature_fraction': 0.3751019972291265, 'bagging_fraction': 0.9525013475654517, 'bagging_freq': 2,
+         'min_child_samples': 94}
 
         params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(

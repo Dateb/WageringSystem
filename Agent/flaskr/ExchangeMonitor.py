@@ -2,7 +2,7 @@ import datetime
 from typing import List
 
 from Agent.AgentModel import AgentModel
-from Agent.odds_requesting.exchange_offer_requester import ExchangeOfferRequester
+from Agent.odds_requesting.exchange_offer_requester import Exchange
 from Model.Betting.BettingSlip import BettingSlip
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -35,13 +35,13 @@ class ExchangeMonitor:
 
         self.current_full_race_card = FullRaceCardsCollector(collect_results=False).create_race_card(self.race_cards[0].race_id)
 
-        self.exchange_odds_requester: ExchangeOfferRequester = None
+        self.exchange_odds_requester: Exchange = None
 
     def open_race(self, customer_id, event_id: str, market_id: str) -> None:
         if self.exchange_odds_requester is not None:
             self.exchange_odds_requester.close_race_connection()
 
-        self.exchange_odds_requester = ExchangeOfferRequester(
+        self.exchange_odds_requester = Exchange(
             customer_id=customer_id,
             event_id=event_id,
             market_id=market_id,
@@ -53,7 +53,7 @@ class ExchangeMonitor:
 
     def serve_monitor_data(self) -> MonitorData:
         if self.exchange_odds_requester is not None:
-            race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_odds_by_horse_number_from_message())
+            race_cards_injector = CurrentRaceCardsInjector(self.exchange_odds_requester.get_market_offers())
             updated_race_card = race_cards_injector.inject_newest_odds_into_horses(self.current_full_race_card)
             estimation_result = self.model.estimate_race_card(updated_race_card)
             betting_slip = self.model.bet_model.bettor.bet(estimation_result)

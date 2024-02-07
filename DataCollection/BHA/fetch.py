@@ -34,7 +34,6 @@ class BHAInjector:
         self.race_series_ids_per_year_month = {}
         self.races_data = {}
         self.current_race_date = None
-        self.race_cards_loader = RaceCardsPersistence("race_cards")
 
     def get_horse_attributes(self, horse_data: dict) -> dict:
         horse_attributes = {

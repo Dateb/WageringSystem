@@ -46,7 +46,7 @@ class ModelEvaluator:
 
         best_payout_sum = -np.inf
         best_bets = []
-        bet_thresholds = [0.0, 0.05]
+        bet_thresholds = [0.0, 0.05, 0.1]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)

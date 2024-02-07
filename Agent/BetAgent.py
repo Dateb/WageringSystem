@@ -4,12 +4,9 @@ from copy import deepcopy
 from datetime import datetime, date, timedelta, time
 from typing import Dict
 
-import requests
-from tqdm import tqdm
-
 from Agent.leakage_detection import LeakageDetector
 from Agent.odds_requesting.bookie_offer_requester import BookieOfferRequester
-from Agent.odds_requesting.exchange_offer_requester import ExchangeOfferRequester
+from Agent.odds_requesting.exchange_offer_requester import Exchange
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
@@ -31,7 +28,6 @@ class BetAgent:
 
     def __init__(self):
         self.market_type = "WIN"
-        self.offer_source = "Betfair"
         self.betting_mode = "Write"
 
         if self.market_type == "WIN":
@@ -78,15 +74,10 @@ class BetAgent:
 
         print(self.estimation_result.probability_estimates)
 
-        if self.offer_source == "Betfair":
-            customer_id = self.get_customer_id()
-            self.offer_requester = ExchangeOfferRequester(
-                customer_id=customer_id,
-                market_type=self.market_type,
-                upcoming_race_cards=self.upcoming_race_cards
-            )
-        else:
-            self.offer_requester = BookieOfferRequester(self.upcoming_race_cards)
+        self.exchange = Exchange(
+            market_type=self.market_type,
+            upcoming_race_cards=self.upcoming_race_cards
+        )
 
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
@@ -132,20 +123,6 @@ class BetAgent:
 
         return test_sample_encoder.get_race_cards_sample()
 
-    def get_customer_id(self) -> str:
-        login_response = requests.post(
-            "https://api.piwi247.com/api/users/login",
-            data={
-                "email": "daniel.tebart@googlemail.com",
-                "password": "Ds*#de!@6846",
-                "loginType": 1,
-                "remember": False
-            }
-        )
-
-        login_response_data = login_response.json()["data"]
-        return login_response_data["token"]["orbit"]["access_token"]
-
     def remove_expired_upcoming_race_cards(self) -> None:
         expired_race_card_key = None
         for key, race_card in self.upcoming_race_cards.items():
@@ -155,11 +132,10 @@ class BetAgent:
         if expired_race_card_key is not None:
             expired_race_card = self.upcoming_race_cards[expired_race_card_key]
             try:
-                self.offer_requester.delete_markets(expired_race_card)
+                self.exchange.delete_market_of_race_card(expired_race_card)
                 del self.upcoming_race_cards[expired_race_card_key]
 
-                self.offer_requester.customer_id = self.get_customer_id()
-                self.offer_requester.reopen()
+                self.exchange.reset_connection()
 
             except KeyError as error:
                 print(f"Keyerror when deleting race: {expired_race_card}: {error}")
@@ -167,7 +143,7 @@ class BetAgent:
     def run(self):
         while self.upcoming_race_cards:
             self.remove_expired_upcoming_race_cards()
-            bet_offers = self.offer_requester.get_bet_offers()
+            bet_offers = self.exchange.get_bet_offers()
 
             if bet_offers:
                 race_card = bet_offers[0].race_card
