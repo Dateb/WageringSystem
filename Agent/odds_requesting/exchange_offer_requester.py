@@ -81,7 +81,7 @@ class MarketOffer:
                 race_card=race_card,
                 horse=horse,
                 odds=offer_odds,
-                scratched_horses=[],
+                scratched_horse_numbers=[],
                 event_datetime=datetime.now(),
                 adjustment_factor=1.0,
             )
@@ -189,6 +189,46 @@ class ExchangeConnection:
         # TODO: Line below should catch this error: json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
         return json.loads(json.loads(message[2:-1]))
 
+    def send_odds(self, market_id: str, selection_id: str, odds: float) -> None:
+        url = "https://exch.piwi247.com/customer/api/placeBets"
+        payload = {
+            market_id:
+            [
+                {
+                    "selectionId": selection_id,
+                    "handicap": 0,
+                    "price": str(odds),
+                    "size": "7",
+                    "side": "BACK",
+                    "betType": "EXCHANGE",
+                    "netPLBetslipEnabled": False,
+                    "netPLMarketPageEnabled": False,
+                    "quickStakesEnabled": True,
+                    "confirmBetsEnabled": False,
+                    "applicationType": "WEB",
+                    "mobile": False,
+                    "isEachWay": False,
+                    "eachWayData": {},
+                    "page": "market",
+                    "persistenceType": "LAPSE",
+                    "placedUsingEnterKey": False
+                }
+            ]
+        }
+
+        cookies = {
+            "BIAB_CUSTOMER": self.customer_id
+        }
+
+        response = self.scraper.post_payload(
+            url=url,
+            payload=payload,
+            cookies=cookies
+        )
+
+        print(response.status_code)
+        print(response.json())
+
 
 class Exchange:
 
@@ -284,6 +324,9 @@ class Exchange:
     def reset_connection(self) -> None:
         self.exchange_connection = ExchangeConnection()
         self.exchange_connection.reopen(self.markets)
+
+    def place_odds_on_horse(self, market: Market, horse_exchange_id: str, odds: float) -> None:
+        self.exchange_connection.send_odds(market.market_id, horse_exchange_id, odds)
 
 
 if __name__ == "__main__":

@@ -149,10 +149,10 @@ class BoostedTreesRanker(Estimator):
         # num_boost_round = trial.params["num_rounds"]
         # del trial.params["num_rounds"]
 
-        num_boost_round = 499
-        search_params = {'num_leaves': 7, 'lambda_l1': 0.03175802980291938, 'lambda_l2': 0.0033957082360900944,
-         'feature_fraction': 0.3751019972291265, 'bagging_fraction': 0.9525013475654517, 'bagging_freq': 2,
-         'min_child_samples': 94}
+        num_boost_round = 397
+        search_params = {'num_leaves': 6, 'lambda_l1': 4.051796374664615, 'lambda_l2': 0.010074393704367225,
+         'feature_fraction': 0.30313614596795946, 'bagging_fraction': 0.9464658439534221, 'bagging_freq': 5,
+         'min_child_samples': 116}
 
         params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(

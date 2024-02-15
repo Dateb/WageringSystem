@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import Dict, List
 
+from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import BetOffer
 from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper, BetfairHistoryDictIterator
@@ -50,7 +51,7 @@ class RaceBetsOfferContainer(BetOfferContainer):
                         race_card=race_card,
                         horse=horse,
                         odds=racebets_win_odds,
-                        scratched_horses=scratched_horses,
+                        scratched_horse_numbers=scratched_horses,
                         event_datetime=race_card.datetime - timedelta(hours=1),
                         adjustment_factor=1.0
                     )
@@ -101,7 +102,7 @@ class BetfairOfferContainer(BetOfferContainer):
             return
 
         market_definition = initial_history_dict["mc"][0]["marketDefinition"]
-        scratched_horses = []
+        scratched_horse_numbers = []
 
         race_datetime = self.create_datetime_from_market_time(market_definition["suspendTime"])
         race_card = self.test_race_cards_mapper.get_race_card(str(race_datetime))
@@ -119,7 +120,8 @@ class BetfairOfferContainer(BetOfferContainer):
                     if "marketDefinition" in market_condition:
                         market_definition = history_dict["mc"][0]["marketDefinition"]
                         if "runners" in market_definition:
-                            scratched_horses = self.get_scratched_horses(market_definition["runners"])
+                            scratched_horses = self.get_scratched_horses(race_card, market_definition["runners"])
+                            scratched_horse_numbers = [horse.number for horse in scratched_horses]
 
                     if "rc" in market_condition:
                         if event_datetime < race_card.off_time:
@@ -136,7 +138,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                         race_card=race_card,
                                         horse=horse,
                                         odds=offer_data["ltp"],
-                                        scratched_horses=scratched_horses,
+                                        scratched_horse_numbers=scratched_horse_numbers,
                                         event_datetime=event_datetime,
                                         adjustment_factor=1.0
                                     )
@@ -163,11 +165,14 @@ class BetfairOfferContainer(BetOfferContainer):
 
                 self.race_offers[str(race_card.datetime)] = betfair_offers
 
-    def get_scratched_horses(self, horses: dict) -> List[str]:
+    def get_scratched_horses(self, race_card: RaceCard, horses: dict) -> List[Horse]:
         scratched_horses = []
         for horse in horses:
             if horse["status"] == "REMOVED":
-                scratched_horses.append(horse["name"])
+                horse_name = horse["name"]
+                horse = race_card.get_horse_by_horse_name(horse_name)
+                if horse is not None:
+                    scratched_horses.append(horse)
 
         return scratched_horses
 

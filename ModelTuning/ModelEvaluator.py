@@ -5,13 +5,12 @@ import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bet, RacebetsBettor, BetfairBettor, Bettor, BettorFactory
+from Model.Betting.bet import Bet, BettorFactory
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Betting.staking import KellyStakesCalculator
-from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
+from Model.Estimators.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 
 
@@ -30,23 +29,22 @@ class ModelEvaluator:
         else:
             bet_evaluator = PlaceBetEvaluator()
 
+        self.offer_container = BetfairOfferContainer()
         if simulate_conf.MARKET_SOURCE == "Racebets":
-            self.offer_container = RaceBetsOfferContainer()
             self.payout_calculator = RacebetsPayoutCalculator(bet_evaluator)
         else:
-            self.offer_container = BetfairOfferContainer()
             self.payout_calculator = BetfairPayoutCalculator(bet_evaluator)
 
     def get_bets_of_model(
             self,
-            estimation_result: ProbabilityEstimates,
+            estimation_result: EstimationResult,
             test_race_cards: Dict[str, RaceCard],
     ) -> List[Bet]:
         self.init_offer_container(test_race_cards)
 
         best_payout_sum = -np.inf
         best_bets = []
-        bet_thresholds = [0.0, 0.05, 0.1]
+        bet_thresholds = [0.0, 0.01, 0.03, 0.05, 0.07, 0.1]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)

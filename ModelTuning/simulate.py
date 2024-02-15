@@ -66,7 +66,7 @@ class ModelSimulator:
         self.feature_manager = FeatureManager()
 
         gbt_estimator = BoostedTreesRanker(self.feature_manager)
-        nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+        # nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
 
         # self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_estimator, nn_estimator])
         self.estimator = gbt_estimator
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
         train_upper_limit_percentage=0.8,
-        n_months_test_sample=10,
+        n_months_test_sample=14,
         n_months_forward_offset=0,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )

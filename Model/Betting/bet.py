@@ -1,13 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from typing import List, Dict
+
+import numpy as np
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from datetime import datetime
 
 from Model.Betting.staking import StakesCalculator, KellyStakesCalculator, FixedStakesCalculator
-from Model.Estimators.estimated_probabilities_creation import ProbabilityEstimates
+from Model.Estimators.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 
 
@@ -17,7 +19,7 @@ class BetOffer:
     race_card: RaceCard
     horse: Horse
     odds: float
-    scratched_horses: List[str]
+    scratched_horse_numbers: List[int]
     event_datetime: datetime
     adjustment_factor: float
 
@@ -62,32 +64,128 @@ class Bet:
         return self.win - self.loss
 
 
-class Bettor(ABC):
+class OddsVigAdjuster(ABC):
 
-    def __init__(self, bet_threshold: float, stakes_calculator: StakesCalculator, max_odds_thresh: float = 20.0):
-        self.bet_threshold = bet_threshold
+    def get_adjusted_odds(self, odds: float) -> float:
+        pass
+
+
+class BetfairOddsVigAdjuster(OddsVigAdjuster):
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        return odds / (1 - 0.025)
+
+
+class RacebetsOddsVigAdjuster(OddsVigAdjuster):
+
+    BET_TAX = 0.05
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        return odds - self.BET_TAX
+
+
+class OddsThreshold:
+
+    def __init__(self, odds_vig_adjuster: OddsVigAdjuster, alpha: float = 0.05):
+        self.odds_vig_adjuster = odds_vig_adjuster
+        self.alpha = alpha
+
+    def get_min_odds(self, probability_estimate: float) -> float:
+        min_odds = 1 / probability_estimate
+
+        # Adjusting odds such that it still holds value when considering the vig:
+        min_odds_with_vig = self.odds_vig_adjuster.get_adjusted_odds(min_odds)
+
+        """"
+        Use probabilistic thresholding technique to set min odds higher.
+
+        Thresholding is used to avoid betting on tiny ev
+        and possibly negative ev due to incorrect estimations.
+
+        The equations are derived from this main inequality:
+
+        p_est > p + bet_thresh * (1 - p)
+
+        where
+            > p_est is the estimated probability of the model
+            > p is the induced probability from the odds
+            > alpha is a tunable hyperparameter. A higher value will encourage more careful betting 
+              and more focused betting on more favored horses, thus reducing the risk and minimizing the
+              maximum drawdown.
+
+        Setting p_est = p + alpha * (1 - p), this equation can be formulated to:
+
+        p = (p_est - alpha) / (1 - alpha)
+
+        The min odds needs to be converted to probabilities temporarily.
+        """
+
+        p_min_odds = 1 / min_odds_with_vig
+
+        if (p_min_odds - self.alpha) <= 0:
+            min_odds_thresh = np.inf
+        else:
+            p_min_odds_thresh = (p_min_odds - self.alpha) / (1 - self.alpha)
+            min_odds_thresh = 1 / p_min_odds_thresh
+
+            increments = 0.01
+            if 1 <= min_odds_thresh <= 2:
+                increments = 0.01
+            if 2 <= min_odds_thresh <= 3:
+                increments = 0.02
+            if 3 <= min_odds_thresh <= 4:
+                increments = 0.05
+            if 4 <= min_odds_thresh <= 6:
+                increments = 0.1
+            if 6 <= min_odds_thresh <= 10:
+                increments = 0.2
+            if 10 <= min_odds_thresh <= 20:
+                increments = 0.5
+            if 20 <= min_odds_thresh <= 30:
+                increments = 1
+            if 30 <= min_odds_thresh <= 50:
+                increments = 2
+            if 50 <= min_odds_thresh <= 100:
+                increments = 5
+            if 100 <= min_odds_thresh <= 1000:
+                increments = 10
+
+            min_odds_thresh = round(min_odds_thresh / increments) * increments
+
+        return min_odds_thresh
+
+
+class Bettor:
+
+    def __init__(
+            self,
+            stakes_calculator: StakesCalculator,
+            odds_threshold: OddsThreshold,
+            max_odds_thresh: float = 5.0,
+    ):
         self.stakes_calculator = stakes_calculator
+        self.odds_threshold = odds_threshold
         self.max_odds_thresh = max_odds_thresh
 
         self.already_taken_offers = {}
         self.offer_accepted_count = 0
         self.offer_rejected_count = 0
 
-    def bet(self, offers: Dict[str, List[BetOffer]], probability_estimates: ProbabilityEstimates) -> List[Bet]:
+    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult) -> List[Bet]:
         bets = []
 
         for race_datetime, race_offers in offers.items():
-            if race_datetime in probability_estimates.probability_estimates:
+            if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
                     if (
                             bet_offer.horse is not None
                             and not bet_offer.near_race_start
                             and bet_offer.odds < self.max_odds_thresh
                     ):
-                        probability_estimate = probability_estimates.get_horse_win_probability(
+                        probability_estimate = estimation_result.get_horse_win_probability(
                             race_datetime,
-                            bet_offer.horse.name,
-                            bet_offer.scratched_horses
+                            bet_offer.horse.number,
+                            bet_offer.scratched_horse_numbers
                         )
 
                         stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
@@ -101,7 +199,7 @@ class Bettor(ABC):
                                 probability_start=bet_offer.horse.sp_win_prob
                             )
                             bets.append(new_bet)
-                            self.already_taken_offers[(race_datetime, bet_offer.horse.name)] = True
+                            self.already_taken_offers[(race_datetime, bet_offer.horse.number)] = True
 
         return bets
 
@@ -109,43 +207,19 @@ class Bettor(ABC):
         stakes = 0
 
         if probability_estimate is not None:
-            if (race_datetime, bet_offer.horse.name) not in self.already_taken_offers:
-                adjusted_odds = self.get_adjusted_odds(bet_offer.odds)
-
-                if adjusted_odds > 1:
-                    odds_p = 1 / adjusted_odds
-                    p_residual = 1 - odds_p
-                    if probability_estimate > (odds_p + self.bet_threshold * p_residual):
-                        stakes = self.stakes_calculator.get_stakes(probability_estimate, adjusted_odds)
-                        self.offer_accepted_count += 1
-                    else:
-                        self.offer_rejected_count += 1
+            if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
+                min_odds = self.odds_threshold.get_min_odds(probability_estimate)
+                if bet_offer.odds > min_odds:
+                    stakes = self.stakes_calculator.get_stakes(probability_estimate, bet_offer.odds)
+                    self.offer_accepted_count += 1
+                else:
+                    self.offer_rejected_count += 1
 
         return stakes
-
-    @abstractmethod
-    def get_adjusted_odds(self, odds: float) -> float:
-        pass
 
     @property
     def offer_acceptance_rate(self) -> float:
         return self.offer_accepted_count / (self.offer_accepted_count + self.offer_rejected_count)
-
-
-class RacebetsBettor(Bettor):
-
-    BET_TAX = 0.05
-
-    def get_adjusted_odds(self, odds: float) -> float:
-        return odds - self.BET_TAX
-
-
-class BetfairBettor(Bettor):
-
-    WIN_COMMISSION = 0.025
-
-    def get_adjusted_odds(self, odds: float) -> float:
-        return odds * (1 - self.WIN_COMMISSION)
 
 
 class BettorFactory:
@@ -160,16 +234,19 @@ class BettorFactory:
         else:
             if simulate_conf.MARKET_SOURCE == "Betfair":
                 if simulate_conf.MARKET_TYPE == "WIN":
-                    stakes_calculator = FixedStakesCalculator(fixed_stakes=7.0)
+                    stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
                 else:
                     stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
             else:
                 stakes_calculator = FixedStakesCalculator(fixed_stakes=0.5)
 
-        if simulate_conf.MARKET_SOURCE == "Racebets":
-            bettor = RacebetsBettor(bet_threshold=bet_threshold, stakes_calculator=stakes_calculator)
+        if simulate_conf.MARKET_SOURCE == "Betfair":
+            odds_vig_adjuster = BetfairOddsVigAdjuster()
         else:
-            bettor = BetfairBettor(bet_threshold=bet_threshold, stakes_calculator=stakes_calculator)
+            odds_vig_adjuster = RacebetsOddsVigAdjuster()
+
+        odds_threshold = OddsThreshold(odds_vig_adjuster, bet_threshold)
+        bettor = Bettor(stakes_calculator=stakes_calculator, odds_threshold=odds_threshold)
 
         return bettor
 
