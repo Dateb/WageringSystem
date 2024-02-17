@@ -12,10 +12,12 @@ class RaceCardsArrayFactory:
     def __init__(
             self,
             feature_manager: FeatureManager,
+            encode_only_runners: bool = True,
     ):
         self.feature_manager = feature_manager
         self.current_day = None
         self.current_day_race_cards = []
+        self.encode_runners = encode_only_runners
 
     def race_cards_to_array(self, sample_race_cards: Dict[str, RaceCard]) -> ndarray:
         sample_values = []
@@ -53,7 +55,12 @@ class RaceCardsArrayFactory:
 
     def get_values_of_race_card(self, race_card: RaceCard) -> List[List[Any]]:
         horse_values_of_race_card = []
-        for horse in race_card.horses:
-            horse_values_of_race_card.append(race_card.values + horse.values)
+        if self.encode_runners:
+            for horse in race_card.runners:
+                horse_values_of_race_card.append(race_card.values + horse.values)
+
+        else:
+            for horse in race_card.horses:
+                horse_values_of_race_card.append(race_card.values + horse.values)
 
         return horse_values_of_race_card

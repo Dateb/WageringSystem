@@ -7,7 +7,7 @@ LEARNING_CURVE_PATH = "../data/learning_curve.dat"
 TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 ESTIMATOR_PATH = "../data/estimator.dat"
 
-LEARNING_MODE = "Classification"
+LEARNING_MODE = "Regression"
 
 if LEARNING_MODE == "Classification":
     LOSS_FUNCTION = nn.CrossEntropyLoss()

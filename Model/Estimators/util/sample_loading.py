@@ -42,7 +42,7 @@ class RaceCardLoader(ABC):
 
         horse_features = sample.race_cards_dataframe[selected_feature_names]
         if simulate_conf.LEARNING_MODE == "Classification":
-            horse_labels = sample.race_cards_dataframe[Horse.CLASSIFICATION_LABEL_KEY].to_numpy()
+            horse_labels = sample.race_cards_dataframe[Horse.HAS_WON_LABEL_KEY].to_numpy()
         else:
             horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
 

@@ -22,6 +22,7 @@ class BetOffer:
     scratched_horse_numbers: List[int]
     event_datetime: datetime
     adjustment_factor: float
+    n_horses: int
 
     def __str__(self) -> str:
         return f"Odds for {self.horse.name}: {self.odds}"
@@ -81,7 +82,7 @@ class RacebetsOddsVigAdjuster(OddsVigAdjuster):
     BET_TAX = 0.05
 
     def get_adjusted_odds(self, odds: float) -> float:
-        return odds - self.BET_TAX
+        return odds + self.BET_TAX
 
 
 class OddsThreshold:
@@ -161,7 +162,7 @@ class Bettor:
             self,
             stakes_calculator: StakesCalculator,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 5.0,
+            max_odds_thresh: float = 10.0,
     ):
         self.stakes_calculator = stakes_calculator
         self.odds_threshold = odds_threshold
@@ -180,7 +181,6 @@ class Bettor:
                     if (
                             bet_offer.horse is not None
                             and not bet_offer.near_race_start
-                            and bet_offer.odds < self.max_odds_thresh
                     ):
                         probability_estimate = estimation_result.get_horse_win_probability(
                             race_datetime,
@@ -209,7 +209,7 @@ class Bettor:
         if probability_estimate is not None:
             if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
                 min_odds = self.odds_threshold.get_min_odds(probability_estimate)
-                if bet_offer.odds > min_odds:
+                if min_odds < bet_offer.odds and min_odds < self.max_odds_thresh:
                     stakes = self.stakes_calculator.get_stakes(probability_estimate, bet_offer.odds)
                     self.offer_accepted_count += 1
                 else:

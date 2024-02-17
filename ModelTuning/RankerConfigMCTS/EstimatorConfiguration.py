@@ -65,7 +65,7 @@ class EstimatorConfiguration:
         self.search_params = {}
         self.parameter_set = {}
 
-        self.label_name = Horse.CLASSIFICATION_LABEL_KEY
+        self.label_name = Horse.HAS_WON_LABEL_KEY
 
         self.selected_features: List[FeatureExtractor] = copy(base_features)
         self.search_features = search_features

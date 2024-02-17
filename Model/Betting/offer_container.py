@@ -72,8 +72,6 @@ class BetfairOfferContainer(BetOfferContainer):
     def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
         self.test_race_cards_mapper = RaceDateToCardMapper(race_cards)
 
-        print(self.test_race_cards_mapper.race_cards)
-
         history_path = "../data/exchange_odds_history/"
 
         year_dirs = os.listdir(history_path)
@@ -110,6 +108,7 @@ class BetfairOfferContainer(BetOfferContainer):
         if race_card is not None:
             if market_definition["marketType"] == simulate_conf.MARKET_TYPE and market_definition["countryCode"] == "GB":
                 horses = market_definition["runners"]
+                n_horses = len(horses)
                 horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
 
                 for history_dict in history_dict_iterator:
@@ -122,6 +121,7 @@ class BetfairOfferContainer(BetOfferContainer):
                         if "runners" in market_definition:
                             scratched_horses = self.get_scratched_horses(race_card, market_definition["runners"])
                             scratched_horse_numbers = [horse.number for horse in scratched_horses]
+                            n_horses = len(market_definition["runners"]) - len(scratched_horse_numbers)
 
                     if "rc" in market_condition:
                         if event_datetime < race_card.off_time:
@@ -140,7 +140,8 @@ class BetfairOfferContainer(BetOfferContainer):
                                         odds=offer_data["ltp"],
                                         scratched_horse_numbers=scratched_horse_numbers,
                                         event_datetime=event_datetime,
-                                        adjustment_factor=1.0
+                                        adjustment_factor=1.0,
+                                        n_horses=n_horses
                                     )
                                     new_offers.append(bef_offer)
 

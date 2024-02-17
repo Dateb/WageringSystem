@@ -64,14 +64,10 @@ class RaceCard:
 
         self.track_id = event["idTrack"]
 
-        self.places_num = 1
-        if "placesNum" in race:
-            self.places_num = int(race["placesNum"])
-
         self.race_number = race["raceNumber"]
 
-        self.distance = race["distance"]
-        self.adjusted_distance = self.distance
+        distance = race["distance"]
+        self.adjusted_distance = distance
         if "adjusted_distance" in race:
             self.adjusted_distance = race["adjusted_distance"]
 
@@ -112,14 +108,15 @@ class RaceCard:
         self.n_horses = len(self.horses)
         self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
 
-        self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
+        self.overround = sum([1 / horse.betfair_place_sp for horse in self.runners if horse.betfair_place_sp > 0])
 
         if self.overround > 0:
             for horse in self.horses:
-                if horse.betfair_win_sp >= 1:
-                    horse.sp_win_prob = (1 / horse.betfair_win_sp) * (1 / self.overround)
+                if horse.betfair_place_sp >= 1:
+                    horse.sp_win_prob = (1 / horse.betfair_place_sp)
                     horse.base_attributes[Horse.REGRESSION_LABEL_KEY] = horse.sp_win_prob
 
+        self.places_num = -1
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
 
@@ -132,17 +129,6 @@ class RaceCard:
         }
 
         self.set_validity()
-
-        # TODO: there some border cases here. Would need a fix.
-        # for horse in self.horses:
-        #     if horse.n_past_races >= 1:
-        #         previous_race_ids = [past_form.race_id for past_form in horse.form_table.past_forms]
-        #
-        #         if self.race_id in previous_race_ids:
-        #             print(f"1 Same race id {self.race_id} for horse: {horse.name}\n")
-        #
-        #         if len(previous_race_ids) != len(set(previous_race_ids)):
-        #             print(f"Past form of {horse.name} in race {self.race_id} contains duplicate races")
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
@@ -160,6 +146,20 @@ class RaceCard:
         self.total_horses = self.horses
 
         self.runners = [horse for horse in self.horses if not horse.is_scratched]
+
+        self.n_runners = len(self.runners)
+        self.places_num = 1
+
+        if 5 <= self.n_runners <= 7:
+            self.places_num = 2
+        if 8 <= self.n_runners <= 15:
+            self.places_num = 3
+        if 16 <= self.n_runners:
+            self.places_num = 4
+
+        for horse in self.runners:
+            horse.has_placed = horse.place <= self.places_num
+            horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
         # if self.remove_non_starters:
         #     self.__remove_non_starters()
@@ -305,8 +305,8 @@ class RaceCard:
         RaceCard.track_variant = {}
 
     def get_distance_category(self) -> float:
-        distance_increment = max(int(self.distance / 1000) * 100, 50)
-        return round(self.distance / distance_increment) * distance_increment
+        distance_increment = max(int(self.adjusted_distance / 1000) * 100, 50)
+        return round(self.adjusted_distance / distance_increment) * distance_increment
 
     def set_validity(self) -> None:
         if self.n_horses <= 1:
@@ -327,3 +327,7 @@ class RaceCard:
 
         if self.n_horses > 20:
             self.is_valid_sample = False
+
+        for runner in self.runners:
+            if runner.sp_win_prob == -1:
+                self.is_valid_sample = False

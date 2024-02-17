@@ -38,6 +38,16 @@ class CurrentDistance(FeatureExtractor):
         return float(race_card.distance)
 
 
+class PlacesNum(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        self.is_categorical = True
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        return float(race_card.places_num)
+
+
 class CurrentRaceTrack(FeatureExtractor):
 
     def __init__(self):
@@ -123,7 +133,8 @@ class HasTrainerMultipleHorses(FeatureExtractor):
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
         trainer_names = [
-            other_horse.trainer_name for other_horse in race_card.horses if other_horse.trainer_name == horse.trainer_name
+            other_horse.trainer.id for other_horse in race_card.horses if other_horse.trainer.id == horse.trainer.id
+                                                                          and horse.trainer.id
         ]
 
         return int(len(trainer_names) > 1)

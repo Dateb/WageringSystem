@@ -10,6 +10,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.Estimator import Estimator
 from Model.Estimators.util.metrics import get_accuracy
+from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -72,7 +73,10 @@ class BoostedTreesRanker(Estimator):
 
     def __init__(self, feature_manager: FeatureManager):
         super().__init__(feature_manager)
-        self.label_name = Horse.CLASSIFICATION_LABEL_KEY
+        if simulate_conf.MARKET_TYPE == "WIN":
+            self.label_name = Horse.HAS_WON_LABEL_KEY
+        else:
+            self.label_name = Horse.HAS_PLACED_LABEL_KEY
         self.feature_manager = feature_manager
         self.booster: Booster = None
 
@@ -149,10 +153,10 @@ class BoostedTreesRanker(Estimator):
         # num_boost_round = trial.params["num_rounds"]
         # del trial.params["num_rounds"]
 
-        num_boost_round = 397
-        search_params = {'num_leaves': 6, 'lambda_l1': 4.051796374664615, 'lambda_l2': 0.010074393704367225,
-         'feature_fraction': 0.30313614596795946, 'bagging_fraction': 0.9464658439534221, 'bagging_freq': 5,
-         'min_child_samples': 116}
+        num_boost_round = 281
+        search_params = {'num_leaves': 8, 'lambda_l1': 9.573032597562626, 'lambda_l2': 7.547165787246444e-05,
+         'feature_fraction': 0.7039126357717849, 'bagging_fraction': 0.9391259630040808, 'bagging_freq': 5,
+         'min_child_samples': 90}
 
         params = {**self.FIXED_PARAMS, **search_params}
         self.booster = lightgbm.train(

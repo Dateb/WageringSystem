@@ -42,9 +42,9 @@ class ModelEvaluator:
     ) -> List[Bet]:
         self.init_offer_container(test_race_cards)
 
-        best_payout_sum = -np.inf
+        best_payout_score = -np.inf
         best_bets = []
-        bet_thresholds = [0.0, 0.01, 0.03, 0.05, 0.07, 0.1]
+        bet_thresholds = [0.05]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)
@@ -57,10 +57,10 @@ class ModelEvaluator:
 
             print(f"Thresh/score: {bet_threshold}/{payout_score}")
 
-            if payout_score > best_payout_sum:
+            if payout_score > best_payout_score:
                 best_bets = bets
-                best_payout_sum = payout_score
-                print(f"New best score: {best_payout_sum} at threshold: {bet_threshold}")
+                best_payout_score = payout_score
+                print(f"New best score: {best_payout_score} at threshold: {bet_threshold}")
 
             print(f"Offer acceptance rate: {bettor.offer_acceptance_rate}")
 

@@ -33,8 +33,8 @@ class NNClassifier(Estimator):
 
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
-        self.loss_function = self.params["loss_function"]
-        # self.loss_function = torch.nn.MSELoss()
+        # self.loss_function = self.params["loss_function"]
+        self.loss_function = torch.nn.MSELoss()
 
         self.device = (
             "cuda"
@@ -178,7 +178,7 @@ class NNClassifier(Estimator):
         train_loss /= num_batches
         # train_accuracy /= size
 
-        # print(f"Train Avg loss/Accuracy: {train_loss:>8f}")
+        print(f"Train Avg loss/Accuracy: {train_loss:>8f}")
 
         return train_loss
 
@@ -234,7 +234,7 @@ class NNClassifier(Estimator):
 
         return test_loss
 
-    def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
+    def get_batch_loss(self, pred, y) -> float:
         return self.loss_function(pred, y)
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:

@@ -115,8 +115,6 @@ class FeatureSource(ABC):
 
 
 class PreviousValueSource(FeatureSource):
-    def __init__(self):
-        super().__init__()
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None:
@@ -124,8 +122,6 @@ class PreviousValueSource(FeatureSource):
 
 
 class MaxValueSource(FeatureSource):
-    def __init__(self):
-        super().__init__()
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None and (not category["value"] or new_feature_value > category["value"]):
@@ -133,12 +129,19 @@ class MaxValueSource(FeatureSource):
 
 
 class MinValueSource(FeatureSource):
-    def __init__(self):
-        super().__init__()
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None and (not category["value"] or new_feature_value < category["value"]):
             category["value"] = new_feature_value
+
+
+class CountSource(FeatureSource):
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if not category["value"]:
+            category["value"] = 1
+        else:
+            category["value"] += 1
 
 
 class AverageValueSource(FeatureSource):

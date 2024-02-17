@@ -4,14 +4,17 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
-    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, TravelDistance
+    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, \
+    TravelDistance, PlacesNum, HasTrainerMultipleHorses
+from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
+    HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, TrainerChangeEarningsRateDiff
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
-    TrackVariantSource, FeatureValueGroup, MinValueSource
+    TrackVariantSource, FeatureValueGroup, MinValueSource, CountSource
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, place_percentile, \
     race_distance, \
-    race_going, race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight
+    race_going, race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight, placeholder_value
 
 
 class FeatureManager:
@@ -41,6 +44,7 @@ class FeatureManager:
         self.previous_value_source = PreviousValueSource()
         self.max_value_source = MaxValueSource()
         self.min_value_source = MinValueSource()
+        self.count_source = CountSource()
 
         self.avg_window_3_min_obs_1_source = AverageValueSource(window_size=3, min_obs_thresh=1)
 
@@ -61,6 +65,7 @@ class FeatureManager:
             self.previous_value_source,
             self.max_value_source,
             self.min_value_source,
+            self.count_source,
 
             self.avg_window_3_min_obs_1_source,
 
@@ -91,30 +96,29 @@ class FeatureManager:
         horse_win_prob = FeatureValueGroup(["subject_id"], win_probability)
 
         horse_surface_win_prob = FeatureValueGroup(["subject_id", "surface"], win_probability)
+        horse_surface_place_percentile = FeatureValueGroup(["subject_id", "surface"], place_percentile)
+        horse_surface_relative_distance_behind = FeatureValueGroup(["subject_id", "surface"], relative_distance_behind)
+        horse_surface_momentum = FeatureValueGroup(["subject_id", "surface"], momentum)
+
         horse_track_win_prob = FeatureValueGroup(["subject_id", "track_name"], win_probability)
         horse_class_win_prob = FeatureValueGroup(["subject_id", "race_class"], win_probability)
 
         horse_momentum = FeatureValueGroup(["subject_id"], momentum)
 
-        horse_surface_momentum = FeatureValueGroup(["subject_id", "surface"], momentum)
         horse_track_momentum = FeatureValueGroup(["subject_id", "track_name"], momentum)
         horse_class_momentum = FeatureValueGroup(["subject_id", "race_class"], momentum)
 
         horse_place_percentile = FeatureValueGroup(["subject_id"], place_percentile)
 
-        horse_surface_place_percentile = FeatureValueGroup(["subject_id", "surface"], place_percentile)
         horse_track_place_percentile = FeatureValueGroup(["subject_id", "track_name"], place_percentile)
         horse_class_place_percentile = FeatureValueGroup(["subject_id", "race_class"], place_percentile)
 
         horse_relative_distance_behind = FeatureValueGroup(["subject_id"], relative_distance_behind)
 
-        horse_surface_relative_distance_behind = FeatureValueGroup(["subject_id", "surface"], relative_distance_behind)
         horse_track_relative_distance_behind = FeatureValueGroup(["subject_id", "track_name"], relative_distance_behind)
         horse_class_relative_distance_behind = FeatureValueGroup(["subject_id", "race_class"], relative_distance_behind)
 
         horse_weight = FeatureValueGroup(["subject_id"], weight)
-
-        horse_has_pulled_up = FeatureValueGroup(["subject_id"], has_pulled_up)
 
         horse_race_adjusted_distance = FeatureValueGroup(["subject_id"], adjusted_race_distance)
         horse_race_going = FeatureValueGroup(["subject_id"], race_going)
@@ -127,7 +131,10 @@ class FeatureManager:
         trainer_momentum = FeatureValueGroup(["trainer_id"], momentum)
 
         jockey_class_win_probability = FeatureValueGroup(["jockey_id", "race_class"], win_probability)
+        jockey_surface_win_probability = FeatureValueGroup(["jockey_id", "surface"], win_probability)
+
         trainer_class_win_probability = FeatureValueGroup(["trainer_id", "race_class"], win_probability)
+        trainer_surface_win_probability = FeatureValueGroup(["trainer_id", "surface"], win_probability)
 
         jockey_class_place_percentile = FeatureValueGroup(["jockey_id", "race_class"], place_percentile)
         trainer_class_place_percentile = FeatureValueGroup(["trainer_id", "race_class"], place_percentile)
@@ -145,10 +152,33 @@ class FeatureManager:
         sire_win_probability = FeatureValueGroup(["sire"], win_probability)
 
         dam_place_percentile = FeatureValueGroup(["dam"], place_percentile)
-        sire_place_percentile = FeatureValueGroup(["sire"], place_percentile)
 
         dam_momentum = FeatureValueGroup(["dam"], momentum)
-        sire_momentum = FeatureValueGroup(["sire"], momentum)
+
+        jockey_track_win_probability = FeatureValueGroup(["jockey_id", "track_name"], win_probability)
+        trainer_track_win_probability = FeatureValueGroup(["trainer_id", "track_name"], win_probability)
+        owner_track_win_probability = FeatureValueGroup(["owner", "track_name"], win_probability)
+        breeder_track_win_probability = FeatureValueGroup(["breeder", "track_name"], win_probability)
+
+        horse_jockey_win_probability = FeatureValueGroup(["subject_id", "jockey_id"], win_probability)
+        horse_jockey_place_percentile = FeatureValueGroup(["subject_id", "jockey_id"], place_percentile)
+        horse_jockey_relative_distance_behind = FeatureValueGroup(["subject_id", "jockey_id"], relative_distance_behind)
+        horse_jockey_momentum = FeatureValueGroup(["subject_id", "jockey_id"], momentum)
+
+        horse_trainer_win_probability = FeatureValueGroup(["subject_id", "trainer_id"], win_probability)
+        horse_trainer_place_percentile = FeatureValueGroup(["subject_id", "trainer_id"], place_percentile)
+        horse_trainer_relative_distance_behind = FeatureValueGroup(["subject_id", "trainer_id"], relative_distance_behind)
+        horse_trainer_momentum = FeatureValueGroup(["subject_id", "trainer_id"], momentum)
+
+        horse_owner_win_probability = FeatureValueGroup(["subject_id", "owner"], win_probability)
+        horse_owner_place_percentile = FeatureValueGroup(["subject_id", "owner"], place_percentile)
+        horse_owner_relative_distance_behind = FeatureValueGroup(["subject_id", "owner"], relative_distance_behind)
+        horse_owner_momentum = FeatureValueGroup(["subject_id", "owner"], momentum)
+
+        jockey_trainer_win_probability = FeatureValueGroup(["jockey_id", "trainer_id"], win_probability)
+        jockey_trainer_place_percentile = FeatureValueGroup(["jockey_id", "trainer_id"], place_percentile)
+        jockey_trainer_relative_distance_behind = FeatureValueGroup(["jockey_id", "trainer_id"], relative_distance_behind)
+        jockey_trainer_momentum = FeatureValueGroup(["jockey_id", "trainer_id"], momentum)
 
         prev_value_features = [
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
@@ -178,8 +208,6 @@ class FeatureManager:
             FeatureSourceExtractor(self.previous_value_source, horse_race_adjusted_distance),
             FeatureSourceExtractor(self.previous_value_source, horse_race_going),
             FeatureSourceExtractor(self.previous_value_source, horse_race_class),
-
-            # FeatureSourceExtractor(previous_value_source, horse_has_pulled_up),
 
             TravelDistance(self.previous_value_source),
         ]
@@ -213,13 +241,10 @@ class FeatureManager:
             FeatureSourceExtractor(self.max_value_source, horse_weight),
 
             FeatureSourceExtractor(self.max_value_source, dam_win_probability),
-            FeatureSourceExtractor(self.max_value_source, sire_win_probability),
 
             FeatureSourceExtractor(self.max_value_source, dam_place_percentile),
-            FeatureSourceExtractor(self.max_value_source, sire_place_percentile),
 
             FeatureSourceExtractor(self.max_value_source, dam_momentum),
-            FeatureSourceExtractor(self.max_value_source, sire_momentum)
         ]
 
         min_value_features = [
@@ -236,6 +261,11 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_momentum),
             FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_momentum),
 
+            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_win_prob),
+            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_place_percentile),
+            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_momentum),
+
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_momentum),
 
@@ -243,7 +273,10 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
 
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_win_probability),
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_surface_win_probability),
+
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_win_probability),
+            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_surface_win_probability),
 
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_place_percentile),
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_place_percentile),
@@ -255,39 +288,74 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_win_probability),
 
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_place_percentile),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_place_percentile),
 
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_momentum),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_momentum),
+
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_track_win_probability),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, trainer_track_win_probability),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_track_win_probability),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_track_win_probability),
+
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_win_probability),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_place_percentile),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_momentum),
+
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_win_probability),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_place_percentile),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_momentum),
+
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_win_probability),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_place_percentile),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_momentum),
+
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_win_probability),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_place_percentile),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_momentum)
+        ]
+
+        horse_placeholder = FeatureValueGroup(["subject_id"], placeholder_value)
+        horse_jockey_placeholder = FeatureValueGroup(["subject_id", "jockey_id"], placeholder_value)
+
+        count_features = [
+            FeatureSourceExtractor(self.count_source, horse_placeholder),
+            FeatureSourceExtractor(self.count_source, horse_jockey_placeholder)
         ]
 
         current_race_features = [
             CurrentRaceTrack(),
             CurrentRaceCategory(),
-            CurrentDistance(),
 
-            CurrentPurse(),
+            HasBlinkers(),
+            HasVisor(),
+            HasCheekPieces(),
+
+            HasTrainerMultipleHorses(),
 
             Age(),
             Gender(),
 
             CurrentJockeyWeight(),
-            WeightAllowance(),
 
             OutOfHandicapWeight(),
         ]
 
         layoff_features = [
             LayoffExtractor(self.previous_value_source, ["subject_id"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "distance_category"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "jockey_id"]),
             LayoffExtractor(self.previous_value_source, ["subject_id", "track_name"]),
             LayoffExtractor(self.previous_value_source, ["subject_id", "race_class"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "surface"])
+            LayoffExtractor(self.previous_value_source, ["subject_id", "surface"]),
         ]
 
         return (
                 current_race_features + prev_value_features
                 + max_value_features + min_value_features +
-                avg_value_features + layoff_features
+                avg_value_features + count_features + layoff_features
         )
 
     @property

@@ -143,7 +143,6 @@ class ExchangeBetRequester(Actuator):
 
     def run(self) -> None:
         probability_estimates = self.estimation_result.probability_estimates
-        print(probability_estimates)
         for market in self.exchange.markets:
             race_key = str(market.race_card.datetime)
             race_card_probabilities = probability_estimates[race_key]

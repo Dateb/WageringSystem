@@ -10,7 +10,7 @@ from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Classification.SVMClassifier import SVMClassifier
 from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
-from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
+from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import TEST_PAYOUTS_PATH
@@ -52,7 +52,7 @@ class ModelSimulator:
         if simulate_conf.MARKET_TYPE == "WIN":
             self.probabilizer = WinProbabilizer()
         else:
-            self.probabilizer = PlaceProbabilizer()
+            self.probabilizer = PlaceScoreProbabilizer()
 
         self.month_data_splitter = month_data_splitter
 
@@ -110,8 +110,10 @@ class ModelSimulator:
         test_race_cards = {}
         race_results_container = RaceResultsContainer()
 
+        test_race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager, encode_only_runners=False)
+
         self.test_sample = load_sample(
-            race_cards_array_factory,
+            test_race_cards_array_factory,
             sample_encoder,
             self.month_data_splitter.race_cards_loader,
             self.month_data_splitter.test_file_names,
