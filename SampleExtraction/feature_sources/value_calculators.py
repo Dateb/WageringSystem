@@ -5,8 +5,16 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.Trainer import Trainer
 
 
-def placeholder_value(race_card: RaceCard, horse: Horse) -> float:
-    return 0
+def has_won(race_card: RaceCard, horse: Horse) -> float:
+    return int(horse.has_won)
+
+
+def purse(race_card: RaceCard, horse: Horse) -> float:
+    return horse.purse
+
+
+def one_constant(race_card: RaceCard, horse: Horse) -> float:
+    return 1
 
 
 def win_probability(race_card: RaceCard, horse: Horse) -> float:

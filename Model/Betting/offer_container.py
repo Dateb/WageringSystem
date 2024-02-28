@@ -108,63 +108,65 @@ class BetfairOfferContainer(BetOfferContainer):
         if race_card is not None:
             if market_definition["marketType"] == simulate_conf.MARKET_TYPE and market_definition["countryCode"] == "GB":
                 horses = market_definition["runners"]
+                n_winners = market_definition["numberOfWinners"]
                 n_horses = len(horses)
-                horse_id_to_name_map = {runner["id"]: runner["name"] for runner in horses}
+                id_to_horse_map = {runner["id"]: race_card.get_horse_by_horse_name(runner["name"]) for runner in horses}
 
-                for history_dict in history_dict_iterator:
-                    unix_time_stamp = int(history_dict["pt"] / 1000)
-                    event_datetime = datetime.fromtimestamp(unix_time_stamp)
-                    market_condition = history_dict["mc"][0]
+                if n_winners != race_card.places_num or simulate_conf.MARKET_TYPE != "PLACE":
+                    for history_dict in history_dict_iterator:
+                        unix_time_stamp = int(history_dict["pt"] / 1000)
+                        event_datetime = datetime.fromtimestamp(unix_time_stamp)
+                        market_condition = history_dict["mc"][0]
 
-                    if "marketDefinition" in market_condition:
-                        market_definition = history_dict["mc"][0]["marketDefinition"]
-                        if "runners" in market_definition:
-                            scratched_horses = self.get_scratched_horses(race_card, market_definition["runners"])
-                            scratched_horse_numbers = [horse.number for horse in scratched_horses]
-                            n_horses = len(market_definition["runners"]) - len(scratched_horse_numbers)
+                        if "marketDefinition" in market_condition:
+                            market_definition = history_dict["mc"][0]["marketDefinition"]
+                            if "runners" in market_definition:
+                                scratched_horses = self.get_scratched_horses(race_card, market_definition["runners"])
+                                scratched_horse_numbers = [horse.number for horse in scratched_horses]
+                                n_horses = len(market_definition["runners"]) - len(scratched_horse_numbers)
 
-                    if "rc" in market_condition:
-                        if event_datetime < race_card.off_time:
-                            new_offers = []
-                            for offer_data in market_condition["rc"]:
-                                horse_name = horse_id_to_name_map[offer_data["id"]]
-                                horse = race_card.get_horse_by_horse_name(horse_name)
-                                if horse is None:
-                                    print(f"Could not find horse: {horse_name} on race: {race_card.race_id}")
-                                    print(f"race datetime: {race_datetime}")
-                                    print("-----------------------------------------")
-                                else:
-                                    bef_offer = BetOffer(
-                                        race_card=race_card,
-                                        horse=horse,
-                                        odds=offer_data["ltp"],
-                                        scratched_horse_numbers=scratched_horse_numbers,
-                                        event_datetime=event_datetime,
-                                        adjustment_factor=1.0,
-                                        n_horses=n_horses
-                                    )
-                                    new_offers.append(bef_offer)
+                        if "rc" in market_condition:
+                            if event_datetime < race_card.off_time:
+                                new_offers = []
+                                for offer_data in market_condition["rc"]:
+                                    horse = id_to_horse_map[offer_data["id"]]
+                                    if horse is None:
+                                        print(f"Could not find horse: {offer_data['id']} on race: {race_card.race_id}")
+                                        print(f"race datetime: {race_datetime}")
+                                        print("-----------------------------------------")
+                                    else:
+                                        bef_offer = BetOffer(
+                                            race_card=race_card,
+                                            horse=horse,
+                                            odds=offer_data["ltp"],
+                                            scratched_horse_numbers=scratched_horse_numbers,
+                                            event_datetime=event_datetime,
+                                            adjustment_factor=1.0,
+                                            n_horses=n_horses,
+                                            n_winners=n_winners
+                                        )
+                                        new_offers.append(bef_offer)
 
-                            betfair_offers += new_offers
+                                betfair_offers += new_offers
 
-                adjustment_factor_lookup = {}
-                final_runners = market_definition["runners"]
+                    adjustment_factor_lookup = {}
+                    final_runners = market_definition["runners"]
 
-                for runner in final_runners:
-                    if runner["status"] == "REMOVED":
-                        adjustment_factor = 0.0
-                        if "adjustmentFactor" in runner:
-                            adjustment_factor = runner["adjustmentFactor"]
-                        if adjustment_factor >= 2.5 or simulate_conf.MARKET_TYPE == "PLACE":
-                            removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
-                            adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}
+                    for runner in final_runners:
+                        if runner["status"] == "REMOVED":
+                            adjustment_factor = 0.0
+                            if "adjustmentFactor" in runner:
+                                adjustment_factor = runner["adjustmentFactor"]
+                            if adjustment_factor >= 2.5 or simulate_conf.MARKET_TYPE == "PLACE":
+                                removal_datetime = datetime.strptime(runner["removalDate"][:-5], "%Y-%m-%dT%H:%M:%S")
+                                adjustment_factor_lookup[runner["name"]] = {"factor": adjustment_factor, "date": removal_datetime}
 
-                for offer in betfair_offers:
-                    for removed_runner in adjustment_factor_lookup.values():
-                        if offer.event_datetime < removed_runner["date"]:
-                            offer.adjustment_factor *= (1 - removed_runner["factor"] / 100)
+                    for offer in betfair_offers:
+                        for removed_runner in adjustment_factor_lookup.values():
+                            if offer.event_datetime < removed_runner["date"]:
+                                offer.adjustment_factor *= (1 - removed_runner["factor"] / 100)
 
-                self.race_offers[str(race_card.datetime)] = betfair_offers
+                    self.race_offers[str(race_card.datetime)] = betfair_offers
 
     def get_scratched_horses(self, race_card: RaceCard, horses: dict) -> List[Horse]:
         scratched_horses = []

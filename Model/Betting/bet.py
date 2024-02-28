@@ -23,19 +23,22 @@ class BetOffer:
     event_datetime: datetime
     adjustment_factor: float
     n_horses: int
+    n_winners: int
 
     def __str__(self) -> str:
         return f"Odds for {self.horse.name}: {self.odds}"
 
     @property
     def minutes_until_race_start(self) -> float:
-        if self.event_datetime is None:
-            return 600
-        return (self.race_card.datetime - self.event_datetime).seconds / 60
+        minutes_diff = (self.race_card.off_time - self.event_datetime).seconds / 60
+
+        if self.event_datetime < self.race_card.off_time:
+            minutes_diff *= -1
+        return minutes_diff
 
     @property
     def near_race_start(self) -> bool:
-        return self.minutes_until_race_start < 10
+        return self.minutes_until_race_start >= -10
 
 
 @dataclass
@@ -180,13 +183,17 @@ class Bettor:
                 for bet_offer in race_offers:
                     if (
                             bet_offer.horse is not None
-                            and not bet_offer.near_race_start
+                            and -900 < bet_offer.minutes_until_race_start < -30
                     ):
-                        probability_estimate = estimation_result.get_horse_win_probability(
-                            race_datetime,
-                            bet_offer.horse.number,
-                            bet_offer.scratched_horse_numbers
-                        )
+                        # probability_estimate = estimation_result.get_horse_win_probability(
+                        #     race_datetime,
+                        #     bet_offer.horse.number,
+                        #     bet_offer.scratched_horse_numbers
+                        # )
+
+                        probability_estimate = None
+                        if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
+                            probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
 
                         stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
                         if stakes > 0.005:

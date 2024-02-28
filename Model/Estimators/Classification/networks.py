@@ -21,9 +21,10 @@ class SequenceWiseBatchNorm1d(nn.Module):
 class SimpleMLP(nn.Module):
     def __init__(self, feature_count: int, dropout_rate: float):
         super().__init__()
+        self.sigmoid = nn.Sigmoid()  # Sigmoid activation for multilabel classification
         self.linear_relu_stack = nn.Sequential(
 
-            nn.Linear(feature_count + 1, 512),
+            nn.Linear((feature_count + 1) * 20, 512),
             nn.ReLU(),
 
             nn.Dropout(dropout_rate),
@@ -33,13 +34,13 @@ class SimpleMLP(nn.Module):
 
             nn.Dropout(dropout_rate),
 
-            nn.Linear(256, 1),
+            nn.Linear(256, 20),
         )
 
     def forward(self, x):
+        x = x.reshape(x.shape[0], -1)
         logits = self.linear_relu_stack(x)
-        # logits = nn.functional.log_softmax(logits, dim=1)
-        logits = torch.squeeze(logits)
+        logits = self.sigmoid(logits)
         return logits
 
 

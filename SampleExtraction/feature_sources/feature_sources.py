@@ -10,13 +10,9 @@ from typing import List, Dict, Callable
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.value_calculators import get_uncorrected_momentum
-from util.speed_calculator import compute_speed_figure, race_card_track_to_win_time_track, \
-    get_horse_time, get_lengths_per_second
 from util.nested_dict import nested_dict
-from util.stats_calculator import OnlineCalculator, SimpleOnlineCalculator, ExponentialOnlineCalculator
+from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator
 
-
-CATEGORY_AVERAGE_CALCULATOR = SimpleOnlineCalculator()
 PAR_MOMENTUM_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 
@@ -93,23 +89,6 @@ class FeatureSource(ABC):
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         pass
 
-    def update_variance(self, category: dict, new_obs: float):
-        if not category["count"]:
-            category["variance"] = 0
-            category["std"] = 0
-        else:
-            n = category["count"]
-
-            variance = 0
-            if n >= 2:
-                old_variance = category["variance"]
-                variance += (n - 2) * old_variance / (n - 1)
-
-            variance += (1 / n) * (new_obs - category["prev_avg"]) * (new_obs - category["prev_avg"])
-
-            category["variance"] = variance
-            category["std"] = sqrt(category["variance"])
-
     def get_name(self) -> str:
         return self.__class__.__name__
 
@@ -119,6 +98,14 @@ class PreviousValueSource(FeatureSource):
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None:
             category["value"] = new_feature_value
+
+
+class PreviousValueScratchedSource(PreviousValueSource):
+
+    def post_update(self, race_card: RaceCard):
+        for horse in race_card.horses:
+            if horse.is_scratched:
+                self.update_horse(race_card, horse)
 
 
 class MaxValueSource(FeatureSource):
@@ -133,6 +120,15 @@ class MinValueSource(FeatureSource):
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None and (not category["value"] or new_feature_value < category["value"]):
             category["value"] = new_feature_value
+
+
+class SumSource(FeatureSource):
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if not category["value"]:
+            category["value"] = new_feature_value
+        else:
+            category["value"] += new_feature_value
 
 
 class CountSource(FeatureSource):
@@ -154,10 +150,9 @@ class AverageValueSource(FeatureSource):
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: Date, average_calculator: OnlineCalculator=None) -> None:
         if new_feature_value is not None:
-            if not category["count"]:
+            if "prev_avg" not in category:
                 category["prev_avg"] = 0
                 category["value"] = new_feature_value
-                category["count"] = 1
                 category["last_obs_date"] = value_date
             else:
                 if new_feature_value == -1:
@@ -165,7 +160,6 @@ class AverageValueSource(FeatureSource):
                 n_days_since_last_obs = (value_date - category["last_obs_date"]).days
 
                 category["prev_avg"] = category["value"]
-                category["count"] += 1
 
                 if average_calculator is None:
                     average_calculator = self.track_variant_average_calculator
@@ -174,19 +168,27 @@ class AverageValueSource(FeatureSource):
                     old_average=category["prev_avg"],
                     new_obs=new_feature_value,
                     n_days_since_last_obs=n_days_since_last_obs,
-                    count=category["count"]
                 )
                 category["last_obs_date"] = value_date
 
     def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
         feature_value_group_key = feature_value_group.get_key(race_card, horse)
         feature_value_group = self.feature_values[feature_value_group_key]
-        if "value" in feature_value_group and feature_value_group["count"] >= self.min_obs_thresh:
+        if "value" in feature_value_group:
             return feature_value_group["value"]
         return None
 
     def get_name(self) -> str:
         return f"{self.__class__.__name__}_{self.window_size}_{self.min_obs_thresh}"
+
+
+class NonRunnerReasonDateSource(FeatureSource):
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if not category["value"]:
+            category["value"] = 1
+        else:
+            category["value"] += 1
 
 
 class HorseNameToSubjectIdSource(FeatureSource):
@@ -207,48 +209,6 @@ class HorseNameToSubjectIdSource(FeatureSource):
             return 1
 
         return len(self.names_to_subject_id[horse_name])
-
-
-class DistancePreferenceSource(FeatureSource):
-
-    def __init__(self):
-        super().__init__()
-        self.horse_past_form = {}
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
-        horse_id = str(horse.subject_id)
-
-        if horse_id not in self.horse_past_form:
-            self.horse_past_form[horse_id] = {}
-            self.horse_past_form[horse_id]["distances"] = []
-            self.horse_past_form[horse_id]["sp"] = []
-
-        if race_card.distance > 0 and horse.betfair_win_sp > 0:
-            self.horse_past_form[horse_id]["distances"].append(race_card.distance)
-            self.horse_past_form[horse_id]["sp"].append(horse.betfair_win_sp)
-
-    def get_preference_of_horse(self, race_card: RaceCard, horse: Horse) -> float:
-        horse_id = str(horse.subject_id)
-
-        if horse_id not in self.horse_past_form:
-            return -1.0
-
-        n_past_distances = len(self.horse_past_form[horse_id]["distances"])
-        if n_past_distances < 3:
-            return -1.0
-
-        similar_distance_sp = []
-
-        for i in range(n_past_distances):
-            past_distance = self.horse_past_form[horse_id]["distances"][i]
-
-            if race_card.distance * 0.9 <= past_distance <= race_card.distance * 1.1:
-                similar_distance_sp.append(self.horse_past_form[horse_id]["sp"][i])
-
-        if not similar_distance_sp:
-            return -1.0
-
-        return mean(similar_distance_sp) / 1000
 
 
 # class DrawBiasSource(FeatureSource):
@@ -281,8 +241,8 @@ class TrackVariantSource(AverageValueSource):
     def __init__(self):
         super().__init__()
         self.is_first_pre_update = True
-        self.track_variant_average_calculator = SimpleOnlineCalculator()
-        self.par_momentum_average_calculator = SimpleOnlineCalculator()
+        self.track_variant_average_calculator = ExponentialOnlineCalculator()
+        self.par_momentum_average_calculator = ExponentialOnlineCalculator()
 
     def warmup(self, race_cards: List[RaceCard]):
         for race_card in race_cards:

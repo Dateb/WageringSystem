@@ -28,7 +28,7 @@ class LeakageDetector:
     def __init__(self):
         self.columns_to_ignore = [
             "Unnamed: 0", "place_num", "place", "label",
-            "current_win_odds", "current_place_odds", "regression_label"
+            "current_win_odds", "current_place_odds", "regression_label", "has_won", "has_placed"
         ]
         self.key_columns = ["race_name", "date_time", "name"]
 

@@ -117,9 +117,6 @@ class LabelPaddingTransformer:
 
 class ClassificationLabelPaddingTransformer(LabelPaddingTransformer):
 
-    def __init__(self):
-        super().__init__()
-
     def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
         n_groups = len(group_counts)
         padded_labels = np.zeros(n_groups)
@@ -131,6 +128,25 @@ class ClassificationLabelPaddingTransformer(LabelPaddingTransformer):
             for j in range(group_count):
                 if labels[group_member_idx]:
                     padded_labels[i] = j
+
+                group_member_idx += 1
+
+        return padded_labels
+
+
+class MultiLabelPaddingTransformer(LabelPaddingTransformer):
+
+    def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
+        n_groups = len(group_counts)
+        padded_labels = np.zeros((n_groups, 20))
+
+        group_member_idx = 0
+        for i in range(n_groups):
+            group_count = group_counts[i]
+
+            for j in range(group_count):
+                if labels[group_member_idx]:
+                    padded_labels[i, j] = 1
 
                 group_member_idx += 1
 

@@ -24,6 +24,8 @@ class Horse:
         PLACE_KEY, HAS_WON_LABEL_KEY, HAS_PLACED_LABEL_KEY, REGRESSION_LABEL_KEY
     ]
 
+    NONRUNNER_REASONS = {}
+
     def __init__(self, raw_data: dict):
         self.base_attributes = {}
 
@@ -63,6 +65,7 @@ class Horse:
         self.sp_win_prob = -1
 
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
+        self.sp_place_prob = -1 if self.betfair_place_sp == 0 else 1 / self.betfair_place_sp
 
         self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place_racebets == 1 else 0
@@ -110,7 +113,7 @@ class Horse:
             self.PLACE_KEY: self.place_racebets,
             self.HAS_WON_LABEL_KEY: self.has_won,
             self.HAS_PLACED_LABEL_KEY: self.has_placed,
-            self.REGRESSION_LABEL_KEY: self.sp_win_prob,
+            self.REGRESSION_LABEL_KEY: self.has_placed,
         }
 
         self.__features = {}

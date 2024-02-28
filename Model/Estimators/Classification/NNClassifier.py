@@ -1,15 +1,15 @@
-from typing import Tuple, Any
+from typing import Tuple
 
 import numpy as np
 import torch
 from numpy import ndarray
-from pandas import Series, DataFrame
-from pandas.core.generic import NDFrame
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from torch.utils.data import DataLoader, TensorDataset
 
 from Model.Estimators.Classification.networks import SimpleMLP
+from Model.Estimators.estimated_probabilities_creation import EstimationResult, RawWinProbabilizer
+from Model.Estimators.util.metrics import get_accuracy
 from Model.Estimators.util.sample_loading import TrainRaceCardLoader, TestRaceCardLoader
 
 from Model.Estimators.Estimator import Estimator
@@ -31,10 +31,10 @@ class NNClassifier(Estimator):
     ):
         super().__init__(feature_manager)
 
+        self.probabilizer = RawWinProbabilizer()
         self.params = params
         self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
-        # self.loss_function = self.params["loss_function"]
-        self.loss_function = torch.nn.MSELoss()
+        self.loss_function = self.params["loss_function"]
 
         self.device = (
             "cuda"
@@ -52,7 +52,7 @@ class NNClassifier(Estimator):
             train_sample: RaceCardsSample,
             validation_sample: RaceCardsSample,
             test_sample: RaceCardsSample
-    ) -> Tuple[ndarray, float]:
+    ) -> Tuple[EstimationResult, float]:
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
 
         self.fit_validate(train_sample, validation_sample)
@@ -60,7 +60,14 @@ class NNClassifier(Estimator):
         print("Model tuning completed!")
         test_loss = self.score_test_sample(test_sample)
 
-        return test_sample.race_cards_dataframe["score"], test_loss
+        print(f"Test accuracy NN-Model: {get_accuracy(test_sample)}")
+
+        estimation_result = self.probabilizer.create_estimation_result(
+            test_sample,
+            test_sample.race_cards_dataframe["score"]
+        )
+
+        return estimation_result, test_loss
 
     def score_test_sample(self, test_sample: RaceCardsSample):
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
@@ -239,11 +246,7 @@ class NNClassifier(Estimator):
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
         tensor_x = torch.Tensor(x)
-
-        if simulate_conf.LEARNING_MODE == "Classification":
-            label_dtype = torch.LongTensor
-        else:
-            label_dtype = torch.FloatTensor
+        label_dtype = torch.FloatTensor
 
         tensor_y = torch.Tensor(y).type(label_dtype)
 

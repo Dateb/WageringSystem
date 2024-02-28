@@ -8,7 +8,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.util.padding import FeaturePaddingTransformer, \
-    ClassificationLabelPaddingTransformer, RegressionLabelPaddingTransformer
+    ClassificationLabelPaddingTransformer, RegressionLabelPaddingTransformer, \
+    MultiLabelPaddingTransformer
 from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -31,7 +32,7 @@ class RaceCardLoader(ABC):
         self.feature_padding_transformer = feature_padding_transformer
 
         if simulate_conf.LEARNING_MODE == "Classification":
-            self.label_padding_transformer = ClassificationLabelPaddingTransformer()
+            self.label_padding_transformer = MultiLabelPaddingTransformer()
         else:
             self.label_padding_transformer = RegressionLabelPaddingTransformer()
 
@@ -42,7 +43,10 @@ class RaceCardLoader(ABC):
 
         horse_features = sample.race_cards_dataframe[selected_feature_names]
         if simulate_conf.LEARNING_MODE == "Classification":
-            horse_labels = sample.race_cards_dataframe[Horse.HAS_WON_LABEL_KEY].to_numpy()
+            if simulate_conf.MARKET_TYPE == "WIN":
+                horse_labels = sample.race_cards_dataframe[Horse.HAS_WON_LABEL_KEY].to_numpy()
+            else:
+                horse_labels = sample.race_cards_dataframe[Horse.HAS_PLACED_LABEL_KEY].to_numpy()
         else:
             horse_labels = sample.race_cards_dataframe[Horse.REGRESSION_LABEL_KEY].to_numpy()
 

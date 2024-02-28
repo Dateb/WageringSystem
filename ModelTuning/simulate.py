@@ -65,11 +65,11 @@ class ModelSimulator:
 
         self.feature_manager = FeatureManager()
 
-        gbt_estimator = BoostedTreesRanker(self.feature_manager)
-        # nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+        # gbt_estimator = BoostedTreesRanker(self.feature_manager)
+        nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
 
         # self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_estimator, nn_estimator])
-        self.estimator = gbt_estimator
+        self.estimator = nn_estimator
 
         race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
@@ -110,7 +110,7 @@ class ModelSimulator:
         test_race_cards = {}
         race_results_container = RaceResultsContainer()
 
-        test_race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager, encode_only_runners=False)
+        test_race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager, encode_only_runners=True)
 
         self.test_sample = load_sample(
             test_race_cards_array_factory,
@@ -124,16 +124,13 @@ class ModelSimulator:
 
         self.test_race_cards = {
             race_key: race_card for race_key, race_card in test_race_cards.items()
-            if race_card.category in ["HCP"]
         }
 
     def simulate_prediction(self) -> float:
         # TODO: remove saving from function
         self.test_sample.race_cards_dataframe.to_csv("../data/samples/test_sample.csv")
 
-        scores, test_loss = self.estimator.predict(self.train_sample, self.validation_sample, self.test_sample)
-
-        self.estimation_result = self.probabilizer.create_estimation_result(deepcopy(self.test_sample), scores)
+        self.estimation_result, test_loss = self.estimator.predict(self.train_sample, self.validation_sample, self.test_sample)
 
         return test_loss
 

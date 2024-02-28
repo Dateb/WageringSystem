@@ -7,14 +7,14 @@ LEARNING_CURVE_PATH = "../data/learning_curve.dat"
 TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
 ESTIMATOR_PATH = "../data/estimator.dat"
 
-LEARNING_MODE = "Regression"
+LEARNING_MODE = "Classification"
 
 if LEARNING_MODE == "Classification":
-    LOSS_FUNCTION = nn.CrossEntropyLoss()
+    LOSS_FUNCTION = nn.BCELoss()
 else:
-    LOSS_FUNCTION = nn.KLDivLoss(reduction="batchmean")
+    LOSS_FUNCTION = nn.MSELoss()
 
-MARKET_TYPE = "WIN"
+MARKET_TYPE = "PLACE"
 MARKET_SOURCE = "Betfair"
 STAKES_CALCULATOR = "Fixed"
 

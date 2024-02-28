@@ -8,6 +8,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from numpy import ndarray
 
 from Model.Estimators.place_calculation import compute_place_probabilities, compute_place_probabilities_of_race
+from Model.Estimators.util.metrics import get_accuracy_by_win_probability
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -36,15 +37,17 @@ class Probabilizer(ABC):
     def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
         pass
 
-    def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray) -> pd.DataFrame:
+    def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray, win_prob_column_name: str = "win_probability") -> pd.DataFrame:
         race_cards_dataframe.loc[:, "score"] = scores
 
         race_cards_dataframe.loc[:, "exp_score"] = np.exp(race_cards_dataframe.loc[:, "score"])
         score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
         race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
 
-        race_cards_dataframe.loc[:, "win_probability"] = \
+        race_cards_dataframe.loc[:, win_prob_column_name] = \
             race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"]
+
+        race_cards_dataframe = race_cards_dataframe.drop("sum_exp_scores", axis=1)
 
         return race_cards_dataframe
 
@@ -69,6 +72,55 @@ class WinProbabilizer(Probabilizer):
                 probability_estimates[race_datetime] = {}
 
             probability_estimates[race_datetime][row.number] = win_probability
+
+        return EstimationResult(probability_estimates)
+
+
+class RawWinProbabilizer(Probabilizer):
+
+    def __init__(self):
+        super().__init__()
+
+    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
+        race_cards_dataframe = race_cards_sample.race_cards_dataframe
+        probability_estimates = {}
+
+        for row in race_cards_dataframe.itertuples(index=False):
+            race_datetime = str(row.date_time)
+            if race_datetime not in probability_estimates:
+                probability_estimates[race_datetime] = {}
+
+            probability_estimates[race_datetime][row.number] = row.score
+
+        return EstimationResult(probability_estimates)
+
+
+class AggWinProbabilizer(Probabilizer):
+
+    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores_per_model: List[ndarray]) -> EstimationResult:
+        win_prob_columns = [f"win_probability_{i}" for i in range(len(scores_per_model))]
+        for i in range(len(scores_per_model)):
+            scores = scores_per_model[i]
+            race_cards_sample.race_cards_dataframe = self.set_win_probabilities(race_cards_sample.race_cards_dataframe, scores, win_prob_column_name=win_prob_columns[i])
+
+        race_cards_sample.race_cards_dataframe["win_probability"] = race_cards_sample.race_cards_dataframe[win_prob_columns].mean(axis=1)
+
+        print(race_cards_sample.race_cards_dataframe["win_probability_0"])
+        print(race_cards_sample.race_cards_dataframe["win_probability_1"])
+        print(race_cards_sample.race_cards_dataframe["win_probability"])
+
+        probability_estimates = {}
+
+        for row in race_cards_sample.race_cards_dataframe.itertuples(index=False):
+            win_probability = row.win_probability
+
+            race_datetime = str(row.date_time)
+            if race_datetime not in probability_estimates:
+                probability_estimates[race_datetime] = {}
+
+            probability_estimates[race_datetime][row.number] = win_probability
+
+        print(f"Test accuracy ensemble-average: {get_accuracy_by_win_probability(race_cards_sample)}")
 
         return EstimationResult(probability_estimates)
 

@@ -66,8 +66,8 @@ class RaceCard:
 
         self.race_number = race["raceNumber"]
 
-        distance = race["distance"]
-        self.adjusted_distance = distance
+        self.distance = race["distance"]
+        self.adjusted_distance = self.distance
         if "adjusted_distance" in race:
             self.adjusted_distance = race["adjusted_distance"]
 
@@ -108,15 +108,14 @@ class RaceCard:
         self.n_horses = len(self.horses)
         self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
 
-        self.overround = sum([1 / horse.betfair_place_sp for horse in self.runners if horse.betfair_place_sp > 0])
+        self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
         if self.overround > 0:
             for horse in self.horses:
-                if horse.betfair_place_sp >= 1:
-                    horse.sp_win_prob = (1 / horse.betfair_place_sp)
+                if horse.betfair_win_sp >= 1:
+                    horse.sp_win_prob = (1 / horse.betfair_win_sp)
                     horse.base_attributes[Horse.REGRESSION_LABEL_KEY] = horse.sp_win_prob
 
-        self.places_num = -1
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
 
@@ -305,8 +304,8 @@ class RaceCard:
         RaceCard.track_variant = {}
 
     def get_distance_category(self) -> float:
-        distance_increment = max(int(self.adjusted_distance / 1000) * 100, 50)
-        return round(self.adjusted_distance / distance_increment) * distance_increment
+        distance_increment = max(int(self.distance / 1000) * 100, 50)
+        return round(self.distance / distance_increment) * distance_increment
 
     def set_validity(self) -> None:
         if self.n_horses <= 1:
@@ -327,7 +326,3 @@ class RaceCard:
 
         if self.n_horses > 20:
             self.is_valid_sample = False
-
-        for runner in self.runners:
-            if runner.sp_win_prob == -1:
-                self.is_valid_sample = False
