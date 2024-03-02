@@ -14,13 +14,11 @@ class MonthDataSplitter:
     def __init__(
             self,
             container_upper_limit_percentage: float,
-            train_upper_limit_percentage: float,
             n_months_test_sample: int,
             n_months_forward_offset: int,
             race_cards_folder: str
     ):
         self.container_upper_limit_percentage = container_upper_limit_percentage
-        self.train_upper_limit_percentage = train_upper_limit_percentage
         self.n_months_test_sample = n_months_test_sample
         self.n_months_forward_offset = n_months_forward_offset
 
@@ -28,11 +26,10 @@ class MonthDataSplitter:
         file_names = self.race_cards_loader.race_card_file_names
 
         non_test_sample_file_names = file_names[self.n_months_forward_offset:-self.n_months_test_sample]
-        self.container_file_names, self.train_file_names, self.validation_file_names = np.split(
+        self.container_file_names, self.train_file_names = np.split(
             non_test_sample_file_names,
             [
                 int(len(non_test_sample_file_names) * self.container_upper_limit_percentage),
-                int(len(non_test_sample_file_names) * self.train_upper_limit_percentage)
             ]
         )
         self.test_file_names = file_names[-self.n_months_test_sample:]
@@ -41,7 +38,7 @@ class MonthDataSplitter:
             self.container_file_names = [self.train_file_names[0]]
             self.train_file_names = self.train_file_names[1:]
 
-        self.n_non_test_months = len(self.container_file_names) + len(self.train_file_names) + len(self.validation_file_names)
+        self.n_non_test_months = len(self.container_file_names) + len(self.train_file_names)
 
 
 class BlockSplitter:

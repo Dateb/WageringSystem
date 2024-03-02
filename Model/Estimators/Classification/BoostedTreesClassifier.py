@@ -89,7 +89,7 @@ class BoostedTreesClassifier(Estimator):
         # self.parameter_set = {**self.FIXED_PARAMS}
 
     def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
-        self.fit_validate(train_sample, validation_sample)
+        self.fit(train_sample, validation_sample)
 
         print("Model tuning completed!")
         test_loss = self.score_test_sample(test_sample)
@@ -118,7 +118,7 @@ class BoostedTreesClassifier(Estimator):
 
         return 0
 
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+    def fit(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         train_val_df = pd.concat(
             objs=[train_sample.race_cards_dataframe, validation_sample.race_cards_dataframe],
             ignore_index=True,

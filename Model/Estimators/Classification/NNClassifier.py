@@ -55,7 +55,7 @@ class NNClassifier(Estimator):
     ) -> Tuple[EstimationResult, float]:
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
 
-        self.fit_validate(train_sample, validation_sample)
+        self.fit(train_sample, validation_sample)
 
         print("Model tuning completed!")
         test_loss = self.score_test_sample(test_sample)
@@ -93,7 +93,7 @@ class NNClassifier(Estimator):
 
         return test_loss
 
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+    def fit(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.fillna(-1)
 
         validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.fillna(-1)

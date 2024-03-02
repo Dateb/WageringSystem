@@ -77,7 +77,6 @@ class ModelSimulator:
 
         print(f"#container months: {len(self.month_data_splitter.container_file_names)}")
         print(f"#train months: {len(self.month_data_splitter.train_file_names)}")
-        print(f"#validation months: {len(self.month_data_splitter.validation_file_names)}")
         print(f"#test months: {len(self.month_data_splitter.test_file_names)}")
 
         for race_card_file_name in tqdm(self.month_data_splitter.container_file_names):
@@ -102,15 +101,7 @@ class ModelSimulator:
             race_cards_save_callbacks=[]
         )
 
-        validation_sample = load_sample(
-            self.race_cards_array_factory,
-            self.sample_encoder,
-            self.month_data_splitter.race_cards_loader,
-            self.month_data_splitter.validation_file_names,
-            race_cards_save_callbacks=[]
-        )
-
-        self.estimator.fit_validate(train_sample, validation_sample)
+        self.estimator.fit(train_sample)
         print("Model tuning completed!")
 
     def simulate_prediction(self) -> float:
@@ -152,9 +143,8 @@ class ModelSimulator:
 if __name__ == '__main__':
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        train_upper_limit_percentage=0.8,
-        n_months_test_sample=14,
-        n_months_forward_offset=0,
+        n_months_test_sample=4,
+        n_months_forward_offset=95,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

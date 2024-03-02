@@ -98,7 +98,7 @@ class EstimatorConfiguration:
 
         estimator.feature_manager.selected_features = self.selected_features
 
-        return -estimator.fit_validate(train_sample, validation_sample)
+        return -estimator.fit(train_sample, validation_sample)
 
         # cv_result = lightgbm.cv(
         #     self.parameter_set,

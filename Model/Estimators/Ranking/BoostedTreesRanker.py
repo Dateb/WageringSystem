@@ -24,7 +24,7 @@ class GBTObjective:
         self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
-        num_rounds = trial.suggest_int("num_rounds", 500, 800)
+        num_rounds = trial.suggest_int("num_rounds", 700, 1100)
 
         search_params = {
             "num_leaves": trial.suggest_int("num_leaves", 2, 8),
@@ -116,12 +116,8 @@ class BoostedTreesRanker(Estimator):
 
         return 0
 
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
-        train_val_df = pd.concat(
-            objs=[train_sample.race_cards_dataframe, validation_sample.race_cards_dataframe],
-            ignore_index=True,
-            axis=0
-        )
+    def fit(self, train_sample: RaceCardsSample) -> float:
+        train_val_df = train_sample.race_cards_dataframe
 
         for cat_feature_name in self.categorical_feature_names:
             cat_gbt_feature_name = f"{cat_feature_name}_gbt"
@@ -155,10 +151,10 @@ class BoostedTreesRanker(Estimator):
         # self.num_boost_round = trial.params["num_rounds"]
         # del trial.params["num_rounds"]
 
-        self.num_boost_round = 554
-        search_params = {'num_leaves': 5, 'lambda_l1': 9.56619418630856e-05, 'lambda_l2': 0.00022053693841990408,
-         'feature_fraction': 0.41424974477594756, 'bagging_fraction': 0.8352734213423343, 'bagging_freq': 5,
-         'min_child_samples': 133}
+        self.num_boost_round = 606
+        search_params = {'num_leaves': 6, 'lambda_l1': 0.2800063037476619, 'lambda_l2': 4.009126325407914e-05,
+         'feature_fraction': 0.341378039566251, 'bagging_fraction': 0.997675253909045, 'bagging_freq': 5,
+         'min_child_samples': 140}
 
         self.params = {**self.FIXED_PARAMS, **search_params}
 

@@ -15,7 +15,7 @@ class Estimator(ABC):
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         pass
 
-    def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+    def fit(self, train_sample: RaceCardsSample) -> float:
         pass
 
     def score_test_sample(self, test_sample: RaceCardsSample):
