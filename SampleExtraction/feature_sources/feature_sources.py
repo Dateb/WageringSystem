@@ -157,6 +157,7 @@ class AverageValueSource(FeatureSource):
             else:
                 if new_feature_value == -1:
                     print(f'yellow. new feature value == -1. cat: {category}')
+                    raise ValueError
                 n_days_since_last_obs = (value_date - category["last_obs_date"]).days
 
                 category["prev_avg"] = category["value"]

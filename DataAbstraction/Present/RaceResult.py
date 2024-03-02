@@ -20,12 +20,14 @@ class RaceResult:
                 win_odds=0,
                 place_odds=0,
                 place_num=0,
+                has_won=horse.has_won,
+                has_placed=horse.has_placed
             )
 
         self.places_num = places_num
 
-    def get_place_of_horse_name(self, horse_name: str) -> int:
-        return self.horse_results[horse_name].place
+    def get_result_of_horse(self, horse_name: str) -> HorseResult:
+        return self.horse_results[horse_name]
 
     @property
     def horse_names(self) -> List[str]:

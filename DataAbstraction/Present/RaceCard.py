@@ -19,7 +19,6 @@ class RaceCard:
     RACE_NAME_KEY: str = "race_name"
     DATETIME_KEY: str = "date_time"
     RACE_ID_KEY: str = "race_id"
-    N_HORSES_KEY: str = "n_runners"
     PLACE_NUM_KEY: str = "place_num"
 
     base_times: defaultdict = nested_dict()
@@ -96,6 +95,8 @@ class RaceCard:
         self.race_status = race["raceStatus"]
         self.is_open = self.race_status == "OPN"
 
+        self.places_num = 1
+        self.n_horses = 0
         self.set_horses(raw_race_card["runners"]["data"])
 
         self.num_winners = len([runner for runner in self.runners if runner.has_won])
@@ -105,16 +106,12 @@ class RaceCard:
         if first_place_horse_names:
             self.winner_name = first_place_horse_names[0]
 
-        self.n_horses = len(self.horses)
-        self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
-
         self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
         if self.overround > 0:
             for horse in self.horses:
                 if horse.betfair_win_sp >= 1:
                     horse.sp_win_prob = (1 / horse.betfair_win_sp)
-                    horse.base_attributes[Horse.REGRESSION_LABEL_KEY] = horse.sp_win_prob
 
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
@@ -123,7 +120,6 @@ class RaceCard:
             self.RACE_NAME_KEY: self.name,
             self.DATETIME_KEY: self.datetime,
             self.RACE_ID_KEY: self.race_id,
-            self.N_HORSES_KEY: self.n_horses,
             self.PLACE_NUM_KEY: self.places_num
         }
 
@@ -131,9 +127,17 @@ class RaceCard:
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
+        self.n_horses = len(self.horses)
+        self.runners = [horse for horse in self.horses if not horse.is_scratched]
+        self.n_runners = len(self.runners)
+        self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
+
+        for runner in self.runners:
+            runner.place = self.n_runners
+
         placed_horses = sorted([horse for horse in self.horses if horse.place_racebets > 0], key=lambda horse: horse.place_racebets)
 
-        placed_horse_idx = 0
+        placed_horse_idx = 1
         total_horse_distance = 0
         for horse in placed_horses:
             horse.place = placed_horse_idx
@@ -144,21 +148,24 @@ class RaceCard:
 
         self.total_horses = self.horses
 
-        self.runners = [horse for horse in self.horses if not horse.is_scratched]
-
-        self.n_runners = len(self.runners)
-        self.places_num = 1
-
         if 5 <= self.n_runners <= 7:
             self.places_num = 2
         if 8 <= self.n_runners <= 15:
             self.places_num = 3
         if 16 <= self.n_runners:
-            self.places_num = 4
+            if self.category == "HCP":
+                self.places_num = 4
+            else:
+                self.places_num = 3
 
         for horse in self.runners:
-            horse.has_placed = horse.place <= self.places_num
+            horse.has_placed = 1 <= horse.place <= self.places_num
             horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
+
+        n_placed_horses = len([horse for horse in self.runners if horse.has_placed])
+        if n_placed_horses > self.places_num:
+            print(f"Places num is {self.places_num} but {n_placed_horses} horses placed: {self.race_id}")
+            print(f"n_finishers: {self.n_finishers}")
 
         # if self.remove_non_starters:
         #     self.__remove_non_starters()

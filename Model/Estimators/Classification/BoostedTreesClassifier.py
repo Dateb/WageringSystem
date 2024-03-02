@@ -10,7 +10,7 @@ from numpy import ndarray
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimators.Estimator import Estimator
-from Model.Estimators.estimated_probabilities_creation import EstimationResult, WinProbabilizer
+from Model.Estimators.estimated_probabilities_creation import EstimationResult, WinProbabilizer, RawWinProbabilizer
 from Model.Estimators.util.metrics import get_accuracy
 from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
@@ -51,12 +51,14 @@ class GBTObjective:
         return cv_score
 
 
-class BoostedTreesRanker(Estimator):
+class BoostedTreesClassifier(Estimator):
     RANKING_SEED = 30
 
     FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
-        "objective": "lambdarank",
+        "objective": "multiclass",
+        "metric": "multi_logloss",
+        "num_class": 2,
         "deterministic": True,
         "force_row_wise": True,
         "device": "cpu",
@@ -75,11 +77,8 @@ class BoostedTreesRanker(Estimator):
 
     def __init__(self, feature_manager: FeatureManager):
         super().__init__(feature_manager)
-        self.probabilizer = WinProbabilizer()
-        if simulate_conf.MARKET_TYPE == "WIN":
-            self.label_name = Horse.HAS_PLACED_LABEL_KEY
-        else:
-            self.label_name = Horse.HAS_PLACED_LABEL_KEY
+        self.probabilizer = RawWinProbabilizer()
+        self.label_name = Horse.HAS_PLACED_LABEL_KEY
         self.feature_manager = feature_manager
         self.booster: Booster = None
 
@@ -89,14 +88,17 @@ class BoostedTreesRanker(Estimator):
 
         # self.parameter_set = {**self.FIXED_PARAMS}
 
-    def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
-        test_loss = self.score_test_sample(sample)
+    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
+        self.fit_validate(train_sample, validation_sample)
+
+        print("Model tuning completed!")
+        test_loss = self.score_test_sample(test_sample)
 
         # test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
-        print(f"Test accuracy gbt-model: {get_accuracy(sample)}")
+        print(f"Test accuracy gbt-model: {get_accuracy(test_sample)}")
 
-        estimation_result = self.probabilizer.create_estimation_result(sample, sample.race_cards_dataframe["score"])
+        estimation_result = self.probabilizer.create_estimation_result(test_sample, test_sample.race_cards_dataframe["score"])
 
         return estimation_result, test_loss
 
@@ -108,11 +110,11 @@ class BoostedTreesRanker(Estimator):
 
         race_cards_dataframe = test_sample.race_cards_dataframe
         X = race_cards_dataframe[self.feature_names]
-        scores = self.booster.predict(X)
+        class_probs = self.booster.predict(X)
 
         test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
-        test_sample.race_cards_dataframe["score"] = scores
+        test_sample.race_cards_dataframe["score"] = class_probs[:, 1]
 
         return 0
 
@@ -173,80 +175,6 @@ class BoostedTreesRanker(Estimator):
 
         return 0.0
 
-    def rfe_booster(self, df: pd.DataFrame):
-        dataset = self.get_dataset(df, self.feature_names, self.cat_gbt_feature_names)
-
-        sorted_feature_importances = self.get_sorted_feature_importances(dataset, self.feature_names, self.cat_gbt_feature_names)
-        importance_sum = self.get_importance_sum(sorted_feature_importances)
-        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                        sorted_feature_importances.items()}
-        ordered_feature_names = list(relative_feature_importances.keys())
-
-        eval_results = lightgbm.cv(
-            params=self.params,
-            train_set=dataset,
-            num_boost_round=self.num_boost_round,
-            categorical_feature=self.cat_gbt_feature_names,
-            return_cvbooster=True
-        )
-
-        best_cv_score = eval_results["valid ndcg@1-mean"][-1]
-
-        removed_feature_names = []
-        improvement_found = True
-        while improvement_found:
-            improvement_found = False
-            for feature_name in ordered_feature_names:
-                if not improvement_found:
-                    feature_name_subset = copy(self.feature_names)
-                    feature_name_subset.remove(feature_name)
-
-                    categorical_feature_name_subset = copy(self.cat_gbt_feature_names)
-                    if feature_name in self.cat_gbt_feature_names:
-                        categorical_feature_name_subset.remove(feature_name)
-
-                    dataset = self.get_dataset(df, feature_name_subset, categorical_feature_name_subset)
-
-                    eval_results = lightgbm.cv(
-                        params=self.params,
-                        train_set=dataset,
-                        num_boost_round=self.num_boost_round,
-                        categorical_feature=categorical_feature_name_subset,
-                        return_cvbooster=True
-                    )
-
-                    cv_score = eval_results["valid ndcg@1-mean"][-1]
-
-                    sorted_feature_importances = self.get_sorted_feature_importances(dataset, feature_name_subset, categorical_feature_name_subset)
-                    importance_sum = self.get_importance_sum(sorted_feature_importances)
-
-                    relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                                    sorted_feature_importances.items()}
-
-                    if cv_score > best_cv_score:
-                        removed_feature_names.append(feature_name)
-                        print(f"{importance_sum}: {relative_feature_importances}")
-                        print(f"Best score: {best_cv_score}")
-                        print(f"Removed features: {removed_feature_names}")
-                        best_cv_score = cv_score
-                        improvement_found = True
-
-                        self.feature_names.remove(feature_name)
-                        if feature_name in self.categorical_feature_names:
-                            self.categorical_feature_names.remove(feature_name)
-
-                        ordered_feature_names = list(relative_feature_importances.keys())
-
-        dataset = self.get_dataset(df, self.feature_names, self.categorical_feature_names)
-        booster = lightgbm.train(
-            num_boost_round=self.num_boost_round,
-            params=self.params,
-            train_set=dataset,
-            categorical_feature=self.cat_gbt_feature_names,
-        )
-
-        return booster
-
     def get_sorted_feature_importances(self, dataset: Dataset, feature_names: List[str], categorical_feature_names: List[str]):
         booster = lightgbm.train(
             num_boost_round=self.num_boost_round,
@@ -271,11 +199,9 @@ class BoostedTreesRanker(Estimator):
     def get_dataset(self, samples_train: pd.DataFrame, feature_names: List[str], categorical_feature_names: List[str]) -> Dataset:
         input_data = samples_train[feature_names]
         label = samples_train[self.label_name].astype(dtype="int")
-        group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
         return Dataset(
             data=input_data,
             label=label,
-            group=group,
             categorical_feature=categorical_feature_names
         )

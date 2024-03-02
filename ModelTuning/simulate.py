@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
+from Model.Estimators.Classification.BoostedTreesClassifier import BoostedTreesClassifier
 from Model.Estimators.Classification.NNClassifier import NNClassifier
 from Model.Estimators.Classification.SVMClassifier import SVMClassifier
 from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
@@ -65,13 +66,14 @@ class ModelSimulator:
 
         self.feature_manager = FeatureManager()
 
-        # gbt_estimator = BoostedTreesRanker(self.feature_manager)
-        nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+        gbt_ranker = BoostedTreesRanker(self.feature_manager)
+        # nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+        # gbt_classifier = BoostedTreesClassifier(self.feature_manager)
 
-        # self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_estimator, nn_estimator])
-        self.estimator = nn_estimator
+        # self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_ranker, nn_estimator])
+        self.estimator = gbt_ranker
 
-        race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
+        self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
         print(f"#container months: {len(self.month_data_splitter.container_file_names)}")
         print(f"#train months: {len(self.month_data_splitter.train_file_names)}")
@@ -81,7 +83,7 @@ class ModelSimulator:
         for race_card_file_name in tqdm(self.month_data_splitter.container_file_names):
             race_cards = self.month_data_splitter.race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
-            race_cards_array_factory.race_cards_to_array(race_cards)
+            self.race_cards_array_factory.race_cards_to_array(race_cards)
 
         # features not known from the container race card
         # TODO: this throws an indexerror when containers are none
@@ -89,32 +91,39 @@ class ModelSimulator:
         container_race_cards = list(container_race_cards.values())
         self.columns = container_race_cards[0].attributes + self.feature_manager.feature_names
 
-        sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
+        self.sample_encoder = SampleEncoder(self.feature_manager.features, self.columns)
 
-        self.train_sample = load_sample(
-            race_cards_array_factory,
-            sample_encoder,
+    def fit_estimator(self) -> None:
+        train_sample = load_sample(
+            self.race_cards_array_factory,
+            self.sample_encoder,
             self.month_data_splitter.race_cards_loader,
             self.month_data_splitter.train_file_names,
             race_cards_save_callbacks=[]
         )
 
-        self.validation_sample = load_sample(
-            race_cards_array_factory,
-            sample_encoder,
+        validation_sample = load_sample(
+            self.race_cards_array_factory,
+            self.sample_encoder,
             self.month_data_splitter.race_cards_loader,
             self.month_data_splitter.validation_file_names,
             race_cards_save_callbacks=[]
         )
 
+        self.estimator.fit_validate(train_sample, validation_sample)
+        print("Model tuning completed!")
+
+    def simulate_prediction(self) -> float:
+        self.fit_estimator()
+
         test_race_cards = {}
         race_results_container = RaceResultsContainer()
 
-        test_race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager, encode_only_runners=True)
+        test_race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager, encode_only_runners=False)
 
-        self.test_sample = load_sample(
+        test_sample = load_sample(
             test_race_cards_array_factory,
-            sample_encoder,
+            self.sample_encoder,
             self.month_data_splitter.race_cards_loader,
             self.month_data_splitter.test_file_names,
             race_cards_save_callbacks=[race_results_container.add_results_from_race_cards, test_race_cards.update]
@@ -126,11 +135,10 @@ class ModelSimulator:
             race_key: race_card for race_key, race_card in test_race_cards.items()
         }
 
-    def simulate_prediction(self) -> float:
         # TODO: remove saving from function
-        self.test_sample.race_cards_dataframe.to_csv("../data/samples/test_sample.csv")
+        test_sample.race_cards_dataframe.to_csv("../data/samples/test_sample.csv")
 
-        self.estimation_result, test_loss = self.estimator.predict(self.train_sample, self.validation_sample, self.test_sample)
+        self.estimation_result, test_loss = self.estimator.predict(test_sample)
 
         return test_loss
 

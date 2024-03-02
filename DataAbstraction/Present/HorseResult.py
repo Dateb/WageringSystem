@@ -13,3 +13,5 @@ class HorseResult:
     win_odds: float
     place_odds: float
     place_num: int
+    has_won: bool
+    has_placed: bool

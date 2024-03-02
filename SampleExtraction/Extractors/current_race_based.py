@@ -11,6 +11,15 @@ from SampleExtraction.feature_sources.value_calculators import get_track_name
 from util.category_encoder import get_category_encoding
 
 
+class HasPlaced(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
+        return int(horse.has_placed)
+
+
 class CurrentPurse(FeatureExtractor):
 
     def __init__(self):

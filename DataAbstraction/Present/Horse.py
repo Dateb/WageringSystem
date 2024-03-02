@@ -15,13 +15,12 @@ class Horse:
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     HAS_WON_LABEL_KEY: str = "has_won"
     HAS_PLACED_LABEL_KEY: str = "has_placed"
-    REGRESSION_LABEL_KEY: str = "regression_label"
     WIN_PROBABILITY_KEY: str = "win_probability"
     BASE_EXPECTED_VALUE_KEY: str = "base_expected_value"
     BASE_ATTRIBUTE_NAMES: List[str] = [
         NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
-        PLACE_KEY, HAS_WON_LABEL_KEY, HAS_PLACED_LABEL_KEY, REGRESSION_LABEL_KEY
+        PLACE_KEY, HAS_WON_LABEL_KEY, HAS_PLACED_LABEL_KEY
     ]
 
     NONRUNNER_REASONS = {}
@@ -53,7 +52,7 @@ class Horse:
             self.equipments = set(raw_data["equipCode"].split("+"))
 
         self.place_racebets = self.__extract_place(raw_data)
-        self.place = -1
+        self.place = 0
         self.relevance = 0
 
         self.racebets_win_odds_history = []
@@ -113,7 +112,6 @@ class Horse:
             self.PLACE_KEY: self.place_racebets,
             self.HAS_WON_LABEL_KEY: self.has_won,
             self.HAS_PLACED_LABEL_KEY: self.has_placed,
-            self.REGRESSION_LABEL_KEY: self.has_placed,
         }
 
         self.__features = {}

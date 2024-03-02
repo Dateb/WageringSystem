@@ -271,7 +271,7 @@ class BetAgent:
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
 
-        race_cards = [race_card for race_card in race_cards if race_card.category == "HCP"]
+        # race_cards = [race_card for race_card in race_cards if race_card.category == "HCP"]
 
         return {str(race_card.datetime): race_card for race_card in race_cards}
 

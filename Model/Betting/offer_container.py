@@ -112,7 +112,7 @@ class BetfairOfferContainer(BetOfferContainer):
                 n_horses = len(horses)
                 id_to_horse_map = {runner["id"]: race_card.get_horse_by_horse_name(runner["name"]) for runner in horses}
 
-                if n_winners != race_card.places_num or simulate_conf.MARKET_TYPE != "PLACE":
+                if n_winners == race_card.places_num or simulate_conf.MARKET_TYPE != "PLACE":
                     for history_dict in history_dict_iterator:
                         unix_time_stamp = int(history_dict["pt"] / 1000)
                         event_datetime = datetime.fromtimestamp(unix_time_stamp)

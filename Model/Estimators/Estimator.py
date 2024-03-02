@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from numpy import ndarray
-
+from Model.Estimators.estimated_probabilities_creation import EstimationResult
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
@@ -13,7 +12,7 @@ class Estimator(ABC):
         self.feature_manager = feature_manager
 
     @abstractmethod
-    def predict(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample, test_sample: RaceCardsSample) -> Tuple[ndarray, float]:
+    def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         pass
 
     def fit_validate(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:

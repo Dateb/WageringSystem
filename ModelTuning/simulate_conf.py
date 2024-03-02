@@ -10,11 +10,11 @@ ESTIMATOR_PATH = "../data/estimator.dat"
 LEARNING_MODE = "Classification"
 
 if LEARNING_MODE == "Classification":
-    LOSS_FUNCTION = nn.BCELoss()
+    LOSS_FUNCTION = nn.CrossEntropyLoss()
 else:
     LOSS_FUNCTION = nn.MSELoss()
 
-MARKET_TYPE = "PLACE"
+MARKET_TYPE = "WIN"
 MARKET_SOURCE = "Betfair"
 STAKES_CALCULATOR = "Fixed"
 

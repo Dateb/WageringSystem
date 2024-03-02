@@ -183,17 +183,17 @@ class Bettor:
                 for bet_offer in race_offers:
                     if (
                             bet_offer.horse is not None
-                            and -900 < bet_offer.minutes_until_race_start < -30
+                            and -900 < bet_offer.minutes_until_race_start < -300
                     ):
-                        # probability_estimate = estimation_result.get_horse_win_probability(
-                        #     race_datetime,
-                        #     bet_offer.horse.number,
-                        #     bet_offer.scratched_horse_numbers
-                        # )
+                        probability_estimate = estimation_result.get_horse_win_probability(
+                            race_datetime,
+                            bet_offer.horse.number,
+                            bet_offer.scratched_horse_numbers
+                        )
 
-                        probability_estimate = None
-                        if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
-                            probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
+                        # probability_estimate = None
+                        # if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
+                        #     probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
 
                         stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
                         if stakes > 0.005:

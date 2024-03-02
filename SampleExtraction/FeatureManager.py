@@ -6,7 +6,7 @@ from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, Featu
     TimeSinceNotEatenUp
 from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
     CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentGoing, CurrentDistance, CurrentPurse, \
-    TravelDistance, PlacesNum, HasTrainerMultipleHorses
+    TravelDistance, PlacesNum, HasTrainerMultipleHorses, HasPlaced
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
 from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, TrainerChangeEarningsRateDiff
@@ -376,7 +376,6 @@ class FeatureManager:
             CurrentJockeyWeight(),
 
             OutOfHandicapWeight(),
-            PlacesNum()
         ]
 
         layoff_features = [

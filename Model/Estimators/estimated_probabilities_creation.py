@@ -9,6 +9,7 @@ from numpy import ndarray
 
 from Model.Estimators.place_calculation import compute_place_probabilities, compute_place_probabilities_of_race
 from Model.Estimators.util.metrics import get_accuracy_by_win_probability
+from ModelTuning import simulate_conf
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
@@ -45,8 +46,10 @@ class Probabilizer(ABC):
         race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
 
         race_cards_dataframe.loc[:, win_prob_column_name] = \
-            race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"]
+            (race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"])
 
+        if simulate_conf.MARKET_TYPE == "PLACE":
+            race_cards_dataframe.loc[:, win_prob_column_name] *= race_cards_dataframe.loc[:, "place_num"]
         race_cards_dataframe = race_cards_dataframe.drop("sum_exp_scores", axis=1)
 
         return race_cards_dataframe
