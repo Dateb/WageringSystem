@@ -1,15 +1,10 @@
 import pickle
-from copy import deepcopy
 from typing import List, Callable, Dict
 
 from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimators.Classification.BoostedTreesClassifier import BoostedTreesClassifier
-from Model.Estimators.Classification.NNClassifier import NNClassifier
-from Model.Estimators.Classification.SVMClassifier import SVMClassifier
-from Model.Estimators.Ensemble.ensemble_average import EnsembleAverageEstimator
 from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
 from ModelTuning import simulate_conf

@@ -195,7 +195,6 @@ class BetAgent:
 
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
-            train_upper_limit_percentage=0.8,
             n_months_test_sample=14,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME

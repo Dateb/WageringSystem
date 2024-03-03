@@ -13,20 +13,48 @@ from Model.Estimators.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 
 
+class OddsVigAdjuster(ABC):
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        pass
+
+
+class BetfairOddsVigAdjuster(OddsVigAdjuster):
+
+    def get_adjusted_odds(self, odds: float) -> float:
+        return odds / (1 - 0.025)
+
+
+@dataclass
+class LiveResult:
+    offer_odds: float
+    starting_odds: float
+    has_won: bool
+    adjustment_factor: float = 1.0
+
+    @property
+    def clv(self) -> float:
+        if self.starting_odds > 0:
+            adjusted_offer_odds = self.offer_odds * self.adjustment_factor
+            offer_p = 1 / adjusted_offer_odds
+            starting_p = 1 / BetfairOddsVigAdjuster().get_adjusted_odds(self.starting_odds)
+            return (starting_p - offer_p) / offer_p
+        return 0
+
+
 @dataclass
 class BetOffer:
 
     race_card: RaceCard
     horse: Horse
-    odds: float
+    live_result: LiveResult
     scratched_horse_numbers: List[int]
     event_datetime: datetime
-    adjustment_factor: float
     n_horses: int
     n_winners: int
 
     def __str__(self) -> str:
-        return f"Odds for {self.horse.name}: {self.odds}"
+        return f"Odds for {self.horse.name}: {self.live_result.offer_odds}"
 
     @property
     def minutes_until_race_start(self) -> float:
@@ -66,26 +94,6 @@ class Bet:
     @property
     def payout(self) -> float:
         return self.win - self.loss
-
-
-class OddsVigAdjuster(ABC):
-
-    def get_adjusted_odds(self, odds: float) -> float:
-        pass
-
-
-class BetfairOddsVigAdjuster(OddsVigAdjuster):
-
-    def get_adjusted_odds(self, odds: float) -> float:
-        return odds / (1 - 0.025)
-
-
-class RacebetsOddsVigAdjuster(OddsVigAdjuster):
-
-    BET_TAX = 0.05
-
-    def get_adjusted_odds(self, odds: float) -> float:
-        return odds + self.BET_TAX
 
 
 class OddsThreshold:
@@ -216,8 +224,8 @@ class Bettor:
         if probability_estimate is not None:
             if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
                 min_odds = self.odds_threshold.get_min_odds(probability_estimate)
-                if min_odds < bet_offer.odds and min_odds < self.max_odds_thresh:
-                    stakes = self.stakes_calculator.get_stakes(probability_estimate, bet_offer.odds)
+                if min_odds < bet_offer.live_result.offer_odds and min_odds < self.max_odds_thresh:
+                    stakes = self.stakes_calculator.get_stakes(probability_estimate, bet_offer.live_result.offer_odds)
                     self.offer_accepted_count += 1
                 else:
                     self.offer_rejected_count += 1

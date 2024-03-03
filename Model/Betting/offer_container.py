@@ -6,7 +6,7 @@ from typing import Dict, List
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import BetOffer
+from Model.Betting.bet import BetOffer, LiveResult
 from Model.Betting.exchange_offers_parsing import RaceDateToCardMapper, BetfairHistoryDictIterator
 from ModelTuning import simulate_conf
 
@@ -135,13 +135,19 @@ class BetfairOfferContainer(BetOfferContainer):
                                         print(f"race datetime: {race_datetime}")
                                         print("-----------------------------------------")
                                     else:
+                                        live_result = LiveResult(
+                                            offer_odds=offer_data["ltp"],
+                                            starting_odds=horse.betfair_win_sp,
+                                            has_won=horse.has_won,
+                                            adjustment_factor=1.0,
+                                        )
+
                                         bef_offer = BetOffer(
                                             race_card=race_card,
                                             horse=horse,
-                                            odds=offer_data["ltp"],
+                                            live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,
                                             event_datetime=event_datetime,
-                                            adjustment_factor=1.0,
                                             n_horses=n_horses,
                                             n_winners=n_winners
                                         )
@@ -164,7 +170,7 @@ class BetfairOfferContainer(BetOfferContainer):
                     for offer in betfair_offers:
                         for removed_runner in adjustment_factor_lookup.values():
                             if offer.event_datetime < removed_runner["date"]:
-                                offer.adjustment_factor *= (1 - removed_runner["factor"] / 100)
+                                offer.live_result.adjustment_factor *= (1 - removed_runner["factor"] / 100)
 
                     self.race_offers[str(race_card.datetime)] = betfair_offers
 

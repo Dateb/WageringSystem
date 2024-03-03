@@ -32,10 +32,10 @@ class BetfairPayoutCalculator(PayoutCalculator):
 
                     if self.bet_evaluator.is_winning_bet(race_key, horse_name, race_result, bet):
                         if simulate_conf.MARKET_TYPE == "WIN":
-                            win_amount = bet.stakes * bet.bet_offer.odds * bet.bet_offer.adjustment_factor
+                            win_amount = bet.stakes * bet.bet_offer.live_result.offer_odds * bet.bet_offer.live_result.adjustment_factor
                         else:
-                            potential_winning = bet.stakes * (bet.bet_offer.odds - 1)
-                            win_amount = potential_winning * bet.bet_offer.adjustment_factor + bet.stakes
+                            potential_winning = bet.stakes * (bet.bet_offer.live_result.offer_odds - 1)
+                            win_amount = potential_winning * bet.bet_offer.live_result.adjustment_factor + bet.stakes
 
                         bet.win = win_amount * (1 - self.WIN_COMMISSION)
 
