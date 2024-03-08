@@ -76,10 +76,7 @@ class BoostedTreesRanker(Estimator):
     def __init__(self, feature_manager: FeatureManager):
         super().__init__(feature_manager)
         self.probabilizer = WinProbabilizer()
-        if simulate_conf.MARKET_TYPE == "WIN":
-            self.label_name = Horse.HAS_PLACED_LABEL_KEY
-        else:
-            self.label_name = Horse.HAS_PLACED_LABEL_KEY
+        self.label_name = Horse.RANKING_LABEL_KEY
         self.feature_manager = feature_manager
         self.booster: Booster = None
 
@@ -133,7 +130,7 @@ class BoostedTreesRanker(Estimator):
         #
         # study = optuna.create_study(direction="maximize")
         #
-        # study.optimize(cv_objective, n_trials=100)
+        # study.optimize(cv_objective, n_trials=30)
         #
         # print("Number of finished trials: {}".format(len(study.trials)))
         #
@@ -151,10 +148,10 @@ class BoostedTreesRanker(Estimator):
         # self.num_boost_round = trial.params["num_rounds"]
         # del trial.params["num_rounds"]
 
-        self.num_boost_round = 606
-        search_params = {'num_leaves': 6, 'lambda_l1': 0.2800063037476619, 'lambda_l2': 4.009126325407914e-05,
-         'feature_fraction': 0.341378039566251, 'bagging_fraction': 0.997675253909045, 'bagging_freq': 5,
-         'min_child_samples': 140}
+        self.num_boost_round = 857
+        search_params = {'num_leaves': 4, 'lambda_l1': 3.2672839941029697, 'lambda_l2': 1.3113698402790085e-05,
+         'feature_fraction': 0.3824645993260089, 'bagging_fraction': 0.7621282724793796, 'bagging_freq': 4,
+         'min_child_samples': 91}
 
         self.params = {**self.FIXED_PARAMS, **search_params}
 

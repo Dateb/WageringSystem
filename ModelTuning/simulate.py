@@ -9,7 +9,7 @@ from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
 from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
-from ModelTuning.simulate_conf import TEST_PAYOUTS_PATH
+from ModelTuning.simulate_conf import BET_RESULT_PATH
 from Persistence.RaceCardPersistence import RaceCardsPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
@@ -129,16 +129,17 @@ class ModelSimulator:
         return test_loss
 
     def simulate_betting(self) -> None:
-        bets = self.model_evaluator.get_bets_of_model(self.estimation_result, self.test_race_cards)
+        bet_result = self.model_evaluator.get_bets_of_model(self.estimation_result, self.test_race_cards)
 
-        with open(TEST_PAYOUTS_PATH, "wb") as f:
-            pickle.dump(bets, f)
+        with open(BET_RESULT_PATH, "wb") as f:
+            pickle.dump(bet_result, f)
 
 
 if __name__ == '__main__':
+
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=4,
+        n_months_test_sample=8,
         n_months_forward_offset=95,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )

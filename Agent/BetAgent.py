@@ -164,7 +164,7 @@ class MinOddsReporter(Actuator):
         self.upcoming_race_cards = upcoming_race_cards
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.1)
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.0)
 
     def run(self) -> None:
         for race_key, race_card in self.upcoming_race_cards.items():
@@ -172,7 +172,7 @@ class MinOddsReporter(Actuator):
                 horse_probability = self.estimation_result.probability_estimates[race_key][horse.number]
                 horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                if horse_min_odds < 10:
+                if horse_min_odds < 5:
                     print(f"Race/Horse-Nr/Odds: {race_key}/{horse.number}/{horse_min_odds}")
 
 
@@ -195,7 +195,7 @@ class BetAgent:
 
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
-            n_months_test_sample=14,
+            n_months_test_sample=8,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
         )
@@ -269,8 +269,6 @@ class BetAgent:
 
         full_race_cards_collector = FullRaceCardsCollector(collect_results=False)
         race_cards = [full_race_cards_collector.create_race_card(race_id) for race_id in race_ids]
-
-        # race_cards = [race_card for race_card in race_cards if race_card.category == "HCP"]
 
         return {str(race_card.datetime): race_card for race_card in race_cards}
 

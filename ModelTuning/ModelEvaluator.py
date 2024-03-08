@@ -5,7 +5,7 @@ import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Betting.bet import Bet, BettorFactory
+from Model.Betting.bet import Bet, BettorFactory, BetResult
 from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
@@ -20,7 +20,12 @@ def reject_outliers(data, m=2):
 
 class ModelEvaluator:
 
-    def __init__(self, race_results_container: RaceResultsContainer):
+    def __init__(
+            self,
+            race_results_container: RaceResultsContainer,
+            clv_tolerance: float = 0.025,
+            drawdown_tolerance: float = 800
+    ):
         self.race_results_container = race_results_container
         self.bettor_factory = BettorFactory()
 
@@ -35,36 +40,38 @@ class ModelEvaluator:
         else:
             self.payout_calculator = BetfairPayoutCalculator(bet_evaluator)
 
+        self.clv_tolerance = clv_tolerance
+        self.drawdown_tolerance = drawdown_tolerance
+
     def get_bets_of_model(
             self,
             estimation_result: EstimationResult,
             test_race_cards: Dict[str, RaceCard],
-    ) -> List[Bet]:
+    ) -> BetResult:
         self.init_offer_container(test_race_cards)
 
-        best_score = -np.inf
-        best_bets = []
-        bet_thresholds = [0.0, 0.05, 0.1]
+        best_bet_result = None
+        bet_thresholds = [0.1, 0.09, 0.07, 0.06, 0.05, 0.0]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)
-            bets = bettor.bet(self.offer_container.race_offers, estimation_result)
+            bet_result = bettor.bet(self.offer_container.race_offers, estimation_result)
 
-            self.payout_calculator.insert_payouts_into_bets(bets, self.race_results_container.race_results)
+            self.payout_calculator.insert_payouts_into_bets(bet_result.bets, self.race_results_container.race_results)
 
-            clv = [bet.bet_offer.live_result.clv for bet in bets]
-            score = mean(clv)
+            clv = [bet.bet_offer.live_result.clv for bet in bet_result.bets]
+            mean_clv = mean(clv)
+            max_drawdown = bet_result.max_drawdown
 
-            print(f"Thresh/score: {bet_threshold}/{score}")
+            print(f"Thresh/Mean CLV/Max. Drawdown: {bet_threshold}/{mean_clv}/{max_drawdown}")
 
-            if score > best_score:
-                best_bets = bets
-                best_score = score
-                print(f"New best score: {best_score} at threshold: {bet_threshold}")
+            if mean_clv > self.clv_tolerance and max_drawdown < self.drawdown_tolerance:
+                best_bet_result = bet_result
+                print(f"Picked new threshold: {bet_threshold}, according to selection criteria")
 
             print(f"Offer acceptance rate: {bettor.offer_acceptance_rate}")
 
-        return best_bets
+        return best_bet_result
 
     def init_offer_container(self, test_race_cards: Dict[str, RaceCard]):
         if not os.path.isfile(self.offer_container.race_offers_path):

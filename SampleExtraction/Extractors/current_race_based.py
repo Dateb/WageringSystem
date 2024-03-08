@@ -114,13 +114,16 @@ class CurrentRaceCategory(FeatureExtractor):
         return str(race_card.category)
 
 
-class CurrentGoing(FeatureExtractor):
+class CurrentEstimatedGoing(FeatureExtractor):
 
     def __init__(self):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        return float(race_card.going)
+        if race_card.estimated_going == -1:
+            print("estimated going == -1")
+
+        return float(race_card.estimated_going)
 
 
 class WeightAdvantage(FeatureExtractor):

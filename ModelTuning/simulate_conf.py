@@ -4,7 +4,7 @@ DEV_RACE_CARDS_FOLDER_NAME = "race_cards_dev"
 RELEASE_RACE_CARDS_FOLDER_NAME = "race_cards_release"
 
 LEARNING_CURVE_PATH = "../data/learning_curve.dat"
-TEST_PAYOUTS_PATH = "../data/test_payouts.dat"
+BET_RESULT_PATH = "../data/test_payouts.dat"
 ESTIMATOR_PATH = "../data/estimator.dat"
 
 LEARNING_MODE = "Classification"

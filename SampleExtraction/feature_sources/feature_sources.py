@@ -242,21 +242,18 @@ class TrackVariantSource(AverageValueSource):
     def __init__(self):
         super().__init__()
         self.is_first_pre_update = True
-        self.track_variant_average_calculator = ExponentialOnlineCalculator()
-        self.par_momentum_average_calculator = ExponentialOnlineCalculator()
-
-    def warmup(self, race_cards: List[RaceCard]):
-        for race_card in race_cards:
-            self.post_update(race_card)
+        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=8)
+        self.par_momentum_average_calculator = ExponentialOnlineCalculator(window_size=8)
 
     def pre_update(self, race_card: RaceCard) -> None:
-        if self.is_first_pre_update:
-            RaceCard.reset_track_variant_estimate()
-            self.is_first_pre_update = False
+        if race_card.has_results:
+            if self.is_first_pre_update:
+                RaceCard.reset_track_variant_estimate()
+                self.is_first_pre_update = False
 
-        self.update_track_variant(race_card)
+            self.update_track_variant(race_card)
 
-    def update_horse(self, race_card: RaceCard, horse: Horse):
+    def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
         pass
 
     def post_update(self, race_card: RaceCard) -> None:
@@ -278,7 +275,7 @@ class TrackVariantSource(AverageValueSource):
                     average_calculator=self.track_variant_average_calculator
                 )
 
-    def update_par_momentum(self, race_card: RaceCard):
+    def update_par_momentum(self, race_card: RaceCard) -> None:
         for horse in race_card.horses:
             momentum = get_uncorrected_momentum(race_card, horse)
 
@@ -289,6 +286,23 @@ class TrackVariantSource(AverageValueSource):
                     value_date=race_card.date,
                     average_calculator=self.par_momentum_average_calculator
                 )
+
+
+class GoingSource(AverageValueSource):
+
+    def __init__(self):
+        super().__init__()
+        self.goings = {}
+
+    def pre_update(self, race_card: RaceCard) -> None:
+        if race_card.track_name in self.goings:
+            race_card.estimated_going = self.goings[race_card.track_name]
+
+    def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
+        pass
+
+    def post_update(self, race_card: RaceCard) -> None:
+        self.goings[race_card.track_name] = race_card.going
 
 
 class HasFallenSource(FeatureSource):

@@ -1,3 +1,4 @@
+import random
 from abc import ABC
 from dataclasses import dataclass
 from typing import List, Dict
@@ -96,6 +97,41 @@ class Bet:
         return self.win - self.loss
 
 
+@dataclass
+class BetResult:
+
+    bets: List[Bet]
+
+    def get_max_drawdown_of_bets(self, bets: List[Bet]) -> float:
+        payouts = [bet.payout for bet in bets]
+        max_draw_down = 0
+        peak = 0
+
+        sum_payouts = np.cumsum(payouts)
+
+        for sum_payout in sum_payouts:
+            draw_down = peak - sum_payout
+            if draw_down > max_draw_down:
+                max_draw_down = draw_down
+
+            if sum_payout > peak:
+                peak = sum_payout
+
+        return max_draw_down
+
+    @property
+    def max_drawdown(self) -> float:
+        max_drawdowns = []
+        for _ in range(1000):
+            bets_sample = random.sample(self.bets, k=len(self.bets))
+
+            max_draw_down = self.get_max_drawdown_of_bets(bets_sample)
+
+            max_drawdowns.append(max_draw_down)
+
+        return np.percentile(max_drawdowns, 95)
+
+
 class OddsThreshold:
 
     def __init__(self, odds_vig_adjuster: OddsVigAdjuster, alpha: float = 0.05):
@@ -173,7 +209,7 @@ class Bettor:
             self,
             stakes_calculator: StakesCalculator,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 10.0,
+            max_odds_thresh: float = 5.0,
     ):
         self.stakes_calculator = stakes_calculator
         self.odds_threshold = odds_threshold
@@ -183,7 +219,7 @@ class Bettor:
         self.offer_accepted_count = 0
         self.offer_rejected_count = 0
 
-    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult) -> List[Bet]:
+    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult) -> BetResult:
         bets = []
 
         for race_datetime, race_offers in offers.items():
@@ -216,7 +252,7 @@ class Bettor:
                             bets.append(new_bet)
                             self.already_taken_offers[(race_datetime, bet_offer.horse.number)] = True
 
-        return bets
+        return BetResult(bets)
 
     def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
         stakes = 0

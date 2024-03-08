@@ -58,7 +58,7 @@ class ExponentialOnlineCalculator(OnlineCalculator):
         self.window_size = window_size
         self.alpha = 2 / (window_size + 1)
 
-    def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int):
+    def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int) -> float:
         average_fade_factor = 0
         if self.fading_factor > 0:
             average_fade_factor = self.fading_factor * log(self.fading_factor * n_days_since_last_obs) \
