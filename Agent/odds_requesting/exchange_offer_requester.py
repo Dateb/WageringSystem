@@ -82,7 +82,7 @@ class MarketOffer:
                 horse=horse,
                 odds=offer_odds,
                 scratched_horse_numbers=[],
-                event_datetime=datetime.now(),
+                offer_datetime=datetime.now(),
                 adjustment_factor=1.0,
             )
 

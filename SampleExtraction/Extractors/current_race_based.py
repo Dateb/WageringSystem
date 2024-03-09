@@ -120,9 +120,6 @@ class CurrentEstimatedGoing(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if race_card.estimated_going == -1:
-            print("estimated going == -1")
-
         return float(race_card.estimated_going)
 
 

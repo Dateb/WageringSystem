@@ -52,7 +52,7 @@ class RaceBetsOfferContainer(BetOfferContainer):
                         horse=horse,
                         odds=racebets_win_odds,
                         scratched_horse_numbers=scratched_horses,
-                        event_datetime=race_card.datetime - timedelta(hours=1),
+                        offer_datetime=race_card.datetime - timedelta(hours=1),
                         adjustment_factor=1.0
                     )
                     race_bet_offers.append(bet_offer)
@@ -143,11 +143,11 @@ class BetfairOfferContainer(BetOfferContainer):
                                         )
 
                                         bef_offer = BetOffer(
-                                            race_card=race_card,
                                             horse=horse,
                                             live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,
-                                            event_datetime=event_datetime,
+                                            race_datetime=race_card.datetime,
+                                            offer_datetime=event_datetime,
                                             n_horses=n_horses,
                                             n_winners=n_winners
                                         )
@@ -169,7 +169,7 @@ class BetfairOfferContainer(BetOfferContainer):
 
                     for offer in betfair_offers:
                         for removed_runner in adjustment_factor_lookup.values():
-                            if offer.event_datetime < removed_runner["date"]:
+                            if offer.offer_datetime < removed_runner["date"]:
                                 offer.live_result.adjustment_factor *= (1 - removed_runner["factor"] / 100)
 
                     self.race_offers[str(race_card.datetime)] = betfair_offers

@@ -32,6 +32,7 @@ class LiveResult:
     starting_odds: float
     has_won: bool
     adjustment_factor: float = 1.0
+    stakes: float = 6.0
 
     @property
     def clv(self) -> float:
@@ -46,11 +47,11 @@ class LiveResult:
 @dataclass
 class BetOffer:
 
-    race_card: RaceCard
     horse: Horse
     live_result: LiveResult
     scratched_horse_numbers: List[int]
-    event_datetime: datetime
+    race_datetime: datetime
+    offer_datetime: datetime
     n_horses: int
     n_winners: int
 
@@ -59,9 +60,9 @@ class BetOffer:
 
     @property
     def minutes_until_race_start(self) -> float:
-        minutes_diff = (self.race_card.off_time - self.event_datetime).seconds / 60
+        minutes_diff = (self.race_datetime - self.offer_datetime).seconds / 60
 
-        if self.event_datetime < self.race_card.off_time:
+        if self.offer_datetime < self.race_datetime:
             minutes_diff *= -1
         return minutes_diff
 

@@ -23,7 +23,7 @@ class BetfairPayoutCalculator(PayoutCalculator):
 
     def insert_payouts_into_bets(self, bets: List[Bet], win_results: Dict[str, RaceResult]) -> None:
         for bet in bets:
-            race_key = str(bet.bet_offer.race_card.datetime)
+            race_key = str(bet.bet_offer.race_datetime)
             if race_key in win_results:
                 race_result = win_results[race_key]
                 horse_name = bet.bet_offer.horse.name.upper()
@@ -46,7 +46,7 @@ class RacebetsPayoutCalculator(PayoutCalculator):
 
     def insert_payouts_into_bets(self, bets: List[Bet], win_results: Dict[str, RaceResult]) -> None:
         for bet in bets:
-            race_key = str(bet.bet_offer.race_card.datetime)
+            race_key = str(bet.bet_offer.race_datetime)
             if race_key in win_results:
                 race_result = win_results[race_key]
                 horse_name = bet.bet_offer.horse.name.upper()
