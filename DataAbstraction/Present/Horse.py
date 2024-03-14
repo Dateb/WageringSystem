@@ -39,6 +39,10 @@ class Horse:
 
         self.age = raw_data["age"]
         self.gender = raw_data["gender"]
+        self.origin = raw_data["origin"]["iso"]
+        if not self.origin:
+            self.origin = "GB"
+
         self.number = raw_data["programNumber"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]

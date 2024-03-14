@@ -170,7 +170,7 @@ class TravelDistance(FeatureExtractor):
         super().__init__()
         self.feature_source = previous_value_source
 
-        self.feature_value_group = FeatureValueGroup(["subject_id"], get_track_name)
+        self.feature_value_group = FeatureValueGroup(get_track_name, ["subject_id"])
 
         self.feature_source.register_feature_value_group(self.feature_value_group)
 

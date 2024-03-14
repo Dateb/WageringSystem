@@ -164,7 +164,7 @@ class MinOddsReporter(Actuator):
         self.upcoming_race_cards = upcoming_race_cards
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.0)
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.01)
 
     def run(self) -> None:
         for race_key, race_card in self.upcoming_race_cards.items():

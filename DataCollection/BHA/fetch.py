@@ -34,6 +34,7 @@ class BHAInjector:
         self.race_series_ids_per_year_month = {}
         self.races_data = {}
         self.current_race_date = None
+        self.current_race_idx = 0
 
     def get_horse_attributes(self, horse_data: dict) -> dict:
         horse_attributes = {
@@ -56,8 +57,11 @@ class BHAInjector:
         return horse_attributes
 
     def inject(self, race_card: RaceCard) -> None:
+        print(f"{race_card.race_id}/{self.current_race_idx}")
+
         race_card_data = self.fetch(race_card)
         self.inject_race_card_data(race_card, race_card_data)
+        self.current_race_idx += 1
 
     def fetch(self, race_card: RaceCard) -> Dict:
         race_card_month = race_card.datetime.month
@@ -76,8 +80,13 @@ class BHAInjector:
 
         if race_series_id not in self.races_data:
             self.save_races_of_race_series(race_card_year, race_series_id)
+            self.current_race_idx = 0
 
-        race_dict = self.get_race_dict(race_card, race_series_id)
+        race_dict = self.races_data[race_series_id][self.current_race_idx]
+
+        if race_dict["prizeAmount"] != race_card.purse:
+            raise Exception(f"Matching of race card in BHA fetcher faulty. BHA Purse/Racebets Purse: {race_dict['prizeAmount']}/{race_card.purse}")
+
         race_id = race_dict["raceId"]
         division_sequence = race_dict["divisionSequence"]
 
@@ -88,7 +97,7 @@ class BHAInjector:
 
     def inject_race_card_data(self, race_card: RaceCard, race_card_data: Dict) -> None:
         race_series_id = self.get_race_series_id(race_card)
-        race_dict = self.get_race_dict(race_card, race_series_id)
+        race_dict = self.races_data[race_series_id][self.current_race_idx]
 
         race_card.raw_race_card["race"]["adjusted_distance"] = distance_to_meters(race_dict["distanceChangeText"])
 
@@ -145,11 +154,6 @@ class BHAInjector:
 
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
-    def get_race_dict(self, race_card: RaceCard, race_series_id: str) -> dict:
-        race_time = (race_card.datetime - timedelta(hours=1)).time()
-
-        return self.races_data[race_series_id][str(race_time)]
-
     def save_race_series_of_year_month(self, year: int, month: int) -> None:
         race_series_per_month_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=1000&resultsAvailable=true&year={year}"
         race_series_of_month_data = scraper.request_data_with_header(race_series_per_month_url, header)
@@ -165,17 +169,18 @@ class BHAInjector:
                 self.race_series_ids_per_year_month[year_month_key][race_series_key] = race_series["fixtureId"]
 
     def save_races_of_race_series(self, year: int, race_series_id: str):
-        self.races_data[race_series_id] = {}
-
         races_of_race_series_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures/{year}/{race_series_id}/races"
         races_of_race_series_data = scraper.request_data_with_header(races_of_race_series_url, header, avg_wait_seconds=0.5)
 
-        for race in races_of_race_series_data["data"]:
-            self.races_data[race_series_id][race['raceTime']] = {
-                "raceId": race['raceId'],
-                "divisionSequence": race['divisionSequence'],
-                "distanceChangeText": race['distanceChangeText']
+        self.races_data[race_series_id] = [
+            {
+            "raceId": race['raceId'],
+            "divisionSequence": race['divisionSequence'],
+            "distanceChangeText": race['distanceChangeText'],
+            "prizeAmount": race["prizeAmount"]
             }
+            for race in races_of_race_series_data["data"]
+        ]
 
     def track_name_to_course_name(self, track_name: str) -> str:
         if track_name == "Lingfield":

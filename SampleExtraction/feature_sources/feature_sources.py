@@ -7,11 +7,13 @@ from sqlite3 import Date
 from statistics import mean
 from typing import List, Dict, Callable
 
+import numpy as np
+
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.feature_sources.value_calculators import get_uncorrected_momentum
 from util.nested_dict import nested_dict
-from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator
+from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator, SimpleOnlineCalculator
 
 PAR_MOMENTUM_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
 DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
@@ -22,18 +24,36 @@ class FeatureValueGroup:
     attributes: List[str]
     value_calculator: Callable[[RaceCard, Horse], float]
 
-    def __init__(self, attributes: List[str], value_calculator: Callable[[RaceCard, Horse], float]):
-        self.attributes = attributes
+    def __init__(
+            self,
+            value_calculator: Callable[[RaceCard, Horse], float],
+            horse_attributes: List[str] = None,
+            race_card_attributes: List[str] = None
+    ):
         self.value_calculator = value_calculator
         self.value_name = value_calculator.__name__
 
-    def get_key(self, race_card: RaceCard, horse: Horse) -> str:
+        self.horse_attributes = horse_attributes
+        if horse_attributes is None:
+            self.horse_attributes = []
+        self.race_card_attributes = race_card_attributes
+        if race_card_attributes is None:
+            self.race_card_attributes = []
+
+    def get_race_card_key(self, race_card: RaceCard) -> str:
         key = ""
-        for attribute in self.attributes:
-            if attribute in horse.__dict__:
-                attribute_key = getattr(horse, attribute)
-            else:
-                attribute_key = getattr(race_card, attribute)
+
+        for attribute in self.race_card_attributes:
+            attribute_key = race_card.__dict__.get(attribute)
+            key += f"{attribute_key}_"
+
+        return key
+
+    def get_key(self, race_card_key, horse: Horse) -> str:
+        key = race_card_key
+
+        for attribute in self.horse_attributes:
+            attribute_key = horse.__dict__.get(attribute)
             key += f"{attribute_key}_"
 
         key += self.value_name
@@ -42,7 +62,9 @@ class FeatureValueGroup:
     @property
     def name(self) -> str:
         attribute_names = ""
-        for attribute in self.attributes:
+        for attribute in self.horse_attributes:
+            attribute_names += f"{attribute}_"
+        for attribute in self.race_card_attributes:
             attribute_names += f"{attribute}_"
         return f"{attribute_names}{self.value_name}"
 
@@ -66,20 +88,39 @@ class FeatureSource(ABC):
     def pre_update(self, race_card: RaceCard):
         pass
 
-    def post_update(self, race_card: RaceCard):
-        for horse in race_card.horses:
-            if not horse.is_scratched:
-                self.update_horse(race_card, horse)
-
-    def update_horse(self, race_card: RaceCard, horse: Horse):
+    def post_update(self, race_cards: List[RaceCard]):
+        current_date = None
         for feature_value_group in self.feature_value_groups:
-            feature_value_group_key = feature_value_group.get_key(race_card, horse)
-            new_feature_value = feature_value_group.value_calculator(race_card, horse)
+            feature_values = nested_dict()
+            for race_card in race_cards:
+                current_date = race_card.date
+                race_card_key = feature_value_group.get_race_card_key(race_card)
+                for horse in race_card.horses:
+                    if not horse.is_scratched:
+                        feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
+                        new_feature_value = feature_value_group.value_calculator(race_card, horse)
+                        if new_feature_value is not None:
+                            if isinstance(new_feature_value, float):
+                                if feature_value_group_key not in feature_values:
+                                    feature_values[feature_value_group_key]["count"] = 1
+                                    feature_values[feature_value_group_key]["avg"] = new_feature_value
+                                else:
+                                    feature_values[feature_value_group_key]["count"] += 1
+                                    feature_values[feature_value_group_key]["avg"] = SimpleOnlineCalculator().calculate_average(
+                                        old_average=feature_values[feature_value_group_key]["avg"],
+                                        new_obs=new_feature_value,
+                                        n_days_since_last_obs=0,
+                                        count=feature_values[feature_value_group_key]["count"]
+                                    )
+                            else:
+                                feature_values[feature_value_group_key]["avg"] = new_feature_value
 
-            self.update_statistic(self.feature_values[feature_value_group_key], new_feature_value, race_card.date)
+            for feature_value_group_key in feature_values:
+                self.update_statistic(self.feature_values[feature_value_group_key], feature_values[feature_value_group_key]["avg"], current_date)
 
     def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
-        feature_value_group_key = feature_value_group.get_key(race_card, horse)
+        race_card_key = feature_value_group.get_race_card_key(race_card)
+        feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
         feature_value_group = self.feature_values[feature_value_group_key]
         if "value" in feature_value_group:
             return feature_value_group["value"]
@@ -172,13 +213,6 @@ class AverageValueSource(FeatureSource):
                 )
                 category["last_obs_date"] = value_date
 
-    def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
-        feature_value_group_key = feature_value_group.get_key(race_card, horse)
-        feature_value_group = self.feature_values[feature_value_group_key]
-        if "value" in feature_value_group:
-            return feature_value_group["value"]
-        return None
-
     def get_name(self) -> str:
         return f"{self.__class__.__name__}_{self.window_size}_{self.min_obs_thresh}"
 
@@ -256,10 +290,11 @@ class TrackVariantSource(AverageValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
         pass
 
-    def post_update(self, race_card: RaceCard) -> None:
+    def post_update(self, race_cards: List[RaceCard]) -> None:
         self.is_first_pre_update = True
-        if race_card.race_result is not None:
-            self.update_par_momentum(race_card)
+        for race_card in race_cards:
+            if race_card.race_result is not None:
+                self.update_par_momentum(race_card)
 
     def update_track_variant(self, race_card: RaceCard) -> None:
         par_momentum = race_card.get_par_momentum_estimate["value"]
@@ -301,8 +336,9 @@ class GoingSource(AverageValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
         pass
 
-    def post_update(self, race_card: RaceCard) -> None:
-        self.goings[race_card.track_name] = race_card.going
+    def post_update(self, race_cards: List[RaceCard]) -> None:
+        for race_card in race_cards:
+            self.goings[race_card.track_name] = race_card.going
 
 
 class HasFallenSource(FeatureSource):

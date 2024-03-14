@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from math import log
+from typing import List
+
+import numpy as np
 
 
 class OnlineCalculator(ABC):
@@ -70,3 +73,20 @@ class ExponentialOnlineCalculator(OnlineCalculator):
 
     def calculate_variance(self):
         pass
+
+
+def get_max_draw_down(values: List[float]) -> float:
+    max_draw_down = 0
+    peak = 0
+
+    sum_payouts = np.cumsum(values)
+
+    for sum_payout in sum_payouts:
+        draw_down = peak - sum_payout
+        if draw_down > max_draw_down:
+            max_draw_down = draw_down
+
+        if sum_payout > peak:
+            peak = sum_payout
+
+    return max_draw_down

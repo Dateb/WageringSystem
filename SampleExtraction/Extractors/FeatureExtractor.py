@@ -62,10 +62,10 @@ class FeatureSourceExtractor(FeatureExtractor):
 
 class LayoffExtractor(FeatureExtractor):
 
-    def __init__(self, previous_value_source: PreviousValueSource, attributes: List[str]):
+    def __init__(self, previous_value_source: PreviousValueSource, horse_attributes: List[str], race_card_attributes: List[str]):
         super().__init__()
         self.feature_source = previous_value_source
-        self.feature_value_group = FeatureValueGroup(attributes, race_date)
+        self.feature_value_group = FeatureValueGroup(race_date, horse_attributes, race_card_attributes)
 
         self.feature_source.register_feature_value_group(self.feature_value_group)
 

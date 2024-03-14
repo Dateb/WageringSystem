@@ -6,7 +6,7 @@ from DataAbstraction.Present.Trainer import Trainer
 
 
 def has_won(race_card: RaceCard, horse: Horse) -> float:
-    return int(horse.has_won)
+    return float(horse.has_won)
 
 
 def purse(race_card: RaceCard, horse: Horse) -> float:
@@ -14,7 +14,7 @@ def purse(race_card: RaceCard, horse: Horse) -> float:
 
 
 def one_constant(race_card: RaceCard, horse: Horse) -> float:
-    return 1
+    return 1.0
 
 
 def win_probability(race_card: RaceCard, horse: Horse) -> float:
@@ -59,10 +59,10 @@ def relative_distance_behind(race_card: RaceCard, horse: Horse):
     return None
 
 
-def has_pulled_up(race_card: RaceCard, horse: Horse) -> int:
+def has_pulled_up(race_card: RaceCard, horse: Horse) -> float:
     has_pulled_up = horse.result_finish_dnf == "PU"
 
-    return has_pulled_up
+    return float(has_pulled_up)
 
 
 def race_distance(race_card: RaceCard, horse: Horse) -> float:
@@ -80,15 +80,6 @@ def adjusted_race_distance(race_card: RaceCard, horse: Horse) -> float:
 
     if race_card.distance > 0:
         return race_card.distance
-
-    return None
-
-
-def race_going(race_card: RaceCard, horse: Horse) -> float:
-    race_going = race_card.going
-
-    if race_going > 0:
-        return race_going
 
     return None
 

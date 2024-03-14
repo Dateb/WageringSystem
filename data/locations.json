@@ -833,5 +833,10 @@
     "location_id": 166,
     "latitude": 47.6298636,
     "longitude": -0.7106759
+  },
+  "Troytown Chase": {
+    "location_id": 167,
+    "latitude": 50.7443165,
+    "longitude": -2.3756146
   }
 }

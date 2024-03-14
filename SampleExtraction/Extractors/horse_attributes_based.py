@@ -38,6 +38,16 @@ class Gender(FeatureExtractor):
         return horse.gender
 
 
+class Origin(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        self.is_categorical = True
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> str:
+        return horse.origin
+
+
 class CurrentRating(FeatureExtractor):
 
     MIDDLE_RATINGS_PER_CLASS = {

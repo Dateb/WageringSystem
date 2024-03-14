@@ -9,7 +9,8 @@ from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, Cur
     TravelDistance, PlacesNum, HasTrainerMultipleHorses, HasPlaced
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap
-from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, TrainerChangeEarningsRateDiff
+from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, \
+    TrainerChangeEarningsRateDiff, Origin
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.Extractors.time_based import DayOfYearSin, DayOfYearCos, WeekDayCos, WeekDaySin, MinutesIntoDay
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
@@ -17,7 +18,7 @@ from SampleExtraction.feature_sources.feature_sources import PreviousValueSource
     GoingSource
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, place_percentile, \
     race_distance, \
-    race_going, race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight, one_constant, \
+    race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight, one_constant, \
     has_won, purse
 
 
@@ -46,7 +47,6 @@ class FeatureManager:
         ]
 
         self.previous_value_source = PreviousValueSource()
-        self.previous_value_scratched_source = PreviousValueScratchedSource()
 
         self.max_value_source = MaxValueSource()
         self.min_value_source = MinValueSource()
@@ -70,7 +70,6 @@ class FeatureManager:
 
         self.feature_sources = [
             self.previous_value_source,
-            self.previous_value_scratched_source,
 
             self.max_value_source,
             self.min_value_source,
@@ -103,122 +102,122 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
-        horse_win_prob = FeatureValueGroup(["subject_id"], win_probability)
+        horse_win_prob = FeatureValueGroup(win_probability, ["subject_id"])
 
-        horse_has_won = FeatureValueGroup(["subject_id"], has_won)
-        horse_race_type_has_won = FeatureValueGroup(["subject_id", "race_type"], has_won)
+        horse_has_won = FeatureValueGroup(has_won, ["subject_id"])
+        horse_race_type_has_won = FeatureValueGroup(has_won, ["subject_id"], ["race_type"])
 
-        horse_surface_win_prob = FeatureValueGroup(["subject_id", "surface"], win_probability)
-        horse_surface_place_percentile = FeatureValueGroup(["subject_id", "surface"], place_percentile)
-        horse_surface_relative_distance_behind = FeatureValueGroup(["subject_id", "surface"], relative_distance_behind)
-        horse_surface_momentum = FeatureValueGroup(["subject_id", "surface"], momentum)
+        horse_surface_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["surface"])
+        horse_surface_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["surface"])
+        horse_surface_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"], ["surface"])
+        horse_surface_momentum = FeatureValueGroup(momentum, ["subject_id"], ["surface"])
 
-        horse_race_type_win_prob = FeatureValueGroup(["subject_id", "race_type"], win_probability)
-        horse_race_type_place_percentile = FeatureValueGroup(["subject_id", "race_type"], place_percentile)
-        horse_race_type_relative_distance_behind = FeatureValueGroup(["subject_id", "race_type"], relative_distance_behind)
-        horse_race_type_momentum = FeatureValueGroup(["subject_id", "race_type"], momentum)
+        horse_race_type_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["race_type"])
+        horse_race_type_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["race_type"])
+        horse_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"], ["race_type"])
+        horse_race_type_momentum = FeatureValueGroup(momentum, ["subject_id"], ["race_type"])
 
-        horse_category_win_prob = FeatureValueGroup(["subject_id", "category"], win_probability)
-        horse_category_place_percentile = FeatureValueGroup(["subject_id", "category"], place_percentile)
+        horse_category_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["category"])
+        horse_category_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["category"])
 
-        horse_track_win_prob = FeatureValueGroup(["subject_id", "track_name"], win_probability)
-        horse_class_win_prob = FeatureValueGroup(["subject_id", "race_class"], win_probability)
+        horse_track_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["track_name"])
+        horse_class_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["race_class"])
 
-        horse_momentum = FeatureValueGroup(["subject_id"], momentum)
+        horse_momentum = FeatureValueGroup(momentum, ["subject_id"])
 
-        horse_track_momentum = FeatureValueGroup(["subject_id", "track_name"], momentum)
-        horse_class_momentum = FeatureValueGroup(["subject_id", "race_class"], momentum)
+        horse_track_momentum = FeatureValueGroup(momentum, ["subject_id"], ["track_name"])
+        horse_class_momentum = FeatureValueGroup(momentum, ["subject_id"], ["race_class"])
 
-        horse_place_percentile = FeatureValueGroup(["subject_id"], place_percentile)
+        horse_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"])
 
-        horse_track_place_percentile = FeatureValueGroup(["subject_id", "track_name"], place_percentile)
-        horse_class_place_percentile = FeatureValueGroup(["subject_id", "race_class"], place_percentile)
+        horse_track_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["track_name"])
+        horse_class_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["race_class"])
 
-        horse_relative_distance_behind = FeatureValueGroup(["subject_id"], relative_distance_behind)
+        horse_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"])
 
-        horse_track_relative_distance_behind = FeatureValueGroup(["subject_id", "track_name"], relative_distance_behind)
-        horse_class_relative_distance_behind = FeatureValueGroup(["subject_id", "race_class"], relative_distance_behind)
+        horse_track_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"], ["track_name"])
+        horse_class_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"], ["race_class"])
 
-        horse_weight = FeatureValueGroup(["subject_id"], weight)
+        horse_weight = FeatureValueGroup(weight, ["subject_id"])
 
-        horse_race_adjusted_distance = FeatureValueGroup(["subject_id"], adjusted_race_distance)
-        horse_race_class = FeatureValueGroup(["subject_id"], race_class)
+        horse_race_adjusted_distance = FeatureValueGroup(adjusted_race_distance, ["subject_id"])
+        horse_race_class = FeatureValueGroup(race_class, ["subject_id"])
 
-        jockey_win_prob = FeatureValueGroup(["jockey_id"], win_probability)
-        jockey_momentum = FeatureValueGroup(["jockey_id"], momentum)
+        jockey_win_prob = FeatureValueGroup(win_probability, ["jockey_id"])
+        jockey_momentum = FeatureValueGroup(momentum, ["jockey_id"])
 
-        jockey_race_type_win_prob = FeatureValueGroup(["jockey_id", "race_type"], win_probability)
-        jockey_race_type_place_percentile = FeatureValueGroup(["jockey_id", "race_type"], place_percentile)
-        jockey_race_type_relative_distance_behind = FeatureValueGroup(["jockey_id", "race_type"], relative_distance_behind)
+        jockey_race_type_win_prob = FeatureValueGroup(win_probability, ["jockey_id"], ["race_type"])
+        jockey_race_type_place_percentile = FeatureValueGroup(place_percentile, ["jockey_id"], ["race_type"])
+        jockey_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["jockey_id"], ["race_type"])
 
-        jockey_going_win_prob = FeatureValueGroup(["jockey_id", "estimated_going"], win_probability)
-        jockey_going_place_percentile = FeatureValueGroup(["jockey_id", "estimated_going"], place_percentile)
+        jockey_going_win_prob = FeatureValueGroup(win_probability, ["jockey_id"], ["estimated_going"])
+        jockey_going_place_percentile = FeatureValueGroup(place_percentile, ["jockey_id"], ["estimated_going"])
 
-        trainer_race_type_win_prob = FeatureValueGroup(["trainer_id", "race_type"], win_probability)
-        trainer_race_type_place_percentile = FeatureValueGroup(["trainer_id", "race_type"], place_percentile)
-        trainer_race_type_relative_distance_behind = FeatureValueGroup(["trainer_id", "race_type"], relative_distance_behind)
+        trainer_race_type_win_prob = FeatureValueGroup(win_probability, ["trainer_id"], ["race_type"])
+        trainer_race_type_place_percentile = FeatureValueGroup(place_percentile, ["trainer_id"], ["race_type"])
+        trainer_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["trainer_id"], ["race_type"])
 
-        trainer_going_win_prob = FeatureValueGroup(["trainer_id", "estimated_going"], win_probability)
-        trainer_going_place_percentile = FeatureValueGroup(["trainer_id", "estimated_going"], place_percentile)
+        trainer_going_win_prob = FeatureValueGroup(win_probability, ["trainer_id"], ["estimated_going"])
+        trainer_going_place_percentile = FeatureValueGroup(place_percentile, ["trainer_id"], ["estimated_going"])
 
-        owner_race_type_win_prob = FeatureValueGroup(["owner", "race_type"], win_probability)
-        owner_race_type_place_percentile = FeatureValueGroup(["owner", "race_type"], place_percentile)
-        owner_race_type_relative_distance_behind = FeatureValueGroup(["owner", "race_type"], relative_distance_behind)
+        owner_race_type_win_prob = FeatureValueGroup(win_probability, ["owner"], ["race_type"])
+        owner_race_type_place_percentile = FeatureValueGroup(place_percentile, ["owner"], ["race_type"])
+        owner_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["owner"], ["race_type"])
 
-        trainer_win_prob = FeatureValueGroup(["trainer_id"], win_probability)
-        trainer_momentum = FeatureValueGroup(["trainer_id"], momentum)
+        trainer_win_prob = FeatureValueGroup(win_probability, ["trainer_id"])
+        trainer_momentum = FeatureValueGroup(momentum, ["trainer_id"])
 
-        jockey_class_win_probability = FeatureValueGroup(["jockey_id", "race_class"], win_probability)
-        jockey_surface_win_probability = FeatureValueGroup(["jockey_id", "surface"], win_probability)
+        jockey_class_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["race_class"])
+        jockey_surface_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["surface"])
 
-        trainer_class_win_probability = FeatureValueGroup(["trainer_id", "race_class"], win_probability)
-        trainer_surface_win_probability = FeatureValueGroup(["trainer_id", "surface"], win_probability)
+        trainer_class_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["race_class"])
+        trainer_surface_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["surface"])
 
-        jockey_class_place_percentile = FeatureValueGroup(["jockey_id", "race_class"], place_percentile)
-        trainer_class_place_percentile = FeatureValueGroup(["trainer_id", "race_class"], place_percentile)
+        jockey_class_place_percentile = FeatureValueGroup(place_percentile, ["jockey_id"], ["race_class"])
+        trainer_class_place_percentile = FeatureValueGroup(place_percentile, ["trainer_id"], ["race_class"])
 
-        jockey_class_momentum = FeatureValueGroup(["jockey_id", "race_class"], momentum)
-        trainer_class_momentum = FeatureValueGroup(["trainer_id", "race_class"], momentum)
+        jockey_class_momentum = FeatureValueGroup(momentum, ["jockey_id"], ["race_class"])
+        trainer_class_momentum = FeatureValueGroup(momentum, ["trainer_id"], ["race_class"])
 
-        breeder_win_prob = FeatureValueGroup(["breeder"], win_probability)
-        breeder_momentum = FeatureValueGroup(["breeder"], momentum)
+        breeder_win_prob = FeatureValueGroup(win_probability, ["breeder"])
+        breeder_momentum = FeatureValueGroup(momentum, ["breeder"])
 
-        owner_win_prob = FeatureValueGroup(["owner"], win_probability)
-        owner_momentum = FeatureValueGroup(["owner"], momentum)
+        owner_win_prob = FeatureValueGroup(win_probability, ["owner"])
+        owner_momentum = FeatureValueGroup(momentum, ["owner"])
 
-        dam_win_probability = FeatureValueGroup(["dam", "age"], win_probability)
-        dam_place_percentile = FeatureValueGroup(["dam", "age"], place_percentile)
-        dam_momentum = FeatureValueGroup(["dam", "age"], momentum)
+        dam_win_probability = FeatureValueGroup(win_probability, ["dam", "age"])
+        dam_place_percentile = FeatureValueGroup(place_percentile, ["dam", "age"])
+        dam_momentum = FeatureValueGroup(momentum, ["dam", "age"])
 
-        sire_win_probability = FeatureValueGroup(["sire", "age"], win_probability)
+        sire_win_probability = FeatureValueGroup(win_probability, ["sire", "age"])
 
-        jockey_track_win_probability = FeatureValueGroup(["jockey_id", "track_name"], win_probability)
-        trainer_track_win_probability = FeatureValueGroup(["trainer_id", "track_name"], win_probability)
-        owner_track_win_probability = FeatureValueGroup(["owner", "track_name"], win_probability)
+        jockey_track_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["track_name"])
+        trainer_track_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["track_name"])
+        owner_track_win_probability = FeatureValueGroup(win_probability, ["owner"], ["track_name"])
 
-        horse_jockey_win_probability = FeatureValueGroup(["subject_id", "jockey_id"], win_probability)
-        horse_jockey_place_percentile = FeatureValueGroup(["subject_id", "jockey_id"], place_percentile)
-        horse_jockey_relative_distance_behind = FeatureValueGroup(["subject_id", "jockey_id"], relative_distance_behind)
-        horse_jockey_momentum = FeatureValueGroup(["subject_id", "jockey_id"], momentum)
+        horse_jockey_win_probability = FeatureValueGroup(win_probability, ["subject_id", "jockey_id"])
+        horse_jockey_place_percentile = FeatureValueGroup(place_percentile, ["subject_id", "jockey_id"])
+        horse_jockey_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id", "jockey_id"])
+        horse_jockey_momentum = FeatureValueGroup(momentum, ["subject_id", "jockey_id"])
 
-        horse_trainer_win_probability = FeatureValueGroup(["subject_id", "trainer_id"], win_probability)
-        horse_trainer_place_percentile = FeatureValueGroup(["subject_id", "trainer_id"], place_percentile)
-        horse_trainer_relative_distance_behind = FeatureValueGroup(["subject_id", "trainer_id"], relative_distance_behind)
-        horse_trainer_momentum = FeatureValueGroup(["subject_id", "trainer_id"], momentum)
+        horse_trainer_win_probability = FeatureValueGroup(win_probability, ["subject_id", "trainer_id"])
+        horse_trainer_place_percentile = FeatureValueGroup(place_percentile, ["subject_id", "trainer_id"])
+        horse_trainer_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id", "trainer_id"])
+        horse_trainer_momentum = FeatureValueGroup(momentum, ["subject_id", "trainer_id"])
 
-        horse_owner_win_probability = FeatureValueGroup(["subject_id", "owner"], win_probability)
-        horse_owner_place_percentile = FeatureValueGroup(["subject_id", "owner"], place_percentile)
-        horse_owner_relative_distance_behind = FeatureValueGroup(["subject_id", "owner"], relative_distance_behind)
-        horse_owner_momentum = FeatureValueGroup(["subject_id", "owner"], momentum)
+        horse_owner_win_probability = FeatureValueGroup(win_probability, ["subject_id", "owner"])
+        horse_owner_place_percentile = FeatureValueGroup(place_percentile, ["subject_id", "owner"])
+        horse_owner_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id", "owner"])
+        horse_owner_momentum = FeatureValueGroup(momentum, ["subject_id", "owner"])
 
-        jockey_trainer_win_probability = FeatureValueGroup(["jockey_id", "trainer_id"], win_probability)
-        jockey_trainer_place_percentile = FeatureValueGroup(["jockey_id", "trainer_id"], place_percentile)
-        jockey_trainer_relative_distance_behind = FeatureValueGroup(["jockey_id", "trainer_id"], relative_distance_behind)
-        jockey_trainer_momentum = FeatureValueGroup(["jockey_id", "trainer_id"], momentum)
+        jockey_trainer_win_probability = FeatureValueGroup(win_probability, ["jockey_id", "trainer_id"])
+        jockey_trainer_place_percentile = FeatureValueGroup(place_percentile, ["jockey_id", "trainer_id"])
+        jockey_trainer_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["jockey_id", "trainer_id"])
+        jockey_trainer_momentum = FeatureValueGroup(momentum, ["jockey_id", "trainer_id"])
 
-        horse_purse = FeatureValueGroup(["subject_id"], purse)
-        jockey_purse = FeatureValueGroup(["jockey_id"], purse)
-        trainer_purse = FeatureValueGroup(["trainer_id"], purse)
+        horse_purse = FeatureValueGroup(purse, ["subject_id"])
+        jockey_purse = FeatureValueGroup(purse, ["jockey_id"])
+        trainer_purse = FeatureValueGroup(purse, ["trainer_id"])
 
         prev_value_features = [
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
@@ -390,11 +389,11 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_momentum)
         ]
 
-        horse_one_constant = FeatureValueGroup(["subject_id"], one_constant)
-        horse_race_class_one_constant = FeatureValueGroup(["subject_id", "race_class"], one_constant)
+        horse_one_constant = FeatureValueGroup(one_constant, ["subject_id"])
+        horse_race_class_one_constant = FeatureValueGroup(one_constant, ["subject_id"], ["race_class"])
 
-        jockey_one_constant = FeatureValueGroup(["jockey_id"], one_constant)
-        trainer_one_constant = FeatureValueGroup(["trainer_id"], one_constant)
+        jockey_one_constant = FeatureValueGroup(one_constant, ["jockey_id"])
+        trainer_one_constant = FeatureValueGroup(one_constant, ["trainer_id"])
 
         sum_features = [
             FeatureSourceExtractor(self.sum_source, horse_one_constant),
@@ -419,6 +418,7 @@ class FeatureManager:
 
             Age(),
             Gender(),
+            Origin(),
 
             CurrentJockeyWeight(),
 
@@ -426,12 +426,12 @@ class FeatureManager:
         ]
 
         layoff_features = [
-            LayoffExtractor(self.previous_value_source, ["subject_id"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "distance_category"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "jockey_id"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "track_name"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "race_class"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "surface"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id"], []),
+            LayoffExtractor(self.previous_value_source, ["subject_id"], ["distance_category"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id", "jockey_id"], []),
+            LayoffExtractor(self.previous_value_source, ["subject_id"], ["track_name"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id"], ["race_class"]),
+            LayoffExtractor(self.previous_value_source, ["subject_id"], ["surface"]),
         ]
 
         return (
@@ -465,10 +465,9 @@ class FeatureManager:
             feature_source.pre_update(race_card)
 
     def post_update_feature_sources(self, race_cards: List[RaceCard]) -> None:
-        for race_card in race_cards:
-            if race_card.has_results and race_card.feature_source_validity:
-                for feature_source in self.feature_sources:
-                    feature_source.post_update(race_card)
+        race_cards = [race_card for race_card in race_cards if race_card.has_results and race_card.feature_source_validity]
+        for feature_source in self.feature_sources:
+            feature_source.post_update(race_cards)
 
     def __report_if_feature_missing(self, horse: Horse, feature_extractor: FeatureExtractor, feature_value):
         if feature_value == feature_extractor.PLACEHOLDER_VALUE:

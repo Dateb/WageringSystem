@@ -74,19 +74,27 @@ class BetfairOfferContainer(BetOfferContainer):
 
         history_path = "../data/exchange_odds_history/"
 
-        year_dirs = os.listdir(history_path)
-        for year_dir in year_dirs:
-            month_dirs = os.listdir(f"{history_path}/{year_dir}")
-            for month_dir in month_dirs:
-                day_dirs = os.listdir(f"{history_path}/{year_dir}/{month_dir}")
-                for day_dir in day_dirs:
-                    race_series_dirs = os.listdir(f"{history_path}/{year_dir}/{month_dir}/{day_dir}")
-                    for race_series_dir in race_series_dirs:
-                        history_files = os.listdir(f"{history_path}/{year_dir}/{month_dir}/{day_dir}/{race_series_dir}")
+        country_dirs = os.listdir(history_path)
+        for country_dir in country_dirs:
+            country_path = f"{history_path}/{country_dir}"
+            year_dirs = os.listdir(country_path)
+            for year_dir in year_dirs:
+                year_path = f"{country_path}/{year_dir}"
+                month_dirs = os.listdir(year_path)
+                for month_dir in month_dirs:
+                    month_path = f"{year_path}/{month_dir}"
+                    day_dirs = os.listdir(month_path)
+                    for day_dir in day_dirs:
+                        day_path = f"{month_path}/{day_dir}"
+                        race_series_dirs = os.listdir(day_path)
+                        for race_series_dir in race_series_dirs:
+                            race_series_path = f"{day_path}/{race_series_dir}"
+                            history_files = os.listdir(race_series_path)
 
-                        for file_name in history_files:
-                            if file_name.startswith("1"):
-                                self.load_offers_from_race(f"{history_path}/{year_dir}/{month_dir}/{day_dir}/{race_series_dir}/{file_name}")
+                            for file_name in history_files:
+                                file_path = f"{race_series_path}/{file_name}"
+                                if file_name.startswith("1"):
+                                    self.load_offers_from_race(file_path)
 
     def load_offers_from_race(self, race_history_file_path: str):
         betfair_offers = []
@@ -143,6 +151,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                         )
 
                                         bef_offer = BetOffer(
+                                            country=race_card.country,
                                             horse=horse,
                                             live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,

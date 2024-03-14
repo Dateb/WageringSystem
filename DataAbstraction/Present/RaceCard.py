@@ -318,6 +318,3 @@ class RaceCard:
 
         # if self.category not in ["HCP"]:
         #     self.is_valid_sample = False
-
-        if self.n_horses > 20:
-            self.is_valid_sample = False

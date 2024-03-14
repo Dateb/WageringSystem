@@ -7,7 +7,7 @@ class Trainer:
             self.id = raw_data["idPerson"]
 
         if raw_data is not None:
-            if raw_data["firstName"] is not None:
+            if raw_data["firstName"] is not None and raw_data["firstName"]:
                 self.id = f"{raw_data['firstName'][0]}_{raw_data['lastName']}"
 
         self.stats = raw_data["stats"]

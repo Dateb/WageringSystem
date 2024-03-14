@@ -12,6 +12,7 @@ from datetime import datetime
 from Model.Betting.staking import StakesCalculator, KellyStakesCalculator, FixedStakesCalculator
 from Model.Estimators.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
+from util.stats_calculator import get_max_draw_down
 
 
 class OddsVigAdjuster(ABC):
@@ -47,6 +48,7 @@ class LiveResult:
 @dataclass
 class BetOffer:
 
+    country: str
     horse: Horse
     live_result: LiveResult
     scratched_horse_numbers: List[int]
@@ -103,30 +105,13 @@ class BetResult:
 
     bets: List[Bet]
 
-    def get_max_drawdown_of_bets(self, bets: List[Bet]) -> float:
-        payouts = [bet.payout for bet in bets]
-        max_draw_down = 0
-        peak = 0
-
-        sum_payouts = np.cumsum(payouts)
-
-        for sum_payout in sum_payouts:
-            draw_down = peak - sum_payout
-            if draw_down > max_draw_down:
-                max_draw_down = draw_down
-
-            if sum_payout > peak:
-                peak = sum_payout
-
-        return max_draw_down
-
     @property
     def max_drawdown(self) -> float:
         max_drawdowns = []
         for _ in range(1000):
             bets_sample = random.sample(self.bets, k=len(self.bets))
 
-            max_draw_down = self.get_max_drawdown_of_bets(bets_sample)
+            max_draw_down = get_max_draw_down([bet.payout for bet in bets_sample])
 
             max_drawdowns.append(max_draw_down)
 
@@ -145,61 +130,34 @@ class OddsThreshold:
         # Adjusting odds such that it still holds value when considering the vig:
         min_odds_with_vig = self.odds_vig_adjuster.get_adjusted_odds(min_odds)
 
-        """"
-        Use probabilistic thresholding technique to set min odds higher.
-
-        Thresholding is used to avoid betting on tiny ev
-        and possibly negative ev due to incorrect estimations.
-
-        The equations are derived from this main inequality:
-
-        p_est > p + bet_thresh * (1 - p)
-
-        where
-            > p_est is the estimated probability of the model
-            > p is the induced probability from the odds
-            > alpha is a tunable hyperparameter. A higher value will encourage more careful betting 
-              and more focused betting on more favored horses, thus reducing the risk and minimizing the
-              maximum drawdown.
-
-        Setting p_est = p + alpha * (1 - p), this equation can be formulated to:
-
-        p = (p_est - alpha) / (1 - alpha)
-
-        The min odds needs to be converted to probabilities temporarily.
-        """
-
         p_min_odds = 1 / min_odds_with_vig
 
-        if (p_min_odds - self.alpha) <= 0:
-            min_odds_thresh = np.inf
-        else:
-            p_min_odds_thresh = (p_min_odds - self.alpha) / (1 - self.alpha)
-            min_odds_thresh = 1 / p_min_odds_thresh
+        p_min_odds_thresh = p_min_odds / (1 + self.alpha)
+        min_odds_thresh = 1 / p_min_odds_thresh
 
+        increments = 0.01
+        if 1 <= min_odds_thresh <= 2:
             increments = 0.01
-            if 1 <= min_odds_thresh <= 2:
-                increments = 0.01
-            if 2 <= min_odds_thresh <= 3:
-                increments = 0.02
-            if 3 <= min_odds_thresh <= 4:
-                increments = 0.05
-            if 4 <= min_odds_thresh <= 6:
-                increments = 0.1
-            if 6 <= min_odds_thresh <= 10:
-                increments = 0.2
-            if 10 <= min_odds_thresh <= 20:
-                increments = 0.5
-            if 20 <= min_odds_thresh <= 30:
-                increments = 1
-            if 30 <= min_odds_thresh <= 50:
-                increments = 2
-            if 50 <= min_odds_thresh <= 100:
-                increments = 5
-            if 100 <= min_odds_thresh <= 1000:
-                increments = 10
+        if 2 <= min_odds_thresh <= 3:
+            increments = 0.02
+        if 3 <= min_odds_thresh <= 4:
+            increments = 0.05
+        if 4 <= min_odds_thresh <= 6:
+            increments = 0.1
+        if 6 <= min_odds_thresh <= 10:
+            increments = 0.2
+        if 10 <= min_odds_thresh <= 20:
+            increments = 0.5
+        if 20 <= min_odds_thresh <= 30:
+            increments = 1
+        if 30 <= min_odds_thresh <= 50:
+            increments = 2
+        if 50 <= min_odds_thresh <= 100:
+            increments = 5
+        if 100 <= min_odds_thresh <= 1000:
+            increments = 10
 
-            min_odds_thresh = round(min_odds_thresh / increments) * increments
+        min_odds_thresh = round(min_odds_thresh / increments) * increments
 
         return min_odds_thresh
 
