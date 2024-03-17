@@ -81,15 +81,12 @@ class BoostedTreesRanker(Estimator):
         self.booster: Booster = None
 
         self.categorical_feature_names = [feature.get_name() for feature in feature_manager.features if feature.is_categorical]
-        self.cat_gbt_feature_names = [f"{cat_feature_name}_gbt" for cat_feature_name in self.categorical_feature_names]
-        self.feature_names = self.feature_manager.numerical_feature_names + self.cat_gbt_feature_names
+        self.feature_names = self.feature_manager.numerical_feature_names + self.categorical_feature_names
 
         # self.parameter_set = {**self.FIXED_PARAMS}
 
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         test_loss = self.score_test_sample(sample)
-
-        # test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
         print(f"Test accuracy gbt-model: {get_accuracy(sample)}")
 
@@ -98,16 +95,9 @@ class BoostedTreesRanker(Estimator):
         return estimation_result, test_loss
 
     def score_test_sample(self, test_sample: RaceCardsSample):
-        #TODO: The categorical creation/deletion is also used in the predict function. Refactor the duplication.
-        for cat_feature_name in self.categorical_feature_names:
-            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
-            test_sample.race_cards_dataframe[cat_gbt_feature_name] = test_sample.race_cards_dataframe[cat_feature_name].astype('category')
-
         race_cards_dataframe = test_sample.race_cards_dataframe
         X = race_cards_dataframe[self.feature_names]
         scores = self.booster.predict(X)
-
-        test_sample.race_cards_dataframe.drop(self.cat_gbt_feature_names, inplace=True, axis=1)
 
         test_sample.race_cards_dataframe["score"] = scores
 
@@ -116,11 +106,7 @@ class BoostedTreesRanker(Estimator):
     def fit(self, train_sample: RaceCardsSample) -> float:
         train_val_df = train_sample.race_cards_dataframe
 
-        for cat_feature_name in self.categorical_feature_names:
-            cat_gbt_feature_name = f"{cat_feature_name}_gbt"
-            train_val_df[cat_gbt_feature_name] = train_val_df[cat_feature_name].astype('category')
-
-        dataset = self.get_dataset(train_val_df, self.feature_names, self.cat_gbt_feature_names)
+        dataset = self.get_dataset(train_val_df, self.feature_names, self.categorical_feature_names)
 
         # cv_objective = GBTObjective(
         #     fixed_params=self.FIXED_PARAMS,
@@ -157,7 +143,7 @@ class BoostedTreesRanker(Estimator):
 
         # self.booster = self.rfe_booster(train_val_df)
 
-        self.booster, sorted_feature_importances = self.get_sorted_feature_importances(dataset, self.feature_names, self.cat_gbt_feature_names)
+        self.booster, sorted_feature_importances = self.get_sorted_feature_importances(dataset, self.feature_names, self.categorical_feature_names)
         importance_sum = self.get_importance_sum(sorted_feature_importances)
         relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
                                         sorted_feature_importances.items()}
@@ -167,7 +153,7 @@ class BoostedTreesRanker(Estimator):
         return 0.0
 
     def rfe_booster(self, df: pd.DataFrame):
-        dataset = self.get_dataset(df, self.feature_names, self.cat_gbt_feature_names)
+        dataset = self.get_dataset(df, self.feature_names, self.categorical_feature_names)
 
         sorted_feature_importances = self.get_sorted_feature_importances(dataset, self.feature_names, self.cat_gbt_feature_names)
         importance_sum = self.get_importance_sum(sorted_feature_importances)
@@ -261,10 +247,10 @@ class BoostedTreesRanker(Estimator):
 
         return importance_sum
 
-    def get_dataset(self, samples_train: pd.DataFrame, feature_names: List[str], categorical_feature_names: List[str]) -> Dataset:
-        input_data = samples_train[feature_names]
-        label = samples_train[self.label_name].astype(dtype="int")
-        group = samples_train.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
+    def get_dataset(self, sample: pd.DataFrame, feature_names: List[str], categorical_feature_names: List[str]) -> Dataset:
+        input_data = sample[feature_names]
+        label = sample[self.label_name].astype(dtype="int")
+        group = sample.groupby(RaceCard.RACE_ID_KEY)[RaceCard.RACE_ID_KEY].count()
 
         return Dataset(
             data=input_data,

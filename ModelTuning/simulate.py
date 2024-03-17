@@ -139,8 +139,8 @@ if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=8,
-        n_months_forward_offset=0,
+        n_months_test_sample=2,
+        n_months_forward_offset=108,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

@@ -24,7 +24,7 @@ class ModelEvaluator:
             self,
             race_results_container: RaceResultsContainer,
             clv_tolerance: float = 0.025,
-            drawdown_tolerance: float = 1000
+            drawdown_tolerance: float = 1200
     ):
         self.race_results_container = race_results_container
         self.bettor_factory = BettorFactory()

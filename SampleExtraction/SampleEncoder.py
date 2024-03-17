@@ -13,6 +13,7 @@ class SampleEncoder:
 
     def __init__(self, features: List[FeatureExtractor], columns: List[str]):
         self.numerical_feature_names = [feature.get_name() for feature in features if not feature.is_categorical]
+        self.categorical_feature_names = [feature.get_name() for feature in features if feature.is_categorical]
         self.sample_array = None
         self.columns = columns
 
@@ -30,5 +31,8 @@ class SampleEncoder:
 
         race_cards_dataframe[self.numerical_feature_names] = \
             race_cards_dataframe[self.numerical_feature_names].apply(pd.to_numeric, errors="coerce")
+
+        for categorical_feature in self.categorical_feature_names:
+            race_cards_dataframe[categorical_feature] = race_cards_dataframe[categorical_feature].astype("category")
 
         return RaceCardsSample(race_cards_dataframe)

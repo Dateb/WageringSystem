@@ -421,8 +421,6 @@ class FeatureManager:
             Origin(),
 
             CurrentJockeyWeight(),
-
-            OutOfHandicapWeight(),
         ]
 
         layoff_features = [
