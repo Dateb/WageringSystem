@@ -1,4 +1,5 @@
 import json
+import pickle
 from abc import ABC, abstractmethod
 from typing import Tuple
 
@@ -71,7 +72,7 @@ class BoostedTreesRanker(Estimator):
         self.categorical_feature_names = [feature.name for feature in feature_manager.features if feature.is_categorical]
         self.feature_names = self.feature_manager.numerical_feature_names + self.categorical_feature_names
 
-        self.tuner = GBTTuner(self.FIXED_PARAMS, self.categorical_feature_names)
+        self.tuner = GBTTuner(self.FIXED_PARAMS, self.feature_names, self.categorical_feature_names)
 
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         test_loss = self.score_test_sample(sample)
@@ -97,15 +98,17 @@ class BoostedTreesRanker(Estimator):
         dataset = self.get_dataset(train_val_df, self.feature_names, self.categorical_feature_names)
 
         if simulate_conf.RUN_MODEL_TUNER:
-            self.tuner.run_hyperparameter_tuning(dataset)
+            gbt_config = self.tuner.run(dataset)
+            with open(simulate_conf.GBT_CONFIG_PATH, "wb") as gbt_config_file:
+                pickle.dump(gbt_config, gbt_config_file)
 
-        with open(simulate_conf.PARAMS_PATH) as param_file:
-            search_params = json.load(param_file)
+        with open(simulate_conf.GBT_CONFIG_PATH, "rb") as gbt_config_file:
+            gbt_config = pickle.load(gbt_config_file)
 
-        self.num_boost_round = search_params["num_rounds"]
-        del search_params["num_rounds"]
+        self.num_boost_round = gbt_config.search_params["num_rounds"]
+        del gbt_config.search_params["num_rounds"]
 
-        self.params = {**self.FIXED_PARAMS, **search_params}
+        self.params = {**self.FIXED_PARAMS, **gbt_config.search_params}
 
         # self.booster = self.rfe_booster(train_val_df)
 

@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 from typing import List
 
 import lightgbm
@@ -9,13 +10,28 @@ import optuna
 from ModelTuning import simulate_conf
 
 
+@dataclass
+class GBTConfig:
+
+    search_params: dict
+    feature_names: List[str]
+
+
 class GBTTuner:
-    def __init__(self, fixed_params: dict, categorical_feature_names: List[str], n_hyperparameter_rounds: int = 2):
+    def __init__(self, fixed_params: dict, feature_names: List[str], categorical_feature_names: List[str], n_hyperparameter_rounds: int = 2):
         self.fixed_params = fixed_params
+        self.feature_names = feature_names
         self.categorical_feature_names = categorical_feature_names
         self.n_hyperparameter_rounds = n_hyperparameter_rounds
 
-    def run_hyperparameter_tuning(self, dataset: Dataset) -> dict:
+    def run(self, dataset: Dataset) -> GBTConfig:
+        gbt_config = GBTConfig(search_params={}, feature_names=self.feature_names)
+        for _ in range(2):
+            gbt_config.search_params = self.get_hyperparameters(dataset)
+
+        return gbt_config
+
+    def get_hyperparameters(self, dataset: Dataset) -> dict:
         cv_objective = GBTObjective(
             fixed_params=self.fixed_params,
             dataset=dataset,
@@ -36,9 +52,6 @@ class GBTTuner:
         print("  Params: ")
         for key, value in trial.params.items():
             print("    {}: {}".format(key, value))
-
-        with open(simulate_conf.PARAMS_PATH, "w") as param_file:
-            json.dump(trial.params, param_file)
 
         return trial.params
 

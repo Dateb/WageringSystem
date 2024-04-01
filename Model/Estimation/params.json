@@ -1,1 +1,0 @@
-{"num_rounds": 1008, "num_leaves": 5, "lambda_l1": 0.018410800086151147, "lambda_l2": 0.6261895573236191, "feature_fraction": 0.5475217647987475, "bagging_fraction": 0.49284270564720045, "bagging_freq": 4, "min_child_samples": 110}
