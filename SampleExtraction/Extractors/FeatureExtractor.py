@@ -13,18 +13,18 @@ class FeatureExtractor(ABC):
     PLACEHOLDER_VALUE = float('NaN')
 
     def __init__(self):
-        self.base_name = "default"
+        self.name = self.get_name()
         self.is_categorical = False
 
     def __str__(self) -> str:
-        return self.get_name()
-
-    def get_name(self) -> str:
-        return type(self).__name__
+        return self.name
 
     @abstractmethod
     def get_value(self, race_card: RaceCard, horse: Horse) -> Any:
         pass
+
+    def get_name(self) -> str:
+        return type(self).__name__
 
 
 class FeatureSourceExtractor(FeatureExtractor):
@@ -35,7 +35,6 @@ class FeatureSourceExtractor(FeatureExtractor):
             update_feature_value_group: FeatureValueGroup,
             read_feature_value_group: FeatureValueGroup = None
     ):
-        super().__init__()
         self.feature_source = feature_source
         self.update_feature_value_group = update_feature_value_group
 
@@ -44,6 +43,7 @@ class FeatureSourceExtractor(FeatureExtractor):
         self.read_feature_value_group = update_feature_value_group
         if read_feature_value_group is not None:
             self.read_feature_value_group = read_feature_value_group
+        super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         feature_value = self.feature_source.get_feature_value(race_card, horse, self.read_feature_value_group)
@@ -63,11 +63,11 @@ class FeatureSourceExtractor(FeatureExtractor):
 class LayoffExtractor(FeatureExtractor):
 
     def __init__(self, previous_value_source: PreviousValueSource, horse_attributes: List[str], race_card_attributes: List[str]):
-        super().__init__()
         self.feature_source = previous_value_source
         self.feature_value_group = FeatureValueGroup(race_date, horse_attributes, race_card_attributes)
 
         self.feature_source.register_feature_value_group(self.feature_value_group)
+        super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
         previous_date = self.feature_source.get_feature_value(race_card, horse, self.feature_value_group)

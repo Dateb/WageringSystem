@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import trange
 
-from Model.Estimators.Classification.NNClassifier import NNClassifier
+from Model.Estimation.Classification.NNClassifier import NNClassifier
 from ModelTuning.FeatureScorer import FeatureScorer
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration

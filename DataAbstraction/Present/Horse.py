@@ -25,6 +25,11 @@ class Horse:
     ]
 
     def __init__(self, raw_data: dict):
+        self.place_percentile = None
+        self.relative_distance_behind = None
+        self.uncorrected_momentum = -1
+        self.momentum = None
+
         self.base_attributes = {}
 
         self.name = raw_data["name"]
@@ -56,7 +61,7 @@ class Horse:
 
         self.place_racebets = self.__extract_place(raw_data)
         self.place = 0
-        self.relevance = 0
+        self.place_deviation = 0
 
         self.racebets_win_odds_history = []
         if "fixedOddsHistory" in raw_data:

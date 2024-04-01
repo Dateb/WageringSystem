@@ -1,7 +1,14 @@
+import json
+from abc import ABC, abstractmethod
+from typing import Tuple
+
+from Model.Estimation.estimated_probabilities_creation import EstimationResult
+from Model.Estimation.tuning import GBTTuner
+from SampleExtraction.FeatureManager import FeatureManager
+from SampleExtraction.RaceCardsSample import RaceCardsSample
+
 from copy import copy
 from typing import Tuple, List
-
-import optuna
 import lightgbm
 import pandas as pd
 from lightgbm import Dataset, Booster, CVBooster
@@ -9,46 +16,27 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Estimators.Estimator import Estimator
-from Model.Estimators.estimated_probabilities_creation import EstimationResult, WinProbabilizer
-from Model.Estimators.util.metrics import get_accuracy
+from Model.Estimation.estimated_probabilities_creation import EstimationResult, WinProbabilizer
+from Model.Estimation.util.metrics import get_accuracy
 from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
-class GBTObjective:
-    def __init__(self, fixed_params: dict, dataset: Dataset, cat_feature_names: List[str]):
-        self.fixed_params = fixed_params
-        self.dataset = dataset
-        self.cat_feature_names = cat_feature_names
+class Estimator(ABC):
 
-    def __call__(self, trial):
-        num_rounds = trial.suggest_int("num_rounds", 700, 1100)
+    def __init__(self, feature_manager: FeatureManager):
+        self.feature_manager = feature_manager
 
-        search_params = {
-            "num_leaves": trial.suggest_int("num_leaves", 2, 8),
-            "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
-            "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
-            "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
-            "bagging_fraction": trial.suggest_float("bagging_fraction", 0.3, 1.0),
-            "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
-            "min_child_samples": trial.suggest_int("min_child_samples", 80, 140),
-        }
+    @abstractmethod
+    def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
+        pass
 
-        params = {**self.fixed_params, **search_params}
+    def fit(self, train_sample: RaceCardsSample) -> float:
+        pass
 
-        eval_results = lightgbm.cv(
-            params=params,
-            train_set=self.dataset,
-            num_boost_round=num_rounds,
-            categorical_feature=self.cat_feature_names,
-            return_cvbooster=True
-        )
-
-        cv_score = eval_results["valid ndcg@1-mean"][-1]
-
-        return cv_score
+    def score_test_sample(self, test_sample: RaceCardsSample):
+        pass
 
 
 class BoostedTreesRanker(Estimator):
@@ -80,10 +68,10 @@ class BoostedTreesRanker(Estimator):
         self.feature_manager = feature_manager
         self.booster: Booster = None
 
-        self.categorical_feature_names = [feature.get_name() for feature in feature_manager.features if feature.is_categorical]
+        self.categorical_feature_names = [feature.name for feature in feature_manager.features if feature.is_categorical]
         self.feature_names = self.feature_manager.numerical_feature_names + self.categorical_feature_names
 
-        # self.parameter_set = {**self.FIXED_PARAMS}
+        self.tuner = GBTTuner(self.FIXED_PARAMS, self.categorical_feature_names)
 
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         test_loss = self.score_test_sample(sample)
@@ -108,36 +96,14 @@ class BoostedTreesRanker(Estimator):
 
         dataset = self.get_dataset(train_val_df, self.feature_names, self.categorical_feature_names)
 
-        # cv_objective = GBTObjective(
-        #     fixed_params=self.FIXED_PARAMS,
-        #     dataset=dataset,
-        #     cat_feature_names=self.cat_gbt_feature_names
-        # )
-        #
-        # study = optuna.create_study(direction="maximize")
-        #
-        # study.optimize(cv_objective, n_trials=30)
-        #
-        # print("Number of finished trials: {}".format(len(study.trials)))
-        #
-        # print("Best trial:")
-        # trial = study.best_trial
-        #
-        # print("  Value: {}".format(trial.value))
-        #
-        # print("  Params: ")
-        # for key, value in trial.params.items():
-        #     print("    {}: {}".format(key, value))
-        #
-        # search_params = trial.params
-        #
-        # self.num_boost_round = trial.params["num_rounds"]
-        # del trial.params["num_rounds"]
+        if simulate_conf.RUN_MODEL_TUNER:
+            self.tuner.run_hyperparameter_tuning(dataset)
 
-        self.num_boost_round = 857
-        search_params = {'num_leaves': 4, 'lambda_l1': 3.2672839941029697, 'lambda_l2': 1.3113698402790085e-05,
-         'feature_fraction': 0.3824645993260089, 'bagging_fraction': 0.7621282724793796, 'bagging_freq': 4,
-         'min_child_samples': 91}
+        with open(simulate_conf.PARAMS_PATH) as param_file:
+            search_params = json.load(param_file)
+
+        self.num_boost_round = search_params["num_rounds"]
+        del search_params["num_rounds"]
 
         self.params = {**self.FIXED_PARAMS, **search_params}
 

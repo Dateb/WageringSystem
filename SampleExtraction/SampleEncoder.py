@@ -12,8 +12,8 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 class SampleEncoder:
 
     def __init__(self, features: List[FeatureExtractor], columns: List[str]):
-        self.numerical_feature_names = [feature.get_name() for feature in features if not feature.is_categorical]
-        self.categorical_feature_names = [feature.get_name() for feature in features if feature.is_categorical]
+        self.numerical_feature_names = [feature.name for feature in features if not feature.is_categorical]
+        self.categorical_feature_names = [feature.name for feature in features if feature.is_categorical]
         self.sample_array = None
         self.columns = columns
 

@@ -9,7 +9,7 @@ from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher
 from DataCollection.current_races.inject import CurrentRaceCardsInjector
 from DataCollection.race_cards.full import FullRaceCardsCollector
-from Model.Estimators.RaceEventProbabilities import RaceEventProbabilities
+from Model.Estimation.RaceEventProbabilities import RaceEventProbabilities
 
 
 class MonitorData:

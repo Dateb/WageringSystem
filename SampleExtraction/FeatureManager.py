@@ -1,4 +1,9 @@
-from typing import List
+import multiprocessing
+import os
+import time
+from multiprocessing.pool import Pool
+from threading import Thread
+from typing import List, Tuple, Dict
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -15,11 +20,11 @@ from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, Weight
 from SampleExtraction.Extractors.time_based import DayOfYearSin, DayOfYearCos, WeekDayCos, WeekDaySin, MinutesIntoDay
 from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
     TrackVariantSource, FeatureValueGroup, MinValueSource, CountSource, PreviousValueScratchedSource, SumSource, \
-    GoingSource
+    GoingSource, StreakSource, FeatureSource
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, place_percentile, \
     race_distance, \
     race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight, one_constant, \
-    has_won, purse
+    has_won, purse, has_placed, place_deviation
 
 
 class FeatureManager:
@@ -51,6 +56,7 @@ class FeatureManager:
         self.max_value_source = MaxValueSource()
         self.min_value_source = MinValueSource()
         self.sum_source = SumSource()
+        self.streak_source = StreakSource()
 
         self.avg_window_3_min_obs_1_source = AverageValueSource(window_size=3, min_obs_thresh=1)
 
@@ -74,6 +80,7 @@ class FeatureManager:
             self.max_value_source,
             self.min_value_source,
             self.sum_source,
+            self.streak_source,
 
             self.avg_window_3_min_obs_1_source,
 
@@ -97,7 +104,7 @@ class FeatureManager:
             self.search_features = self.get_search_features()
             self.features = self.base_features + self.search_features
 
-        self.feature_names = [feature.get_name() for feature in self.features]
+        self.feature_names = [feature.name for feature in self.features]
         self.selected_features = self.features
         self.n_features = len(self.features)
 
@@ -106,6 +113,9 @@ class FeatureManager:
 
         horse_has_won = FeatureValueGroup(has_won, ["subject_id"])
         horse_race_type_has_won = FeatureValueGroup(has_won, ["subject_id"], ["race_type"])
+
+        horse_has_placed = FeatureValueGroup(has_placed, ["subject_id"])
+        horse_place_deviation = FeatureValueGroup(place_deviation, ["subject_id"])
 
         horse_surface_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["surface"])
         horse_surface_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["surface"])
@@ -220,6 +230,9 @@ class FeatureManager:
         trainer_purse = FeatureValueGroup(purse, ["trainer_id"])
 
         prev_value_features = [
+            FeatureSourceExtractor(self.previous_value_source, horse_place_deviation),
+            FeatureSourceExtractor(self.previous_value_source, horse_has_placed),
+
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
 
             FeatureSourceExtractor(self.previous_value_source, horse_surface_win_prob),
@@ -432,19 +445,24 @@ class FeatureManager:
             LayoffExtractor(self.previous_value_source, ["subject_id"], ["surface"]),
         ]
 
+        streak_features = [
+            FeatureSourceExtractor(self.streak_source, horse_has_won),
+            FeatureSourceExtractor(self.streak_source, horse_has_placed)
+        ]
+
         return (
                 current_race_features + prev_value_features
                 + max_value_features + min_value_features +
-                avg_value_features + sum_features + layoff_features
+                avg_value_features + sum_features + layoff_features + streak_features
         )
 
     @property
     def numerical_feature_names(self) -> List[str]:
-        return [feature.get_name() for feature in self.selected_features if not feature.is_categorical]
+        return [feature.name for feature in self.selected_features if not feature.is_categorical]
 
     @property
     def categorical_feature_names(self) -> List[str]:
-        return [feature.get_name() for feature in self.selected_features if feature.is_categorical]
+        return [feature.name for feature in self.selected_features if feature.is_categorical]
 
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -456,14 +474,15 @@ class FeatureManager:
                 feature_value = feature_extractor.get_value(race_card, horse)
                 if self.__report_missing_features:
                     self.__report_if_feature_missing(horse, feature_extractor, feature_value)
-                horse.set_feature_value(feature_extractor.get_name(), feature_value)
+                horse.set_feature_value(feature_extractor.name, feature_value)
 
     def pre_update_feature_sources(self, race_card: RaceCard) -> None:
         for feature_source in self.feature_sources:
             feature_source.pre_update(race_card)
 
     def post_update_feature_sources(self, race_cards: List[RaceCard]) -> None:
-        race_cards = [race_card for race_card in race_cards if race_card.has_results and race_card.feature_source_validity]
+        race_cards = [race_card for race_card in race_cards if
+                      race_card.has_results and race_card.feature_source_validity]
         for feature_source in self.feature_sources:
             feature_source.post_update(race_cards)
 

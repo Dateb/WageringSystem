@@ -7,7 +7,7 @@ from abc import abstractmethod, ABC
 from DataAbstraction.Present.RaceCard import RaceCard
 from numpy import ndarray
 
-from Model.Estimators.util.metrics import get_accuracy_by_win_probability
+from Model.Estimation.util.metrics import get_accuracy_by_win_probability
 from ModelTuning import simulate_conf
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 

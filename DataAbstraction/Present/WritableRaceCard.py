@@ -17,6 +17,14 @@ class WritableRaceCard(RaceCard):
 
         self.runners = [horse for horse in self.horses if not horse.is_scratched]
 
+    def set_place_percentile_of_runners(self) -> None:
+        pass
+
+    def set_relative_distance_behind_of_runners(self) -> None:
+        pass
+
+    def set_uncorrected_momentum_of_runners(self) -> None:
+        pass
 
     def get_data_of_subject(self, subject_id: str) -> dict:
         for horse in self.horses:

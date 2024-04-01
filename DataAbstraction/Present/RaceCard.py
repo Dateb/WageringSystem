@@ -57,8 +57,6 @@ class RaceCard:
         if "weather" in race:
             self.weather = Weather(race["weather"])
 
-        self.__set_head_to_head_horses(race)
-
         self.track_name = get_unique_track_name(raw_race_card["event"]["title"])
 
         self.track_id = event["idTrack"]
@@ -111,9 +109,10 @@ class RaceCard:
         self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
 
         if self.overround > 0:
-            for horse in self.horses:
-                if horse.betfair_win_sp >= 1:
-                    horse.sp_win_prob = (1 / horse.betfair_win_sp)
+            self.set_betfair_win_sp()
+        else:
+            self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners if horse.racebets_win_sp > 0])
+            self.set_racebets_win_sp()
 
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
@@ -126,6 +125,11 @@ class RaceCard:
         }
 
         self.set_validity()
+
+        if self.feature_source_validity:
+            self.set_place_percentile_of_runners()
+            self.set_relative_distance_behind_of_runners()
+            self.set_uncorrected_momentum_of_runners()
 
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
@@ -148,7 +152,13 @@ class RaceCard:
                 total_horse_distance += horse.lengths_behind
                 horse.horse_distance = total_horse_distance
 
-        self.total_horses = self.horses
+        placed_horses = sorted([horse for horse in self.runners if horse.place_racebets > 0],
+                               key=lambda horse: horse.racebets_win_sp)
+
+        odds_place_idx = 1
+        for horse in placed_horses:
+            horse.place_deviation = (odds_place_idx - horse.place) / self.n_runners
+            odds_place_idx += 1
 
         if 5 <= self.n_runners <= 7:
             self.places_num = 2
@@ -179,6 +189,73 @@ class RaceCard:
 
         # if self.remove_non_starters:
         #     self.__remove_non_starters()
+
+    def set_betfair_win_sp(self) -> None:
+        for horse in self.runners:
+            if horse.betfair_win_sp >= 1:
+                horse.sp_win_prob = (self.overround / horse.betfair_win_sp)
+
+    def set_racebets_win_sp(self) -> None:
+        for horse in self.runners:
+            if horse.racebets_win_sp >= 1:
+                horse.sp_win_prob = (self.overround / horse.racebets_win_sp)
+
+    def set_place_percentile_of_runners(self) -> None:
+        for horse in self.runners:
+            if horse.place > self.n_runners:
+                print(f"{horse.place}/{self.n_finishers}/{self.race_id}/{horse.name}")
+
+            if self.n_finishers == 1:
+                horse.place_percentile = 1.0
+            else:
+                if horse.place > 0 and len(self.runners) > 1:
+                    horse.place_percentile = 1 - (horse.place - 1) / (self.n_runners - 1)
+
+    def set_relative_distance_behind_of_runners(self) -> None:
+        for horse in self.runners:
+            if horse.horse_distance >= 0 and self.adjusted_distance > 0:
+                if horse.place_racebets == 1:
+                    second_place_horse = self.get_horse_by_place(2)
+                    second_place_distance = 0
+                    if second_place_horse is not None:
+                        second_place_distance = second_place_horse.horse_distance
+
+                    horse.relative_distance_behind = second_place_distance / self.adjusted_distance
+                else:
+                    horse.relative_distance_behind = -(horse.horse_distance / self.adjusted_distance)
+
+    def set_momentum_of_runners(self) -> None:
+        for horse in self.runners:
+            if horse.uncorrected_momentum > 0:
+                track_variant = 1.0
+                if "value" in self.track_variant_estimate:
+                    track_variant = self.track_variant_estimate["value"]
+
+                horse.momentum = horse.uncorrected_momentum * track_variant
+
+    def set_uncorrected_momentum_of_runners(self) -> None:
+        for horse in self.runners:
+            if horse.jockey.weight > 0:
+                velocity = self.get_velocity(horse)
+                if velocity > 0:
+                    horse.uncorrected_momentum = velocity * horse.jockey.weight
+
+    def get_velocity(self, horse: Horse) -> float:
+        if self.adjusted_distance > 0:
+            if horse.finish_time > 0:
+                return self.adjusted_distance / horse.finish_time
+
+            if self.win_time > 0 and horse.horse_distance >= 0:
+                horse_m_behind = self.horse_lengths_behind_to_horse_m_behind(horse.horse_distance)
+                total_m_run = self.adjusted_distance - horse_m_behind
+
+                return total_m_run / self.win_time
+
+        return -1
+
+    def horse_lengths_behind_to_horse_m_behind(self, horse_distance: float) -> float:
+        metres_per_length = 2.4
+        return horse_distance * metres_per_length
 
     def set_horse_results(self) -> None:
         if self.race_result:
@@ -257,14 +334,6 @@ class RaceCard:
     def attributes(self) -> List[str]:
         return list(self.__base_attributes.keys()) + self.horses[0].attributes
 
-    def __set_head_to_head_horses(self, race: dict):
-        self.__head_to_head_horses = []
-
-        if "head2head" in race:
-            head_to_head_races = race["head2head"]
-            for head_to_head_race in head_to_head_races:
-                self.__head_to_head_horses += head_to_head_race["runners"]
-
     @property
     def name(self) -> str:
         return f"{self.track_name} {self.race_number}"
@@ -274,18 +343,8 @@ class RaceCard:
         return [horse_id for horse_id in self.horses]
 
     @property
-    def head_to_head_horses(self) -> List[str]:
-        return self.__head_to_head_horses
-
-    def get_base_time_estimate(self, horse_number: int) -> dict:
-        # horse_weight = self.get_horse_by_number(horse_number).jockey.weight
-        # weight_category = round(horse_weight / 4) * 4
-
-        return RaceCard.base_times[self.distance_category][self.race_type_detail][self.track_id]
-
-    @property
     def get_par_momentum_estimate(self) -> dict:
-        return RaceCard.par_momentum[self.race_class][self.race_type_detail][self.num_hurdles]
+        return RaceCard.par_momentum[self.race_class][self.race_type_detail][self.num_hurdles][self.going]
 
     @property
     def track_variant_estimate(self) -> dict:
@@ -312,9 +371,3 @@ class RaceCard:
 
         if self.country != "GB":
             self.is_valid_sample = False
-
-        if self.overround == 0:
-            self.feature_source_validity = False
-
-        # if self.category not in ["HCP"]:
-        #     self.is_valid_sample = False

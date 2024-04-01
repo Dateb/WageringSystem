@@ -61,6 +61,7 @@ class BHAInjector:
 
         race_card_data = self.fetch(race_card)
         self.inject_race_card_data(race_card, race_card_data)
+
         self.current_race_idx += 1
 
     def fetch(self, race_card: RaceCard) -> Dict:
@@ -84,8 +85,10 @@ class BHAInjector:
 
         race_dict = self.races_data[race_series_id][self.current_race_idx]
 
-        if race_dict["prizeAmount"] != race_card.purse:
-            raise Exception(f"Matching of race card in BHA fetcher faulty. BHA Purse/Racebets Purse: {race_dict['prizeAmount']}/{race_card.purse}")
+        if race_dict["raceTime"][0:2] != str(race_card.datetime.hour - 1) or race_dict["raceTime"][3:5] != str(race_card.datetime.minute).zfill(2):
+            print("Race card not matching. Trying next one...")
+            self.current_race_idx += 1
+            return self.fetch(race_card)
 
         race_id = race_dict["raceId"]
         division_sequence = race_dict["divisionSequence"]
@@ -177,7 +180,8 @@ class BHAInjector:
             "raceId": race['raceId'],
             "divisionSequence": race['divisionSequence'],
             "distanceChangeText": race['distanceChangeText'],
-            "prizeAmount": race["prizeAmount"]
+            "prizeAmount": race["prizeAmount"],
+            "raceTime": race["raceTime"],
             }
             for race in races_of_race_series_data["data"]
         ]

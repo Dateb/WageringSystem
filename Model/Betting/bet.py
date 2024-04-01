@@ -10,7 +10,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from datetime import datetime
 
 from Model.Betting.staking import StakesCalculator, KellyStakesCalculator, FixedStakesCalculator
-from Model.Estimators.estimated_probabilities_creation import EstimationResult
+from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 from util.stats_calculator import get_max_draw_down
 
@@ -168,7 +168,7 @@ class Bettor:
             self,
             stakes_calculator: StakesCalculator,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 5.0,
+            max_odds_thresh: float = 8.0,
     ):
         self.stakes_calculator = stakes_calculator
         self.odds_threshold = odds_threshold
@@ -186,7 +186,7 @@ class Bettor:
                 for bet_offer in race_offers:
                     if (
                             bet_offer.horse is not None
-                            and -900 < bet_offer.minutes_until_race_start < -300
+                            and bet_offer.offer_datetime.hour == 23
                     ):
                         probability_estimate = estimation_result.get_horse_win_probability(
                             race_datetime,

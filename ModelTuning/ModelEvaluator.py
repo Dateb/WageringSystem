@@ -10,7 +10,7 @@ from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
 from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
 from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimators.estimated_probabilities_creation import EstimationResult
+from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 
 

@@ -102,16 +102,6 @@ class PostPosition(FeatureExtractor):
         return str(horse.post_position)
 
 
-class DoesHeadToHead(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-        self.is_categorical = True
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(horse.horse_id in race_card.head_to_head_horses)
-
-
 class TrainerChangeEarningsRateDiff(FeatureExtractor):
 
     def __init__(self, previous_trainer_source: FeatureSource, performance_source: FeatureSource, trainer_performance_value: FeatureValueGroup):

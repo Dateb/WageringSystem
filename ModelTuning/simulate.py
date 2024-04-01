@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimators.Ranking.BoostedTreesRanker import BoostedTreesRanker
-from Model.Estimators.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
+from Model.Estimation.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
+from Model.Estimation.models import BoostedTreesRanker
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import BET_RESULT_PATH
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=2,
+        n_months_test_sample=4,
         n_months_forward_offset=108,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )

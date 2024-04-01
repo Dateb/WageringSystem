@@ -13,7 +13,7 @@ from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import BettorFactory, OddsThreshold, BetfairOddsVigAdjuster
-from Model.Estimators.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer, EstimationResult
+from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer, EstimationResult
 from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
 from Persistence.RaceCardPersistence import RaceCardsPersistence
@@ -172,7 +172,7 @@ class MinOddsReporter(Actuator):
                 horse_probability = self.estimation_result.probability_estimates[race_key][horse.number]
                 horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                if horse_min_odds < 5:
+                if horse_min_odds < 8:
                     print(f"Race/Horse-Nr/Odds: {race_key}/{horse.number}/{horse_min_odds}")
 
 
@@ -250,7 +250,7 @@ class BetAgent:
             day=1,
         )
 
-        train_data_collector.collect_forward_until_newest_date(query_date, date.today())
+        train_data_collector.collect_forward_until_newest_date(query_date, date.today() + timedelta(days=1))
 
     def get_upcoming_race_cards(self) -> Dict[str, RaceCard]:
         print("Scraping race cards of upcoming races...")

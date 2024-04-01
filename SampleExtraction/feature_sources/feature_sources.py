@@ -1,17 +1,13 @@
 import collections
 from abc import abstractmethod, ABC
-from collections import deque
 from datetime import date
-from math import sqrt
 from sqlite3 import Date
-from statistics import mean
 from typing import List, Dict, Callable
 
-import numpy as np
+from numpy import mean
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from SampleExtraction.feature_sources.value_calculators import get_uncorrected_momentum
 from util.nested_dict import nested_dict
 from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator, SimpleOnlineCalculator
 
@@ -81,16 +77,12 @@ class FeatureSource(ABC):
             self.feature_value_groups.append(feature_value_group)
             self.feature_value_group_names.append(feature_value_group.name)
 
-    def warmup(self, race_cards: List[RaceCard]):
-        for race_card in race_cards:
-            self.post_update(race_card)
-
     def pre_update(self, race_card: RaceCard):
         pass
 
-    def post_update(self, race_cards: List[RaceCard]):
-        current_date = None
+    def post_update(self, race_cards: List[RaceCard]) -> None:
         for feature_value_group in self.feature_value_groups:
+            current_date = None
             feature_values = nested_dict()
             for race_card in race_cards:
                 current_date = race_card.date
@@ -139,6 +131,22 @@ class PreviousValueSource(FeatureSource):
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None:
             category["value"] = new_feature_value
+
+
+class StreakSource(FeatureSource):
+
+    def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
+        if new_feature_value == 1:
+            if "value" not in category or category["value"] < 0:
+                category["value"] = 1
+            else:
+                category["value"] += 1
+
+        if new_feature_value == 0:
+            if "value" not in category or category["value"] > 0:
+                category["value"] = -1
+            else:
+                category["value"] -= 1
 
 
 class PreviousValueScratchedSource(PreviousValueSource):
@@ -276,8 +284,8 @@ class TrackVariantSource(AverageValueSource):
     def __init__(self):
         super().__init__()
         self.is_first_pre_update = True
-        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=8)
-        self.par_momentum_average_calculator = ExponentialOnlineCalculator(window_size=8)
+        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=20)
+        self.par_momentum_average_calculator = ExponentialOnlineCalculator(window_size=20)
 
     def pre_update(self, race_card: RaceCard) -> None:
         if race_card.has_results:
@@ -298,29 +306,27 @@ class TrackVariantSource(AverageValueSource):
 
     def update_track_variant(self, race_card: RaceCard) -> None:
         par_momentum = race_card.get_par_momentum_estimate["value"]
-        for horse in race_card.horses:
-            momentum = get_uncorrected_momentum(race_card, horse)
-
-            if par_momentum and momentum > 0:
-                track_variant = par_momentum / momentum
-                self.update_statistic(
-                    category=race_card.track_variant_estimate,
-                    new_feature_value=track_variant,
-                    value_date=race_card.date,
-                    average_calculator=self.track_variant_average_calculator
-                )
+        track_variants = [par_momentum / horse.uncorrected_momentum for horse in race_card.horses
+                          if horse.uncorrected_momentum > 0 and par_momentum]
+        if track_variants:
+            mean_track_variant = mean(track_variants)
+            self.update_statistic(
+                category=race_card.track_variant_estimate,
+                new_feature_value=mean_track_variant,
+                value_date=race_card.date,
+                average_calculator=self.track_variant_average_calculator
+            )
 
     def update_par_momentum(self, race_card: RaceCard) -> None:
-        for horse in race_card.horses:
-            momentum = get_uncorrected_momentum(race_card, horse)
-
-            if momentum > 0:
-                self.update_statistic(
-                    category=race_card.get_par_momentum_estimate,
-                    new_feature_value=momentum,
-                    value_date=race_card.date,
-                    average_calculator=self.par_momentum_average_calculator
-                )
+        momentums = [horse.uncorrected_momentum for horse in race_card.horses if horse.uncorrected_momentum > 0]
+        if momentums:
+            mean_momentum = mean(momentums)
+            self.update_statistic(
+                category=race_card.get_par_momentum_estimate,
+                new_feature_value=mean_momentum,
+                value_date=race_card.date,
+                average_calculator=self.par_momentum_average_calculator
+            )
 
 
 class GoingSource(AverageValueSource):

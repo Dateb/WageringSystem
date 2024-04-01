@@ -8,8 +8,8 @@ from lightgbm import Dataset
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
-from Model.Estimators.Estimator import Estimator
-from Model.Estimators.estimated_probabilities_creation import WinProbabilizer
+from Model.Estimation.Estimator import Estimator
+from Model.Estimation.estimated_probabilities_creation import WinProbabilizer
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 
