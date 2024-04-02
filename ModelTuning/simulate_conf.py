@@ -7,4 +7,4 @@ GBT_CONFIG_PATH: str = "../Model/Estimation/gbt_config"
 MARKET_TYPE = "WIN"
 MARKET_SOURCE = "Betfair"
 STAKES_CALCULATOR = "Fixed"
-RUN_MODEL_TUNER = False
+RUN_MODEL_TUNER = True
