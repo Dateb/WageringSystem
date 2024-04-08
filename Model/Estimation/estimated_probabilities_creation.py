@@ -47,8 +47,6 @@ class Probabilizer(ABC):
         race_cards_dataframe.loc[:, win_prob_column_name] = \
             (race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"])
 
-        if simulate_conf.MARKET_TYPE == "PLACE":
-            race_cards_dataframe.loc[:, win_prob_column_name] *= race_cards_dataframe.loc[:, "place_num"]
         race_cards_dataframe = race_cards_dataframe.drop("sum_exp_scores", axis=1)
 
         return race_cards_dataframe

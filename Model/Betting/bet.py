@@ -6,12 +6,10 @@ from typing import List, Dict
 import numpy as np
 
 from DataAbstraction.Present.Horse import Horse
-from DataAbstraction.Present.RaceCard import RaceCard
 from datetime import datetime
 
-from Model.Betting.staking import StakesCalculator, KellyStakesCalculator, FixedStakesCalculator
+from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimation.estimated_probabilities_creation import EstimationResult
-from ModelTuning import simulate_conf
 from util.stats_calculator import get_max_draw_down
 
 
@@ -95,20 +93,44 @@ class Bet:
 
         return bet_str
 
+    def set_stakes(self, stakes: float) -> None:
+        self.stakes = stakes
+        self.loss = stakes
+        if self.has_won:
+            self.win = self.stakes * self.bet_offer.live_result.offer_odds * self.bet_offer.live_result.adjustment_factor
+
+    @property
+    def has_won(self) -> bool:
+        return self.bet_offer.horse.has_won
+
     @property
     def payout(self) -> float:
         return self.win - self.loss
 
 
-@dataclass
 class BetResult:
 
-    bets: List[Bet]
+    def __init__(self, bets: List[Bet], race_results_container: RaceResultsContainer):
+        self.bets = bets
+
+        self.filter_bets_without_race_result(race_results_container)
+        self.filter_bets_with_nonrunner_horse(race_results_container)
+
+    def filter_bets_without_race_result(self, race_results_container: RaceResultsContainer) -> None:
+        self.bets = [bet for bet in self.bets if str(bet.bet_offer.race_datetime) in race_results_container.race_results]
+
+    def filter_bets_with_nonrunner_horse(self, race_results_container: RaceResultsContainer) -> None:
+        self.bets = [bet for bet in self.bets if not self.bet_contains_nonrunner(bet, race_results_container)]
+
+    def bet_contains_nonrunner(self, bet: Bet, race_results_container: RaceResultsContainer) -> bool:
+        race_result = race_results_container.race_results[str(bet.bet_offer.race_datetime)]
+        horse_name = bet.bet_offer.horse.name.upper()
+        return race_result.is_non_runner(horse_name)
 
     @property
     def max_drawdown(self) -> float:
         max_drawdowns = []
-        for _ in range(1000):
+        for _ in range(100):
             bets_sample = random.sample(self.bets, k=len(self.bets))
 
             max_draw_down = get_max_draw_down([bet.payout for bet in bets_sample])
@@ -166,11 +188,9 @@ class Bettor:
 
     def __init__(
             self,
-            stakes_calculator: StakesCalculator,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 8.0,
+            max_odds_thresh: float = 10.0,
     ):
-        self.stakes_calculator = stakes_calculator
         self.odds_threshold = odds_threshold
         self.max_odds_thresh = max_odds_thresh
 
@@ -178,7 +198,7 @@ class Bettor:
         self.offer_accepted_count = 0
         self.offer_rejected_count = 0
 
-    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult) -> BetResult:
+    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult, race_results_container: RaceResultsContainer) -> BetResult:
         bets = []
 
         for race_datetime, race_offers in offers.items():
@@ -198,34 +218,25 @@ class Bettor:
                         # if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
                         #     probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
 
-                        stakes = self.get_stakes_of_offer(bet_offer, probability_estimate, race_datetime)
-                        if stakes > 0.005:
-                            new_bet = Bet(
-                                bet_offer,
-                                stakes,
-                                win=0.0,
-                                loss=0.0,
-                                probability_estimate=probability_estimate,
-                                probability_start=bet_offer.horse.sp_win_prob
-                            )
-                            bets.append(new_bet)
-                            self.already_taken_offers[(race_datetime, bet_offer.horse.number)] = True
+                        if probability_estimate is not None:
+                            if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
+                                min_odds = self.odds_threshold.get_min_odds(probability_estimate)
+                                if min_odds < bet_offer.live_result.offer_odds and min_odds < self.max_odds_thresh:
+                                    new_bet = Bet(
+                                        bet_offer,
+                                        stakes=0.0,
+                                        win=0.0,
+                                        loss=0.0,
+                                        probability_estimate=probability_estimate,
+                                        probability_start=bet_offer.horse.sp_win_prob
+                                    )
+                                    bets.append(new_bet)
+                                    self.offer_accepted_count += 1
+                                else:
+                                    self.offer_rejected_count += 1
+                        self.already_taken_offers[(race_datetime, bet_offer.horse.number)] = True
 
-        return BetResult(bets)
-
-    def get_stakes_of_offer(self, bet_offer: BetOffer, probability_estimate: float, race_datetime: str) -> float:
-        stakes = 0
-
-        if probability_estimate is not None:
-            if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
-                min_odds = self.odds_threshold.get_min_odds(probability_estimate)
-                if min_odds < bet_offer.live_result.offer_odds and min_odds < self.max_odds_thresh:
-                    stakes = self.stakes_calculator.get_stakes(probability_estimate, bet_offer.live_result.offer_odds)
-                    self.offer_accepted_count += 1
-                else:
-                    self.offer_rejected_count += 1
-
-        return stakes
+        return BetResult(bets, race_results_container)
 
     @property
     def offer_acceptance_rate(self) -> float:
@@ -239,24 +250,10 @@ class BettorFactory:
 
     @staticmethod
     def create_bettor(bet_threshold: float) -> Bettor:
-        if simulate_conf.STAKES_CALCULATOR == "Kelly":
-            stakes_calculator = KellyStakesCalculator()
-        else:
-            if simulate_conf.MARKET_SOURCE == "Betfair":
-                if simulate_conf.MARKET_TYPE == "WIN":
-                    stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
-                else:
-                    stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
-            else:
-                stakes_calculator = FixedStakesCalculator(fixed_stakes=0.5)
-
-        if simulate_conf.MARKET_SOURCE == "Betfair":
-            odds_vig_adjuster = BetfairOddsVigAdjuster()
-        else:
-            odds_vig_adjuster = RacebetsOddsVigAdjuster()
+        odds_vig_adjuster = BetfairOddsVigAdjuster()
 
         odds_threshold = OddsThreshold(odds_vig_adjuster, bet_threshold)
-        bettor = Bettor(stakes_calculator=stakes_calculator, odds_threshold=odds_threshold)
+        bettor = Bettor(odds_threshold=odds_threshold)
 
         return bettor
 

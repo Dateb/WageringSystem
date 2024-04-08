@@ -6,29 +6,29 @@ from DataAbstraction.Present.HorseResult import HorseResult
 
 class RaceResult:
 
-    def __init__(self, horses: List[Horse], places_num: int):
-        self.horse_results = {}
+    def __init__(self, runners: List[Horse], places_num: int):
+        self.runner_results = {}
 
-        for horse in horses:
-            self.horse_results[horse.name.replace("'", "").upper()] = HorseResult(
+        for runner in runners:
+            self.runner_results[runner.name.replace("'", "").upper()] = HorseResult(
                 race_name="",
                 race_date_time="",
                 name="",
-                place=horse.place_racebets,
+                place=runner.place_racebets,
                 win_probability=0,
                 place_probability=0,
                 win_odds=0,
                 place_odds=0,
                 place_num=0,
-                has_won=horse.has_won,
-                has_placed=horse.has_placed
+                has_won=runner.has_won,
+                has_placed=runner.has_placed
             )
 
         self.places_num = places_num
+        self.runner_names = list(self.runner_results.keys())
 
-    def get_result_of_horse(self, horse_name: str) -> HorseResult:
-        return self.horse_results[horse_name]
+    def get_result_of_runner(self, runner_name: str) -> HorseResult:
+        return self.runner_results[runner_name]
 
-    @property
-    def horse_names(self) -> List[str]:
-        return list(self.horse_results.keys())
+    def is_non_runner(self, horse_name: str):
+        return horse_name not in self.runner_names

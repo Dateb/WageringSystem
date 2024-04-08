@@ -13,7 +13,6 @@ from Model.Estimation.dataset_factory import DatasetFactory
 @dataclass
 class GBTConfig:
 
-    num_boost_round: int
     search_params: dict
     feature_names: List[str]
 
@@ -22,26 +21,28 @@ class GBTTuner:
     def __init__(
             self,
             fixed_params: dict,
+            num_boost_rounds: int,
             feature_names: List[str],
             categorical_feature_names: List[str],
-            n_hyperparameter_rounds: int = 8,
-            max_feature_selection_iter: int = 15
+            n_hyperparameter_rounds: int = 30,
+            max_feature_selection_iter: int = -1
     ):
+        self.num_tuning_rounds = 1
         self.fixed_params = fixed_params
+        self.num_boost_rounds = num_boost_rounds
         self.feature_names = feature_names
         self.categorical_feature_names = categorical_feature_names
         self.n_hyperparameter_rounds = n_hyperparameter_rounds
         self.max_feature_selection_iter = max_feature_selection_iter
 
     def run(self, dataset_factory: DatasetFactory) -> GBTConfig:
-        gbt_config = GBTConfig(num_boost_round=0, search_params={}, feature_names=self.feature_names)
-        for _ in range(5):
+        gbt_config = GBTConfig(search_params={}, feature_names=self.feature_names)
+        for _ in range(self.num_tuning_rounds):
             dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
             gbt_config.search_params = self.get_hyperparameters(dataset)
-            gbt_config.num_boost_round = gbt_config.search_params["num_rounds"]
-            del gbt_config.search_params["num_rounds"]
 
             self.feature_names = self.get_feature_names(dataset_factory, gbt_config)
+            self.categorical_feature_names = [feature_name for feature_name in self.feature_names if feature_name in self.categorical_feature_names]
 
         gbt_config.feature_names = self.feature_names
         return gbt_config
@@ -49,6 +50,7 @@ class GBTTuner:
     def get_hyperparameters(self, dataset: Dataset) -> dict:
         cv_objective = GBTObjective(
             fixed_params=self.fixed_params,
+            num_rounds=self.num_boost_rounds,
             dataset=dataset,
             cat_feature_names=self.categorical_feature_names
         )
@@ -82,12 +84,12 @@ class GBTTuner:
         eval_results = lightgbm.cv(
             params={**self.fixed_params, **gbt_config.search_params},
             train_set=dataset,
-            num_boost_round=gbt_config.num_boost_round,
+            num_boost_round=self.num_boost_rounds,
             categorical_feature=self.categorical_feature_names,
             return_cvbooster=True
         )
 
-        best_cv_score = eval_results["valid ndcg@1-mean"][-1]
+        best_cv_score = eval_results["valid ndcg@5-mean"][-1]
 
         removed_feature_names = []
         improvement_found = True
@@ -111,12 +113,12 @@ class GBTTuner:
                     eval_results = lightgbm.cv(
                         params={**self.fixed_params, **gbt_config.search_params},
                         train_set=dataset,
-                        num_boost_round=gbt_config.num_boost_round,
+                        num_boost_round=self.num_boost_rounds,
                         categorical_feature=categorical_feature_names_subset,
                         return_cvbooster=True
                     )
 
-                    cv_score = eval_results["valid ndcg@1-mean"][-1]
+                    cv_score = eval_results["valid ndcg@5-mean"][-1]
 
                     sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config, feature_names_subset, categorical_feature_names_subset)
                     importance_sum = self.get_importance_sum(sorted_feature_importances)
@@ -126,10 +128,10 @@ class GBTTuner:
 
                     if cv_score > best_cv_score:
                         removed_feature_names.append(feature_name)
+                        best_cv_score = cv_score
                         print(f"{importance_sum}: {relative_feature_importances}")
                         print(f"Best score: {best_cv_score}")
                         print(f"Removed features: {removed_feature_names}")
-                        best_cv_score = cv_score
                         improvement_found = True
 
                         best_feature_names_subset.remove(feature_name)
@@ -140,7 +142,7 @@ class GBTTuner:
 
     def get_sorted_feature_importances(self, dataset: Dataset, gbt_config: GBTConfig, feature_names: List[str], categorical_feature_names: List[str]) -> dict:
         booster = lightgbm.train(
-            num_boost_round=gbt_config.num_boost_round,
+            num_boost_round=self.num_boost_rounds,
             params={**self.fixed_params, **gbt_config.search_params},
             train_set=dataset,
             categorical_feature=categorical_feature_names,
@@ -161,14 +163,13 @@ class GBTTuner:
 
 
 class GBTObjective:
-    def __init__(self, fixed_params: dict, dataset: Dataset, cat_feature_names: List[str]):
+    def __init__(self, fixed_params: dict, num_rounds: int, dataset: Dataset, cat_feature_names: List[str]):
         self.fixed_params = fixed_params
+        self.num_rounds = num_rounds
         self.dataset = dataset
         self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
-        num_rounds = trial.suggest_int("num_rounds", 700, 1100)
-
         search_params = {
             "num_leaves": trial.suggest_int("num_leaves", 2, 8),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
@@ -184,7 +185,7 @@ class GBTObjective:
         eval_results = lightgbm.cv(
             params=params,
             train_set=self.dataset,
-            num_boost_round=num_rounds,
+            num_boost_round=self.num_rounds,
             categorical_feature=self.cat_feature_names,
             return_cvbooster=True
         )

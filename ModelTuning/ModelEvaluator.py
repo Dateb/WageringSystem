@@ -1,15 +1,14 @@
 import os
-from typing import Dict, List
+from typing import Dict
 
 import numpy as np
 from numpy import mean
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bet, BettorFactory, BetResult
-from Model.Betting.evaluate import WinBetEvaluator, PlaceBetEvaluator
-from Model.Betting.offer_container import BetfairOfferContainer, RaceBetsOfferContainer
-from Model.Betting.payout_calculation import RacebetsPayoutCalculator, BetfairPayoutCalculator
+from Model.Betting.offer_container import BetfairOfferContainer
 from Model.Betting.race_results_container import RaceResultsContainer
+from Model.Betting.staking import FixedStakesCalculator
 from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
 
@@ -24,21 +23,13 @@ class ModelEvaluator:
             self,
             race_results_container: RaceResultsContainer,
             clv_tolerance: float = 0.025,
-            drawdown_tolerance: float = 1200
+            drawdown_tolerance: float = 10000
     ):
         self.race_results_container = race_results_container
         self.bettor_factory = BettorFactory()
 
-        if simulate_conf.MARKET_TYPE == "WIN":
-            bet_evaluator = WinBetEvaluator()
-        else:
-            bet_evaluator = PlaceBetEvaluator()
-
         self.offer_container = BetfairOfferContainer()
-        if simulate_conf.MARKET_SOURCE == "Racebets":
-            self.payout_calculator = RacebetsPayoutCalculator(bet_evaluator)
-        else:
-            self.payout_calculator = BetfairPayoutCalculator(bet_evaluator)
+        self.stakes_calculator = FixedStakesCalculator(fixed_stakes=6.0)
 
         self.clv_tolerance = clv_tolerance
         self.drawdown_tolerance = drawdown_tolerance
@@ -55,9 +46,10 @@ class ModelEvaluator:
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)
-            bet_result = bettor.bet(self.offer_container.race_offers, estimation_result)
+            bet_result = bettor.bet(self.offer_container.race_offers, estimation_result, self.race_results_container)
 
-            self.payout_calculator.insert_payouts_into_bets(bet_result.bets, self.race_results_container.race_results)
+            for bet in bet_result.bets:
+                self.stakes_calculator.set_stakes(bet)
 
             clv = [bet.bet_offer.live_result.clv for bet in bet_result.bets]
             mean_clv = mean(clv)

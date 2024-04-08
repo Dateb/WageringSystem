@@ -56,6 +56,7 @@ class BoostedTreesRanker(Estimator):
 
     def __init__(self, feature_manager: FeatureManager):
         super().__init__(feature_manager)
+        self.num_rounds = 2000
         self.probabilizer = WinProbabilizer()
         self.label_name = Horse.RANKING_LABEL_KEY
         self.feature_manager = feature_manager
@@ -64,7 +65,7 @@ class BoostedTreesRanker(Estimator):
         self.categorical_feature_names = [feature.name for feature in feature_manager.features if feature.is_categorical]
         self.feature_names = self.feature_manager.numerical_feature_names + self.categorical_feature_names
 
-        self.tuner = GBTTuner(self.FIXED_PARAMS, self.feature_names, self.categorical_feature_names)
+        self.tuner = GBTTuner(self.FIXED_PARAMS, self.num_rounds, self.feature_names, self.categorical_feature_names)
 
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         test_loss = self.score_test_sample(sample)
@@ -110,8 +111,8 @@ class BoostedTreesRanker(Estimator):
         dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
 
         self.booster = lightgbm.train(
-            num_boost_round=gbt_config.num_boost_round,
-            params=gbt_config.search_params,
+            num_boost_round=self.num_rounds,
+            params=self.params,
             train_set=dataset,
             categorical_feature=self.categorical_feature_names,
         )

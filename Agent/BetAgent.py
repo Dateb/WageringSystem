@@ -172,7 +172,7 @@ class MinOddsReporter(Actuator):
                 horse_probability = self.estimation_result.probability_estimates[race_key][horse.number]
                 horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                if horse_min_odds < 8:
+                if horse_min_odds < 10:
                     print(f"Race/Horse-Nr/Odds: {race_key}/{horse.number}/{horse_min_odds}")
 
 
@@ -195,7 +195,7 @@ class BetAgent:
 
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
-            n_months_test_sample=8,
+            n_months_test_sample=14,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
         )
