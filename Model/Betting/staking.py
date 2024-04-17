@@ -13,15 +13,6 @@ class StakesCalculator:
         pass
 
 
-class KellyStakesCalculator(StakesCalculator):
-
-    def get_stakes(self, probability_estimate: float, odds: float) -> float:
-        ev = odds * probability_estimate
-        stakes = (ev - 1) / (odds - 1)
-
-        return stakes
-
-
 class FixedStakesCalculator(StakesCalculator):
 
     def __init__(self, fixed_stakes: float):
@@ -41,7 +32,29 @@ class FlatStakesCalculator(StakesCalculator):
         self.max_bet_size = max_bet_size
 
     def set_stakes(self, bet: Bet) -> None:
-        stakes = max([6, self.bankroll * self.bankroll_fraction])
+        stakes = self.bankroll * self.bankroll_fraction
+        stakes = max([6, stakes])
         stakes = min([stakes, self.max_bet_size])
         bet.set_stakes(stakes)
-        self.bankroll += bet.payout
+        self.bankroll += bet.bet_offer.live_result.payout
+
+
+class KellyStakesCalculator(StakesCalculator):
+
+    def __init__(self, starting_bankroll: float = 1500, max_bet_size: float = 20, min_bet_size: float = 6, kelly_fraction: float = 0.25):
+        super().__init__()
+        self.bankroll = starting_bankroll
+        self.max_bet_size = max_bet_size
+        self.min_bet_size = min_bet_size
+        self.kelly_fraction = kelly_fraction
+
+    def set_stakes(self, bet: Bet) -> None:
+        edge = bet.bet_offer.live_result.offer_odds * bet.probability_estimate
+        bankroll_fraction = (edge - 1) / (bet.bet_offer.live_result.offer_odds - 1)
+        stakes = self.bankroll * bankroll_fraction * self.kelly_fraction
+
+        stakes = max([self.min_bet_size, stakes])
+        stakes = min([stakes, self.max_bet_size])
+
+        bet.set_stakes(stakes)
+        self.bankroll += bet.bet_offer.live_result.payout

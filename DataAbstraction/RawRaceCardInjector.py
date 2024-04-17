@@ -5,7 +5,7 @@ from DataAbstraction.WinTimesFactory import WinTimesFactory
 from DataCollection.FormGuide import FormGuide
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from Persistence.JSONPersistence import JSONPersistence
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 from util.speed_calculator import race_card_track_to_win_time_track
 
 
@@ -23,7 +23,7 @@ class RawRaceCardInjector:
 
 
 def main():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards")
 
     for race_cards in race_cards_persistence:
         print(list(race_cards.keys())[0])

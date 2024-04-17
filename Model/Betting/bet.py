@@ -30,6 +30,8 @@ class LiveResult:
     offer_odds: float
     starting_odds: float
     has_won: bool
+    win: float
+    loss: float
     adjustment_factor: float = 1.0
     stakes: float = 6.0
 
@@ -41,6 +43,10 @@ class LiveResult:
             starting_p = 1 / BetfairOddsVigAdjuster().get_adjusted_odds(self.starting_odds)
             return (starting_p - offer_p) / offer_p
         return 0
+
+    @property
+    def payout(self) -> float:
+        return self.win - self.loss
 
 
 @dataclass
@@ -76,8 +82,6 @@ class Bet:
 
     bet_offer: BetOffer
     stakes: float
-    win: float
-    loss: float
     probability_estimate: float
     probability_start: float
 
@@ -95,17 +99,14 @@ class Bet:
 
     def set_stakes(self, stakes: float) -> None:
         self.stakes = stakes
-        self.loss = stakes
+        self.bet_offer.live_result.loss = stakes
         if self.has_won:
-            self.win = self.stakes * self.bet_offer.live_result.offer_odds * self.bet_offer.live_result.adjustment_factor
+            self.bet_offer.live_result.win = self.stakes * self.bet_offer.live_result.offer_odds * self.bet_offer.live_result.adjustment_factor
 
     @property
     def has_won(self) -> bool:
         return self.bet_offer.horse.has_won
 
-    @property
-    def payout(self) -> float:
-        return self.win - self.loss
 
 
 class BetResult:
@@ -133,7 +134,7 @@ class BetResult:
         for _ in range(100):
             bets_sample = random.sample(self.bets, k=len(self.bets))
 
-            max_draw_down = get_max_draw_down([bet.payout for bet in bets_sample])
+            max_draw_down = get_max_draw_down([bet.bet_offer.live_result.payout for bet in bets_sample])
 
             max_drawdowns.append(max_draw_down)
 
@@ -225,8 +226,6 @@ class Bettor:
                                     new_bet = Bet(
                                         bet_offer,
                                         stakes=0.0,
-                                        win=0.0,
-                                        loss=0.0,
                                         probability_estimate=probability_estimate,
                                         probability_start=bet_offer.horse.sp_win_prob
                                     )

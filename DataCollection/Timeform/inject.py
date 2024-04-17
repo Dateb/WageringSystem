@@ -1,6 +1,6 @@
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Timeform.fetch import TimeFormFetcher, ResultTimeformFetcher
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 
 
 class TimeFormInjector:
@@ -56,7 +56,7 @@ class TimeFormInjector:
 
 
 def main():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards")
 
     time_form_fetcher = ResultTimeformFetcher()
     time_form_injector = TimeFormInjector(time_form_fetcher)
@@ -76,7 +76,7 @@ def main():
 
 
 def reset_injection_flag():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards")
 
     for race_cards in race_cards_persistence:
         print(list(race_cards.keys())[0])

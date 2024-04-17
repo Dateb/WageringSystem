@@ -6,7 +6,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
 from DataCollection.collect_util import distance_to_meters
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 
 scraper = get_scraper()
 

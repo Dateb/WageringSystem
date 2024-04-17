@@ -1,6 +1,6 @@
 from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.weather.fetch import WeatherFetcher
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 
 
 class WeatherInjector:
@@ -10,7 +10,7 @@ class WeatherInjector:
 
     def inject_weather_of_race(self, race_card: WritableRaceCard) -> bool:
         if "weather" not in race_card.raw_race_card["race"]:
-            weather = self.weather_fetcher.fetch_weather_of_race(race_card)
+            weather = self.weather_fetcher.fetch_weather_of_past_race(race_card)
             race_card.raw_race_card["race"]["weather"] = weather["data"][0]
 
             return True
@@ -19,12 +19,12 @@ class WeatherInjector:
 
 
 def main():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards")
 
     weather_fetcher = WeatherFetcher()
     weather_injector = WeatherInjector(weather_fetcher)
 
-    race_card_file_names = race_cards_persistence.race_card_file_names
+    race_card_file_names = race_cards_persistence.race_data_file_names
 
     for race_card_file_name in reversed(race_card_file_names):
         race_cards = race_cards_persistence.load_race_card_files_writable([race_card_file_name])

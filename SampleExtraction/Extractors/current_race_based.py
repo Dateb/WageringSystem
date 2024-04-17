@@ -190,6 +190,10 @@ class TravelDistance(FeatureExtractor):
                 print(unknown_location_list)
             return self.PLACEHOLDER_VALUE
 
+        if race_card.track_name not in self.locations:
+            print(f"Please add new unknown track location: {race_card.track_name}")
+            return self.PLACEHOLDER_VALUE
+
         location_id_current = self.locations[race_card.track_name]["location_id"]
         location_id_previous = self.locations[previous_track_name]["location_id"]
 

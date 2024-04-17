@@ -266,7 +266,8 @@ class RaceCard:
         self.date_raw = raw_race_card["race"]["postTime"]
         self.datetime = datetime.fromtimestamp(self.date_raw)
         self.date = self.datetime.date()
-        self.off_time = datetime.fromtimestamp(raw_race_card["race"]["offTime"])
+        self.raw_off_time = raw_race_card["race"]["offTime"]
+        self.off_time = datetime.fromtimestamp(self.raw_off_time)
 
     def to_array(self) -> ndarray:
         total_values = []

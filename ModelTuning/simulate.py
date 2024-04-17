@@ -10,7 +10,7 @@ from Model.Estimation.models import BoostedTreesRanker
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import BET_RESULT_PATH
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -21,7 +21,7 @@ from SampleExtraction.data_splitting import MonthDataSplitter
 def load_sample(
         race_cards_array_factory: RaceCardsArrayFactory,
         sample_encoder: SampleEncoder,
-        race_cards_loader: RaceCardsPersistence,
+        race_cards_loader: RaceDataPersistence,
         file_names: List[str],
         race_cards_save_callbacks: List[Callable[[Dict[str, RaceCard]], None]]
 ) -> RaceCardsSample:
@@ -139,8 +139,8 @@ if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=14,
-        n_months_forward_offset=0,
+        n_months_test_sample=4,
+        n_months_forward_offset=118,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

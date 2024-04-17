@@ -16,7 +16,7 @@ from Model.Betting.bet import BettorFactory, OddsThreshold, BetfairOddsVigAdjust
 from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer, EstimationResult
 from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.RaceCardsSample import RaceCardsSample
 from SampleExtraction.SampleEncoder import SampleEncoder
@@ -195,7 +195,7 @@ class BetAgent:
 
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
-            n_months_test_sample=14,
+            n_months_test_sample=6,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
         )
@@ -242,7 +242,7 @@ class BetAgent:
     def update_race_card_data(self) -> None:
         print("Scraping newest race card data...")
 
-        train_data_collector = TrainDataCollector(RaceCardsPersistence(simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME))
+        train_data_collector = TrainDataCollector(RaceDataPersistence(simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME))
 
         query_date = date(
             year=2023,

@@ -148,6 +148,8 @@ class BetfairOfferContainer(BetOfferContainer):
                                             starting_odds=horse.betfair_win_sp,
                                             has_won=horse.has_won,
                                             adjustment_factor=1.0,
+                                            win=0,
+                                            loss=0,
                                         )
 
                                         bef_offer = BetOffer(

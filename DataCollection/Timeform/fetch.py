@@ -14,7 +14,7 @@ from DataAbstraction.Present.WritableRaceCard import WritableRaceCard
 from DataCollection.Scraper import get_scraper
 from DataCollection.current_races.fetch import TodayRaceCardsFetcher, TomorrowRaceCardsFetcher
 from DataCollection.collect_util import distance_to_meters
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 
 
 class TimeFormFetcher(ABC):
@@ -587,7 +587,7 @@ class RaceCardTimeformFetcher(TimeFormFetcher):
 
 
 def main():
-    race_cards_persistence = RaceCardsPersistence(data_dir_name="race_cards")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards")
 
     time_form_fetcher = ResultTimeformFetcher()
     dummy_race_card = list(race_cards_persistence.load_first_month_writable().values())[0]

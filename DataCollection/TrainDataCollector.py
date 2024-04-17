@@ -8,12 +8,12 @@ from tqdm import tqdm
 from DataCollection.DayCollector import DayCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from ModelTuning import simulate_conf
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 
 
 class CollectedDaysTracker:
 
-    def __init__(self, race_cards_persistence: RaceCardsPersistence, collected_days_file_name="../data/collected_days.pickle"):
+    def __init__(self, race_cards_persistence: RaceDataPersistence, collected_days_file_name="../data/collected_days.pickle"):
         self.collected_days_file_name = collected_days_file_name
         self.race_cards_persistence = race_cards_persistence
         self.collected_days = []
@@ -40,7 +40,7 @@ class CollectedDaysTracker:
     def get_collected_days_from_race_cards(self) -> Set:
         collected_days = set()
 
-        for race_card_file_name in tqdm(self.race_cards_persistence.race_card_file_names):
+        for race_card_file_name in tqdm(self.race_cards_persistence.race_data_file_names):
             race_cards = self.race_cards_persistence.load_race_card_files_non_writable([race_card_file_name])
             for race_card in race_cards.values():
                 collected_days.add(race_card.date)
@@ -52,7 +52,7 @@ class TrainDataCollector:
 
     __TIME_OF_A_DAY = timedelta(days=1)
 
-    def __init__(self, race_cards_persistence: RaceCardsPersistence):
+    def __init__(self, race_cards_persistence: RaceDataPersistence):
         self.race_cards_persistence = race_cards_persistence
         self.collected_days_tracker = CollectedDaysTracker(self.race_cards_persistence)
 
@@ -100,7 +100,7 @@ class TrainDataCollector:
 
 
 def main():
-    train_data_collector = TrainDataCollector(RaceCardsPersistence(simulate_conf.DEV_RACE_CARDS_FOLDER_NAME))
+    train_data_collector = TrainDataCollector(RaceDataPersistence(simulate_conf.DEV_RACE_CARDS_FOLDER_NAME))
 
     day_before_yesterday = date.today() - timedelta(days=2)
 

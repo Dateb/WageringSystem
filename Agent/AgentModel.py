@@ -5,7 +5,7 @@ from tqdm import tqdm
 from DataAbstraction.Present.RaceCard import RaceCard
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.RankerConfigMCTS.EstimatorConfiguration import EstimatorConfiguration
-from Persistence.RaceCardPersistence import RaceCardsPersistence
+from Persistence.RaceCardPersistence import RaceDataPersistence
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsArrayFactory import RaceCardsArrayFactory
 from SampleExtraction.SampleEncoder import SampleEncoder
@@ -19,7 +19,7 @@ class AgentModel:
         bet_model_configuration = self.load_bet_model_configuration()
         self.feature_manager = FeatureManager(features=bet_model_configuration.selected_features)
 
-        self.race_cards_loader = RaceCardsPersistence("race_cards")
+        self.race_cards_loader = RaceDataPersistence("race_cards")
 
         model_evaluator = ModelEvaluator()
         self.race_cards_array_factory = RaceCardsArrayFactory(
@@ -32,7 +32,7 @@ class AgentModel:
 
         sample_encoder = SampleEncoder(self.feature_manager.features, self.sample_columns)
 
-        for race_card_file_name in tqdm(self.race_cards_loader.race_card_file_names):
+        for race_card_file_name in tqdm(self.race_cards_loader.race_data_file_names):
             race_cards = self.race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
             arr_of_race_cards = self.race_cards_array_factory.race_cards_to_array(race_cards)
             sample_encoder.add_race_cards_arr(arr_of_race_cards)
@@ -76,6 +76,6 @@ class AgentModel:
     def get_sample_columns(self):
         # We load a race cards dummy list to know the columns
         dummy_race_cards = self.race_cards_loader.load_race_card_files_non_writable(
-            [self.race_cards_loader.race_card_file_names[0]])
+            [self.race_cards_loader.race_data_file_names[0]])
         dummy_race_cards = list(dummy_race_cards.values())
         return dummy_race_cards[0].attributes + self.feature_manager.feature_names
