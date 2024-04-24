@@ -40,7 +40,7 @@ class WeatherFetcher:
         weather_api_url = self.base_url + f"?lat={latitude}&lon={longitude}&dt={post_time}&appid={self.API_KEY}"
 
         response = requests.get(weather_api_url)
-        sleep(0.5)
+        sleep(0.7)
         if response.status_code != 200:
             raise Exception()
 
@@ -77,9 +77,6 @@ def main():
             weather_persistence.save_date_based_dict(weather_data)
             race_cards = [race_card for race_card in race_cards if race_card not in race_cards_of_day]
             print(f"Finished day: {current_day}, remaining requests: {len(race_cards)}")
-
-            if not race_cards:
-                return 0
 
 
 if __name__ == '__main__':

@@ -47,6 +47,51 @@ class CurrentDistance(FeatureExtractor):
         return float(race_card.distance)
 
 
+class CurrentTemperature(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.temperature < 0:
+            return self.PLACEHOLDER_VALUE
+        return race_card.temperature
+
+
+class CurrentWindSpeed(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.wind_speed < 0:
+            return self.PLACEHOLDER_VALUE
+        return race_card.wind_speed
+
+
+class CurrentHumidity(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.humidity < 0:
+            return self.PLACEHOLDER_VALUE
+        return race_card.humidity
+
+
+class CurrentWeatherType(FeatureExtractor):
+
+    def __init__(self):
+        super().__init__()
+        self.is_categorical = True
+
+    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+        if not race_card.weather_type:
+            return self.PLACEHOLDER_VALUE
+        return race_card.weather_type
+
+
 class PlacesNum(FeatureExtractor):
 
     def __init__(self):

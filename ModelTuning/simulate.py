@@ -25,11 +25,16 @@ def load_sample(
         file_names: List[str],
         race_cards_save_callbacks: List[Callable[[Dict[str, RaceCard]], None]]
 ) -> RaceCardsSample:
+    weather_persistence = RaceDataPersistence("weather")
     for race_card_file_name in tqdm(file_names):
         race_cards = race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
 
         for callback in race_cards_save_callbacks:
             callback(race_cards)
+
+        weather_data = weather_persistence.load_race_data(race_card_file_name)
+        for race_card in race_cards.values():
+            race_card.add_weather_data(weather_data)
 
         arr_of_race_cards = race_cards_array_factory.race_cards_to_array(race_cards)
         sample_encoder.add_race_cards_arr(arr_of_race_cards)
@@ -45,10 +50,7 @@ def load_sample(
 class ModelSimulator:
 
     def __init__(self, month_data_splitter: MonthDataSplitter):
-        if simulate_conf.MARKET_TYPE == "WIN":
-            self.probabilizer = WinProbabilizer()
-        else:
-            self.probabilizer = PlaceScoreProbabilizer()
+        self.probabilizer = WinProbabilizer()
 
         self.month_data_splitter = month_data_splitter
 
@@ -62,10 +64,6 @@ class ModelSimulator:
         self.feature_manager = FeatureManager()
 
         gbt_ranker = BoostedTreesRanker(self.feature_manager)
-        # nn_estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
-        # gbt_classifier = BoostedTreesClassifier(self.feature_manager)
-
-        # self.estimator = EnsembleAverageEstimator(self.feature_manager, [gbt_ranker, nn_estimator])
         self.estimator = gbt_ranker
 
         self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
@@ -74,8 +72,13 @@ class ModelSimulator:
         print(f"#train months: {len(self.month_data_splitter.train_file_names)}")
         print(f"#test months: {len(self.month_data_splitter.test_file_names)}")
 
+        weather_persistence = RaceDataPersistence("weather")
         for race_card_file_name in tqdm(self.month_data_splitter.container_file_names):
             race_cards = self.month_data_splitter.race_cards_loader.load_race_card_files_non_writable([race_card_file_name])
+
+            weather_data = weather_persistence.load_race_data(race_card_file_name)
+            for race_card in race_cards.values():
+                race_card.add_weather_data(weather_data)
 
             self.race_cards_array_factory.race_cards_to_array(race_cards)
 
@@ -139,8 +142,8 @@ if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=4,
-        n_months_forward_offset=118,
+        n_months_test_sample=12,
+        n_months_forward_offset=0,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

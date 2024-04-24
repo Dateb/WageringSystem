@@ -103,7 +103,7 @@ class BoostedTreesRanker(Estimator):
         if missing_feature_names:
             print(f"WARNING: Features that are computed, but not included in the model: {missing_feature_names}")
 
-        self.feature_names = gbt_config.feature_names
+        # self.feature_names = gbt_config.feature_names
         self.params = {**self.FIXED_PARAMS, **gbt_config.search_params}
 
         self.categorical_feature_names = [feature_name for feature_name in gbt_config.feature_names
@@ -117,6 +117,16 @@ class BoostedTreesRanker(Estimator):
             categorical_feature=self.categorical_feature_names,
         )
 
+        importance_scores = self.booster.feature_importance(importance_type="gain")
+        feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
+        sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
+
         self.booster.free_dataset()
+
+        importance_sum = sum([importance for importance in list(sorted_feature_importances.values())])
+        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
+                                        sorted_feature_importances.items()}
+
+        print(f"{importance_sum}: {relative_feature_importances}")
 
         return 0.0

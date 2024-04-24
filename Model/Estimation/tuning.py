@@ -112,16 +112,19 @@ class GBTTuner:
 
             cv_score = eval_results["valid ndcg@5-mean"][-1]
 
-            sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config, feature_names_subset, categorical_feature_names_subset)
-            importance_sum = self.get_importance_sum(sorted_feature_importances)
-
-            relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                            sorted_feature_importances.items()}
-
             if cv_score > best_cv_score:
                 self.best_score = best_cv_score
                 self.removed_feature_names.append(feature_name)
                 best_cv_score = cv_score
+
+                sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config,
+                                                                                 feature_names_subset,
+                                                                                 categorical_feature_names_subset)
+                importance_sum = self.get_importance_sum(sorted_feature_importances)
+
+                relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
+                                                sorted_feature_importances.items()}
+
                 print(f"{importance_sum}: {relative_feature_importances}")
                 print(f"Best score: {best_cv_score}")
                 print(f"Removed features: {self.removed_feature_names}")

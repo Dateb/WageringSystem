@@ -36,12 +36,17 @@ class FeatureValueGroup:
         if race_card_attributes is None:
             self.race_card_attributes = []
 
+        self.race_card_key_cache = {}
+        self.key_cache = {}
+
     def get_race_card_key(self, race_card: RaceCard) -> str:
         key = ""
 
         for attribute in self.race_card_attributes:
-            attribute_key = race_card.__dict__.get(attribute)
+            attribute_key = race_card.__dict__[attribute]
             key += f"{attribute_key}_"
+
+        self.race_card_key_cache[race_card.race_id] = key
 
         return key
 
@@ -49,11 +54,18 @@ class FeatureValueGroup:
         key = race_card_key
 
         for attribute in self.horse_attributes:
-            attribute_key = horse.__dict__.get(attribute)
+            attribute_key = horse.__dict__[attribute]
             key += f"{attribute_key}_"
 
         key += self.value_name
+
+        self.key_cache[horse.subject_id] = key
+
         return key
+
+    def clear_cache(self) -> None:
+        self.race_card_key_cache = {}
+        self.key_cache = {}
 
     @property
     def name(self) -> str:
@@ -86,10 +98,16 @@ class FeatureSource(ABC):
             feature_values = nested_dict()
             for race_card in race_cards:
                 current_date = race_card.date
-                race_card_key = feature_value_group.get_race_card_key(race_card)
+                if race_card.is_valid_sample:
+                    race_card_key = feature_value_group.race_card_key_cache[race_card.race_id]
+                else:
+                    race_card_key = feature_value_group.get_race_card_key(race_card)
                 for horse in race_card.horses:
                     if not horse.is_scratched:
-                        feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
+                        if race_card.is_valid_sample:
+                            feature_value_group_key = feature_value_group.key_cache[horse.subject_id]
+                        else:
+                            feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
                         new_feature_value = feature_value_group.value_calculator(race_card, horse)
                         if new_feature_value is not None:
                             if isinstance(new_feature_value, float):

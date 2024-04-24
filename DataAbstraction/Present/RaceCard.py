@@ -31,6 +31,10 @@ class RaceCard:
         self.feature_source_validity = True
         self.race_id = race_id
         self.remove_non_starters = remove_non_starters
+        self.temperature = -1
+        self.wind_speed = -1
+        self.humidity = -1
+        self.weather_type = ""
 
         self.__extract_attributes(raw_race_card)
 
@@ -189,6 +193,17 @@ class RaceCard:
 
         # if self.remove_non_starters:
         #     self.__remove_non_starters()
+
+    def add_weather_data(self, weather_data: dict) -> None:
+        if str(self.date) in weather_data:
+            if self.track_name in weather_data[str(self.date)]:
+                if str(self.race_number) in weather_data[str(self.date)][self.track_name]:
+                    self.temperature = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["temp"]
+                    self.wind_speed = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
+                        "wind_speed"]
+                    self.humidity = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
+                        "humidity"]
+                    self.weather_type = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["weather"][0]["main"]
 
     def set_betfair_win_sp(self) -> None:
         for horse in self.runners:
