@@ -92,41 +92,11 @@ class FeatureSource(ABC):
     def pre_update(self, race_card: RaceCard):
         pass
 
-    def post_update(self, race_cards: List[RaceCard]) -> None:
-        for feature_value_group in self.feature_value_groups:
-            current_date = None
-            feature_values = nested_dict()
-            for race_card in race_cards:
-                current_date = race_card.date
-                if race_card.is_valid_sample:
-                    race_card_key = feature_value_group.race_card_key_cache[race_card.race_id]
-                else:
-                    race_card_key = feature_value_group.get_race_card_key(race_card)
-                for horse in race_card.horses:
-                    if not horse.is_scratched:
-                        if race_card.is_valid_sample:
-                            feature_value_group_key = feature_value_group.key_cache[horse.subject_id]
-                        else:
-                            feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
-                        new_feature_value = feature_value_group.value_calculator(race_card, horse)
-                        if new_feature_value is not None:
-                            if isinstance(new_feature_value, float):
-                                if feature_value_group_key not in feature_values:
-                                    feature_values[feature_value_group_key]["count"] = 1
-                                    feature_values[feature_value_group_key]["avg"] = new_feature_value
-                                else:
-                                    feature_values[feature_value_group_key]["count"] += 1
-                                    feature_values[feature_value_group_key]["avg"] = SimpleOnlineCalculator().calculate_average(
-                                        old_average=feature_values[feature_value_group_key]["avg"],
-                                        new_obs=new_feature_value,
-                                        n_days_since_last_obs=0,
-                                        count=feature_values[feature_value_group_key]["count"]
-                                    )
-                            else:
-                                feature_values[feature_value_group_key]["avg"] = new_feature_value
-
-            for feature_value_group_key in feature_values:
-                self.update_statistic(self.feature_values[feature_value_group_key], feature_values[feature_value_group_key]["avg"], current_date)
+    def post_update(self, race_cards: List[RaceCard], feature_values: dict, current_date: Date) -> None:
+        for feature_value_group_key in feature_values:
+            new_feature_value = feature_values[feature_value_group_key]["avg"]
+            if new_feature_value is not None:
+                self.update_statistic(self.feature_values[feature_value_group_key], new_feature_value, current_date)
 
     def get_feature_value(self, race_card: RaceCard, horse: Horse, feature_value_group: FeatureValueGroup) -> float:
         race_card_key = feature_value_group.get_race_card_key(race_card)
@@ -165,14 +135,6 @@ class StreakSource(FeatureSource):
                 category["value"] = -1
             else:
                 category["value"] -= 1
-
-
-class PreviousValueScratchedSource(PreviousValueSource):
-
-    def post_update(self, race_card: RaceCard):
-        for horse in race_card.horses:
-            if horse.is_scratched:
-                self.update_horse(race_card, horse)
 
 
 class MaxValueSource(FeatureSource):
@@ -316,7 +278,7 @@ class TrackVariantSource(AverageValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
         pass
 
-    def post_update(self, race_cards: List[RaceCard]) -> None:
+    def post_update(self, race_cards: List[RaceCard], feature_values: dict, current_date: Date) -> None:
         self.is_first_pre_update = True
         for race_card in race_cards:
             if race_card.race_result is not None:
@@ -360,7 +322,7 @@ class GoingSource(AverageValueSource):
     def update_horse(self, race_card: RaceCard, horse: Horse) -> None:
         pass
 
-    def post_update(self, race_cards: List[RaceCard]) -> None:
+    def post_update(self, race_cards: List[RaceCard], feature_values: dict, current_date: Date) -> None:
         for race_card in race_cards:
             self.goings[race_card.track_name] = race_card.going
 

@@ -3,8 +3,7 @@ from typing import Any, List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup, PreviousValueSource, \
-    PreviousValueScratchedSource
+from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup, PreviousValueSource
 from SampleExtraction.feature_sources.value_calculators import race_date
 
 
@@ -82,26 +81,26 @@ class LayoffExtractor(FeatureExtractor):
         return f"{self.feature_source.get_name()}_{self.feature_value_group.name}"
 
 
-class TimeSinceNotEatenUp(FeatureExtractor):
-
-    def __init__(self, previous_value_source: PreviousValueScratchedSource, attributes: List[str]):
-        super().__init__()
-        self.feature_source = previous_value_source
-        self.feature_value_group = FeatureValueGroup(attributes, race_date)
-
-        self.feature_source.register_feature_value_group(self.feature_value_group)
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        original_not_eaten_up_val = horse.not_eaten_up
-        horse.not_eaten_up = True
-        previous_date = self.feature_source.get_feature_value(race_card, horse, self.feature_value_group)
-        horse.not_eaten_up = original_not_eaten_up_val
-
-        if previous_date is None:
-            return self.PLACEHOLDER_VALUE
-
-        time_since_not_eaten_up = (race_card.date - previous_date).days
-        return time_since_not_eaten_up
-
-    def get_name(self) -> str:
-        return f"{self.feature_source.get_name()}_{self.feature_value_group.name}"
+# class TimeSinceNotEatenUp(FeatureExtractor):
+#
+#     def __init__(self, previous_value_source: PreviousValueScratchedSource, attributes: List[str]):
+#         super().__init__()
+#         self.feature_source = previous_value_source
+#         self.feature_value_group = FeatureValueGroup(attributes, race_date)
+#
+#         self.feature_source.register_feature_value_group(self.feature_value_group)
+#
+#     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
+#         original_not_eaten_up_val = horse.not_eaten_up
+#         horse.not_eaten_up = True
+#         previous_date = self.feature_source.get_feature_value(race_card, horse, self.feature_value_group)
+#         horse.not_eaten_up = original_not_eaten_up_val
+#
+#         if previous_date is None:
+#             return self.PLACEHOLDER_VALUE
+#
+#         time_since_not_eaten_up = (race_card.date - previous_date).days
+#         return time_since_not_eaten_up
+#
+#     def get_name(self) -> str:
+#         return f"{self.feature_source.get_name()}_{self.feature_value_group.name}"
