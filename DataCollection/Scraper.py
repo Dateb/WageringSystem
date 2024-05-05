@@ -62,6 +62,7 @@ class Scraper:
         result = {}
         for _ in range(self.__n_request_tries):
             response = self.__session.get(url=url, headers=header)
+            print(response)
             self.__wait_random_amount_of_seconds(avg_wait_seconds)
             if response.status_code == 200:
                 result = response.json()
@@ -80,11 +81,16 @@ class Scraper:
             if response.status_code == 200:
                 return response.text
 
-    def post_payload(self, url: str, payload: dict, cookies=None) -> Response:
+    def post_payload(self, url: str, payload: dict, headers: dict, cookies=None) -> Response:
         if cookies is None:
             post_response = self.__session.post(url, json=payload, headers=self.__headers)
         else:
-            post_response = self.__session.post(url, json=payload, headers=self.__headers, cookies=cookies)
+            post_response = self.__session.post(
+                url,
+                json=payload,
+                headers=headers,
+                cookies=cookies,
+            )
         return post_response
 
     def __wait_random_amount_of_seconds(self, average_seconds_to_wait: float):

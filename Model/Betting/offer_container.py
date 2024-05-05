@@ -35,31 +35,6 @@ class BetOfferContainer(ABC):
             self.race_offers = pickle.load(f)
 
 
-class RaceBetsOfferContainer(BetOfferContainer):
-
-    def __init__(self):
-        super().__init__()
-        self.race_offers_path = "../data/racebets_race_offers.dat"
-
-    def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
-        for race_card in race_cards.values():
-            scratched_horses = [horse.name for horse in race_card.horses if horse.is_scratched]
-            race_bet_offers = []
-            for horse in race_card.horses:
-                for racebets_win_odds in horse.racebets_win_odds_history[0:2]:
-                    bet_offer = BetOffer(
-                        race_card=race_card,
-                        horse=horse,
-                        odds=racebets_win_odds,
-                        scratched_horse_numbers=scratched_horses,
-                        offer_datetime=race_card.datetime - timedelta(hours=1),
-                        adjustment_factor=1.0
-                    )
-                    race_bet_offers.append(bet_offer)
-
-            self.race_offers[str(race_card.datetime)] = race_bet_offers
-
-
 class BetfairOfferContainer(BetOfferContainer):
 
     def __init__(self):
@@ -153,8 +128,11 @@ class BetfairOfferContainer(BetOfferContainer):
                                         )
 
                                         bef_offer = BetOffer(
+                                            has_won=horse.has_won,
                                             country=race_card.country,
-                                            horse=horse,
+                                            race_class=race_card.race_class,
+                                            horse_number=horse.number,
+                                            start_probability=horse.sp_win_prob,
                                             live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,
                                             race_datetime=race_card.datetime,

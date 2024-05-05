@@ -14,17 +14,16 @@ header = {
     'Accept': 'application/json, text/plain, */*',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'en-US,en;q=0.5',
-    'Alt-Used': 'www.britishhorseracing.com',
     'Authorization': "",
     'Connection': 'keep-alive',
-    'Cookie': '_ga_C2J05ZNW25=GS1.1.1701868160.5.1.1701869752.48.0.0; _ga=GA1.1.707870863.1694911425; bha-ie-test=true; __cf_bm=BE8kV0BrMcG2mesOMTZ7FYsdZhxpHxbuyowfDrCTNRU-1701869200-0-AXe1VwkrfW2s8kEyZKnH5lvfloVyDU+So+s1F49DbcDkHd9Ou4WwbBDiYK8Ov5y+ZYXln3GWbEs0ocNMbYZyDHE=',
-    'Host': 'www.britishhorseracing.com',
-    'Referer': 'https://www.britishhorseracing.com/racing/results/',
+    'Host': 'api09.horseracing.software',
+    'Origin': 'https://www.britishhorseracing.com',
+    'Referer': 'https://www.britishhorseracing.com/',
     'Sec-Fetch-Dest': 'empty',
     'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-Site': 'cross-site',
     'TE': 'trailers',
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0',
 }
 
 
@@ -40,12 +39,12 @@ class BHAInjector:
         horse_attributes = {
             "finishTime": horse_data["positionFinishTime"],
             "resultBtnDistancePFO": horse_data["resultBtnDistancePFO"],
-            "resultFinishDNF": horse_data["resultFinishDNF"],
+            "resultFinishDNF": horse_data["DNFReason"],
             "jockeyId": horse_data["jockeyId"],
             "trainerId": horse_data["trainerId"],
             "ownerId": horse_data["ownerId"],
             "ratingFlat": horse_data["ratingFlat"],
-            "ratingAWT": horse_data["ratingAWT"],
+            "ratingAWT": horse_data["ratingAwt"],
             "ratingChase": horse_data["ratingChase"],
             "ratingHurdle": horse_data["ratingHurdle"],
             "HRO": horse_data["HRO"],
@@ -93,7 +92,7 @@ class BHAInjector:
         race_id = race_dict["raceId"]
         division_sequence = race_dict["divisionSequence"]
 
-        race_card_url = f"https://www.britishhorseracing.com/feeds/v3/races/{race_card_year}/{race_id}/{division_sequence}/results"
+        race_card_url = f"https://api09.horseracing.software/bha/v1/races/{race_card_year}/{race_id}/{division_sequence}/results"
         race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=5.0)
 
         return race_card_data
@@ -158,7 +157,7 @@ class BHAInjector:
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
     def save_race_series_of_year_month(self, year: int, month: int) -> None:
-        race_series_per_month_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=1000&resultsAvailable=true&year={year}"
+        race_series_per_month_url = f"https://api09.horseracing.software/bha/v1/fixtures/?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=10&resultsAvailable=1&year={year}"
         race_series_of_month_data = scraper.request_data_with_header(race_series_per_month_url, header)
 
         year_month_key = f"{year}_{month}"
@@ -172,7 +171,7 @@ class BHAInjector:
                 self.race_series_ids_per_year_month[year_month_key][race_series_key] = race_series["fixtureId"]
 
     def save_races_of_race_series(self, year: int, race_series_id: str):
-        races_of_race_series_url = f"https://www.britishhorseracing.com/feeds/v3/fixtures/{year}/{race_series_id}/races"
+        races_of_race_series_url = f"https://api09.horseracing.software/bha/v1/fixtures/{year}/{race_series_id}/races"
         races_of_race_series_data = scraper.request_data_with_header(races_of_race_series_url, header, avg_wait_seconds=0.5)
 
         self.races_data[race_series_id] = [

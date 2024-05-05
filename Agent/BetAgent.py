@@ -139,7 +139,7 @@ class ExchangeBetRequester(Actuator):
         self.estimation_result = estimation_result
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.02)
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.01)
 
     def run(self) -> None:
         probability_estimates = self.estimation_result.probability_estimates
@@ -147,13 +147,15 @@ class ExchangeBetRequester(Actuator):
             race_key = str(market.race_card.datetime)
             race_card_probabilities = probability_estimates[race_key]
             for horse_exchange_id, horse_number in market.horse_number_by_exchange_id.items():
-                horse_probability = race_card_probabilities[int(horse_number)]
-                horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
+                if int(horse_number) in race_card_probabilities:
+                    horse_probability = race_card_probabilities[int(horse_number)]
+                    horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                # self.exchange.place_odds_on_horse(market, horse_exchange_id, horse_min_odds)
+                    if horse_min_odds < 8:
+                        print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
+                        self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds)
 
-                if horse_min_odds < 10:
-                    print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
+        self.exchange.submit_bets()
 
 
 class MinOddsReporter(Actuator):
@@ -172,7 +174,7 @@ class MinOddsReporter(Actuator):
                 horse_probability = self.estimation_result.probability_estimates[race_key][horse.number]
                 horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                if horse_min_odds < 10:
+                if horse_min_odds < 8:
                     print(f"Race/Horse-Nr/Odds: {race_key}/{horse.number}/{horse_min_odds}")
 
 
@@ -286,7 +288,7 @@ class BetAgent:
 
 
 def main():
-    actuator_name = "MinOddsReporter"
+    actuator_name = "ExchangeBetRequester"
     bettor = BetAgent(actuator_name=actuator_name)
     bettor.run()
     # while True:

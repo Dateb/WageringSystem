@@ -52,8 +52,11 @@ class LiveResult:
 @dataclass
 class BetOffer:
 
+    has_won: bool
     country: str
-    horse: Horse
+    race_class: str
+    horse_number: int
+    start_probability: float
     live_result: LiveResult
     scratched_horse_numbers: List[int]
     race_datetime: datetime
@@ -62,7 +65,7 @@ class BetOffer:
     n_winners: int
 
     def __str__(self) -> str:
-        return f"Odds for {self.horse.name}: {self.live_result.offer_odds}"
+        return f"Odds for {self.horse_number}: {self.live_result.offer_odds}"
 
     @property
     def minutes_until_race_start(self) -> float:
@@ -83,7 +86,6 @@ class Bet:
     bet_offer: BetOffer
     stakes: float
     probability_estimate: float
-    probability_start: float
 
     WIN_COMMISSION: float = 0.025
 
@@ -105,8 +107,7 @@ class Bet:
 
     @property
     def has_won(self) -> bool:
-        return self.bet_offer.horse.has_won
-
+        return self.bet_offer.has_won
 
 
 class BetResult:
@@ -125,8 +126,7 @@ class BetResult:
 
     def bet_contains_nonrunner(self, bet: Bet, race_results_container: RaceResultsContainer) -> bool:
         race_result = race_results_container.race_results[str(bet.bet_offer.race_datetime)]
-        horse_name = bet.bet_offer.horse.name.upper()
-        return race_result.is_non_runner(horse_name)
+        return race_result.is_non_runner(bet.bet_offer.horse_number)
 
     @property
     def max_drawdown(self) -> float:
@@ -182,7 +182,7 @@ class OddsThreshold:
 
         min_odds_thresh = round(min_odds_thresh / increments) * increments
 
-        return min_odds_thresh
+        return round(min_odds_thresh, 2)
 
 
 class Bettor:
@@ -205,13 +205,10 @@ class Bettor:
         for race_datetime, race_offers in offers.items():
             if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
-                    if (
-                            bet_offer.horse is not None
-                            and bet_offer.offer_datetime.hour == 23
-                    ):
+                    if -16 * 60 < bet_offer.minutes_until_race_start < -14 * 60:
                         probability_estimate = estimation_result.get_horse_win_probability(
                             race_datetime,
-                            bet_offer.horse.number,
+                            bet_offer.horse_number,
                             bet_offer.scratched_horse_numbers
                         )
 
@@ -220,20 +217,19 @@ class Bettor:
                         #     probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
 
                         if probability_estimate is not None:
-                            if (race_datetime, bet_offer.horse.number) not in self.already_taken_offers:
+                            if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:
                                 min_odds = self.odds_threshold.get_min_odds(probability_estimate)
                                 if min_odds < bet_offer.live_result.offer_odds and min_odds < self.max_odds_thresh:
                                     new_bet = Bet(
                                         bet_offer,
                                         stakes=0.0,
                                         probability_estimate=probability_estimate,
-                                        probability_start=bet_offer.horse.sp_win_prob
                                     )
                                     bets.append(new_bet)
                                     self.offer_accepted_count += 1
                                 else:
                                     self.offer_rejected_count += 1
-                        self.already_taken_offers[(race_datetime, bet_offer.horse.number)] = True
+                        self.already_taken_offers[(race_datetime, bet_offer.horse_number)] = True
 
         return BetResult(bets, race_results_container)
 

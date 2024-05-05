@@ -235,7 +235,7 @@ class FeatureManager:
 
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
 
-            FeatureSourceExtractor(self.previous_value_source, horse_weather_type_win_prob),
+            # FeatureSourceExtractor(self.previous_value_source, horse_weather_type_win_prob),
 
             FeatureSourceExtractor(self.previous_value_source, horse_surface_win_prob),
             FeatureSourceExtractor(self.previous_value_source, horse_track_win_prob),
@@ -267,7 +267,6 @@ class FeatureManager:
 
             FeatureSourceExtractor(self.previous_value_source, horse_race_type_win_prob),
             FeatureSourceExtractor(self.previous_value_source, horse_race_type_place_percentile),
-            FeatureSourceExtractor(self.previous_value_source, horse_race_type_relative_distance_behind),
             FeatureSourceExtractor(self.previous_value_source, horse_race_type_momentum),
 
             TravelDistance(self.previous_value_source),
@@ -318,9 +317,9 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_win_prob),
             FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_win_prob),
 
-            FeatureSourceExtractor(self.avg_window_3_min_obs_1_source, horse_weather_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_weather_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_weather_type_win_prob),
+            # FeatureSourceExtractor(self.avg_window_3_min_obs_1_source, horse_weather_type_win_prob),
+            # FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_weather_type_win_prob),
+            # FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_weather_type_win_prob),
 
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_momentum),
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_momentum),
@@ -338,7 +337,6 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_momentum),
 
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_race_type_place_percentile),
             FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_race_type_relative_distance_behind),
 
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_win_prob),
@@ -347,7 +345,7 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_weather_type_win_prob),
+            # FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_weather_type_win_prob),
 
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_race_type_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_race_type_place_percentile),
@@ -356,7 +354,7 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_going_win_prob),
             FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_going_place_percentile),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_weather_type_win_prob),
+            # FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_weather_type_win_prob),
 
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_race_type_win_prob),
             FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_race_type_place_percentile),
@@ -402,7 +400,6 @@ class FeatureManager:
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_momentum),
 
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_win_probability),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_place_percentile),
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_relative_distance_behind),
             FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_momentum),
 
@@ -431,12 +428,11 @@ class FeatureManager:
         ]
 
         current_race_features = [
-            CurrentRaceTrack(),
             CurrentRaceCategory(),
             CurrentEstimatedGoing(),
-            CurrentTemperature(),
-            CurrentWindSpeed(),
-            CurrentHumidity(),
+            # CurrentTemperature(),
+            # CurrentWindSpeed(),
+            # CurrentHumidity(),
 
             HasVisor(),
 

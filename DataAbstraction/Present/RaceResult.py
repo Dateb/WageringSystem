@@ -10,7 +10,7 @@ class RaceResult:
         self.runner_results = {}
 
         for runner in runners:
-            self.runner_results[runner.name.replace("'", "").upper()] = HorseResult(
+            self.runner_results[runner.number] = HorseResult(
                 race_name="",
                 race_date_time="",
                 name="",
@@ -25,10 +25,10 @@ class RaceResult:
             )
 
         self.places_num = places_num
-        self.runner_names = list(self.runner_results.keys())
+        self.runner_numbers = list(self.runner_results.keys())
 
     def get_result_of_runner(self, runner_name: str) -> HorseResult:
         return self.runner_results[runner_name]
 
-    def is_non_runner(self, horse_name: str):
-        return horse_name not in self.runner_names
+    def is_non_runner(self, horse_number: int):
+        return horse_number not in self.runner_numbers

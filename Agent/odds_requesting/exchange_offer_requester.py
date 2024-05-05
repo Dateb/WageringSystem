@@ -90,6 +90,7 @@ class MarketOffer:
 class ExchangeConnection:
 
     def __init__(self):
+        self.session_id = "0e78ced5-020b-49e6-8d99-c272c49ffa39"
         self.customer_id = self.get_customer_id()
         self.scraper = get_scraper()
 
@@ -120,8 +121,13 @@ class ExchangeConnection:
                 "password": "Ds*#de!@6846",
                 "loginType": 1,
                 "remember": False
+            },
+            cookies={
+                "BIAB_AN": self.session_id
             }
         )
+
+        print(login_response.json())
 
         login_response_data = login_response.json()["data"]
         return login_response_data["token"]["orbit"]["access_token"]
@@ -189,40 +195,45 @@ class ExchangeConnection:
         # TODO: Line below should catch this error: json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
         return json.loads(json.loads(message[2:-1]))
 
-    def send_odds(self, market_id: str, selection_id: str, odds: float) -> None:
+    def submit_bets(self, bets_data: dict) -> None:
         url = "https://exch.piwi247.com/customer/api/placeBets"
-        payload = {
-            market_id:
-            [
-                {
-                    "selectionId": selection_id,
-                    "handicap": 0,
-                    "price": str(odds),
-                    "size": "7",
-                    "side": "BACK",
-                    "betType": "EXCHANGE",
-                    "netPLBetslipEnabled": False,
-                    "netPLMarketPageEnabled": False,
-                    "quickStakesEnabled": True,
-                    "confirmBetsEnabled": False,
-                    "applicationType": "WEB",
-                    "mobile": False,
-                    "isEachWay": False,
-                    "eachWayData": {},
-                    "page": "market",
-                    "persistenceType": "LAPSE",
-                    "placedUsingEnterKey": False
-                }
-            ]
-        }
+        payload = bets_data
 
         cookies = {
-            "BIAB_CUSTOMER": self.customer_id
+            "BIAB_AN": self.session_id,
+            "BIAB_COMPETITION_TIME_FILTER": "ALL",
+            "BIAB_CUSTOMER": self.customer_id,
+            "BIAB_HORSE_RACING_PERIOD": "AFTER_TOMORROW",
+            "BIAB_LANGUAGE": "en",
+            "BIAB_LOGIN_POP_UP_SHOWN": "true",
+            "BIAB_SHOW_TOOLTIPS": "false",
+            "BIAB_TZ": "-120",
+            "COLLAPSE-LEFT_PANEL_COLLAPSE_GROUP-SPORT_COLLAPSE": "true",
+            "COLLAPSE-SPORT_INNER_COLLAPSE-SPORT_INNER_COLLAPSE_MORE-1": "false",
+            "CSRF-TOKEN": "c54bb77a-8154-4950-a65d-56d7970f0b38",
+            "EXCHANGE_TYPE": "sportsGames",
+            "PROFITANDLOSS_BETTYPE": "Sports",
+            "PROFITANDLOSS_SPORTNAME": "allSports",
         }
 
         response = self.scraper.post_payload(
             url=url,
             payload=payload,
+            headers=
+            {
+                'Accept': 'application/json, text/plain, */*',
+                'access-control-allow-credentials': "true",
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Host': "exch.piwi247.com",
+                'Origin': "https://exch.piwi247.com",
+                'Referer': "https://exch.piwi247.com/customer/sport/7/market/1.228271247",
+                "x-device": "DESKTOP",
+                "X-CSRF-TOKEN": "c54bb77a-8154-4950-a65d-56d7970f0b38"
+            },
             cookies=cookies
         )
 
@@ -250,6 +261,7 @@ class Exchange:
 
         self.exchange_connection.open_race_connection(self.markets)
         self.market_opening_request_timer = 0
+        self.bets_data = {}
 
     def get_bet_offers(self) -> List[BetOffer]:
         market_offers = self.poll_market_offers()
@@ -325,16 +337,102 @@ class Exchange:
         self.exchange_connection = ExchangeConnection()
         self.exchange_connection.reopen(self.markets)
 
-    def place_odds_on_horse(self, market: Market, horse_exchange_id: str, odds: float) -> None:
-        self.exchange_connection.send_odds(market.market_id, horse_exchange_id, odds)
+    def add_bet(self, market: Market, horse_exchange_id: int, odds: float) -> None:
+        if market.market_id not in self.bets_data:
+            self.bets_data[market.market_id] = []
+
+        self.bets_data[market.market_id].append(
+            {
+                    "selectionId": horse_exchange_id,
+                    "handicap": 0,
+                    "price": str(odds),
+                    "size": "6",
+                    "side": "BACK",
+                    "betType": "EXCHANGE",
+                    "netPLBetslipEnabled": False,
+                    "netPLMarketPageEnabled": False,
+                    "quickStakesEnabled": True,
+                    "confirmBetsEnabled": False,
+                    "applicationType": "WEB",
+                    "mobile": False,
+                    "isEachWay": False,
+                    "eachWayData": {},
+                    "page": "market",
+                    "persistenceType": "LAPSE",
+                    "placedUsingEnterKey": False
+                }
+        )
+
+    def submit_bets(self):
+        self.exchange_connection.submit_bets(self.bets_data)
+        self.bets_data = {}
 
 
 if __name__ == "__main__":
-    customer_id = ""
+    exchange_connection = ExchangeConnection()
 
-    exchange = Exchange(
-        market_type="WIN",
-        upcoming_race_cards={},
-    )
-    # odds = ex_odds_requester.get_odds_by_horse_number_from_message()
-    # print(odds)
+    bets_data = {
+        "1.228287890": [
+            {
+                "selectionId": 67859761,
+                "handicap": 0,
+                "price": "500",
+                "size": "6",
+                "side": "BACK",
+                "betType": "EXCHANGE",
+                "netPLBetslipEnabled": False,
+                "netPLMarketPageEnabled": False,
+                "quickStakesEnabled": True,
+                "confirmBetsEnabled": False,
+                "applicationType": "WEB",
+                "mobile": False,
+                "isEachWay": False,
+                "eachWayData": {},
+                "page": "market",
+                "persistenceType": "LAPSE",
+                "placedUsingEnterKey": False
+            },
+            {
+                "selectionId": 67452409,
+                "handicap": 0,
+                "price": "1000",
+                "size": "6",
+                "side": "BACK",
+                "betType": "EXCHANGE",
+                "netPLBetslipEnabled": False,
+                "netPLMarketPageEnabled": False,
+                "quickStakesEnabled": True,
+                "confirmBetsEnabled": False,
+                "applicationType": "WEB",
+                "mobile": False,
+                "isEachWay": False,
+                "eachWayData": {},
+                "page": "market",
+                "persistenceType": "LAPSE",
+                "placedUsingEnterKey": False
+            }
+        ],
+        "1.228287793": [
+            {
+                "selectionId": 10088209,
+                "handicap": 0,
+                "price": "50.0",
+                "size": "6",
+                "side": "BACK",
+                "betType": "EXCHANGE",
+                "netPLBetslipEnabled": False,
+                "netPLMarketPageEnabled": False,
+                "quickStakesEnabled": True,
+                "confirmBetsEnabled": False,
+                "applicationType": "WEB",
+                "mobile": False,
+                "isEachWay": False,
+                "eachWayData": {},
+                "page": "market",
+                "persistenceType": "LAPSE",
+                "placedUsingEnterKey": False
+            }
+        ]
+    }
+
+    exchange_connection.submit_bets(bets_data)

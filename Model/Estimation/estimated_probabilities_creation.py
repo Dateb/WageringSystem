@@ -17,7 +17,7 @@ class EstimationResult:
     def __init__(self, probability_estimates: dict):
         self.probability_estimates = probability_estimates
 
-    def get_horse_win_probability(self, race_key: str, horse_number: str, scratched_horse_numbers: List[int]) -> float:
+    def get_horse_win_probability(self, race_key: str, horse_number: int, scratched_horse_numbers: List[int]) -> float:
         total_probability_scratched_horses = 0
         for scratched_horse_number in scratched_horse_numbers:
             if scratched_horse_number in self.probability_estimates[race_key]:
