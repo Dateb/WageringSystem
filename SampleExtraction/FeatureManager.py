@@ -54,18 +54,11 @@ class FeatureManager:
         self.sum_source = SumSource()
         self.streak_source = StreakSource()
 
-        self.avg_window_3_min_obs_1_source = AverageValueSource(window_size=3, min_obs_thresh=1)
-
-        self.avg_window_3_min_obs_3_source = AverageValueSource(window_size=3, min_obs_thresh=3)
-        self.avg_window_5_min_obs_3_source = AverageValueSource(window_size=5, min_obs_thresh=3)
-        self.avg_window_7_min_obs_3_source = AverageValueSource(window_size=7, min_obs_thresh=3)
-
-        self.avg_window_3_min_obs_10_source = AverageValueSource(window_size=3, min_obs_thresh=10)
-        self.avg_window_5_min_obs_10_source = AverageValueSource(window_size=5, min_obs_thresh=10)
-        self.avg_window_7_min_obs_10_source = AverageValueSource(window_size=7, min_obs_thresh=10)
-
-        self.avg_window_30_min_obs_10_source = AverageValueSource(window_size=30, min_obs_thresh=10)
-        self.avg_window_50_min_obs_10_source = AverageValueSource(window_size=50, min_obs_thresh=10)
+        self.avg_source_99 = AverageValueSource(window_size=0.99)
+        self.avg_source_90 = AverageValueSource(window_size=0.9)
+        self.avg_source_80 = AverageValueSource(window_size=0.8)
+        self.avg_source_30 = AverageValueSource(window_size=0.3)
+        self.avg_source_10 = AverageValueSource(window_size=0.1)
 
         self.track_variant_source: TrackVariantSource = TrackVariantSource()
         self.going_source: GoingSource = GoingSource()
@@ -78,18 +71,11 @@ class FeatureManager:
             self.sum_source,
             self.streak_source,
 
-            self.avg_window_3_min_obs_1_source,
-
-            self.avg_window_3_min_obs_3_source,
-            self.avg_window_5_min_obs_3_source,
-            self.avg_window_7_min_obs_3_source,
-
-            self.avg_window_3_min_obs_10_source,
-            self.avg_window_5_min_obs_10_source,
-            self.avg_window_7_min_obs_10_source,
-
-            self.avg_window_30_min_obs_10_source,
-            self.avg_window_50_min_obs_10_source,
+            self.avg_source_99,
+            self.avg_source_90,
+            self.avg_source_80,
+            self.avg_source_30,
+            self.avg_source_10,
 
             self.track_variant_source,
             self.going_source
@@ -112,6 +98,8 @@ class FeatureManager:
 
         horse_has_placed = FeatureValueGroup(has_placed, ["subject_id"])
         horse_place_deviation = FeatureValueGroup(place_deviation, ["subject_id"])
+
+        # horse_distance_category_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["distance_category"])
 
         horse_surface_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["surface"])
         horse_weather_type_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["weather_type"])
@@ -235,6 +223,8 @@ class FeatureManager:
 
             FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
 
+            # FeatureSourceExtractor(self.previous_value_source, horse_distance_category_win_prob),
+
             # FeatureSourceExtractor(self.previous_value_source, horse_weather_type_win_prob),
 
             FeatureSourceExtractor(self.previous_value_source, horse_surface_win_prob),
@@ -313,100 +303,100 @@ class FeatureManager:
         ]
 
         avg_value_features = [
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_win_prob),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_win_prob),
-            FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_win_prob),
+            FeatureSourceExtractor(self.avg_source_99, horse_win_prob),
+            FeatureSourceExtractor(self.avg_source_90, horse_win_prob),
+            FeatureSourceExtractor(self.avg_source_80, horse_win_prob),
 
             # FeatureSourceExtractor(self.avg_window_3_min_obs_1_source, horse_weather_type_win_prob),
             # FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_weather_type_win_prob),
             # FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_weather_type_win_prob),
 
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_momentum),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_momentum),
-            FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_momentum),
+            FeatureSourceExtractor(self.avg_source_99, horse_momentum),
+            FeatureSourceExtractor(self.avg_source_90, horse_momentum),
+            FeatureSourceExtractor(self.avg_source_80, horse_momentum),
 
-            FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_has_won),
-            FeatureSourceExtractor(self.avg_window_7_min_obs_3_source, horse_race_type_has_won),
+            FeatureSourceExtractor(self.avg_source_80, horse_has_won),
+            FeatureSourceExtractor(self.avg_source_80, horse_race_type_has_won),
 
-            FeatureSourceExtractor(self.avg_window_3_min_obs_1_source, horse_category_win_prob),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_1_source, horse_category_place_percentile),
+            FeatureSourceExtractor(self.avg_source_99, horse_category_win_prob),
+            FeatureSourceExtractor(self.avg_source_99, horse_category_place_percentile),
 
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_win_prob),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_place_percentile),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_class_momentum),
+            FeatureSourceExtractor(self.avg_source_99, horse_class_win_prob),
+            FeatureSourceExtractor(self.avg_source_99, horse_class_place_percentile),
+            FeatureSourceExtractor(self.avg_source_99, horse_class_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_99, horse_class_momentum),
 
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_3_min_obs_3_source, horse_race_type_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_99, horse_race_type_win_prob),
+            FeatureSourceExtractor(self.avg_source_99, horse_race_type_relative_distance_behind),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_win_prob),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, breeder_momentum),
+            FeatureSourceExtractor(self.avg_source_30, breeder_win_prob),
+            FeatureSourceExtractor(self.avg_source_30, breeder_momentum),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_win_prob),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_momentum),
+            FeatureSourceExtractor(self.avg_source_30, owner_win_prob),
+            FeatureSourceExtractor(self.avg_source_30, owner_momentum),
 
             # FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_weather_type_win_prob),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_race_type_place_percentile),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_race_type_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_30, jockey_race_type_win_prob),
+            FeatureSourceExtractor(self.avg_source_30, jockey_race_type_place_percentile),
+            FeatureSourceExtractor(self.avg_source_30, jockey_race_type_relative_distance_behind),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_going_win_prob),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_going_place_percentile),
+            FeatureSourceExtractor(self.avg_source_30, jockey_going_win_prob),
+            FeatureSourceExtractor(self.avg_source_30, jockey_going_place_percentile),
 
             # FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_weather_type_win_prob),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_race_type_place_percentile),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_race_type_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_10, trainer_race_type_win_prob),
+            FeatureSourceExtractor(self.avg_source_10, trainer_race_type_place_percentile),
+            FeatureSourceExtractor(self.avg_source_10, trainer_race_type_relative_distance_behind),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_going_win_prob),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_going_place_percentile),
+            FeatureSourceExtractor(self.avg_source_10, trainer_going_win_prob),
+            FeatureSourceExtractor(self.avg_source_10, trainer_going_place_percentile),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, owner_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, owner_race_type_place_percentile),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, owner_race_type_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_10, owner_race_type_win_prob),
+            FeatureSourceExtractor(self.avg_source_10, owner_race_type_place_percentile),
+            FeatureSourceExtractor(self.avg_source_10, owner_race_type_relative_distance_behind),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_win_probability),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_surface_win_probability),
+            FeatureSourceExtractor(self.avg_source_10, jockey_class_win_probability),
+            FeatureSourceExtractor(self.avg_source_10, jockey_surface_win_probability),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_win_probability),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_surface_win_probability),
+            FeatureSourceExtractor(self.avg_source_10, trainer_class_win_probability),
+            FeatureSourceExtractor(self.avg_source_10, trainer_surface_win_probability),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_place_percentile),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_place_percentile),
+            FeatureSourceExtractor(self.avg_source_10, jockey_class_place_percentile),
+            FeatureSourceExtractor(self.avg_source_10, trainer_class_place_percentile),
 
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, jockey_class_momentum),
-            FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_class_momentum),
+            FeatureSourceExtractor(self.avg_source_10, jockey_class_momentum),
+            FeatureSourceExtractor(self.avg_source_10, trainer_class_momentum),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_win_probability),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_place_percentile),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, dam_momentum),
+            FeatureSourceExtractor(self.avg_source_30, dam_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, dam_place_percentile),
+            FeatureSourceExtractor(self.avg_source_30, dam_momentum),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, sire_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, sire_win_probability),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_track_win_probability),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, trainer_track_win_probability),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, owner_track_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, jockey_track_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, trainer_track_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, owner_track_win_probability),
 
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_win_probability),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_place_percentile),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_jockey_momentum),
+            FeatureSourceExtractor(self.avg_source_90, horse_jockey_win_probability),
+            FeatureSourceExtractor(self.avg_source_90, horse_jockey_place_percentile),
+            FeatureSourceExtractor(self.avg_source_90, horse_jockey_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_90, horse_jockey_momentum),
 
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_win_probability),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_place_percentile),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_trainer_momentum),
+            FeatureSourceExtractor(self.avg_source_90, horse_trainer_win_probability),
+            FeatureSourceExtractor(self.avg_source_90, horse_trainer_place_percentile),
+            FeatureSourceExtractor(self.avg_source_90, horse_trainer_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_90, horse_trainer_momentum),
 
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_win_probability),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_window_5_min_obs_3_source, horse_owner_momentum),
+            FeatureSourceExtractor(self.avg_source_90, horse_owner_win_probability),
+            FeatureSourceExtractor(self.avg_source_90, horse_owner_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_90, horse_owner_momentum),
 
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_win_probability),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_place_percentile),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_trainer_momentum)
+            FeatureSourceExtractor(self.avg_source_30, jockey_trainer_win_probability),
+            FeatureSourceExtractor(self.avg_source_30, jockey_trainer_place_percentile),
+            FeatureSourceExtractor(self.avg_source_30, jockey_trainer_relative_distance_behind),
+            FeatureSourceExtractor(self.avg_source_30, jockey_trainer_momentum)
         ]
 
         horse_one_constant = FeatureValueGroup(one_constant, ["subject_id"])
@@ -447,7 +437,7 @@ class FeatureManager:
 
         layoff_features = [
             LayoffExtractor(self.previous_value_source, ["subject_id"], []),
-            LayoffExtractor(self.previous_value_source, ["subject_id"], ["distance_category"]),
+            # LayoffExtractor(self.previous_value_source, ["subject_id"], ["distance_category"]),
             LayoffExtractor(self.previous_value_source, ["subject_id", "jockey_id"], []),
             LayoffExtractor(self.previous_value_source, ["subject_id"], ["track_name"]),
             LayoffExtractor(self.previous_value_source, ["subject_id"], ["race_class"]),

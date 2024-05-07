@@ -288,7 +288,7 @@ class BetAgent:
 
 
 def main():
-    actuator_name = "ExchangeBetRequester"
+    actuator_name = "MinOddsReporter"
     bettor = BetAgent(actuator_name=actuator_name)
     bettor.run()
     # while True:

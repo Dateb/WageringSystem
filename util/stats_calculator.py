@@ -55,21 +55,18 @@ class SimpleOnlineCalculator(OnlineCalculator):
 
 class ExponentialOnlineCalculator(OnlineCalculator):
 
-    def __init__(self, window_size: int = 8, fading_factor: float = 0.0):
+    def __init__(self, window_size: float = 0.9):
         super().__init__()
-        self.fading_factor = fading_factor
         self.window_size = window_size
         self.alpha = 2 / (window_size + 1)
 
     def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int) -> float:
-        average_fade_factor = 0
-        if self.fading_factor > 0:
-            average_fade_factor = self.fading_factor * log(self.fading_factor * n_days_since_last_obs) \
-                if n_days_since_last_obs > (1 / self.fading_factor) else 0
+        w_avg = np.exp(-self.window_size * n_days_since_last_obs)
+        w_new_obs = 1 - w_avg
 
-        alpha = self.alpha + average_fade_factor
+        new_average = (w_avg * old_average + w_new_obs * new_obs) / (w_avg + w_new_obs)
 
-        return alpha * new_obs + (1 - alpha) * old_average
+        return new_average
 
     def calculate_variance(self):
         pass

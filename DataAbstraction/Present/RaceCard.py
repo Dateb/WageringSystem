@@ -1,15 +1,14 @@
 from collections import defaultdict
 from datetime import datetime
-from statistics import mean, median
 from typing import List
 
-import numpy as np
 from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
+from util.measurements import METRES_PER_FURLONG
 from util.nested_dict import nested_dict
 from util.text_based_functions import get_name_similarity
 
@@ -48,10 +47,6 @@ class RaceCard:
         self.race_result = None
         raw_result = raw_race_card["result"]
 
-        self.win_time = -1
-        if "winTimeSeconds" in raw_result:
-            self.win_time = raw_result["winTimeSeconds"]
-
         self.has_results = False
 
         if raw_result:
@@ -72,6 +67,10 @@ class RaceCard:
         if "adjusted_distance" in race:
             self.adjusted_distance = race["adjusted_distance"]
 
+        self.num_hurdles = 0
+        if "num_hurdles" in race:
+            self.num_hurdles = race["num_hurdles"]
+
         self.distance_category = self.get_distance_category()
 
         self.going = race["trackGoing"]
@@ -81,10 +80,6 @@ class RaceCard:
 
         self.race_type = race["raceType"]
         self.race_type_detail = race["raceTypeDetail"]
-
-        self.num_hurdles = 0
-        if "num_hurdles" in race:
-            self.num_hurdles = race["num_hurdles"]
 
         self.race_class = race["categoryLetter"]
 
@@ -101,7 +96,15 @@ class RaceCard:
 
         self.places_num = 1
         self.n_horses = 0
+
         self.set_horses(raw_race_card["runners"]["data"])
+        finish_times = [runner.finish_time for runner in self.runners if runner.finish_time > 0]
+        self.finish_time_range = -1
+        self.win_time = -1
+        if finish_times:
+            self.win_time = min(finish_times)
+            worst_time = max(finish_times)
+            self.finish_time_range = worst_time - self.win_time
 
         self.num_winners = len([runner for runner in self.runners if runner.has_won])
 
@@ -373,9 +376,23 @@ class RaceCard:
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = {}
 
-    def get_distance_category(self) -> float:
-        distance_increment = max(int(self.distance / 1000) * 100, 50)
-        return round(self.distance / distance_increment) * distance_increment
+    def get_distance_category(self) -> str:
+        if 4.9 * METRES_PER_FURLONG < self.adjusted_distance <= 8 * METRES_PER_FURLONG and self.num_hurdles == 0:
+            return "Sprint"
+        if 8 * METRES_PER_FURLONG < self.adjusted_distance <= 12 * METRES_PER_FURLONG and 0 <= self.num_hurdles <= 2:
+            return "Middle Distance"
+        if 12 * METRES_PER_FURLONG < self.adjusted_distance <= 19.9 * METRES_PER_FURLONG:
+            if self.num_hurdles == 0:
+                return "Long Distance (No Hurdles)"
+            else:
+                return "Long Distance (Hurdles)"
+        if 19.9 * METRES_PER_FURLONG < self.adjusted_distance:
+            if self.num_hurdles == 0:
+                return "Very long Distance (No Hurdles)"
+            else:
+                return "Very long Distance (Hurdles)"
+
+        print(f"Category not found: {self.adjusted_distance}/{self.num_hurdles}")
 
     def set_validity(self) -> None:
         if self.n_horses <= 1:

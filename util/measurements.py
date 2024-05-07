@@ -1,0 +1,1 @@
+METRES_PER_FURLONG: float = 201.168

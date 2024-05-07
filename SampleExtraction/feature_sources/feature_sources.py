@@ -171,11 +171,10 @@ class CountSource(FeatureSource):
 
 class AverageValueSource(FeatureSource):
 
-    def __init__(self, window_size=5, min_obs_thresh=3):
+    def __init__(self, window_size=5):
         super().__init__()
         self.window_size = window_size
-        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=window_size, fading_factor=0.0)
-        self.min_obs_thresh = min_obs_thresh
+        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=window_size)
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: Date, average_calculator: OnlineCalculator=None) -> None:
         if new_feature_value is not None:
@@ -202,7 +201,7 @@ class AverageValueSource(FeatureSource):
                 category["last_obs_date"] = value_date
 
     def get_name(self) -> str:
-        return f"{self.__class__.__name__}_{self.window_size}_{self.min_obs_thresh}"
+        return f"{self.__class__.__name__}_{self.window_size}"
 
 
 class NonRunnerReasonDateSource(FeatureSource):

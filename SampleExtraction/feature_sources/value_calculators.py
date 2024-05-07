@@ -35,7 +35,18 @@ def win_probability(race_card: RaceCard, horse: Horse) -> float:
 
 
 def place_percentile(race_card: RaceCard, horse: Horse) -> float:
-    return horse.place_percentile
+    # return horse.place_percentile
+    if race_card.win_time > 0:
+        if horse.finish_time > 0:
+            if race_card.finish_time_range == 0:
+                return 0.0
+            time_percentile = (horse.finish_time - race_card.win_time) / race_card.finish_time_range
+            return time_percentile
+
+    if horse.place_racebets < 0:
+        return 1.0
+
+    return None
 
 
 def relative_distance_behind(race_card: RaceCard, horse: Horse):

@@ -127,6 +127,23 @@ class BoostedTreesRanker(Estimator):
         relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
                                         sorted_feature_importances.items()}
 
+        avg_relative_importances = [relative_importance for feature_name, relative_importance in relative_feature_importances.items()
+                                    if "AverageValueSource" in feature_name]
+
+        print(f"Average values relative importances: {sum(avg_relative_importances)}")
+
         print(f"{importance_sum}: {relative_feature_importances}")
+
+        eval_results = lightgbm.cv(
+            params=self.params,
+            train_set=dataset,
+            num_boost_round=self.num_rounds,
+            categorical_feature=self.categorical_feature_names,
+            return_cvbooster=True
+        )
+
+        cv_score = eval_results["valid ndcg@5-mean"][-1]
+
+        print(f"CV-Score: {cv_score}")
 
         return 0.0

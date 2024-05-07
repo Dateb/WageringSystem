@@ -157,7 +157,7 @@ class BHAInjector:
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
     def save_race_series_of_year_month(self, year: int, month: int) -> None:
-        race_series_per_month_url = f"https://api09.horseracing.software/bha/v1/fixtures/?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=10&resultsAvailable=1&year={year}"
+        race_series_per_month_url = f"https://api09.horseracing.software/bha/v1/fixtures/?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=200&resultsAvailable=1&year={year}"
         race_series_of_month_data = scraper.request_data_with_header(race_series_per_month_url, header)
 
         year_month_key = f"{year}_{month}"

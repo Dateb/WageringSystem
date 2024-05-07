@@ -127,8 +127,6 @@ class ExchangeConnection:
             }
         )
 
-        print(login_response.json())
-
         login_response_data = login_response.json()["data"]
         return login_response_data["token"]["orbit"]["access_token"]
 
@@ -236,9 +234,6 @@ class ExchangeConnection:
             },
             cookies=cookies
         )
-
-        print(response.status_code)
-        print(response.json())
 
 
 class Exchange:
