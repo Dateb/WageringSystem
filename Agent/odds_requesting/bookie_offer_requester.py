@@ -23,7 +23,7 @@ class BookieOfferRequester:
             new_offer = BetOffer(
                 race_card=race_card,
                 horse=horse,
-                odds=horse.racebets_win_sp,
+                odds=horse.win_sp,
                 scratched_horse_numbers=[],
                 offer_datetime=datetime.datetime.now(),
                 adjustment_factor=1.0,

@@ -2,6 +2,7 @@ import pickle
 from abc import ABC, abstractmethod
 
 from Model.Estimation.dataset_factory import DatasetFactory
+from Model.Estimation.networks import SimpleMLP
 from Model.Estimation.tuning import GBTTuner
 
 from typing import Tuple
@@ -11,6 +12,7 @@ from lightgbm import Booster
 from DataAbstraction.Present.Horse import Horse
 from Model.Estimation.estimated_probabilities_creation import EstimationResult, WinProbabilizer
 from Model.Estimation.util.metrics import get_accuracy
+from Model.Estimation.util.sample_loading import TestRaceCardLoader, TrainRaceCardLoader
 from ModelTuning import simulate_conf
 from SampleExtraction.FeatureManager import FeatureManager
 from SampleExtraction.RaceCardsSample import RaceCardsSample
@@ -25,125 +27,264 @@ class Estimator(ABC):
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
         pass
 
-    def fit(self, train_sample: RaceCardsSample) -> float:
+    def fit(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
         pass
 
     def score_test_sample(self, test_sample: RaceCardsSample):
         pass
 
 
-class BoostedTreesRanker(Estimator):
-    RANKING_SEED = 30
+import numpy as np
+import torch
+from numpy import ndarray
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-    FIXED_PARAMS: dict = {
-        "boosting_type": "gbdt",
-        "objective": "lambdarank",
-        "deterministic": True,
-        "force_row_wise": True,
-        "device": "cpu",
-        "verbose": -1,
-        "feature_pre_filter": False,
-        "n_jobs": -1,
+from torch.utils.data import DataLoader, TensorDataset
+from Persistence import neural_network_persistence
+from SampleExtraction.FeatureManager import FeatureManager
 
-        "seed": RANKING_SEED,
-        "data_random_seed": RANKING_SEED,
-        "feature_fraction_seed": RANKING_SEED,
-        "objective_seed": RANKING_SEED,
-        "bagging_seed": RANKING_SEED,
-        "extra_seed": RANKING_SEED,
-        "drop_seed": RANKING_SEED,
-    }
+from SampleExtraction.RaceCardsSample import RaceCardsSample
 
-    def __init__(self, feature_manager: FeatureManager):
+
+class NNClassifier(Estimator):
+
+    def __init__(
+            self,
+            feature_manager: FeatureManager,
+            params: dict,
+    ):
         super().__init__(feature_manager)
-        self.num_rounds = 2000
+
         self.probabilizer = WinProbabilizer()
-        self.label_name = Horse.RANKING_LABEL_KEY
-        self.feature_manager = feature_manager
-        self.booster: Booster = None
+        self.params = params
+        self.horses_per_race_padding_size = self.params["horses_per_race_padding_size"]
+        self.loss_function = torch.nn.MSELoss()
 
-        self.categorical_feature_names = [feature.name for feature in feature_manager.features if feature.is_categorical]
-        self.feature_names = self.feature_manager.numerical_feature_names + self.categorical_feature_names
+        self.device = (
+            "cuda"
+            if torch.cuda.is_available()
+            else "cpu"
+        )
+        print(f"Using {self.device} device")
 
-        self.tuner = GBTTuner(self.FIXED_PARAMS, self.num_rounds, self.feature_names, self.categorical_feature_names)
+        self.one_hot_encoder = OneHotEncoder(handle_unknown="ignore")
+        self.standard_scaler = StandardScaler()
+
+    def fit(self, train_sample: RaceCardsSample, validation_sample: RaceCardsSample) -> float:
+        train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.fillna(-1)
+
+        train_race_card_loader = TrainRaceCardLoader(
+            train_sample,
+            self.feature_manager,
+            one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
+        )
+
+        train_dataloader = self.create_dataloader(train_race_card_loader.x, train_race_card_loader.y)
+
+        validation_sample.race_cards_dataframe = validation_sample.race_cards_dataframe.fillna(-1)
+
+        validation_race_card_loader = TestRaceCardLoader(
+            validation_sample,
+            self.feature_manager,
+            one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
+        )
+
+        validation_dataloader = self.create_dataloader(validation_race_card_loader.x, validation_race_card_loader.y)
+
+        self.network = SimpleMLP(train_race_card_loader.n_feature_values, self.params["dropout_rate"]).to(self.device)
+
+        self.optimizer = torch.optim.SGD(self.network.parameters(), lr=self.params["base_lr"])
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode='min',
+            factor=self.params["decay_factor"],
+            patience=self.params["patience"],
+            threshold=self.params["threshold"],
+            eps=self.params["eps"]
+        )
+
+        best_scheduler_metric = np.inf
+        best_train_loss = np.inf
+        best_validation_loss = np.inf
+
+        while self.scheduler.optimizer.param_groups[-1]['lr'] > self.params["lr_to_stop"]:
+            current_lr = self.scheduler.optimizer.param_groups[-1]['lr']
+            # print(f"Current lr: {self.scheduler.optimizer.param_groups[-1]['lr']}\n-------------------------------")
+
+            train_loss = self.fit_epoch(train_dataloader)
+            validation_loss = self.validate_epoch(validation_dataloader)
+
+            scheduler_metric = max([train_loss, validation_loss])
+
+            self.scheduler.step(scheduler_metric)
+
+            if scheduler_metric < best_scheduler_metric:
+                best_train_loss = train_loss
+                best_validation_loss = validation_loss
+                best_scheduler_metric = scheduler_metric
+                neural_network_persistence.save(self.network)
+
+            next_lr = self.scheduler.optimizer.param_groups[-1]['lr']
+
+            if current_lr > next_lr:
+                print(f"restarting at model with train/validation loss: {best_train_loss}/{best_validation_loss}")
+                neural_network_persistence.load_state_into_neural_network(self.network)
+
+        return best_scheduler_metric
 
     def predict(self, sample: RaceCardsSample) -> Tuple[EstimationResult, float]:
-        test_loss = self.score_test_sample(sample)
+        sample.race_cards_dataframe = sample.race_cards_dataframe.fillna(-1)
+
+        self.score_test_sample(sample)
 
         print(f"Test accuracy gbt-model: {get_accuracy(sample)}")
 
         estimation_result = self.probabilizer.create_estimation_result(sample, sample.race_cards_dataframe["score"])
 
-        return estimation_result, test_loss
+        return estimation_result, 0
 
     def score_test_sample(self, test_sample: RaceCardsSample):
-        race_cards_dataframe = test_sample.race_cards_dataframe
-        X = race_cards_dataframe[self.feature_names]
-        scores = self.booster.predict(X)
+        test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.fillna(-1)
 
+        test_race_card_loader = TestRaceCardLoader(
+            test_sample,
+            self.feature_manager,
+            one_hot_encoder=self.one_hot_encoder,
+            standard_scaler=self.standard_scaler,
+        )
+
+        test_dataloader = self.create_dataloader(test_race_card_loader.x, test_race_card_loader.y)
+
+        self.test_epoch(test_dataloader)
+
+        with torch.no_grad():
+            self.network.eval()
+            predictions = self.network(test_dataloader.dataset.tensors[0].to(self.device))
+
+        scores = self.get_non_padded_scores(predictions, test_race_card_loader.group_counts)
         test_sample.race_cards_dataframe["score"] = scores
 
-        return 0
+    def fit_epoch(self, train_dataloader: DataLoader):
+        num_batches = len(train_dataloader)
 
-    def fit(self, train_sample: RaceCardsSample) -> float:
-        train_val_df = train_sample.race_cards_dataframe
+        train_loss, train_accuracy = 0, 0
+        self.network.train()
+        for batch_idx, (X, y) in enumerate(train_dataloader):
+            X, y = X.to(self.device), y.to(self.device)
 
-        dataset_factory = DatasetFactory(train_val_df, self.label_name)
+            pred = self.network(X)
 
-        if simulate_conf.RUN_MODEL_TUNER:
-            gbt_config = self.tuner.run(dataset_factory)
-            with open(simulate_conf.GBT_CONFIG_PATH, "wb") as gbt_config_file:
-                pickle.dump(gbt_config, gbt_config_file)
+            batch_loss = self.get_batch_loss(pred, y)
 
-        with open(simulate_conf.GBT_CONFIG_PATH, "rb") as gbt_config_file:
-            gbt_config = pickle.load(gbt_config_file)
+            batch_loss.backward()
 
-        missing_feature_names = [feature_name for feature_name in self.feature_names if feature_name not in gbt_config.feature_names]
+            torch.nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=2)
 
-        if missing_feature_names:
-            print(f"WARNING: Features that are computed, but not included in the model: {missing_feature_names}")
+            self.optimizer.step()
+            self.optimizer.zero_grad()
 
-        # self.feature_names = gbt_config.feature_names
-        self.params = {**self.FIXED_PARAMS, **gbt_config.search_params}
+            train_loss += batch_loss.item()
 
-        self.categorical_feature_names = [feature_name for feature_name in gbt_config.feature_names
-                                          if feature_name in self.categorical_feature_names]
-        dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
+            # train_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
-        self.booster = lightgbm.train(
-            num_boost_round=self.num_rounds,
-            params=self.params,
-            train_set=dataset,
-            categorical_feature=self.categorical_feature_names,
-        )
+        train_loss /= num_batches
+        # train_accuracy /= size
 
-        importance_scores = self.booster.feature_importance(importance_type="gain")
-        feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
-        sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
+        print(f"Train Avg loss: {train_loss:>8f}")
 
-        self.booster.free_dataset()
+        return train_loss
 
-        importance_sum = sum([importance for importance in list(sorted_feature_importances.values())])
-        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                        sorted_feature_importances.items()}
+    def validate_epoch(self, validation_dataloader: DataLoader) -> float:
+        num_batches = len(validation_dataloader)
 
-        avg_relative_importances = [relative_importance for feature_name, relative_importance in relative_feature_importances.items()
-                                    if "AverageValueSource" in feature_name]
+        validation_loss, validation_accuracy = 0, 0
+        self.network.eval()
 
-        print(f"Average values relative importances: {sum(avg_relative_importances)}")
+        with torch.no_grad():
+            for X, y in validation_dataloader:
+                X, y = X.to(self.device), y.to(self.device)
 
-        print(f"{importance_sum}: {relative_feature_importances}")
+                pred = self.network(X)
 
-        eval_results = lightgbm.cv(
-            params=self.params,
-            train_set=dataset,
-            num_boost_round=self.num_rounds,
-            categorical_feature=self.categorical_feature_names,
-            return_cvbooster=True
-        )
+                loss = self.get_batch_loss(pred, y)
 
-        cv_score = eval_results["valid ndcg@5-mean"][-1]
+                validation_loss += loss.item()
 
-        print(f"CV-Score: {cv_score}")
+                # validation_accuracy += (pred.argmax(1) == y).type(torch.float).sum().item()
 
-        return 0.0
+        validation_loss /= num_batches
+        # validation_accuracy /= size
+
+        print(f"Validation Avg loss: {validation_loss:>8f}")
+
+        return validation_loss
+
+    def test_epoch_per_month(self, test_sample: RaceCardsSample):
+        for year_month in test_sample.year_months:
+            race_cards_df = test_sample.get_dataframe_by_year_month(year_month)
+            monthly_sample = RaceCardsSample(race_cards_df)
+            monthly_race_cards_loader = TestRaceCardLoader(
+                monthly_sample,
+                self.feature_manager,
+                one_hot_encoder=self.one_hot_encoder,
+                standard_scaler=self.standard_scaler,
+            )
+            test_dataloader = self.create_dataloader(monthly_race_cards_loader.x, monthly_race_cards_loader.y)
+            print(f"{year_month}:")
+            self.test_epoch(test_dataloader)
+
+    def test_epoch(self, test_dataloader: DataLoader):
+        num_batches = len(test_dataloader)
+        self.network.eval()
+        test_loss, correct = 0, 0
+
+        with torch.no_grad():
+            for X, y in test_dataloader:
+                X, y = X.to(self.device), y.to(self.device)
+                pred = self.network(X)
+
+                if pred.dim() == 1:
+                    pred = pred.unsqueeze(0)
+
+                loss = self.get_batch_loss(pred, y)
+
+                test_loss += loss.item()
+
+        test_loss /= num_batches
+
+        print(f"Test Avg loss: {test_loss:>8f}")
+
+    def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
+        pred_prob = torch.nn.Softmax(dim=1)(pred)
+
+        batch_loss = self.loss_function(pred_prob, y)
+        return batch_loss
+
+    def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:
+        tensor_x = torch.Tensor(x)
+
+        tensor_y = torch.Tensor(y).type(torch.FloatTensor)
+
+        dataset = TensorDataset(tensor_x, tensor_y)
+
+        return DataLoader(dataset, batch_size=256, shuffle=True)
+
+    def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray):
+        scores = np.zeros(np.sum(group_counts))
+
+        horse_idx = 0
+        num_races = len(group_counts)
+
+        if num_races == 1:
+            for j in range(group_counts[0]):
+                scores[j] = predictions[j]
+            return scores
+
+        for i in range(num_races):
+            group_count = group_counts[i]
+            for j in range(group_count):
+                scores[horse_idx] = predictions[i, j]
+                horse_idx += 1
+
+        return scores

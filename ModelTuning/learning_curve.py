@@ -14,7 +14,6 @@ def save_learning_curve() -> None:
     for i in range(n_iter):
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
-            train_upper_limit_percentage=0.8,
             n_months_test_sample=10,
             n_months_forward_offset=max([max_forward_offset-(i*10), 0]),
             race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME

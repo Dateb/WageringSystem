@@ -25,6 +25,7 @@ class Horse:
     ]
 
     def __init__(self, raw_data: dict):
+        self.competitors_beaten_probability = 0.0
         self.place_percentile = None
         self.relative_distance_behind = None
         self.uncorrected_momentum = -1
@@ -61,20 +62,18 @@ class Horse:
 
         self.place_racebets = self.__extract_place(raw_data)
         self.place = 0
-        self.place_deviation = 0
 
-        self.racebets_win_odds_history = []
-        if "fixedOddsHistory" in raw_data:
-            self.racebets_win_odds_history = list(reversed(raw_data["fixedOddsHistory"]))
-        self.racebets_win_sp = self.__extract_racebets_win_odds(raw_data)
-        self.betfair_win_sp = self.__extract_betfair_win_odds(raw_data)
+        self.is_scratched = raw_data["scratched"]
+        self.win_sp = self.__extract_betfair_win_odds(raw_data)
+        if self.win_sp < 1:
+            self.win_sp = self.__extract_racebets_win_odds(raw_data)
 
-        self.sp_win_prob = -1
+        self.sp_win_prob = 0
 
         self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
         self.sp_place_prob = -1 if self.betfair_place_sp == 0 else 1 / self.betfair_place_sp
 
-        self.post_position = self.__extract_post_position(raw_data)
+        # self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place_racebets == 1 else 0
         self.has_placed = 0
         self.ranking_label = 0
@@ -100,8 +99,6 @@ class Horse:
         self.trainer = Trainer(raw_data["trainer"])
 
         self.trainer_id = self.trainer.id
-
-        self.is_scratched = raw_data["scratched"]
         self.previous_performance = raw_data["ppString"].split(" - ")[0]
 
         self.result_finish_dnf = None
@@ -116,9 +113,9 @@ class Horse:
         self.base_attributes = {
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
-            self.CURRENT_WIN_ODDS_KEY: self.betfair_win_sp,
+            self.CURRENT_WIN_ODDS_KEY: self.win_sp,
             self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
-            self.PLACE_KEY: self.place_racebets,
+            self.PLACE_KEY: self.place,
             self.HAS_WON_LABEL_KEY: self.has_won,
             self.HAS_PLACED_LABEL_KEY: self.has_placed,
             self.RANKING_LABEL_KEY: self.ranking_label,
@@ -159,6 +156,9 @@ class Horse:
         return -1
 
     def __extract_racebets_win_odds(self, raw_data: dict):
+        if self.is_scratched:
+            return -1
+
         odds_of_horse = raw_data["odds"]
         if odds_of_horse["FXW"] == 0:
             return float(odds_of_horse["PRC"])

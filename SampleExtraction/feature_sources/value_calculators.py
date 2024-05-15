@@ -13,10 +13,6 @@ def has_placed(race_card: RaceCard, horse: Horse) -> float:
     return float(horse.has_placed)
 
 
-def place_deviation(race_card: RaceCard, horse: Horse) -> float:
-    return float(horse.place_deviation)
-
-
 def purse(race_card: RaceCard, horse: Horse) -> float:
     return horse.purse
 
@@ -35,18 +31,11 @@ def win_probability(race_card: RaceCard, horse: Horse) -> float:
 
 
 def place_percentile(race_card: RaceCard, horse: Horse) -> float:
-    # return horse.place_percentile
-    if race_card.win_time > 0:
-        if horse.finish_time > 0:
-            if race_card.finish_time_range == 0:
-                return 0.0
-            time_percentile = (horse.finish_time - race_card.win_time) / race_card.finish_time_range
-            return time_percentile
+    return horse.place_percentile
 
-    if horse.place_racebets < 0:
-        return 1.0
 
-    return None
+def competitors_beaten(race_card: RaceCard, horse: Horse) -> float:
+    return horse.competitors_beaten_probability
 
 
 def relative_distance_behind(race_card: RaceCard, horse: Horse):
@@ -81,7 +70,7 @@ def adjusted_race_distance(race_card: RaceCard, horse: Horse) -> float:
 def race_class(race_card: RaceCard, horse: Horse) -> float:
     race_class = race_card.race_class
 
-    if race_class not in ["A", "B"]:
+    if race_class not in ["A", "B", "C", "O"]:
         return int(race_class)
 
     return None

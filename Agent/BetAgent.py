@@ -151,7 +151,7 @@ class ExchangeBetRequester(Actuator):
                     horse_probability = race_card_probabilities[int(horse_number)]
                     horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                    if horse_min_odds < 8:
+                    if horse_min_odds < 6:
                         print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
                         self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds)
 
@@ -288,7 +288,7 @@ class BetAgent:
 
 
 def main():
-    actuator_name = "MinOddsReporter"
+    actuator_name = "ExchangeBetRequester"
     bettor = BetAgent(actuator_name=actuator_name)
     bettor.run()
     # while True:

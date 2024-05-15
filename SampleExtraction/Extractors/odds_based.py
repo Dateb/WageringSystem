@@ -9,12 +9,12 @@ class RacebetsWinProbability(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        inverse_odds = [1 / horse.racebets_win_sp for horse in race_card.horses if horse.racebets_win_sp > 0]
+        inverse_odds = [1 / horse.win_sp for horse in race_card.horses if horse.win_sp > 0]
         total_inverse_odds = sum(inverse_odds)
 
-        if total_inverse_odds == 0 or horse.racebets_win_sp == 0:
+        if total_inverse_odds == 0 or horse.win_sp == 0:
             return self.PLACEHOLDER_VALUE
-        return (1 / horse.racebets_win_sp) / total_inverse_odds
+        return (1 / horse.win_sp) / total_inverse_odds
 
 
 class BetfairOverround(FeatureExtractor):

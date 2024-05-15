@@ -421,7 +421,7 @@ class ResultTimeformFetcher(TimeFormFetcher):
         lengths_behind_text = lengths_behind_text.replace("½", ".5")
         lengths_behind_text = lengths_behind_text.replace("¾", ".75")
 
-        if not lengths_behind_text:
+        if not lengths_behind_text or lengths_behind_text == "?":
             return -1.0
 
         lengths_behind = float(lengths_behind_text)

@@ -66,7 +66,7 @@ class FeaturePaddingTransformer2D(FeaturePaddingTransformer):
         n_groups = len(group_counts)
 
         n_feature_values = features.shape[1]
-        padded_features = np.zeros((n_groups, self.padding_size_per_group * (n_feature_values + 1)))
+        padded_features = np.zeros((n_groups, self.padding_size_per_group * n_feature_values))
 
         group_member_idx = 0
         for i in range(n_groups):

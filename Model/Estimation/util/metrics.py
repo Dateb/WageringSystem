@@ -8,7 +8,8 @@ def get_accuracy(race_cards_sample: RaceCardsSample) -> float:
     max_score_indexes = grouped['score'].idxmax()
     predicted_winners_df = races_df.loc[max_score_indexes]
 
-    n_predictions = len(predicted_winners_df)
+    n_predictions = len(predicted_winners_df[predicted_winners_df["place"] >= 1])
+
     n_correct_predictions = len(predicted_winners_df[predicted_winners_df["place"] == 1])
 
     acc = n_correct_predictions / n_predictions

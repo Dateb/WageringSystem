@@ -71,8 +71,6 @@ class RaceCard:
         if "num_hurdles" in race:
             self.num_hurdles = race["num_hurdles"]
 
-        self.distance_category = self.get_distance_category()
-
         self.going = race["trackGoing"]
         self.estimated_going = -1
 
@@ -113,13 +111,9 @@ class RaceCard:
         if first_place_horse_names:
             self.winner_name = first_place_horse_names[0]
 
-        self.overround = sum([1 / horse.betfair_win_sp for horse in self.runners if horse.betfair_win_sp > 0])
+        self.total_sp = sum([horse.win_sp for horse in self.runners if horse.win_sp >= 1])
 
-        if self.overround > 0:
-            self.set_betfair_win_sp()
-        else:
-            self.overround = sum([1 / horse.racebets_win_sp for horse in self.runners if horse.racebets_win_sp > 0])
-            self.set_racebets_win_sp()
+        self.set_betfair_win_sp()
 
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
@@ -147,6 +141,7 @@ class RaceCard:
 
         for runner in self.runners:
             runner.place = self.n_runners
+            runner.base_attributes[Horse.PLACE_KEY] = self.n_runners
 
         placed_horses = sorted([horse for horse in self.horses if horse.place_racebets > 0], key=lambda horse: horse.place_racebets)
 
@@ -154,18 +149,11 @@ class RaceCard:
         total_horse_distance = 0
         for horse in placed_horses:
             horse.place = placed_horse_idx
+            horse.base_attributes[Horse.PLACE_KEY] = placed_horse_idx
             placed_horse_idx += 1
             if horse.lengths_behind >= 0:
                 total_horse_distance += horse.lengths_behind
                 horse.horse_distance = total_horse_distance
-
-        placed_horses = sorted([horse for horse in self.runners if horse.place_racebets > 0],
-                               key=lambda horse: horse.racebets_win_sp)
-
-        odds_place_idx = 1
-        for horse in placed_horses:
-            horse.place_deviation = (odds_place_idx - horse.place) / self.n_runners
-            odds_place_idx += 1
 
         if 5 <= self.n_runners <= 7:
             self.places_num = 2
@@ -182,10 +170,8 @@ class RaceCard:
             horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
             horse.ranking_label = 0
-            if horse.has_placed:
-                horse.ranking_label = 1
             if horse.has_won:
-                horse.ranking_label = 2
+                horse.ranking_label = 1
 
             horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
 
@@ -198,25 +184,32 @@ class RaceCard:
         #     self.__remove_non_starters()
 
     def add_weather_data(self, weather_data: dict) -> None:
-        if str(self.date) in weather_data:
-            if self.track_name in weather_data[str(self.date)]:
-                if str(self.race_number) in weather_data[str(self.date)][self.track_name]:
-                    self.temperature = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["temp"]
-                    self.wind_speed = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
-                        "wind_speed"]
-                    self.humidity = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
-                        "humidity"]
-                    self.weather_type = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["weather"][0]["main"]
+        pass
+        # if str(self.date) in weather_data:
+        #     if self.track_name in weather_data[str(self.date)]:
+        #         if str(self.race_number) in weather_data[str(self.date)][self.track_name]:
+        #             self.temperature = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["temp"]
+        #             self.wind_speed = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
+        #                 "wind_speed"]
+        #             self.humidity = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
+        #                 "humidity"]
+        #             self.weather_type = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["weather"][0]["main"]
 
     def set_betfair_win_sp(self) -> None:
         for horse in self.runners:
-            if horse.betfair_win_sp >= 1:
-                horse.sp_win_prob = (self.overround / horse.betfair_win_sp)
+            if horse.win_sp >= 1:
+                horse.sp_win_prob = horse.win_sp / self.total_sp
 
-    def set_racebets_win_sp(self) -> None:
-        for horse in self.runners:
-            if horse.racebets_win_sp >= 1:
-                horse.sp_win_prob = (self.overround / horse.racebets_win_sp)
+        placed_horses = list(reversed(sorted([horse for horse in self.runners], key=lambda horse: horse.place)))
+
+        competitors_beaten_probability = 0.0
+        for horse in placed_horses:
+            horse.competitors_beaten_probability = competitors_beaten_probability
+            if horse.place_racebets == -1:
+                horse.competitors_beaten_probability = 0.0
+            if horse.place_racebets == 1:
+                horse.competitors_beaten_probability = 1.0
+            competitors_beaten_probability += horse.sp_win_prob
 
     def set_place_percentile_of_runners(self) -> None:
         for horse in self.runners:
@@ -376,28 +369,13 @@ class RaceCard:
     def reset_track_variant_estimate() -> None:
         RaceCard.track_variant = {}
 
-    def get_distance_category(self) -> str:
-        if 4.9 * METRES_PER_FURLONG < self.adjusted_distance <= 8 * METRES_PER_FURLONG and self.num_hurdles == 0:
-            return "Sprint"
-        if 8 * METRES_PER_FURLONG < self.adjusted_distance <= 12 * METRES_PER_FURLONG and 0 <= self.num_hurdles <= 2:
-            return "Middle Distance"
-        if 12 * METRES_PER_FURLONG < self.adjusted_distance <= 19.9 * METRES_PER_FURLONG:
-            if self.num_hurdles == 0:
-                return "Long Distance (No Hurdles)"
-            else:
-                return "Long Distance (Hurdles)"
-        if 19.9 * METRES_PER_FURLONG < self.adjusted_distance:
-            if self.num_hurdles == 0:
-                return "Very long Distance (No Hurdles)"
-            else:
-                return "Very long Distance (Hurdles)"
-
-        print(f"Category not found: {self.adjusted_distance}/{self.num_hurdles}")
-
     def set_validity(self) -> None:
         if self.n_horses <= 1:
             self.is_valid_sample = False
             self.feature_source_validity = False
+
+        if self.n_horses > 20:
+            self.is_valid_sample = False
 
         if self.num_winners > 1:
             self.is_valid_sample = False

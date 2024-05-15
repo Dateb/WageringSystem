@@ -25,7 +25,7 @@ class GBTTuner:
             num_boost_rounds: int,
             feature_names: List[str],
             categorical_feature_names: List[str],
-            n_hyperparameter_rounds: int = 20,
+            n_hyperparameter_rounds: int = 40,
     ):
         self.fixed_params = fixed_params
         self.num_boost_rounds = num_boost_rounds
@@ -40,13 +40,13 @@ class GBTTuner:
 
     def run(self, dataset_factory: DatasetFactory) -> GBTConfig:
         gbt_config = GBTConfig(search_params={}, feature_names=self.feature_names)
-        while not self.is_feature_selection_completed:
-            dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
-            gbt_config.search_params = self.get_hyperparameters(dataset)
+        # while not self.is_feature_selection_completed:
+        dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
+        gbt_config.search_params = self.get_hyperparameters(dataset)
 
-            print(f"Executing feature selection...")
-            self.feature_names = self.get_feature_names(dataset_factory, gbt_config)
-            self.categorical_feature_names = [feature_name for feature_name in self.feature_names if feature_name in self.categorical_feature_names]
+            # print(f"Executing feature selection...")
+            # self.feature_names = self.get_feature_names(dataset_factory, gbt_config)
+            # self.categorical_feature_names = [feature_name for feature_name in self.feature_names if feature_name in self.categorical_feature_names]
 
         gbt_config.feature_names = self.feature_names
         return gbt_config

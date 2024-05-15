@@ -59,7 +59,8 @@ class BHAInjector:
         print(f"{race_card.race_id}/{self.current_race_idx}")
 
         race_card_data = self.fetch(race_card)
-        self.inject_race_card_data(race_card, race_card_data)
+        if race_card_data:
+            self.inject_race_card_data(race_card, race_card_data)
 
         self.current_race_idx += 1
 
@@ -81,6 +82,9 @@ class BHAInjector:
         if race_series_id not in self.races_data:
             self.save_races_of_race_series(race_card_year, race_series_id)
             self.current_race_idx = 0
+
+        if self.current_race_idx >= len(self.races_data[race_series_id]):
+            return {}
 
         race_dict = self.races_data[race_series_id][self.current_race_idx]
 

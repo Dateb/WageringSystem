@@ -22,7 +22,7 @@ class OddsVigAdjuster(ABC):
 class BetfairOddsVigAdjuster(OddsVigAdjuster):
 
     def get_adjusted_odds(self, odds: float) -> float:
-        return odds / (1 - 0.025)
+        return odds / (1 - 0.03)
 
 
 @dataclass
