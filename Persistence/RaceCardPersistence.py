@@ -63,7 +63,7 @@ class RaceDataPersistence:
 
     def load_race_card_files_writable(self, race_card_file_names: List[str]) -> Dict[str, WritableRaceCard]:
         race_cards_per_file = [
-            self.raw_races_to_race_cards(race_card_file_name, self.create_writable_race_card)
+            self.load(race_card_file_name, self.create_writable_race_card)
             for race_card_file_name in race_card_file_names
         ]
         total_race_cards = {}

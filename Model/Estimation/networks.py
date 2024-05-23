@@ -37,7 +37,7 @@ class SimpleMLP(nn.Module):
 
     def forward(self, x):
         logits = self.linear_relu_stack(x)
-        # logits = nn.functional.log_softmax(logits, dim=1)
+        logits = nn.functional.softmax(logits, dim=1)
         logits = torch.squeeze(logits)
         return logits
 

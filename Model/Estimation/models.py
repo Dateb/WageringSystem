@@ -256,9 +256,7 @@ class NNClassifier(Estimator):
         print(f"Test Avg loss: {test_loss:>8f}")
 
     def get_batch_loss(self, pred: ndarray, y: ndarray) -> float:
-        pred_prob = torch.nn.Softmax(dim=1)(pred)
-
-        batch_loss = self.loss_function(pred_prob, y)
+        batch_loss = self.loss_function(pred, y)
         return batch_loss
 
     def create_dataloader(self, x: ndarray, y: ndarray) -> DataLoader:

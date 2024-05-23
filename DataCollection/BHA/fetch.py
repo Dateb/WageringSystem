@@ -55,14 +55,17 @@ class BHAInjector:
 
         return horse_attributes
 
-    def inject(self, race_card: RaceCard) -> None:
+    def inject(self, race_card: RaceCard) -> bool:
+        injection_successful = False
         print(f"{race_card.race_id}/{self.current_race_idx}")
 
         race_card_data = self.fetch(race_card)
         if race_card_data:
             self.inject_race_card_data(race_card, race_card_data)
+            injection_successful = True
 
         self.current_race_idx += 1
+        return injection_successful
 
     def fetch(self, race_card: RaceCard) -> Dict:
         race_card_month = race_card.datetime.month
@@ -103,9 +106,11 @@ class BHAInjector:
 
     def inject_race_card_data(self, race_card: RaceCard, race_card_data: Dict) -> None:
         race_series_id = self.get_race_series_id(race_card)
+        print(f"{race_card.race_id}")
         race_dict = self.races_data[race_series_id][self.current_race_idx]
 
         race_card.raw_race_card["race"]["adjusted_distance"] = distance_to_meters(race_dict["distanceChangeText"])
+        race_card.raw_race_card["race"]["categoryLetter"] = self.extract_race_class(race_dict)
 
         for horse_data in race_card_data["data"]:
             horse = self.get_horse(race_card, horse_data)
@@ -161,13 +166,11 @@ class BHAInjector:
         return self.race_series_ids_per_year_month[year_month_key][race_series_key]
 
     def save_race_series_of_year_month(self, year: int, month: int) -> None:
-        race_series_per_month_url = f"https://api09.horseracing.software/bha/v1/fixtures/?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=200&resultsAvailable=1&year={year}"
+        race_series_per_month_url = f"https://api09.horseracing.software/bha/v1/fixtures/?fields=courseId,courseName,fixtureDate,fixtureType,fixtureSession,abandonedReasonCode,highlightTitle&month={month}&order=desc&page=1&per_page=250&resultsAvailable=1&year={year}"
         race_series_of_month_data = scraper.request_data_with_header(race_series_per_month_url, header)
 
         year_month_key = f"{year}_{month}"
         self.race_series_ids_per_year_month[year_month_key] = {}
-
-        print(race_series_of_month_data)
 
         for race_series in race_series_of_month_data["data"]:
             if 'courseName' in race_series:
@@ -185,6 +188,7 @@ class BHAInjector:
             "distanceChangeText": race['distanceChangeText'],
             "prizeAmount": race["prizeAmount"],
             "raceTime": race["raceTime"],
+            "raceName": race["raceName"]
             }
             for race in races_of_race_series_data["data"]
         ]
@@ -216,6 +220,20 @@ class BHAInjector:
             return "Great Yarmouth"
 
         return track_name
+
+    def extract_race_class(self, race_dict: dict) -> str:
+        pattern = r'(?i)\(CLASS (\d+)(?: [A-Z]+)*\)'
+        race_name = race_dict['raceName']
+        print(race_name)
+        match = re.search(pattern, race_name)
+
+        if match:
+            class_number = match.group(1)
+            print(class_number)
+        else:
+            return "0"
+
+        return class_number
 
 
 def main():

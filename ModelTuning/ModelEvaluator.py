@@ -22,7 +22,7 @@ class ModelEvaluator:
     def __init__(
             self,
             race_results_container: RaceResultsContainer,
-            clv_tolerance: float = 0.025,
+            clv_tolerance: float = -np.inf,
             drawdown_tolerance: float = 10000
     ):
         self.race_results_container = race_results_container
@@ -42,7 +42,7 @@ class ModelEvaluator:
         self.init_offer_container(test_race_cards)
 
         best_bet_result = None
-        bet_thresholds = [0.01]
+        bet_thresholds = [0.2]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)

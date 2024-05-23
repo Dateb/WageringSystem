@@ -81,8 +81,23 @@ class RaceCard:
 
         self.race_class = race["categoryLetter"]
 
-        if self.race_class == "":
+        if self.race_class == 'A':
+            print('A')
             self.race_class = "1"
+
+        if self.race_class == 'B':
+            print('B')
+            self.race_class = "2"
+
+        if self.race_class == 'C':
+            print('C')
+            self.race_class = "4"
+
+        if not self.race_class:
+            if self.country == "GB":
+                self.race_class = "1"
+            else:
+                self.race_class = "6"
 
         self.surface = race["trackSurface"]
         self.age_from = race["ageFrom"]
