@@ -33,6 +33,6 @@ class SampleEncoder:
             race_cards_dataframe[self.numerical_feature_names].apply(pd.to_numeric, errors="coerce")
 
         for categorical_feature in self.categorical_feature_names:
-            race_cards_dataframe[categorical_feature] = race_cards_dataframe[categorical_feature].astype("str")
+            race_cards_dataframe[categorical_feature] = race_cards_dataframe[categorical_feature].astype("category")
 
         return RaceCardsSample(race_cards_dataframe)

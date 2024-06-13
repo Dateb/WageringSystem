@@ -37,6 +37,7 @@ class TimeFormFetcher(ABC):
         "musselburgh": 15,
         "epsom-downs": 16,
         "fakenham": 17,
+        "folkestone": 18,
         "fontwell-park": 19,
         "goodwood": 20,
         "hamilton-park": 21,

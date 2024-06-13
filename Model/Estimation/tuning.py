@@ -25,7 +25,7 @@ class GBTTuner:
             num_boost_rounds: int,
             feature_names: List[str],
             categorical_feature_names: List[str],
-            n_hyperparameter_rounds: int = 40,
+            n_hyperparameter_rounds: int = 100,
     ):
         self.fixed_params = fixed_params
         self.num_boost_rounds = num_boost_rounds
@@ -54,7 +54,6 @@ class GBTTuner:
     def get_hyperparameters(self, dataset: Dataset) -> dict:
         cv_objective = GBTObjective(
             fixed_params=self.fixed_params,
-            num_rounds=self.num_boost_rounds,
             dataset=dataset,
             cat_feature_names=self.categorical_feature_names
         )
@@ -159,15 +158,15 @@ class GBTTuner:
 
 
 class GBTObjective:
-    def __init__(self, fixed_params: dict, num_rounds: int, dataset: Dataset, cat_feature_names: List[str]):
+    def __init__(self, fixed_params: dict, dataset: Dataset, cat_feature_names: List[str]):
         self.fixed_params = fixed_params
-        self.num_rounds = num_rounds
         self.dataset = dataset
         self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
         search_params = {
-            "num_leaves": trial.suggest_int("num_leaves", 2, 8),
+            "num_rounds": trial.suggest_int("num_rounds", 500, 1300),
+            "num_leaves": trial.suggest_int("num_leaves", 12, 25),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
             "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
             "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
@@ -181,7 +180,6 @@ class GBTObjective:
         eval_results = lightgbm.cv(
             params=params,
             train_set=self.dataset,
-            num_boost_round=self.num_rounds,
             categorical_feature=self.cat_feature_names,
             return_cvbooster=True
         )

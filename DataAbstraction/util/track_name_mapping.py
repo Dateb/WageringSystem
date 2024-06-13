@@ -1,4 +1,6 @@
 def get_unique_track_name(track_name: str) -> str:
+    if "Wolverhampton" in track_name:
+        track_name = "Wolverhampton"
     if "Chelmsford" in track_name:
         track_name = "Chelmsford"
     if "Bangor" in track_name:

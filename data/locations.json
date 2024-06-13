@@ -838,5 +838,10 @@
     "location_id": 167,
     "latitude": 50.7443165,
     "longitude": -2.3756146
+  },
+  "Folkestone": {
+    "location_id": 168,
+    "latitude": 51.0884418,
+    "longitude": 1.0911803
   }
 }

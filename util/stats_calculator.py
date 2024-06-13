@@ -61,7 +61,7 @@ class ExponentialOnlineCalculator(OnlineCalculator):
         self.alpha = 2 / (window_size + 1)
 
     def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int) -> float:
-        w_avg = np.exp(-self.window_size * n_days_since_last_obs)
+        w_avg = np.exp(-self.window_size * (n_days_since_last_obs+1))
         w_new_obs = 1 - w_avg
 
         new_average = (w_avg * old_average + w_new_obs * new_obs) / (w_avg + w_new_obs)

@@ -33,6 +33,8 @@ class DayCollector:
 
     def __get_races_of_day(self, day: date, countries: List[str]) -> List[dict]:
         race_series_list = self.__get_race_series_of_day(day, countries)
+        race_series_list = sorted(race_series_list, key=lambda d: d["title"])
+        print(race_series_list)
         races = []
         for race_series in race_series_list:
             races += race_series["relatedRaces"]
@@ -51,7 +53,7 @@ class DayCollector:
         for race_series_key in calendar_data:
             race_series = calendar_data[race_series_key]
             if race_series["country"] in countries and race_series["raceType"] in ["G", "J"] and not race_series["specialBetsEvent"] and "PMU" not in race_series["title"]\
-                    and race_series["title"] not in ["Down Royal", "Greatwood Hurdle", "Bath - Arab Race"]:
+                    and race_series["title"] not in ["Greatwood Hurdle", "Bath - Arab Race"] and "LZM" not in race_series["title"]:
                 race_series_list.insert(0, race_series)
 
         return race_series_list

@@ -92,21 +92,24 @@ class BHAInjector:
         race_dict = self.races_data[race_series_id][self.current_race_idx]
 
         if race_dict["raceTime"][0:2] != str(race_card.datetime.hour - 1) or race_dict["raceTime"][3:5] != str(race_card.datetime.minute).zfill(2):
-            print("Race card not matching. Trying next one...")
-            self.current_race_idx += 1
-            return self.fetch(race_card)
+            print(race_dict)
+            if race_dict["winnerName"] != race_card.winner_name.split()[0]:
+                print("Race card not matching. Trying next one...")
+                self.current_race_idx += 1
+                return self.fetch(race_card)
 
         race_id = race_dict["raceId"]
         division_sequence = race_dict["divisionSequence"]
 
         race_card_url = f"https://api09.horseracing.software/bha/v1/races/{race_card_year}/{race_id}/{division_sequence}/results"
-        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=5.0)
+        race_card_data = scraper.request_data_with_header(race_card_url, header, avg_wait_seconds=3.0)
 
         return race_card_data
 
     def inject_race_card_data(self, race_card: RaceCard, race_card_data: Dict) -> None:
         race_series_id = self.get_race_series_id(race_card)
         print(f"{race_card.race_id}")
+
         race_dict = self.races_data[race_series_id][self.current_race_idx]
 
         race_card.raw_race_card["race"]["adjusted_distance"] = distance_to_meters(race_dict["distanceChangeText"])
@@ -133,6 +136,7 @@ class BHAInjector:
                 horse = race_card.get_horse_by_jockey(horse_data["jockeyName"])
 
         if horse is None:
+            print(horse_data)
             horse = race_card.get_horse_by_number(int(horse_data["clothNumber"]))
 
         if horse is None:
@@ -181,6 +185,8 @@ class BHAInjector:
         races_of_race_series_url = f"https://api09.horseracing.software/bha/v1/fixtures/{year}/{race_series_id}/races"
         races_of_race_series_data = scraper.request_data_with_header(races_of_race_series_url, header, avg_wait_seconds=0.5)
 
+        races = [race for race in races_of_race_series_data["data"] if "EMIRATES" not in race["raceName"]]
+
         self.races_data[race_series_id] = [
             {
             "raceId": race['raceId'],
@@ -188,10 +194,17 @@ class BHAInjector:
             "distanceChangeText": race['distanceChangeText'],
             "prizeAmount": race["prizeAmount"],
             "raceTime": race["raceTime"],
-            "raceName": race["raceName"]
+            "raceName": race["raceName"],
+            "winnerName": self.get_winner_name(race)
             }
-            for race in races_of_race_series_data["data"]
+            for race in races
         ]
+
+    def get_winner_name(self, race: dict) -> str:
+        if not race["winnersDetails"]:
+            return ""
+
+        return race["winnersDetails"][0]["racehorseName"].split()[0]
 
     def track_name_to_course_name(self, track_name: str) -> str:
         if track_name == "Lingfield":

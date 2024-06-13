@@ -8,7 +8,6 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
 from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
-from util.measurements import METRES_PER_FURLONG
 from util.nested_dict import nested_dict
 from util.text_based_functions import get_name_similarity
 
@@ -61,6 +60,7 @@ class RaceCard:
         self.track_id = event["idTrack"]
 
         self.race_number = race["raceNumber"]
+        self.race_name = race["raceTitle"]
 
         self.distance = race["distance"]
         self.adjusted_distance = self.distance
@@ -79,30 +79,35 @@ class RaceCard:
         self.race_type = race["raceType"]
         self.race_type_detail = race["raceTypeDetail"]
 
+        self.purse = int(race["purse"])
         self.race_class = race["categoryLetter"]
 
         if self.race_class == 'A':
-            print('A')
             self.race_class = "1"
 
         if self.race_class == 'B':
-            print('B')
             self.race_class = "2"
 
         if self.race_class == 'C':
-            print('C')
             self.race_class = "4"
 
         if not self.race_class:
-            if self.country == "GB":
+            if self.purse >= 40000:
                 self.race_class = "1"
-            else:
+            if 19000 <= self.purse <= 39999:
+                self.race_class = "2"
+            if 9000 <= self.purse <= 18999:
+                self.race_class = "3"
+            if 4500 <= self.purse <= 8999:
+                self.race_class = "4"
+            if 2800 <= self.purse <= 4499:
+                self.race_class = "5"
+            if self.purse < 2800:
                 self.race_class = "6"
 
         self.surface = race["trackSurface"]
         self.age_from = race["ageFrom"]
         self.age_to = race["ageTo"]
-        self.purse = int(race["purse"])
         self.purse_details = race["purseDetails"]
         self.race_status = race["raceStatus"]
         self.is_open = self.race_status == "OPN"
@@ -185,8 +190,12 @@ class RaceCard:
             horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
             horse.ranking_label = 0
-            if horse.has_won:
+
+            if horse.has_placed:
                 horse.ranking_label = 1
+
+            if horse.has_won:
+                horse.ranking_label = 2
 
             horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
 

@@ -77,7 +77,7 @@ class Scraper:
             else:
                 response = self.__session.get(url, headers=self.__headers, cookies=cookies)
             print(response)
-            self.__wait_random_amount_of_seconds(10.0)
+            self.__wait_random_amount_of_seconds(4.0)
             if response.status_code == 200:
                 return response.text
 

@@ -9,10 +9,7 @@ from numpy import mean
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from util.nested_dict import nested_dict
-from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator, SimpleOnlineCalculator
-
-PAR_MOMENTUM_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
-DRAW_BIAS_CALCULATOR = ExponentialOnlineCalculator(window_size=1000)
+from util.stats_calculator import OnlineCalculator, ExponentialOnlineCalculator
 
 
 class FeatureValueGroup:
@@ -263,8 +260,8 @@ class TrackVariantSource(AverageValueSource):
     def __init__(self):
         super().__init__()
         self.is_first_pre_update = True
-        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=20)
-        self.par_momentum_average_calculator = ExponentialOnlineCalculator(window_size=20)
+        self.track_variant_average_calculator = ExponentialOnlineCalculator(window_size=0.01)
+        self.par_momentum_average_calculator = ExponentialOnlineCalculator(window_size=0.01)
 
     def pre_update(self, race_card: RaceCard) -> None:
         if race_card.has_results:

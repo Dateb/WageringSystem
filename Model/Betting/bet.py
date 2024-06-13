@@ -190,7 +190,7 @@ class Bettor:
     def __init__(
             self,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 10.0,
+            max_odds_thresh: float = 5.0,
     ):
         self.odds_threshold = odds_threshold
         self.max_odds_thresh = max_odds_thresh

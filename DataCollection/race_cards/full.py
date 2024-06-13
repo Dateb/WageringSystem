@@ -22,9 +22,15 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
     def create_race_card(self, race_id: str) -> WritableRaceCard:
         race_card = self.get_race_card(race_id)
 
-        raw_race_card_injector = RawRaceCardInjector(race_card)
+        self.inject_into_race_card(race_card)
 
-        if race_card.n_horses > 1:
+        race_card = WritableRaceCard(race_id, race_card.raw_race_card, self.remove_non_starters)
+
+        return race_card
+
+    def inject_into_race_card(self, race_card: WritableRaceCard) -> None:
+        if (race_card.n_horses > 1 and "Arab" not in race_card.race_name and "Jebel Ali" not in race_card.race_name
+                and "Shadwell" not in race_card.race_name and "Equestrian Fed. Stks" not in race_card.race_name) or race_card.country == "IE":
             try:
                 self.time_form_injector.inject_time_form_attributes(race_card)
                 self.last_injection_worked = True
@@ -38,12 +44,7 @@ class FullRaceCardsCollector(BaseRaceCardsCollector):
 
                 self.last_injection_worked = False
 
+            if race_card.country == "GB" and self.collect_results:
+                self.bha_injector.inject(race_card)
         else:
             print("#horses <= 1. Injection of timeform attributes is skipped.")
-
-        if race_card.country == "GB" and self.collect_results:
-            self.bha_injector.inject(race_card)
-
-        race_card = WritableRaceCard(race_id, raw_race_card_injector.raw_race_card, self.remove_non_starters)
-
-        return race_card

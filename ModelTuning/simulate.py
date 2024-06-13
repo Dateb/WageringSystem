@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimation.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, PlaceScoreProbabilizer
-from Model.Estimation.models import NNClassifier
+from Model.Estimation.estimated_probabilities_creation import WinProbabilizer
+from Model.Estimation.models import BoostedTreesRanker
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import BET_RESULT_PATH
@@ -63,13 +63,12 @@ class ModelSimulator:
 
         self.feature_manager = FeatureManager()
 
-        self.estimator = NNClassifier(self.feature_manager, simulate_conf.NN_CLASSIFIER_PARAMS)
+        self.estimator = BoostedTreesRanker(self.feature_manager)
 
         self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
         print(f"#container months: {len(self.month_data_splitter.container_file_names)}")
         print(f"#train months: {len(self.month_data_splitter.train_file_names)}")
-        print(f"#validation months: {len(self.month_data_splitter.validation_file_names)}")
         print(f"#test months: {len(self.month_data_splitter.test_file_names)}")
 
         weather_persistence = RaceDataPersistence("weather")
@@ -99,15 +98,7 @@ class ModelSimulator:
             race_cards_save_callbacks=[]
         )
 
-        validation_sample = load_sample(
-            self.race_cards_array_factory,
-            self.sample_encoder,
-            self.month_data_splitter.race_cards_loader,
-            self.month_data_splitter.validation_file_names,
-            race_cards_save_callbacks=[]
-        )
-
-        self.estimator.fit(train_sample, validation_sample)
+        self.estimator.fit(train_sample)
         print("Model tuning completed!")
 
     def simulate_prediction(self) -> float:
@@ -149,8 +140,7 @@ class ModelSimulator:
 if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
-        container_upper_limit_percentage=0.05,
-        train_upper_limit_percentage=0.85,
+        container_upper_limit_percentage=0.1,
         n_months_test_sample=8,
         n_months_forward_offset=0,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME

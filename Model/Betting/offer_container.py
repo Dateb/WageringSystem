@@ -120,7 +120,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                     else:
                                         live_result = LiveResult(
                                             offer_odds=offer_data["ltp"],
-                                            starting_odds=horse.betfair_win_sp,
+                                            starting_odds=horse.win_sp,
                                             has_won=horse.has_won,
                                             adjustment_factor=1.0,
                                             win=0,
