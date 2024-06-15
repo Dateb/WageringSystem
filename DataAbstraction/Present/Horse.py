@@ -70,8 +70,8 @@ class Horse:
 
         self.sp_win_prob = 0
 
-        self.betfair_place_sp = self.__extract_betfair_place_odds(raw_data)
-        self.sp_place_prob = -1 if self.betfair_place_sp == 0 else 1 / self.betfair_place_sp
+        self.place_sp = self.__extract_betfair_place_odds(raw_data)
+        self.sp_place_prob = -1 if self.place_sp == 0 else 1 / self.place_sp
 
         # self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place_racebets == 1 else 0
@@ -114,7 +114,7 @@ class Horse:
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.win_sp,
-            self.CURRENT_PLACE_ODDS_KEY: self.betfair_place_sp,
+            self.CURRENT_PLACE_ODDS_KEY: self.place_sp,
             self.PLACE_KEY: self.place,
             self.HAS_WON_LABEL_KEY: self.has_won,
             self.HAS_PLACED_LABEL_KEY: self.has_placed,

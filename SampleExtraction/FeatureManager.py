@@ -313,23 +313,24 @@ class FeatureManager:
         ]
 
         avg_value_features = [
-            FeatureSourceExtractor(self.avg_source_short_window, horse_win_prob),
             FeatureSourceExtractor(self.avg_source_medium_window, horse_win_prob),
-            FeatureSourceExtractor(self.avg_source_long_window, horse_win_prob),
 
-            FeatureSourceExtractor(self.avg_source_short_window, horse_momentum),
             FeatureSourceExtractor(self.avg_source_medium_window, horse_momentum),
-            FeatureSourceExtractor(self.avg_source_long_window, horse_momentum),
 
             FeatureSourceExtractor(self.avg_source_medium_window, horse_has_won),
+
             FeatureSourceExtractor(self.avg_source_medium_window, horse_race_type_has_won),
 
             FeatureSourceExtractor(self.avg_source_medium_window, horse_category_win_prob),
+
             FeatureSourceExtractor(self.avg_source_medium_window, horse_category_competitors_beaten),
 
             FeatureSourceExtractor(self.avg_source_medium_window, horse_class_win_prob),
+
             FeatureSourceExtractor(self.avg_source_medium_window, horse_class_competitors_beaten),
+
             FeatureSourceExtractor(self.avg_source_medium_window, horse_class_relative_distance_behind),
+
             FeatureSourceExtractor(self.avg_source_medium_window, horse_class_momentum),
 
             FeatureSourceExtractor(self.avg_source_medium_window, horse_race_type_win_prob),

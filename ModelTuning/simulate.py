@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimation.estimated_probabilities_creation import WinProbabilizer
+from Model.Estimation.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer
 from Model.Estimation.models import BoostedTreesRanker
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
@@ -50,7 +50,10 @@ def load_sample(
 class ModelSimulator:
 
     def __init__(self, month_data_splitter: MonthDataSplitter):
-        self.probabilizer = WinProbabilizer()
+        if simulate_conf.MARKET_TYPE == "WIN":
+            self.probabilizer = WinProbabilizer()
+        else:
+            self.probabilizer = PlaceProbabilizer()
 
         self.month_data_splitter = month_data_splitter
 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
-        n_months_test_sample=8,
+        n_months_test_sample=14,
         n_months_forward_offset=0,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )

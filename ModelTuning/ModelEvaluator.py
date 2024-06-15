@@ -42,7 +42,7 @@ class ModelEvaluator:
         self.init_offer_container(test_race_cards)
 
         best_bet_result = None
-        bet_thresholds = [0.1]
+        bet_thresholds = [0.0]
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)

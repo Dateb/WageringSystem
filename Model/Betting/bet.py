@@ -52,7 +52,7 @@ class LiveResult:
 @dataclass
 class BetOffer:
 
-    has_won: bool
+    is_success: bool
     country: str
     race_class: str
     horse_number: int
@@ -102,12 +102,8 @@ class Bet:
     def set_stakes(self, stakes: float) -> None:
         self.stakes = stakes
         self.bet_offer.live_result.loss = stakes
-        if self.has_won:
+        if self.bet_offer.is_success:
             self.bet_offer.live_result.win = self.stakes * self.bet_offer.live_result.offer_odds * self.bet_offer.live_result.adjustment_factor
-
-    @property
-    def has_won(self) -> bool:
-        return self.bet_offer.has_won
 
 
 class BetResult:
@@ -205,11 +201,12 @@ class Bettor:
         for race_datetime, race_offers in offers.items():
             if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
-                    if -16 * 60 < bet_offer.minutes_until_race_start < -14 * 60:
+                    if -1 * 60 < bet_offer.minutes_until_race_start < -0.5 * 60:
                         probability_estimate = estimation_result.get_horse_win_probability(
                             race_datetime,
                             bet_offer.horse_number,
-                            bet_offer.scratched_horse_numbers
+                            bet_offer.scratched_horse_numbers,
+                            bet_offer.n_winners,
                         )
 
                         # probability_estimate = None

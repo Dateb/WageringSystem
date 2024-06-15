@@ -39,19 +39,20 @@ class BetfairOfferContainer(BetOfferContainer):
 
     def __init__(self):
         super().__init__()
+        self.history_path = "../data/exchange_odds_history/"
         if simulate_conf.MARKET_TYPE == "WIN":
             self.race_offers_path = "../data/betfair_race_win_offers.dat"
+            self.history_path += "win_markets/"
         else:
             self.race_offers_path = "../data/betfair_race_place_offers.dat"
+            self.history_path += "place_markets/"
 
     def insert_race_cards(self, race_cards: Dict[str, RaceCard]):
         self.test_race_cards_mapper = RaceDateToCardMapper(race_cards)
 
-        history_path = "../data/exchange_odds_history/"
-
-        country_dirs = os.listdir(history_path)
+        country_dirs = os.listdir(self.history_path)
         for country_dir in country_dirs:
-            country_path = f"{history_path}/{country_dir}"
+            country_path = f"{self.history_path}/{country_dir}"
             year_dirs = os.listdir(country_path)
             for year_dir in year_dirs:
                 year_path = f"{country_path}/{year_dir}"
@@ -118,9 +119,18 @@ class BetfairOfferContainer(BetOfferContainer):
                                         print(f"race datetime: {race_datetime}")
                                         print("-----------------------------------------")
                                     else:
+                                        if simulate_conf.MARKET_TYPE == "WIN":
+                                            is_success = horse.has_won
+                                            starting_odds = horse.win_sp
+                                            start_probability = horse.sp_win_prob
+                                        else:
+                                            is_success = horse.has_placed
+                                            starting_odds = horse.place_sp
+                                            start_probability = horse.sp_place_prob
+
                                         live_result = LiveResult(
                                             offer_odds=offer_data["ltp"],
-                                            starting_odds=horse.win_sp,
+                                            starting_odds=starting_odds,
                                             has_won=horse.has_won,
                                             adjustment_factor=1.0,
                                             win=0,
@@ -128,11 +138,11 @@ class BetfairOfferContainer(BetOfferContainer):
                                         )
 
                                         bef_offer = BetOffer(
-                                            has_won=horse.has_won,
+                                            is_success=is_success,
                                             country=race_card.country,
                                             race_class=race_card.race_class,
                                             horse_number=horse.number,
-                                            start_probability=horse.sp_win_prob,
+                                            start_probability=start_probability,
                                             live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,
                                             race_datetime=race_card.datetime,

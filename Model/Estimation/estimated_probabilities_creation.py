@@ -17,7 +17,7 @@ class EstimationResult:
     def __init__(self, probability_estimates: dict):
         self.probability_estimates = probability_estimates
 
-    def get_horse_win_probability(self, race_key: str, horse_number: int, scratched_horse_numbers: List[int]) -> float:
+    def get_horse_win_probability(self, race_key: str, horse_number: int, scratched_horse_numbers: List[int], n_winners: int) -> float:
         total_probability_scratched_horses = 0
         for scratched_horse_number in scratched_horse_numbers:
             if scratched_horse_number in self.probability_estimates[race_key]:
@@ -25,7 +25,7 @@ class EstimationResult:
 
         total_race_prob = sum(list(self.probability_estimates[race_key].values()))
         if horse_number in self.probability_estimates[race_key]:
-            return self.probability_estimates[race_key][horse_number] / (total_race_prob - total_probability_scratched_horses)
+            return (self.probability_estimates[race_key][horse_number] / (total_race_prob - total_probability_scratched_horses)) * n_winners
 
 
 class Probabilizer(ABC):
@@ -125,7 +125,7 @@ class AggWinProbabilizer(Probabilizer):
         return EstimationResult(probability_estimates)
 
 
-class PlaceScoreProbabilizer(Probabilizer):
+class PlaceProbabilizer(Probabilizer):
 
     def __init__(self):
         super().__init__()
@@ -143,25 +143,5 @@ class PlaceScoreProbabilizer(Probabilizer):
                 probability_estimates[race_datetime] = {}
 
             probability_estimates[race_datetime][row.number] = place_probability
-
-        return EstimationResult(probability_estimates)
-
-
-class PlaceProbabilizer(Probabilizer):
-
-    def __init__(self):
-        super().__init__()
-
-    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
-        race_cards_dataframe = race_cards_sample.race_cards_dataframe
-
-        probability_estimates = {}
-
-        for row in race_cards_dataframe.itertuples(index=False):
-            race_datetime = str(row.date_time)
-            if race_datetime not in probability_estimates:
-                probability_estimates[race_datetime] = {}
-
-            probability_estimates[race_datetime][row.number] = row.score
 
         return EstimationResult(probability_estimates)

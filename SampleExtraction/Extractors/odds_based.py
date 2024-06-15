@@ -49,16 +49,16 @@ class BetfairPlaceMarketWinProbability(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        inverse_odds = [1 / horse.betfair_place_sp for horse in race_card.horses if horse.betfair_place_sp > 0]
+        inverse_odds = [1 / horse.place_sp for horse in race_card.horses if horse.place_sp > 0]
 
         if len(inverse_odds) < race_card.n_horses:
             return self.PLACEHOLDER_VALUE
 
         total_inverse_odds = sum(inverse_odds)
 
-        if total_inverse_odds == 0 or horse.betfair_place_sp == 0:
+        if total_inverse_odds == 0 or horse.place_sp == 0:
             return self.PLACEHOLDER_VALUE
-        return (1 / horse.betfair_place_sp) / total_inverse_odds
+        return (1 / horse.place_sp) / total_inverse_odds
 
 
 class IsFavorite(FeatureExtractor):

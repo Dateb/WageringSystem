@@ -92,7 +92,7 @@ class HasWonAfterLongBreak(FeatureExtractor):
 
         for i in range(n_past_forms - 1):
             past_form = horse.form_table.past_forms[i]
-            if past_form.has_won and get_day_difference(race_card, horse, i, i+1) > 90:
+            if past_form.is_success and get_day_difference(race_card, horse, i, i + 1) > 90:
                 return True
 
         return False
