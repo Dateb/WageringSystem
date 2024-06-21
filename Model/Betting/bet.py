@@ -201,17 +201,17 @@ class Bettor:
         for race_datetime, race_offers in offers.items():
             if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
-                    if -1 * 60 < bet_offer.minutes_until_race_start < -0.5 * 60:
-                        probability_estimate = estimation_result.get_horse_win_probability(
-                            race_datetime,
-                            bet_offer.horse_number,
-                            bet_offer.scratched_horse_numbers,
-                            bet_offer.n_winners,
-                        )
+                    if -6 * 60 < bet_offer.minutes_until_race_start < -3 * 60:
+                        # probability_estimate = estimation_result.get_horse_win_probability(
+                        #     race_datetime,
+                        #     bet_offer.horse_number,
+                        #     bet_offer.scratched_horse_numbers,
+                        #     bet_offer.n_winners,
+                        # )
 
+                        probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse_number]
                         # probability_estimate = None
                         # if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
-                        #     probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse.number]
 
                         if probability_estimate is not None:
                             if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:

@@ -40,14 +40,13 @@ class Probabilizer(ABC):
     def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray, win_prob_column_name: str = "win_probability") -> pd.DataFrame:
         race_cards_dataframe.loc[:, "score"] = scores
 
-        race_cards_dataframe.loc[:, "exp_score"] = np.exp(race_cards_dataframe.loc[:, "score"])
-        score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(sum_exp_scores=("exp_score", "sum"))
+        score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(scores_sum=("score", "sum"))
         race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
 
         race_cards_dataframe.loc[:, win_prob_column_name] = \
-            (race_cards_dataframe.loc[:, "exp_score"] / race_cards_dataframe.loc[:, "sum_exp_scores"])
+            (race_cards_dataframe.loc[:, "score"] / race_cards_dataframe.loc[:, "scores_sum"])
 
-        race_cards_dataframe = race_cards_dataframe.drop("sum_exp_scores", axis=1)
+        race_cards_dataframe = race_cards_dataframe.drop("scores_sum", axis=1)
 
         return race_cards_dataframe
 

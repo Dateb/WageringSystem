@@ -9,6 +9,7 @@ from lightgbm import Dataset
 import optuna
 
 from Model.Estimation.dataset_factory import DatasetFactory
+from Model.Estimation.util.dataset import HorseRacingDataset
 
 
 @dataclass
@@ -24,13 +25,11 @@ class GBTTuner:
             fixed_params: dict,
             num_boost_rounds: int,
             feature_names: List[str],
-            categorical_feature_names: List[str],
             n_hyperparameter_rounds: int = 100,
     ):
         self.fixed_params = fixed_params
         self.num_boost_rounds = num_boost_rounds
         self.feature_names = feature_names
-        self.categorical_feature_names = categorical_feature_names
         self.n_hyperparameter_rounds = n_hyperparameter_rounds
 
         self.best_score = -np.inf
@@ -38,10 +37,9 @@ class GBTTuner:
         self.removed_feature_names = []
         self.is_feature_selection_completed = False
 
-    def run(self, dataset_factory: DatasetFactory) -> GBTConfig:
+    def run(self, dataset: HorseRacingDataset) -> GBTConfig:
         gbt_config = GBTConfig(search_params={}, feature_names=self.feature_names)
         # while not self.is_feature_selection_completed:
-        dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
         gbt_config.search_params = self.get_hyperparameters(dataset)
 
             # print(f"Executing feature selection...")
@@ -51,14 +49,13 @@ class GBTTuner:
         gbt_config.feature_names = self.feature_names
         return gbt_config
 
-    def get_hyperparameters(self, dataset: Dataset) -> dict:
+    def get_hyperparameters(self, dataset: HorseRacingDataset) -> dict:
         cv_objective = GBTObjective(
             fixed_params=self.fixed_params,
             dataset=dataset,
-            cat_feature_names=self.categorical_feature_names
         )
 
-        study = optuna.create_study(direction="maximize")
+        study = optuna.create_study(direction="minimize")
 
         study.optimize(cv_objective, n_trials=self.n_hyperparameter_rounds)
 
@@ -158,15 +155,14 @@ class GBTTuner:
 
 
 class GBTObjective:
-    def __init__(self, fixed_params: dict, dataset: Dataset, cat_feature_names: List[str]):
+    def __init__(self, fixed_params: dict, dataset: HorseRacingDataset):
         self.fixed_params = fixed_params
         self.dataset = dataset
-        self.cat_feature_names = cat_feature_names
 
     def __call__(self, trial):
         search_params = {
             "num_rounds": trial.suggest_int("num_rounds", 500, 1300),
-            "num_leaves": trial.suggest_int("num_leaves", 12, 25),
+            "num_leaves": trial.suggest_int("num_leaves", 3, 8),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
             "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
             "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
@@ -179,11 +175,12 @@ class GBTObjective:
 
         eval_results = lightgbm.cv(
             params=params,
-            train_set=self.dataset,
-            categorical_feature=self.cat_feature_names,
-            return_cvbooster=True
+            train_set=self.dataset.lightgbm_dataset,
+            categorical_feature=self.dataset.categorical_feature_names,
+            return_cvbooster=True,
+            stratified=False
         )
 
-        cv_score = eval_results["valid ndcg@5-mean"][-1]
+        cv_score = eval_results['valid rmse-mean'][-1]
 
         return cv_score

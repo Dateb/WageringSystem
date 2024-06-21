@@ -87,19 +87,18 @@ class FeaturePaddingTransformer2D(FeaturePaddingTransformer):
     def get_non_padded_scores(self, predictions: ndarray, group_counts: ndarray) -> ndarray:
         scores = np.zeros(np.sum(group_counts))
 
-        print(f"scores shape: {scores.shape}")
-        print(f"predictions: {predictions}")
-
         horse_idx = 0
-        score_idx = 0
         num_races = len(group_counts)
+
+        if num_races == 1:
+            for j in range(group_counts[0]):
+                scores[j] = predictions[j]
+            return scores
 
         for i in range(num_races):
             group_count = group_counts[i]
-            for j in range(self.padding_size_per_group):
-                if j < group_count:
-                    scores[score_idx] = predictions[horse_idx]
-                    score_idx += 1
+            for j in range(group_count):
+                scores[horse_idx] = predictions[i, j]
                 horse_idx += 1
 
         return scores
@@ -107,8 +106,8 @@ class FeaturePaddingTransformer2D(FeaturePaddingTransformer):
 
 class LabelPaddingTransformer:
 
-    def __init__(self):
-        pass
+    def __init__(self, padding_size_per_group: int):
+        self.padding_size_per_group = padding_size_per_group
 
     @abstractmethod
     def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
@@ -138,7 +137,7 @@ class MultiLabelPaddingTransformer(LabelPaddingTransformer):
 
     def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
         n_groups = len(group_counts)
-        padded_labels = np.zeros((n_groups, 20))
+        padded_labels = np.zeros((n_groups, self.padding_size_per_group))
 
         group_member_idx = 0
         for i in range(n_groups):
@@ -154,9 +153,6 @@ class MultiLabelPaddingTransformer(LabelPaddingTransformer):
 
 
 class RegressionLabelPaddingTransformer(LabelPaddingTransformer):
-
-    def __init__(self):
-        super().__init__()
 
     def transform(self, labels: ndarray, group_counts: ndarray) -> ndarray:
         n_groups = len(group_counts)

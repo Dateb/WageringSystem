@@ -187,7 +187,6 @@ class RaceCard:
 
         for horse in self.runners:
             horse.has_placed = 1 <= horse.place <= self.places_num
-            horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
             horse.ranking_label = 0
 
@@ -196,8 +195,6 @@ class RaceCard:
 
             if horse.has_won:
                 horse.ranking_label = 2
-
-            horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
 
         n_placed_horses = len([horse for horse in self.runners if horse.has_placed])
         if n_placed_horses > self.places_num:
@@ -222,7 +219,9 @@ class RaceCard:
     def set_betfair_win_sp(self) -> None:
         for horse in self.runners:
             if horse.win_sp >= 1:
-                horse.sp_win_prob = horse.win_sp / self.total_sp
+                # horse.sp_win_prob = horse.win_sp / self.total_sp
+                horse.sp_win_prob = 1 / horse.win_sp
+                horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.sp_win_prob
 
         placed_horses = list(reversed(sorted([horse for horse in self.runners], key=lambda horse: horse.place)))
 
