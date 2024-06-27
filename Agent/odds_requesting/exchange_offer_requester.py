@@ -10,7 +10,7 @@ from websocket import WebSocketConnectionClosedException, WebSocketTimeoutExcept
 from Agent.odds_requesting.offer_requester import OfferRequester
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
-from Model.Betting.bet import BetOffer
+from Model.Betting.bet import BetOffer, LiveResult
 
 
 class Market:
@@ -77,13 +77,25 @@ class MarketOffer:
         if horse is None:
             print(f"Horse nr. not found: {self.horse_number}, at race: {race_card.race_id}")
         else:
-            return BetOffer(
-                race_card=race_card,
-                horse=horse,
-                odds=offer_odds,
-                scratched_horse_numbers=[],
-                offer_datetime=datetime.now(),
+            live_result = LiveResult(
+                offer_odds=offer_odds,
+                starting_odds=0.0,
+                has_won=horse.has_won,
                 adjustment_factor=1.0,
+                win=0,
+                loss=0,
+            )
+            return BetOffer(
+                is_success=False,
+                country=race_card.country,
+                race_class=race_card.race_class,
+                horse_number=horse.number,
+                live_result=live_result,
+                scratched_horse_numbers=[],
+                race_datetime=race_card.datetime,
+                offer_datetime=datetime.now(),
+                n_horses=race_card.n_horses,
+                n_winners=1
             )
 
 

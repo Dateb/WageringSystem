@@ -56,7 +56,6 @@ class BetOffer:
     country: str
     race_class: str
     horse_number: int
-    start_probability: float
     live_result: LiveResult
     scratched_horse_numbers: List[int]
     race_datetime: datetime
@@ -186,7 +185,7 @@ class Bettor:
     def __init__(
             self,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 5.0,
+            max_odds_thresh: float = 3.5,
     ):
         self.odds_threshold = odds_threshold
         self.max_odds_thresh = max_odds_thresh
@@ -195,13 +194,13 @@ class Bettor:
         self.offer_accepted_count = 0
         self.offer_rejected_count = 0
 
-    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult, race_results_container: RaceResultsContainer) -> BetResult:
+    def bet(self, offers: Dict[str, List[BetOffer]], estimation_result: EstimationResult) -> List[Bet]:
         bets = []
 
         for race_datetime, race_offers in offers.items():
             if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
-                    if -6 * 60 < bet_offer.minutes_until_race_start < -3 * 60:
+                    if bet_offer.minutes_until_race_start <= -14 * 60:
                         # probability_estimate = estimation_result.get_horse_win_probability(
                         #     race_datetime,
                         #     bet_offer.horse_number,
@@ -209,9 +208,12 @@ class Bettor:
                         #     bet_offer.n_winners,
                         # )
 
-                        probability_estimate = estimation_result.probability_estimates[race_datetime][bet_offer.horse_number]
-                        # probability_estimate = None
-                        # if bet_offer.horse.number in estimation_result.probability_estimates[race_datetime]:
+                        race_probability_estimates = estimation_result.probability_estimates[race_datetime]
+                        probability_estimate = None
+                        if bet_offer.horse_number in race_probability_estimates:
+                            probability_estimate = race_probability_estimates[bet_offer.horse_number]
+                        else:
+                            print(f'Bet offer: {race_datetime}/{bet_offer.horse_number} not estimated')
 
                         if probability_estimate is not None:
                             if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:
@@ -228,7 +230,7 @@ class Bettor:
                                     self.offer_rejected_count += 1
                         self.already_taken_offers[(race_datetime, bet_offer.horse_number)] = True
 
-        return BetResult(bets, race_results_container)
+        return bets
 
     @property
     def offer_acceptance_rate(self) -> float:

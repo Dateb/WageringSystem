@@ -122,11 +122,9 @@ class BetfairOfferContainer(BetOfferContainer):
                                         if simulate_conf.MARKET_TYPE == "WIN":
                                             is_success = horse.has_won
                                             starting_odds = horse.win_sp
-                                            start_probability = horse.sp_win_prob
                                         else:
                                             is_success = horse.has_placed
                                             starting_odds = horse.place_sp
-                                            start_probability = horse.sp_place_prob
 
                                         live_result = LiveResult(
                                             offer_odds=offer_data["ltp"],
@@ -142,7 +140,6 @@ class BetfairOfferContainer(BetOfferContainer):
                                             country=race_card.country,
                                             race_class=race_card.race_class,
                                             horse_number=horse.number,
-                                            start_probability=start_probability,
                                             live_result=live_result,
                                             scratched_horse_numbers=scratched_horse_numbers,
                                             race_datetime=race_card.datetime,

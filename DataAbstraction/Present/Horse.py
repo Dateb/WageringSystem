@@ -14,11 +14,11 @@ class Horse:
     CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     KELLY_FRACTION_KEY: str = "kelly_fraction"
     WIN_PROB_LABEL_KEY: str = "win_probability"
-    PLACE_PROB_LABEL_KEY: str = "place_probability"
+    HAS_PLACED_LABEL_KEY: str = "has_placed"
     BASE_ATTRIBUTE_NAMES: List[str] = [
         NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY,
         CURRENT_PLACE_ODDS_KEY,
-        PLACE_KEY, WIN_PROB_LABEL_KEY, PLACE_PROB_LABEL_KEY
+        PLACE_KEY, WIN_PROB_LABEL_KEY, HAS_PLACED_LABEL_KEY
     ]
 
     def __init__(self, raw_data: dict):
@@ -114,7 +114,7 @@ class Horse:
             self.CURRENT_PLACE_ODDS_KEY: self.place_sp,
             self.PLACE_KEY: self.place,
             self.WIN_PROB_LABEL_KEY: self.sp_win_prob,
-            self.PLACE_PROB_LABEL_KEY: self.sp_place_prob,
+            self.HAS_PLACED_LABEL_KEY: self.has_placed
         }
 
         self.__features = {}

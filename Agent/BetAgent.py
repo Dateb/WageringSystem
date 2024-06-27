@@ -13,6 +13,7 @@ from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import BettorFactory, OddsThreshold, BetfairOddsVigAdjuster
+from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer, EstimationResult
 from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
@@ -46,7 +47,7 @@ class ExchangeBetLogger(Actuator):
         super().__init__()
         self.exchange = exchange
         self.estimation_result = estimation_result
-        self.bettor = BettorFactory().create_bettor(bet_threshold=0.01)
+        self.bettor = BettorFactory().create_bettor(bet_threshold=0.0)
         self.upcoming_race_cards = upcoming_race_cards
         self.current_bets = []
 
@@ -73,18 +74,16 @@ class ExchangeBetLogger(Actuator):
             bet_offers = self.exchange.get_bet_offers()
 
             if bet_offers:
-                race_card = bet_offers[0].race_card
-                bet_offers = {str(race_card.datetime): bet_offers}
+                bet_offers = {str(bet_offers[0].race_datetime): bet_offers}
 
                 bets = self.bettor.bet(bet_offers, self.estimation_result)
 
-                for bet in bets:
-                    print(bet)
-                    # self.current_bets += bets
-                    # print(f"{datetime.now()}: Writing new bets...")
-                    #
-                    # with open(self.BETS_PATH, "wb") as f:
-                    #     pickle.dump(self.current_bets, f)
+                self.current_bets += bets
+
+                if bets:
+                    print(f"{datetime.now()}: Writing new bets...")
+                    with open(self.BETS_PATH, "wb") as f:
+                        pickle.dump(self.current_bets, f)
 
 
 class RacebetsBetsReporter(Actuator):
@@ -184,11 +183,6 @@ class BetAgent:
         self.market_type = "WIN"
         self.actuator_name = actuator_name
 
-        if self.market_type == "WIN":
-            self.probabilizer = WinProbabilizer()
-        else:
-            self.probabilizer = PlaceProbabilizer()
-
         self.leakage_detector = LeakageDetector()
 
         self.columns = None
@@ -196,8 +190,8 @@ class BetAgent:
         self.update_race_card_data()
 
         data_splitter = MonthDataSplitter(
-            container_upper_limit_percentage=0.1,
-            n_months_test_sample=6,
+            container_upper_limit_percentage=0.75,
+            n_months_test_sample=14,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
         )
@@ -214,13 +208,7 @@ class BetAgent:
 
         self.leakage_detector.save_live_data(race_cards_sample)
 
-        model_simulator.estimator.score_test_sample(race_cards_sample)
-        scores = race_cards_sample.race_cards_dataframe["score"].to_numpy()
-
-        self.estimation_result = model_simulator.probabilizer.create_estimation_result(
-            deepcopy(race_cards_sample),
-            scores
-        )
+        self.estimation_result, _ = model_simulator.estimator.predict(race_cards_sample)
 
         print(self.estimation_result.probability_estimates)
 
@@ -288,7 +276,7 @@ class BetAgent:
 
 
 def main():
-    actuator_name = "ExchangeBetRequester"
+    actuator_name = "ExchangeBetLogger"
     bettor = BetAgent(actuator_name=actuator_name)
     bettor.run()
     # while True:

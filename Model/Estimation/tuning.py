@@ -25,7 +25,7 @@ class GBTTuner:
             fixed_params: dict,
             num_boost_rounds: int,
             feature_names: List[str],
-            n_hyperparameter_rounds: int = 100,
+            n_hyperparameter_rounds: int = 5,
     ):
         self.fixed_params = fixed_params
         self.num_boost_rounds = num_boost_rounds
@@ -162,7 +162,7 @@ class GBTObjective:
     def __call__(self, trial):
         search_params = {
             "num_rounds": trial.suggest_int("num_rounds", 500, 1300),
-            "num_leaves": trial.suggest_int("num_leaves", 3, 8),
+            "num_leaves": trial.suggest_int("num_leaves", 8, 50),
             "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
             "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
             "feature_fraction": trial.suggest_float("feature_fraction", 0.3, 1.0),
@@ -181,6 +181,6 @@ class GBTObjective:
             stratified=False
         )
 
-        cv_score = eval_results['valid rmse-mean'][-1]
+        cv_score = eval_results['valid gamma-mean'][-1]
 
         return cv_score

@@ -45,8 +45,9 @@ class BoostedTreesRanker(Estimator):
 
     FIXED_PARAMS: dict = {
         "boosting_type": "gbdt",
+        # "objective": "binary",
         "objective": "gamma",
-        "metric": "mae",
+        "metric": "gamma",
         "deterministic": True,
         "force_row_wise": True,
         "device": "cpu",
@@ -71,7 +72,7 @@ class BoostedTreesRanker(Estimator):
             self.label_name = Horse.WIN_PROB_LABEL_KEY
         else:
             self.probabilizer = RawWinProbabilizer()
-            self.label_name = Horse.PLACE_PROB_LABEL_KEY
+            self.label_name = Horse.HAS_PLACED_LABEL_KEY
         self.feature_manager = feature_manager
         self.booster: Booster = None
 
@@ -127,7 +128,6 @@ class BoostedTreesRanker(Estimator):
 
     def fit(self, train_sample: RaceCardsSample) -> float:
         train_val_df = train_sample.race_cards_dataframe
-        train_val_df = train_val_df[train_val_df[Horse.PLACE_PROB_LABEL_KEY] > 0]
 
         features = train_val_df[self.feature_names]
 
@@ -189,8 +189,20 @@ class BoostedTreesRanker(Estimator):
             callbacks=[lightgbm.record_evaluation(train_result)],
         )
 
-        print(train_result)
-        print(f"Train loss: {train_result['train']['l1'][-1]}")
+        print(f"Train loss: {train_result['train']['gamma'][-1]}")
+
+        # eval_results = lightgbm.cv(
+        #     params=self.params,
+        #     train_set=dataset.lightgbm_dataset,
+        #     categorical_feature=dataset.categorical_feature_names,
+        #     return_cvbooster=False,
+        #     stratified=False
+        # )
+        #
+        # cv_score = eval_results["valid gamma-mean"][-1]
+        #
+        # print(f"Validation score: {cv_score}")
+
         #
         # importance_scores = self.booster.feature_importance(importance_type="gain")
         # feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
@@ -209,16 +221,5 @@ class BoostedTreesRanker(Estimator):
         #
         # print(f"{importance_sum}: {relative_feature_importances}")
         #
-        # eval_results = lightgbm.cv(
-        #     params=self.params,
-        #     train_set=dataset,
-        #     num_boost_round=self.num_rounds,
-        #     categorical_feature=self.categorical_feature_names,
-        #     return_cvbooster=True
-        # )
-        #
-        # cv_score = eval_results["valid ndcg@5-mean"][-1]
-        #
-        # print(f"Validation NDCG@5: {cv_score}")
 
         return 0.0

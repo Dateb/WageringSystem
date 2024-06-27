@@ -12,6 +12,9 @@ def get_accuracy(race_cards_sample: RaceCardsSample) -> float:
 
     n_correct_predictions = len(predicted_winners_df[predicted_winners_df["place"] == 1])
 
+    if n_predictions == 0:
+        return 0.0
+
     acc = n_correct_predictions / n_predictions
 
     return acc

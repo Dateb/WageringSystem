@@ -46,12 +46,13 @@ class ModelEvaluator:
 
         for bet_threshold in bet_thresholds:
             bettor = self.bettor_factory.create_bettor(bet_threshold)
-            bet_result = bettor.bet(self.offer_container.race_offers, estimation_result, self.race_results_container)
+            bets = bettor.bet(self.offer_container.race_offers, estimation_result)
+            bet_result = BetResult(bets, self.race_results_container)
 
-            for bet in bet_result.bets:
+            for bet in bets:
                 self.stakes_calculator.set_stakes(bet)
 
-            clv = [bet.bet_offer.live_result.clv for bet in bet_result.bets]
+            clv = [bet.bet_offer.live_result.clv for bet in bets]
             mean_clv = mean(clv)
             max_drawdown = bet_result.max_drawdown
 

@@ -131,7 +131,7 @@ class RaceCard:
         if first_place_horse_names:
             self.winner_name = first_place_horse_names[0]
 
-        self.total_sp = sum([horse.win_sp for horse in self.runners if horse.win_sp >= 1])
+        self.overround = sum([1 / horse.win_sp for horse in self.runners if horse.win_sp >= 1])
 
         self.set_betfair_win_sp()
 
@@ -187,6 +187,7 @@ class RaceCard:
 
         for horse in self.runners:
             horse.has_placed = 1 <= horse.place <= self.places_num
+            horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
             horse.ranking_label = 0
 
@@ -219,9 +220,10 @@ class RaceCard:
     def set_betfair_win_sp(self) -> None:
         for horse in self.runners:
             if horse.win_sp >= 1:
-                # horse.sp_win_prob = horse.win_sp / self.total_sp
-                horse.sp_win_prob = 1 / horse.win_sp
+                horse.sp_win_prob = (1 / horse.win_sp) / self.overround
                 horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.sp_win_prob
+            else:
+                self.is_valid_sample = False
 
         placed_horses = list(reversed(sorted([horse for horse in self.runners], key=lambda horse: horse.place)))
 
@@ -397,7 +399,7 @@ class RaceCard:
             self.is_valid_sample = False
             self.feature_source_validity = False
 
-        if self.n_horses > 20:
+        if self.n_horses > 12:
             self.is_valid_sample = False
 
         if self.num_winners > 1:
