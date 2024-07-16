@@ -8,7 +8,6 @@ from lightgbm import Dataset
 
 import optuna
 
-from Model.Estimation.dataset_factory import DatasetFactory
 from Model.Estimation.util.dataset import HorseRacingDataset
 
 
@@ -78,59 +77,59 @@ class GBTTuner:
         else:
             return self.best_search_params
 
-    def get_feature_names(self, dataset_factory: DatasetFactory, gbt_config: GBTConfig) -> List[str]:
-        dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
-
-        sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config, self.feature_names, self.categorical_feature_names)
-        importance_sum = self.get_importance_sum(sorted_feature_importances)
-        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                        sorted_feature_importances.items()}
-        ordered_feature_names = list(relative_feature_importances.keys())
-
-        best_cv_score = self.best_score
-
-        best_feature_names_subset = copy(self.feature_names)
-        for feature_name in ordered_feature_names:
-            feature_names_subset = copy(best_feature_names_subset)
-            feature_names_subset.remove(feature_name)
-
-            categorical_feature_names_subset = [feature_name for feature_name in feature_names_subset if feature_name in self.categorical_feature_names]
-
-            dataset = dataset_factory.create_dataset(feature_names_subset, categorical_feature_names_subset)
-
-            eval_results = lightgbm.cv(
-                params={**self.fixed_params, **gbt_config.search_params},
-                train_set=dataset,
-                num_boost_round=self.num_boost_rounds,
-                categorical_feature=categorical_feature_names_subset,
-                return_cvbooster=True
-            )
-
-            cv_score = eval_results["valid ndcg@5-mean"][-1]
-
-            if cv_score > best_cv_score:
-                self.best_score = best_cv_score
-                self.removed_feature_names.append(feature_name)
-                best_cv_score = cv_score
-
-                sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config,
-                                                                                 feature_names_subset,
-                                                                                 categorical_feature_names_subset)
-                importance_sum = self.get_importance_sum(sorted_feature_importances)
-
-                relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-                                                sorted_feature_importances.items()}
-
-                print(f"{importance_sum}: {relative_feature_importances}")
-                print(f"Best score: {best_cv_score}")
-                print(f"Removed features: {self.removed_feature_names}")
-
-                best_feature_names_subset.remove(feature_name)
-
-                return best_feature_names_subset
-
-        self.is_feature_selection_completed = True
-        return best_feature_names_subset
+    # def get_feature_names(self, dataset_factory: DatasetFactory, gbt_config: GBTConfig) -> List[str]:
+    #     dataset = dataset_factory.create_dataset(self.feature_names, self.categorical_feature_names)
+    #
+    #     sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config, self.feature_names, self.categorical_feature_names)
+    #     importance_sum = self.get_importance_sum(sorted_feature_importances)
+    #     relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
+    #                                     sorted_feature_importances.items()}
+    #     ordered_feature_names = list(relative_feature_importances.keys())
+    #
+    #     best_cv_score = self.best_score
+    #
+    #     best_feature_names_subset = copy(self.feature_names)
+    #     for feature_name in ordered_feature_names:
+    #         feature_names_subset = copy(best_feature_names_subset)
+    #         feature_names_subset.remove(feature_name)
+    #
+    #         categorical_feature_names_subset = [feature_name for feature_name in feature_names_subset if feature_name in self.categorical_feature_names]
+    #
+    #         dataset = dataset_factory.create_dataset(feature_names_subset, categorical_feature_names_subset)
+    #
+    #         eval_results = lightgbm.cv(
+    #             params={**self.fixed_params, **gbt_config.search_params},
+    #             train_set=dataset,
+    #             num_boost_round=self.num_boost_rounds,
+    #             categorical_feature=categorical_feature_names_subset,
+    #             return_cvbooster=True
+    #         )
+    #
+    #         cv_score = eval_results["valid ndcg@5-mean"][-1]
+    #
+    #         if cv_score > best_cv_score:
+    #             self.best_score = best_cv_score
+    #             self.removed_feature_names.append(feature_name)
+    #             best_cv_score = cv_score
+    #
+    #             sorted_feature_importances = self.get_sorted_feature_importances(dataset, gbt_config,
+    #                                                                              feature_names_subset,
+    #                                                                              categorical_feature_names_subset)
+    #             importance_sum = self.get_importance_sum(sorted_feature_importances)
+    #
+    #             relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
+    #                                             sorted_feature_importances.items()}
+    #
+    #             print(f"{importance_sum}: {relative_feature_importances}")
+    #             print(f"Best score: {best_cv_score}")
+    #             print(f"Removed features: {self.removed_feature_names}")
+    #
+    #             best_feature_names_subset.remove(feature_name)
+    #
+    #             return best_feature_names_subset
+    #
+    #     self.is_feature_selection_completed = True
+    #     return best_feature_names_subset
 
     def get_sorted_feature_importances(self, dataset: Dataset, gbt_config: GBTConfig, feature_names: List[str], categorical_feature_names: List[str]) -> dict:
         booster = lightgbm.train(

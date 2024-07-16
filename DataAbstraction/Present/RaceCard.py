@@ -189,13 +189,13 @@ class RaceCard:
             horse.has_placed = 1 <= horse.place <= self.places_num
             horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
-            horse.ranking_label = 0
-
             if horse.has_placed:
                 horse.ranking_label = 1
 
             if horse.has_won:
                 horse.ranking_label = 2
+
+            horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
 
         n_placed_horses = len([horse for horse in self.runners if horse.has_placed])
         if n_placed_horses > self.places_num:
@@ -399,7 +399,7 @@ class RaceCard:
             self.is_valid_sample = False
             self.feature_source_validity = False
 
-        if self.n_horses > 12:
+        if self.n_horses > 30:
             self.is_valid_sample = False
 
         if self.num_winners > 1:

@@ -83,8 +83,11 @@ class FeatureManager:
             self.search_features = self.get_search_features()
             self.features = self.base_features + self.search_features
 
+        # TODO: The construction of self.feature_names is sensible to ordering. The usage should be more robust
         self.feature_names = [feature.name for feature in self.features]
-        self.selected_features = self.features
+        self.numerical_feature_names = [feature.name for feature in self.features if not feature.is_categorical]
+        self.categorical_feature_names = [feature.name for feature in self.features if feature.is_categorical]
+
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
@@ -473,14 +476,6 @@ class FeatureManager:
                 + max_value_features + min_value_features +
                 avg_value_features + sum_features + layoff_features + streak_features
         )
-
-    @property
-    def numerical_feature_names(self) -> List[str]:
-        return [feature.name for feature in self.selected_features if not feature.is_categorical]
-
-    @property
-    def categorical_feature_names(self) -> List[str]:
-        return [feature.name for feature in self.selected_features if feature.is_categorical]
 
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:

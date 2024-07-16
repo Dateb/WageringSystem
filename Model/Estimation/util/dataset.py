@@ -1,3 +1,4 @@
+from copy import copy
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -33,7 +34,7 @@ class RaceData:
 
 class HorseRacingSampleCreator:
 
-    PADDING_SIZE: int = 12
+    PADDING_SIZE: int = 30
 
     def __init__(self, feature_arr: np.ndarray, label_arr: np.ndarray, horses_per_race_counts: np.ndarray, category_indices: List[int]):
         self.races_data = []
@@ -57,13 +58,11 @@ class HorseRacingSampleCreator:
         self.placeholder_features = [0] * self.n_features
         for idx in category_indices:
             self.placeholder_features[idx] = ""
-        print(self.placeholder_features)
 
     def create_classification_sample(self, race_idx: int, horse_idx: int) -> Tuple[List, List]:
-        n_positive_labels = len(self.races_data[race_idx].positive_label_horse_idx)
         n_horses = len(self.races_data[race_idx].horses_data)
         n_placeholder_horses = self.PADDING_SIZE - n_horses
-        sample = [1] + self.get_horse_features(race_idx, horse_idx)
+        sample = self.get_horse_features(race_idx, horse_idx)
 
         other_horse_features = [self.get_horse_features(race_idx, i) for i in range(n_horses) if i != horse_idx]
         for horse_features in other_horse_features:
@@ -76,7 +75,7 @@ class HorseRacingSampleCreator:
         return sample, [horse_label]
 
     def get_horse_features(self, race_idx: int, horse_idx: int) -> List:
-        return self.races_data[race_idx].horses_data[horse_idx].features
+        return copy(self.races_data[race_idx].horses_data[horse_idx].features)
 
     def get_n_horses_of_race(self, race_idx: int) -> int:
         return len(self.races_data[race_idx].horses_data)

@@ -38,6 +38,9 @@ class Market:
                 events_raw = country_data["events"]
                 for event_data in events_raw:
                     if track_name in event_data["name"]:
+                        if race_number - 1 >= len(event_data["markets"]):
+                            print(f"Event/Market ID could not be set")
+                            return
                         market_data = event_data["markets"][race_number - 1]
                         self.event_id = event_data["id"]
 

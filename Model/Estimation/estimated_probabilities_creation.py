@@ -37,43 +37,6 @@ class Probabilizer(ABC):
     def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
         pass
 
-    def set_win_probabilities(self, race_cards_dataframe: pd.DataFrame, scores: ndarray, win_prob_column_name: str = "win_probability") -> pd.DataFrame:
-        race_cards_dataframe.loc[:, "score"] = scores
-
-        score_sums = race_cards_dataframe.groupby([RaceCard.RACE_ID_KEY]).agg(scores_sum=("score", "sum"))
-        race_cards_dataframe = race_cards_dataframe.merge(right=score_sums, on=RaceCard.RACE_ID_KEY, how="inner")
-
-        race_cards_dataframe.loc[:, win_prob_column_name] = \
-            (race_cards_dataframe.loc[:, "score"] / race_cards_dataframe.loc[:, "scores_sum"])
-
-        race_cards_dataframe = race_cards_dataframe.drop("scores_sum", axis=1)
-
-        return race_cards_dataframe
-
-
-class WinProbabilizer(Probabilizer):
-
-    def __init__(self):
-        super().__init__()
-
-    def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
-        race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        race_cards_dataframe = self.set_win_probabilities(race_cards_dataframe, scores)
-
-        #TODO: fetch races from dataframe to create the estimates dynamically
-        probability_estimates = {}
-
-        for row in race_cards_dataframe.itertuples(index=False):
-            win_probability = row.win_probability
-
-            race_datetime = str(row.date_time)
-            if race_datetime not in probability_estimates:
-                probability_estimates[race_datetime] = {}
-
-            probability_estimates[race_datetime][row.number] = win_probability
-
-        return EstimationResult(probability_estimates)
-
 
 class RawWinProbabilizer(Probabilizer):
 
@@ -89,7 +52,7 @@ class RawWinProbabilizer(Probabilizer):
             if race_datetime not in probability_estimates:
                 probability_estimates[race_datetime] = {}
 
-            probability_estimates[race_datetime][row.number] = row.score
+            probability_estimates[race_datetime][row.number] = row.prob
 
         return EstimationResult(probability_estimates)
 

@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimation.estimated_probabilities_creation import WinProbabilizer, PlaceProbabilizer, RawWinProbabilizer
-from Model.Estimation.models import BoostedTreesRanker
+from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, RawWinProbabilizer
+from Model.Estimation.models import WinRegressionEstimator, WinRankingEstimator, StackedEstimator
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import BET_RESULT_PATH
@@ -61,7 +61,7 @@ class ModelSimulator:
 
         self.feature_manager = FeatureManager()
 
-        self.estimator = BoostedTreesRanker(self.feature_manager)
+        self.estimator = StackedEstimator(self.feature_manager)
 
         self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
@@ -138,9 +138,9 @@ class ModelSimulator:
 if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
-        container_upper_limit_percentage=0.5,
+        container_upper_limit_percentage=0.2,
         n_months_test_sample=14,
-        n_months_forward_offset=0,
+        n_months_forward_offset=75,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

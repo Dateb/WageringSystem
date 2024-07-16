@@ -45,7 +45,7 @@ class LiveResult:
         return 0
 
     @property
-    def payout(self) -> float:
+    def profit(self) -> float:
         return self.win - self.loss
 
 
@@ -129,7 +129,7 @@ class BetResult:
         for _ in range(100):
             bets_sample = random.sample(self.bets, k=len(self.bets))
 
-            max_draw_down = get_max_draw_down([bet.bet_offer.live_result.payout for bet in bets_sample])
+            max_draw_down = get_max_draw_down([bet.bet_offer.live_result.profit for bet in bets_sample])
 
             max_drawdowns.append(max_draw_down)
 
@@ -185,10 +185,12 @@ class Bettor:
     def __init__(
             self,
             odds_threshold: OddsThreshold,
-            max_odds_thresh: float = 3.5,
+            max_odds_estimation: float = 3.5,
+            max_odds_offer_multiplier: float = 20,
     ):
         self.odds_threshold = odds_threshold
-        self.max_odds_thresh = max_odds_thresh
+        self.max_odds_estimation = max_odds_estimation
+        self.max_odds_offer_multiplier = max_odds_offer_multiplier
 
         self.already_taken_offers = {}
         self.offer_accepted_count = 0
@@ -218,7 +220,8 @@ class Bettor:
                         if probability_estimate is not None:
                             if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:
                                 min_odds = self.odds_threshold.get_min_odds(probability_estimate)
-                                if min_odds < bet_offer.live_result.offer_odds and min_odds < self.max_odds_thresh:
+                                max_odds_offer = min_odds * self.max_odds_offer_multiplier
+                                if min_odds < bet_offer.live_result.offer_odds < max_odds_offer and min_odds < self.max_odds_estimation:
                                     new_bet = Bet(
                                         bet_offer,
                                         stakes=0.0,
