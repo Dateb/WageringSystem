@@ -6,7 +6,8 @@ from tqdm import tqdm
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, RawWinProbabilizer
-from Model.Estimation.models import WinRegressionEstimator, WinRankingEstimator, StackedEstimator
+from Model.Estimation.models import WinRegressionEstimator, WinRankingEstimator, AvgEstimator, \
+    WinClassificationEstimator, MaxEstimator
 from ModelTuning import simulate_conf
 from ModelTuning.ModelEvaluator import ModelEvaluator
 from ModelTuning.simulate_conf import BET_RESULT_PATH
@@ -61,8 +62,14 @@ class ModelSimulator:
 
         self.feature_manager = FeatureManager()
 
-        self.estimator = StackedEstimator(self.feature_manager)
-
+        weak_estimators = [
+            WinRankingEstimator(self.feature_manager),
+            WinRegressionEstimator(self.feature_manager),
+            # WinClassificationEstimator(self.feature_manager)
+        ]
+        self.estimator = AvgEstimator(self.feature_manager, weak_estimators)
+        # self.estimator = WinRankingEstimator(self.feature_manager)
+        # self.estimator = WinRegressionEstimator(self.feature_manager)
         self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
         print(f"#container months: {len(self.month_data_splitter.container_file_names)}")
@@ -138,9 +145,9 @@ class ModelSimulator:
 if __name__ == '__main__':
 
     data_splitter = MonthDataSplitter(
-        container_upper_limit_percentage=0.2,
+        container_upper_limit_percentage=0.75,
         n_months_test_sample=14,
-        n_months_forward_offset=75,
+        n_months_forward_offset=0,
         race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
     )
 

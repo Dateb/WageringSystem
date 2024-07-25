@@ -187,7 +187,6 @@ class RaceCard:
 
         for horse in self.runners:
             horse.has_placed = 1 <= horse.place <= self.places_num
-            horse.base_attributes[Horse.HAS_PLACED_LABEL_KEY] = horse.has_placed
 
             if horse.has_placed:
                 horse.ranking_label = 1

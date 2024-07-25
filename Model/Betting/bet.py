@@ -202,7 +202,7 @@ class Bettor:
         for race_datetime, race_offers in offers.items():
             if race_datetime in estimation_result.probability_estimates:
                 for bet_offer in race_offers:
-                    if bet_offer.minutes_until_race_start <= -14 * 60:
+                    if 7 <= bet_offer.offer_datetime.hour <= 10:
                         # probability_estimate = estimation_result.get_horse_win_probability(
                         #     race_datetime,
                         #     bet_offer.horse_number,

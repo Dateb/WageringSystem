@@ -14,7 +14,7 @@ from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import BettorFactory, OddsThreshold, BetfairOddsVigAdjuster
 from Model.Betting.race_results_container import RaceResultsContainer
-from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, WinProbabilizer, EstimationResult
+from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, EstimationResult
 from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator
 from Persistence.RaceCardPersistence import RaceDataPersistence
@@ -132,6 +132,8 @@ class RacebetsBetsReporter(Actuator):
 
 class ExchangeBetRequester(Actuator):
 
+    CURRENT_BANKROLL: float = 749.25
+
     def __init__(self, estimation_result: EstimationResult, exchange: Exchange):
         super().__init__()
         self.exchange = exchange
@@ -139,6 +141,7 @@ class ExchangeBetRequester(Actuator):
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
         self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.0)
+        self.stakes = max([round(self.CURRENT_BANKROLL * 0.01, 2), 6.0])
 
     def run(self) -> None:
         probability_estimates = self.estimation_result.probability_estimates
@@ -154,7 +157,7 @@ class ExchangeBetRequester(Actuator):
 
                             if horse_min_odds < 3.5:
                                 print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
-                                self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds)
+                                self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds, self.stakes)
                 else:
                     print(f"Skipped betting on race due to missing estimates: {market.race_card.race_id}")
 

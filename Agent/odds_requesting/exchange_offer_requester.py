@@ -347,7 +347,7 @@ class Exchange:
         self.exchange_connection = ExchangeConnection()
         self.exchange_connection.reopen(self.markets)
 
-    def add_bet(self, market: Market, horse_exchange_id: int, odds: float) -> None:
+    def add_bet(self, market: Market, horse_exchange_id: int, odds: float, stakes: float = 6.0) -> None:
         if market.market_id not in self.bets_data:
             self.bets_data[market.market_id] = []
 
@@ -356,7 +356,7 @@ class Exchange:
                     "selectionId": horse_exchange_id,
                     "handicap": 0,
                     "price": str(odds),
-                    "size": "6",
+                    "size": str(stakes),
                     "side": "BACK",
                     "betType": "EXCHANGE",
                     "netPLBetslipEnabled": False,

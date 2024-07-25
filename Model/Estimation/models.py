@@ -7,7 +7,7 @@ import pandas as pd
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Estimation.tuning import GBTTuner
 
-from typing import Tuple
+from typing import Tuple, List
 import lightgbm
 from lightgbm import Booster, Dataset
 
@@ -92,7 +92,7 @@ class Estimator(ABC):
 
         self.booster.free_dataset()
 
-        print(f"Train loss: {train_result['train'][self.objective_key][-1]}")
+        print(f"Train-{self.objective_key}: {train_result['train'][self.objective_key][-1]}")
 
         # eval_results = lightgbm.cv(
         #     params=self.params,
@@ -146,9 +146,9 @@ class Estimator(ABC):
         pass
 
 
-class StackedEstimator(Estimator):
+class AvgEstimator(Estimator):
 
-    def __init__(self, feature_manager: FeatureManager):
+    def __init__(self, feature_manager: FeatureManager, weak_estimators: List[Estimator]):
         super().__init__(
             feature_manager,
             objective="lambdarank",
@@ -156,23 +156,56 @@ class StackedEstimator(Estimator):
             probabilizer=RawWinProbabilizer(),
             label_name=Horse.RANKING_LABEL_KEY
         )
-        self.ranking_estimator = WinRankingEstimator(feature_manager)
-        self.regression_estimator = WinRegressionEstimator(feature_manager)
+        self.weak_estimators = weak_estimators
 
     def fit(self, train_sample: RaceCardsSample) -> float:
-        self.ranking_estimator.fit(train_sample)
-        self.regression_estimator.fit(train_sample)
+        for estimator in self.weak_estimators:
+            estimator.fit(train_sample)
 
         return 0.0
 
     def predict_probabilities(self, sample: RaceCardsSample) -> np.ndarray:
-        ranking_probabilities = self.ranking_estimator.predict_probabilities(sample)
-        regression_probabilities = self.regression_estimator.predict_probabilities(sample)
+        stacked_prob = np.zeros(shape=(len(sample.race_cards_dataframe)))
 
-        prob = (ranking_probabilities + regression_probabilities) / 2.0
-        print(f"Test accuracy of estimator {self.__class__.__name__}: {get_accuracy(sample, prob)}")
+        for estimator in self.weak_estimators:
+            estimator_prob = estimator.predict_probabilities(sample)
+            stacked_prob += estimator_prob
 
-        return prob
+        stacked_prob /= len(self.weak_estimators)
+
+        print(f"Test accuracy of estimator {self.__class__.__name__}: {get_accuracy(sample, stacked_prob)}")
+
+        return stacked_prob
+
+
+class MaxEstimator(Estimator):
+
+    def __init__(self, feature_manager: FeatureManager, weak_estimators: List[Estimator]):
+        super().__init__(
+            feature_manager,
+            objective="lambdarank",
+            objective_key="ndcg@1",
+            probabilizer=RawWinProbabilizer(),
+            label_name=Horse.RANKING_LABEL_KEY
+        )
+        self.weak_estimators = weak_estimators
+
+    def fit(self, train_sample: RaceCardsSample) -> float:
+        for estimator in self.weak_estimators:
+            estimator.fit(train_sample)
+
+        return 0.0
+
+    def predict_probabilities(self, sample: RaceCardsSample) -> np.ndarray:
+        stacked_prob = np.zeros(shape=(len(sample.race_cards_dataframe)))
+
+        for estimator in self.weak_estimators:
+            estimator_prob = estimator.predict_probabilities(sample)
+            stacked_prob = np.maximum(stacked_prob, estimator_prob)
+
+        print(f"Test accuracy of estimator {self.__class__.__name__}: {get_accuracy(sample, stacked_prob)}")
+
+        return stacked_prob
 
 
 class WinRankingEstimator(Estimator):
@@ -232,15 +265,7 @@ class WinRankingEstimator(Estimator):
         return race_cards_dataframe
 
 
-class WinRegressionEstimator(Estimator):
-    def __init__(self, feature_manager: FeatureManager):
-        super().__init__(
-            feature_manager,
-            objective="gamma",
-            objective_key="gamma",
-            probabilizer=RawWinProbabilizer(),
-            label_name=Horse.WIN_PROB_LABEL_KEY
-        )
+class PaddedDataEstimator(Estimator):
 
     def create_dataset(self, sample: RaceCardsSample) -> HorseRacingDataset:
         train_val_df = sample.race_cards_dataframe
@@ -276,3 +301,27 @@ class WinRegressionEstimator(Estimator):
             lightgbm_dataset=Dataset(data=X_df, label=y_df),
             categorical_feature_names=self.categorical_feature_names
         )
+
+
+class WinRegressionEstimator(PaddedDataEstimator):
+    def __init__(self, feature_manager: FeatureManager):
+        super().__init__(
+            feature_manager,
+            objective="gamma",
+            objective_key="gamma",
+            probabilizer=RawWinProbabilizer(),
+            label_name=Horse.WIN_PROB_LABEL_KEY
+        )
+
+
+class WinClassificationEstimator(PaddedDataEstimator):
+
+    def __init__(self, feature_manager: FeatureManager):
+        super().__init__(
+            feature_manager,
+            objective="binary",
+            objective_key="binary_logloss",
+            probabilizer=RawWinProbabilizer(),
+            label_name=Horse.HAS_WON_LABEL_KEY
+        )
+

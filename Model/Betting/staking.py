@@ -41,7 +41,7 @@ class FlatStakesCalculator(StakesCalculator):
 
 class KellyStakesCalculator(StakesCalculator):
 
-    def __init__(self, max_bet_size: float = 20, min_bet_size: float = 6, kelly_fraction_for_max_bet: float = 0.5):
+    def __init__(self, max_bet_size: float = 20, min_bet_size: float = 6, kelly_fraction_for_max_bet: float = 1.0):
         super().__init__()
         self.max_bet_size = max_bet_size
         self.min_bet_size = min_bet_size
