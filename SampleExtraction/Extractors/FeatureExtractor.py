@@ -3,7 +3,7 @@ from typing import Any, List
 
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup, PreviousValueSource
+from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup, PreviousSource
 from SampleExtraction.feature_sources.value_calculators import race_date
 
 
@@ -61,7 +61,7 @@ class FeatureSourceExtractor(FeatureExtractor):
 
 class LayoffExtractor(FeatureExtractor):
 
-    def __init__(self, previous_value_source: PreviousValueSource, horse_attributes: List[str], race_card_attributes: List[str]):
+    def __init__(self, previous_value_source: PreviousSource, horse_attributes: List[str], race_card_attributes: List[str]):
         self.feature_source = previous_value_source
         self.feature_value_group = FeatureValueGroup(race_date, horse_attributes, race_card_attributes)
 

@@ -6,7 +6,7 @@ from numpy import ndarray
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
-from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup, PreviousValueSource
+from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup, PreviousSource
 from SampleExtraction.feature_sources.value_calculators import get_track_name
 from util.category_encoder import get_category_encoding
 
@@ -211,7 +211,7 @@ unknown_location_list = []
 
 class TravelDistance(FeatureExtractor):
 
-    def __init__(self, previous_value_source: PreviousValueSource):
+    def __init__(self, previous_value_source: PreviousSource):
         super().__init__()
         self.feature_source = previous_value_source
 

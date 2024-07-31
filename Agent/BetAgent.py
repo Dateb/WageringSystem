@@ -132,7 +132,7 @@ class RacebetsBetsReporter(Actuator):
 
 class ExchangeBetRequester(Actuator):
 
-    CURRENT_BANKROLL: float = 749.25
+    CURRENT_BANKROLL: float = 741.76
 
     def __init__(self, estimation_result: EstimationResult, exchange: Exchange):
         super().__init__()
@@ -197,7 +197,7 @@ class BetAgent:
         self.update_race_card_data()
 
         data_splitter = MonthDataSplitter(
-            container_upper_limit_percentage=0.75,
+            container_upper_limit_percentage=0.1,
             n_months_test_sample=14,
             n_months_forward_offset=0,
             race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME

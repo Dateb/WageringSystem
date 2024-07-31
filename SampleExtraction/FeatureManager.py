@@ -1,5 +1,7 @@
+import json
 import multiprocessing
 import os
+import pickle
 import time
 from multiprocessing.pool import Pool
 from threading import Thread
@@ -18,8 +20,8 @@ from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Ag
     TrainerChangeEarningsRateDiff, Origin
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
 from SampleExtraction.Extractors.time_based import DayOfYearSin, DayOfYearCos, WeekDayCos, WeekDaySin, MinutesIntoDay
-from SampleExtraction.feature_sources.feature_sources import PreviousValueSource, MaxValueSource, AverageValueSource, \
-    TrackVariantSource, FeatureValueGroup, MinValueSource, CountSource, SumSource, \
+from SampleExtraction.feature_sources.feature_sources import PreviousSource, MaxSource, AverageSource, \
+    TrackVariantSource, FeatureValueGroup, MinSource, CountSource, SumSource, \
     GoingSource, StreakSource, FeatureSource
 from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, \
     competitors_beaten, \
@@ -48,35 +50,9 @@ class FeatureManager:
             # BaseTime(),
         ]
 
-        self.previous_value_source = PreviousValueSource()
+        self.previous_value_source = PreviousSource()
 
-        self.max_value_source = MaxValueSource()
-        self.min_value_source = MinValueSource()
-        self.sum_source = SumSource()
-        self.streak_source = StreakSource()
-
-        self.avg_source_short_window = AverageValueSource(window_size=0.1)
-        self.avg_source_medium_window = AverageValueSource(window_size=0.01)
-        self.avg_source_long_window = AverageValueSource(window_size=0.001)
-
-        self.track_variant_source: TrackVariantSource = TrackVariantSource()
-        self.going_source: GoingSource = GoingSource()
-
-        self.feature_sources = [
-            self.previous_value_source,
-
-            self.max_value_source,
-            self.min_value_source,
-            self.sum_source,
-            self.streak_source,
-
-            self.avg_source_short_window,
-            self.avg_source_medium_window,
-            self.avg_source_long_window,
-
-            self.track_variant_source,
-            self.going_source
-        ]
+        self.feature_sources = [self.previous_value_source]
 
         self.features = features
         if features is None:
@@ -91,341 +67,21 @@ class FeatureManager:
         self.n_features = len(self.features)
 
     def get_search_features(self) -> List[FeatureExtractor]:
-        horse_win_prob = FeatureValueGroup(win_probability, ["subject_id"])
-
-        horse_has_won = FeatureValueGroup(has_won, ["subject_id"])
-        horse_race_type_has_won = FeatureValueGroup(has_won, ["subject_id"], ["race_type"])
-
-        horse_has_placed = FeatureValueGroup(has_placed, ["subject_id"])
-
-        # horse_distance_category_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["distance_category"])
-
-        horse_surface_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["surface"])
-        horse_weather_type_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["weather_type"])
-
-        horse_surface_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"], ["surface"])
-        horse_surface_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["surface"])
-
-        horse_surface_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"],
-                                                                   ["surface"])
-        horse_surface_momentum = FeatureValueGroup(momentum, ["subject_id"], ["surface"])
-
-        horse_race_type_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["race_type"])
-
-        horse_race_type_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"], ["race_type"])
-        horse_race_type_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["race_type"])
-
-        horse_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"],
-                                                                     ["race_type"])
-        horse_race_type_momentum = FeatureValueGroup(momentum, ["subject_id"], ["race_type"])
-
-        horse_category_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["category"])
-        horse_category_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"], ["category"])
-        horse_category_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["category"])
-
-        horse_track_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["track_name"])
-        horse_class_win_prob = FeatureValueGroup(win_probability, ["subject_id"], ["race_class"])
-
-        horse_momentum = FeatureValueGroup(momentum, ["subject_id"])
-
-        horse_track_momentum = FeatureValueGroup(momentum, ["subject_id"], ["track_name"])
-        horse_class_momentum = FeatureValueGroup(momentum, ["subject_id"], ["race_class"])
-
-        horse_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"])
-        horse_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"])
-
-        horse_track_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"], ["track_name"])
-        horse_track_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["track_name"])
-        horse_class_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id"], ["race_class"])
-        horse_class_place_percentile = FeatureValueGroup(place_percentile, ["subject_id"], ["race_class"])
-
-        horse_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"])
-
-        horse_track_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"],
-                                                                 ["track_name"])
-        horse_class_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id"],
-                                                                 ["race_class"])
-
-        horse_weight = FeatureValueGroup(weight, ["subject_id"])
-
-        horse_race_adjusted_distance = FeatureValueGroup(adjusted_race_distance, ["subject_id"])
-        horse_race_class = FeatureValueGroup(race_class, ["subject_id"])
-
-        jockey_win_prob = FeatureValueGroup(win_probability, ["jockey_id"])
-        jockey_momentum = FeatureValueGroup(momentum, ["jockey_id"])
-
-        jockey_weather_type_win_prob = FeatureValueGroup(win_probability, ["jockey_id"], ["weather_type"])
-        jockey_race_type_win_prob = FeatureValueGroup(win_probability, ["jockey_id"], ["race_type"])
-        jockey_race_type_competitors_beaten = FeatureValueGroup(competitors_beaten, ["jockey_id"], ["race_type"])
-        jockey_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["jockey_id"],
-                                                                      ["race_type"])
-
-        jockey_going_win_prob = FeatureValueGroup(win_probability, ["jockey_id"], ["estimated_going"])
-        jockey_going_competitors_beaten = FeatureValueGroup(competitors_beaten, ["jockey_id"], ["estimated_going"])
-
-        trainer_weather_type_win_prob = FeatureValueGroup(win_probability, ["trainer_id"], ["weather_type"])
-        trainer_race_type_win_prob = FeatureValueGroup(win_probability, ["trainer_id"], ["race_type"])
-        trainer_race_type_competitors_beaten = FeatureValueGroup(competitors_beaten, ["trainer_id"], ["race_type"])
-        trainer_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["trainer_id"],
-                                                                       ["race_type"])
-
-        trainer_going_win_prob = FeatureValueGroup(win_probability, ["trainer_id"], ["estimated_going"])
-        trainer_going_competitors_beaten = FeatureValueGroup(competitors_beaten, ["trainer_id"], ["estimated_going"])
-
-        owner_race_type_win_prob = FeatureValueGroup(win_probability, ["owner"], ["race_type"])
-        owner_race_type_competitors_beaten = FeatureValueGroup(competitors_beaten, ["owner"], ["race_type"])
-        owner_race_type_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["owner"], ["race_type"])
-
-        trainer_win_prob = FeatureValueGroup(win_probability, ["trainer_id"])
-        trainer_momentum = FeatureValueGroup(momentum, ["trainer_id"])
-
-        jockey_class_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["race_class"])
-        jockey_surface_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["surface"])
-
-        trainer_class_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["race_class"])
-        trainer_surface_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["surface"])
-
-        jockey_class_competitors_beaten = FeatureValueGroup(competitors_beaten, ["jockey_id"], ["race_class"])
-        trainer_class_competitors_beaten = FeatureValueGroup(competitors_beaten, ["trainer_id"], ["race_class"])
-
-        jockey_class_momentum = FeatureValueGroup(momentum, ["jockey_id"], ["race_class"])
-        trainer_class_momentum = FeatureValueGroup(momentum, ["trainer_id"], ["race_class"])
-
-        breeder_win_prob = FeatureValueGroup(win_probability, ["breeder"])
-        breeder_momentum = FeatureValueGroup(momentum, ["breeder"])
-
-        owner_win_prob = FeatureValueGroup(win_probability, ["owner"])
-        owner_momentum = FeatureValueGroup(momentum, ["owner"])
-
-        dam_win_probability = FeatureValueGroup(win_probability, ["dam", "age"])
-        dam_competitors_beaten = FeatureValueGroup(competitors_beaten, ["dam", "age"])
-        dam_momentum = FeatureValueGroup(momentum, ["dam", "age"])
-
-        sire_win_probability = FeatureValueGroup(win_probability, ["sire", "age"])
-
-        jockey_track_win_probability = FeatureValueGroup(win_probability, ["jockey_id"], ["track_name"])
-        trainer_track_win_probability = FeatureValueGroup(win_probability, ["trainer_id"], ["track_name"])
-        owner_track_win_probability = FeatureValueGroup(win_probability, ["owner"], ["track_name"])
-
-        horse_jockey_win_probability = FeatureValueGroup(win_probability, ["subject_id", "jockey_id"])
-        horse_jockey_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id", "jockey_id"])
-        horse_jockey_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id", "jockey_id"])
-        horse_jockey_momentum = FeatureValueGroup(momentum, ["subject_id", "jockey_id"])
-
-        horse_trainer_win_probability = FeatureValueGroup(win_probability, ["subject_id", "trainer_id"])
-        horse_trainer_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id", "trainer_id"])
-        horse_trainer_relative_distance_behind = FeatureValueGroup(relative_distance_behind,
-                                                                   ["subject_id", "trainer_id"])
-        horse_trainer_momentum = FeatureValueGroup(momentum, ["subject_id", "trainer_id"])
-
-        horse_owner_win_probability = FeatureValueGroup(win_probability, ["subject_id", "owner"])
-        horse_owner_competitors_beaten = FeatureValueGroup(competitors_beaten, ["subject_id", "owner"])
-        horse_owner_relative_distance_behind = FeatureValueGroup(relative_distance_behind, ["subject_id", "owner"])
-        horse_owner_momentum = FeatureValueGroup(momentum, ["subject_id", "owner"])
-
-        jockey_trainer_win_probability = FeatureValueGroup(win_probability, ["jockey_id", "trainer_id"])
-        jockey_trainer_competitors_beaten = FeatureValueGroup(competitors_beaten, ["jockey_id", "trainer_id"])
-        jockey_trainer_relative_distance_behind = FeatureValueGroup(relative_distance_behind,
-                                                                    ["jockey_id", "trainer_id"])
-        jockey_trainer_momentum = FeatureValueGroup(momentum, ["jockey_id", "trainer_id"])
-
-        horse_purse = FeatureValueGroup(purse, ["subject_id"])
-        jockey_purse = FeatureValueGroup(purse, ["jockey_id"])
-        trainer_purse = FeatureValueGroup(purse, ["trainer_id"])
-
-        prev_value_features = [
-            FeatureSourceExtractor(self.previous_value_source, horse_has_placed),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_win_prob),
-
-            # FeatureSourceExtractor(self.previous_value_source, horse_distance_category_win_prob),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_surface_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, horse_track_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, horse_class_win_prob),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_category_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, horse_category_competitors_beaten),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_momentum),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_surface_momentum),
-            FeatureSourceExtractor(self.previous_value_source, horse_track_momentum),
-            FeatureSourceExtractor(self.previous_value_source, horse_class_momentum),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_competitors_beaten),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_surface_competitors_beaten),
-            FeatureSourceExtractor(self.previous_value_source, horse_track_competitors_beaten),
-            FeatureSourceExtractor(self.previous_value_source, horse_class_competitors_beaten),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_relative_distance_behind),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_surface_relative_distance_behind),
-            FeatureSourceExtractor(self.previous_value_source, horse_track_relative_distance_behind),
-            FeatureSourceExtractor(self.previous_value_source, horse_class_relative_distance_behind),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_race_adjusted_distance),
-            FeatureSourceExtractor(self.previous_value_source, horse_race_class),
-
-            FeatureSourceExtractor(self.previous_value_source, horse_race_type_win_prob),
-            FeatureSourceExtractor(self.previous_value_source, horse_race_type_competitors_beaten),
-            FeatureSourceExtractor(self.previous_value_source, horse_race_type_momentum),
-
-            TravelDistance(self.previous_value_source),
-        ]
-
-        max_value_features = [
-            FeatureSourceExtractor(self.max_value_source, horse_win_prob),
-
-            FeatureSourceExtractor(self.max_value_source, horse_surface_win_prob),
-            FeatureSourceExtractor(self.max_value_source, horse_class_win_prob),
-
-            FeatureSourceExtractor(self.max_value_source, horse_momentum),
-
-            FeatureSourceExtractor(self.max_value_source, horse_surface_momentum),
-            FeatureSourceExtractor(self.max_value_source, horse_track_momentum),
-            FeatureSourceExtractor(self.max_value_source, horse_class_momentum),
-
-            FeatureSourceExtractor(self.max_value_source, horse_competitors_beaten),
-
-            FeatureSourceExtractor(self.max_value_source, horse_surface_competitors_beaten),
-            FeatureSourceExtractor(self.max_value_source, horse_class_competitors_beaten),
-
-            FeatureSourceExtractor(self.max_value_source, jockey_win_prob),
-            FeatureSourceExtractor(self.max_value_source, jockey_momentum),
-
-            FeatureSourceExtractor(self.max_value_source, trainer_win_prob),
-            FeatureSourceExtractor(self.max_value_source, trainer_momentum),
-
-            FeatureSourceExtractor(self.max_value_source, horse_race_adjusted_distance),
-            FeatureSourceExtractor(self.max_value_source, horse_weight),
-
-            FeatureSourceExtractor(self.max_value_source, dam_win_probability),
-            FeatureSourceExtractor(self.max_value_source, dam_competitors_beaten),
-            FeatureSourceExtractor(self.max_value_source, dam_momentum),
-
-            FeatureSourceExtractor(self.max_value_source, horse_purse),
-            FeatureSourceExtractor(self.max_value_source, jockey_purse),
-            FeatureSourceExtractor(self.max_value_source, trainer_purse),
-        ]
-
-        min_value_features = [
-            FeatureSourceExtractor(self.min_value_source, horse_race_adjusted_distance),
-            FeatureSourceExtractor(self.min_value_source, horse_weight)
-        ]
-
-        avg_value_features = [
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_win_prob),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_has_won),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_race_type_has_won),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_category_win_prob),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_category_competitors_beaten),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_class_win_prob),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_class_competitors_beaten),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_class_relative_distance_behind),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_class_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_race_type_relative_distance_behind),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, breeder_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, breeder_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_momentum),
-
-            # FeatureSourceExtractor(self.avg_window_30_min_obs_10_source, jockey_weather_type_win_prob),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_race_type_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_race_type_relative_distance_behind),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_going_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_going_competitors_beaten),
-
-            # FeatureSourceExtractor(self.avg_window_50_min_obs_10_source, trainer_weather_type_win_prob),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_race_type_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_race_type_relative_distance_behind),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_going_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_going_competitors_beaten),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_race_type_win_prob),
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_race_type_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_race_type_relative_distance_behind),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_class_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_surface_win_probability),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_class_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_surface_win_probability),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_class_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_class_competitors_beaten),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_class_momentum),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_class_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, dam_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, dam_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, dam_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, sire_win_probability),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_track_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, trainer_track_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, owner_track_win_probability),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_jockey_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_jockey_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_jockey_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_jockey_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_trainer_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_trainer_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_trainer_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_trainer_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_owner_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_owner_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_source_medium_window, horse_owner_momentum),
-
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_trainer_win_probability),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_trainer_competitors_beaten),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_trainer_relative_distance_behind),
-            FeatureSourceExtractor(self.avg_source_medium_window, jockey_trainer_momentum)
-        ]
-
-        horse_one_constant = FeatureValueGroup(one_constant, ["subject_id"])
-        horse_race_class_one_constant = FeatureValueGroup(one_constant, ["subject_id"], ["race_class"])
-
-        jockey_one_constant = FeatureValueGroup(one_constant, ["jockey_id"])
-        trainer_one_constant = FeatureValueGroup(one_constant, ["trainer_id"])
-
-        sum_features = [
-            FeatureSourceExtractor(self.sum_source, horse_one_constant),
-            FeatureSourceExtractor(self.sum_source, horse_race_class_one_constant),
-
-            FeatureSourceExtractor(self.sum_source, jockey_one_constant),
-            FeatureSourceExtractor(self.sum_source, trainer_one_constant),
-
-            FeatureSourceExtractor(self.sum_source, horse_purse),
-            FeatureSourceExtractor(self.sum_source, jockey_purse),
-            FeatureSourceExtractor(self.sum_source, trainer_purse),
-        ]
+        features = []
+
+        with open('../SampleExtraction/features.pkl', 'rb') as f:
+            feature_data = pickle.load(f)
+
+        for feature_source, feature_value_calculators in feature_data.items():
+            self.feature_sources.append(feature_source)
+            for feature_value_calculator, attribute_groups in feature_value_calculators.items():
+                for attribute_group in attribute_groups:
+                    horse_attributes = attribute_group[0]
+                    race_attributes = attribute_group[1]
+                    feature_value_group = FeatureValueGroup(feature_value_calculator, horse_attributes, race_attributes)
+                    features.append(FeatureSourceExtractor(feature_source, feature_value_group))
+
+        print(features)
 
         current_race_features = [
             CurrentRaceCategory(),
@@ -454,11 +110,6 @@ class FeatureManager:
             LayoffExtractor(self.previous_value_source, ["subject_id"], ["surface"]),
         ]
 
-        streak_features = [
-            FeatureSourceExtractor(self.streak_source, horse_has_won),
-            FeatureSourceExtractor(self.streak_source, horse_has_placed)
-        ]
-
         self.feature_value_groups = []
         for feature_source in self.feature_sources:
             for feature_value_group in feature_source.feature_value_groups:
@@ -471,11 +122,7 @@ class FeatureManager:
             for feature_value_group in feature_source.feature_value_groups:
                 self.feature_value_group_to_source_map[feature_value_group].append(feature_source)
 
-        return (
-                current_race_features + prev_value_features
-                + max_value_features + min_value_features +
-                avg_value_features + sum_features + layoff_features + streak_features
-        )
+        return features + current_race_features + layoff_features
 
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:

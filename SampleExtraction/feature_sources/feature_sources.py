@@ -111,7 +111,7 @@ class FeatureSource(ABC):
         return self.__class__.__name__
 
 
-class PreviousValueSource(FeatureSource):
+class PreviousSource(FeatureSource):
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None:
@@ -134,14 +134,14 @@ class StreakSource(FeatureSource):
                 category["value"] -= 1
 
 
-class MaxValueSource(FeatureSource):
+class MaxSource(FeatureSource):
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None and (not category["value"] or new_feature_value > category["value"]):
             category["value"] = new_feature_value
 
 
-class MinValueSource(FeatureSource):
+class MinSource(FeatureSource):
 
     def update_statistic(self, category: dict, new_feature_value: float, value_date: date) -> None:
         if new_feature_value is not None and (not category["value"] or new_feature_value < category["value"]):
@@ -166,7 +166,7 @@ class CountSource(FeatureSource):
             category["value"] += 1
 
 
-class AverageValueSource(FeatureSource):
+class AverageSource(FeatureSource):
 
     def __init__(self, window_size=5):
         super().__init__()
@@ -255,7 +255,7 @@ class HorseNameToSubjectIdSource(FeatureSource):
 #         return self.draw_bias[track_name][str(post_position)]["avg"]
 
 
-class TrackVariantSource(AverageValueSource):
+class TrackVariantSource(AverageSource):
 
     def __init__(self):
         super().__init__()
@@ -305,7 +305,7 @@ class TrackVariantSource(AverageValueSource):
             )
 
 
-class GoingSource(AverageValueSource):
+class GoingSource(AverageSource):
 
     def __init__(self):
         super().__init__()

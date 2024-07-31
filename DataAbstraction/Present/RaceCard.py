@@ -185,6 +185,20 @@ class RaceCard:
             else:
                 self.places_num = 3
 
+        # placed_horses_odds = sorted([horse for horse in self.runners if horse.place_racebets > 0],
+        #                        key=lambda horse: horse.win_sp)
+        # n_placed_horses = len(placed_horses_odds)
+        #
+        # placed_horse_idx = 1
+        # for horse in placed_horses_odds:
+        #     horse.ranking_label = n_placed_horses - placed_horse_idx
+        #     placed_horse_idx += 1
+        #
+        #     if horse.ranking_label == -1:
+        #         print('yellow')
+        #
+        #     horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
+
         for horse in self.runners:
             horse.has_placed = 1 <= horse.place <= self.places_num
 
