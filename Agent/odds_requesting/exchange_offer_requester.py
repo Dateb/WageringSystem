@@ -31,6 +31,7 @@ class Market:
 
         self.race_card = race_card
         self.horse_number_by_exchange_id = {}
+        self.exchange_id_by_horse_number = {}
 
     def set_event_and_market_id(self, country: str, track_name: str, race_number: int, today_markets_raw: dict) -> None:
         for country_data in today_markets_raw:
@@ -268,6 +269,7 @@ class Exchange:
         for market in self.markets:
             market_data = self.exchange_connection.get_market_data(market.market_id)
             market.horse_number_by_exchange_id = self.extract_number_by_internal_id(market_data)
+            market.exchange_id_by_horse_number = {v: k for k, v in market.horse_number_by_exchange_id.items()}
 
         self.exchange_connection.open_race_connection(self.markets)
         self.market_opening_request_timer = 0

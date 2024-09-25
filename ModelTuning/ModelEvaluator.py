@@ -42,10 +42,10 @@ class ModelEvaluator:
         self.init_offer_container(test_race_cards)
 
         best_bet_result = None
-        bet_thresholds = [0.0]
+        min_ev_values = [1.0]
 
-        for bet_threshold in bet_thresholds:
-            bettor = self.bettor_factory.create_bettor(bet_threshold)
+        for min_ev_value in min_ev_values:
+            bettor = self.bettor_factory.create_bettor(min_ev_value)
             bets = bettor.bet(self.offer_container.race_offers, estimation_result)
             bet_result = BetResult(bets, self.race_results_container)
 
@@ -56,11 +56,11 @@ class ModelEvaluator:
             mean_clv = mean(clv)
             max_drawdown = bet_result.max_drawdown
 
-            print(f"Thresh/Mean CLV/Max. Drawdown: {bet_threshold}/{mean_clv}/{max_drawdown}")
+            print(f"Thresh/Mean CLV/Max. Drawdown: {min_ev_value}/{mean_clv}/{max_drawdown}")
 
             if mean_clv > self.clv_tolerance and max_drawdown < self.drawdown_tolerance:
                 best_bet_result = bet_result
-                print(f"Picked new threshold: {bet_threshold}, according to selection criteria")
+                print(f"Picked new threshold: {min_ev_value}, according to selection criteria")
 
             print(f"Offer acceptance rate: {bettor.offer_acceptance_rate}")
 

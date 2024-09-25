@@ -11,13 +11,11 @@ class Horse:
     NUMBER_KEY: str = "number"
     PLACE_KEY: str = "place"
     CURRENT_WIN_ODDS_KEY: str = "current_win_odds"
-    CURRENT_PLACE_ODDS_KEY: str = "current_place_odds"
     RANKING_LABEL_KEY: str = "ranking_label"
     WIN_PROB_LABEL_KEY: str = "win_probability"
     HAS_WON_LABEL_KEY: str = "has_won"
     BASE_ATTRIBUTE_NAMES: List[str] = [
         NAME_KEY, NUMBER_KEY, CURRENT_WIN_ODDS_KEY,
-        CURRENT_PLACE_ODDS_KEY,
         PLACE_KEY,
         RANKING_LABEL_KEY, WIN_PROB_LABEL_KEY, HAS_WON_LABEL_KEY
     ]
@@ -68,9 +66,6 @@ class Horse:
 
         self.sp_win_prob = 0
 
-        self.place_sp = self.__extract_betfair_place_odds(raw_data)
-        self.sp_place_prob = -1 if self.place_sp == 0 else 1 / self.place_sp
-
         # self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place_racebets == 1 else 0
         self.has_placed = 0
@@ -112,7 +107,6 @@ class Horse:
             self.NAME_KEY: self.name,
             self.NUMBER_KEY: self.number,
             self.CURRENT_WIN_ODDS_KEY: self.win_sp,
-            self.CURRENT_PLACE_ODDS_KEY: self.place_sp,
             self.PLACE_KEY: self.place,
             self.RANKING_LABEL_KEY: self.ranking_label,
             self.WIN_PROB_LABEL_KEY: self.sp_win_prob,
@@ -124,9 +118,6 @@ class Horse:
         if "finishTime" in raw_data:
             if raw_data["finishTime"] is not None and self.place_racebets > 0:
                 self.finish_time = float(raw_data["finishTime"])
-
-    def set_betting_odds(self, new_odds: float):
-        self.base_attributes[self.CURRENT_PLACE_ODDS_KEY] = new_odds
 
     def set_purse(self, purse: List[int]):
         self.purse = 0
@@ -166,11 +157,6 @@ class Horse:
         if "bsp_win" not in raw_data:
             return -1
         return raw_data["bsp_win"]
-
-    def __extract_betfair_place_odds(self, raw_data: dict):
-        if "bsp_place" not in raw_data:
-            return 0
-        return raw_data["bsp_place"]
 
     def __extract_post_position(self, raw_data: dict) -> int:
         if "postPosition" in raw_data:

@@ -13,6 +13,36 @@ from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from util.stats_calculator import get_max_draw_down
 
 
+def bet_max_drawdown(returns):
+    """
+    Calculate the maximum drawdown in terms of absolute returns.
+
+    Parameters:
+    returns (list or numpy array): A list or array of returns.
+
+    Returns:
+    max_drawdown_abs (float): The maximum drawdown in absolute terms.
+    """
+    # Cumulative returns
+    cumulative_returns = np.cumsum(returns)
+
+    # Track running maximum
+    running_max = np.maximum.accumulate(cumulative_returns)
+
+    # Drawdown is the difference between the running maximum and the current cumulative returns
+    drawdowns = running_max - cumulative_returns
+
+    # Maximum drawdown (absolute)
+    max_drawdown_abs = np.max(drawdowns)
+
+    return max_drawdown_abs
+
+def get_clv(starting_odds: float, offer_odds: float, adjustment_factor: float = 1.0) -> float:
+    adjusted_offer_odds = offer_odds * adjustment_factor
+    offer_p = 1 / adjusted_offer_odds
+    starting_p = 1 / BetfairOddsVigAdjuster().get_adjusted_odds(starting_odds)
+    return (starting_p - offer_p) / offer_p
+
 class OddsVigAdjuster(ABC):
 
     def get_adjusted_odds(self, odds: float) -> float:
@@ -38,10 +68,7 @@ class LiveResult:
     @property
     def clv(self) -> float:
         if self.starting_odds > 0:
-            adjusted_offer_odds = self.offer_odds * self.adjustment_factor
-            offer_p = 1 / adjusted_offer_odds
-            starting_p = 1 / BetfairOddsVigAdjuster().get_adjusted_odds(self.starting_odds)
-            return (starting_p - offer_p) / offer_p
+            return get_clv(self.starting_odds, self.offer_odds, self.adjustment_factor)
         return 0
 
     @property
@@ -85,15 +112,14 @@ class Bet:
     bet_offer: BetOffer
     stakes: float
     probability_estimate: float
+    min_odds: float
 
-    WIN_COMMISSION: float = 0.025
+    WIN_COMMISSION: float = 0.03
 
     def __str__(self) -> str:
         bet_str = ("-----------------------------------\n" +
-                   f"Race: {self.bet_offer.race_card.race_id}\n" +
                    f"Offer: {self.bet_offer}\n" +
                    f"Stakes: {self.stakes}\n" +
-                   f"Payout: {self.payout}\n" +
                    "-----------------------------------\n")
 
         return bet_str
@@ -103,6 +129,20 @@ class Bet:
         self.bet_offer.live_result.loss = stakes
         if self.bet_offer.is_success:
             self.bet_offer.live_result.win = self.stakes * self.bet_offer.live_result.offer_odds * self.bet_offer.live_result.adjustment_factor
+
+    @property
+    def estimated_ev(self) -> float:
+        offer_odds = self.bet_offer.live_result.offer_odds
+        adjusted_odds = offer_odds * (1 - self.WIN_COMMISSION)
+
+        return self.probability_estimate * adjusted_odds
+
+    @property
+    def kelly_fraction(self) -> float:
+        offer_odds = self.bet_offer.live_result.offer_odds
+        adjusted_odds = offer_odds * (1 - self.WIN_COMMISSION)
+
+        return (self.probability_estimate * adjusted_odds - 1) / (adjusted_odds - 1)
 
 
 class BetResult:
@@ -138,20 +178,15 @@ class BetResult:
 
 class OddsThreshold:
 
-    def __init__(self, odds_vig_adjuster: OddsVigAdjuster, alpha: float = 0.05):
+    def __init__(self, odds_vig_adjuster: OddsVigAdjuster, min_ev: float = 1.0):
         self.odds_vig_adjuster = odds_vig_adjuster
-        self.alpha = alpha
+        self.min_ev = min_ev
 
     def get_min_odds(self, probability_estimate: float) -> float:
-        min_odds = 1 / probability_estimate
+        min_odds = self.min_ev / probability_estimate
 
         # Adjusting odds such that it still holds value when considering the vig:
-        min_odds_with_vig = self.odds_vig_adjuster.get_adjusted_odds(min_odds)
-
-        p_min_odds = 1 / min_odds_with_vig
-
-        p_min_odds_thresh = p_min_odds / (1 + self.alpha)
-        min_odds_thresh = 1 / p_min_odds_thresh
+        min_odds_thresh = self.odds_vig_adjuster.get_adjusted_odds(min_odds)
 
         increments = 0.01
         if 1 <= min_odds_thresh <= 2:
@@ -221,11 +256,12 @@ class Bettor:
                             if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:
                                 min_odds = self.odds_threshold.get_min_odds(probability_estimate)
                                 max_odds_offer = min_odds * self.max_odds_offer_multiplier
-                                if min_odds < bet_offer.live_result.offer_odds < max_odds_offer and min_odds < self.max_odds_estimation:
+                                if min_odds < bet_offer.live_result.offer_odds < max_odds_offer:
                                     new_bet = Bet(
                                         bet_offer,
                                         stakes=0.0,
                                         probability_estimate=probability_estimate,
+                                        min_odds = min_odds,
                                     )
                                     bets.append(new_bet)
                                     self.offer_accepted_count += 1
@@ -246,10 +282,10 @@ class BettorFactory:
         pass
 
     @staticmethod
-    def create_bettor(bet_threshold: float) -> Bettor:
+    def create_bettor(min_ev: float) -> Bettor:
         odds_vig_adjuster = BetfairOddsVigAdjuster()
 
-        odds_threshold = OddsThreshold(odds_vig_adjuster, bet_threshold)
+        odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev)
         bettor = Bettor(odds_threshold=odds_threshold)
 
         return bettor

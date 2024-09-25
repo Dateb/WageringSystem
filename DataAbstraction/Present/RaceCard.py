@@ -51,10 +51,6 @@ class RaceCard:
         if raw_result:
             self.has_results = True
 
-        self.weather = None
-        if "weather" in race:
-            self.weather = Weather(race["weather"])
-
         self.track_name = get_unique_track_name(raw_race_card["event"]["title"])
 
         self.track_id = event["idTrack"]
@@ -236,6 +232,7 @@ class RaceCard:
                 horse.sp_win_prob = (1 / horse.win_sp) / self.overround
                 horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.sp_win_prob
             else:
+                print(f"Race {self.race_id} turned off")
                 self.is_valid_sample = False
 
         placed_horses = list(reversed(sorted([horse for horse in self.runners], key=lambda horse: horse.place)))

@@ -1,0 +1,17 @@
+[package]
+name = "wagering_utils"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "wagering_utils"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies.pyo3]
+version = "0.15.0"
+features = ["extension-module"]
+
+[dependencies]
+rayon = "1.5"
+rand = { version = "0.8", features = ["small_rng"] }

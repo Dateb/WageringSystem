@@ -9,6 +9,7 @@ average_source_features = {
   win_probability: [
     [["breeder"], []],
     [["dam", "age"], []],
+    [["jockey_id"], []],
     [["jockey_id"], ["estimated_going"]],
     [["jockey_id"], ["race_class"]],
     [["jockey_id"], ["race_type"]],

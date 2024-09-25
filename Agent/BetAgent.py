@@ -86,53 +86,9 @@ class ExchangeBetLogger(Actuator):
                         pickle.dump(self.current_bets, f)
 
 
-class RacebetsBetsReporter(Actuator):
-
-    def __init__(
-            self,
-            estimation_result: EstimationResult,
-            upcoming_race_cards: Dict[str, RaceCard]
-    ):
-        super().__init__()
-        self.estimation_result = estimation_result
-        self.bettor = BettorFactory().create_bettor(bet_threshold=0.01)
-        self.upcoming_race_cards = upcoming_race_cards
-        self.current_bets = []
-        self.racebets_offer_requester = BookieOfferRequester()
-
-    def remove_expired_upcoming_race_cards(self) -> None:
-        expired_race_card_key = None
-        for key, race_card in self.upcoming_race_cards.items():
-            if datetime.now() > (race_card.datetime - timedelta(hours=0, minutes=10)):
-                expired_race_card_key = key
-
-        if expired_race_card_key is not None:
-            del self.upcoming_race_cards[expired_race_card_key]
-
-    def run(self) -> None:
-        while self.upcoming_race_cards:
-            self.remove_expired_upcoming_race_cards()
-            for race_card in self.upcoming_race_cards.values():
-                bet_offers = self.racebets_offer_requester.get_bet_offers(race_card)
-
-                if bet_offers:
-                    race_card = bet_offers[0].race_card
-                    bet_offers = {str(race_card.datetime): bet_offers}
-
-                    bets = self.bettor.bet(bet_offers, self.estimation_result)
-
-                    for bet in bets:
-                        print(bet)
-                        # self.current_bets += bets
-                        # print(f"{datetime.now()}: Writing new bets...")
-                        #
-                        # with open(self.BETS_PATH, "wb") as f:
-                        #     pickle.dump(self.current_bets, f)
-
-
 class ExchangeBetRequester(Actuator):
 
-    CURRENT_BANKROLL: float = 741.76
+    CURRENT_BANKROLL: float = 820.38
 
     def __init__(self, estimation_result: EstimationResult, exchange: Exchange):
         super().__init__()
@@ -140,8 +96,8 @@ class ExchangeBetRequester(Actuator):
         self.estimation_result = estimation_result
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.0)
-        self.stakes = max([round(self.CURRENT_BANKROLL * 0.01, 2), 6.0])
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1)
+        self.stakes = max([round(self.CURRENT_BANKROLL * 0.0033, 2), 6.0])
 
     def run(self) -> None:
         probability_estimates = self.estimation_result.probability_estimates
@@ -155,7 +111,7 @@ class ExchangeBetRequester(Actuator):
                             horse_probability = race_card_probabilities[int(horse_number)]
                             horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                            if horse_min_odds < 3.5:
+                            if horse_min_odds <= 3.5:
                                 print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
                                 self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds, self.stakes)
                 else:
@@ -231,8 +187,6 @@ class BetAgent:
                 upcoming_race_cards=self.upcoming_race_cards
             )
             self.actuator = ExchangeBetRequester(self.estimation_result, exchange)
-        elif self.actuator_name == "RacebetsBetsReporter":
-            self.actuator = RacebetsBetsReporter(self.estimation_result, self.upcoming_race_cards)
         else:
             self.actuator = MinOddsReporter(self.estimation_result, self.upcoming_race_cards)
 

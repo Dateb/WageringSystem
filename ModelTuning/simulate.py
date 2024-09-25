@@ -1,6 +1,7 @@
 import pickle
 from typing import List, Callable, Dict
 
+import my_rust_module
 from tqdm import tqdm
 
 from DataAbstraction.Present.RaceCard import RaceCard
@@ -148,7 +149,7 @@ if __name__ == '__main__':
         container_upper_limit_percentage=0.1,
         n_months_test_sample=14,
         n_months_forward_offset=0,
-        race_cards_folder=simulate_conf.DEV_RACE_CARDS_FOLDER_NAME
+        race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
     )
 
     model_simulator = ModelSimulator(data_splitter)
