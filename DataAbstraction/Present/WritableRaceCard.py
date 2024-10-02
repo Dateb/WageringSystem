@@ -7,7 +7,7 @@ from DataAbstraction.Present.WritableHorse import WritableHorse
 class WritableRaceCard(RaceCard):
 
     def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
-        super().__init__(race_id, raw_race_card, remove_non_starters)
+        super().__init__(race_id, raw_race_card)
         self.raw_race_card = raw_race_card
         self.set_horses(raw_race_card["runners"]["data"])
 

@@ -7,7 +7,6 @@ from numpy import mean
 from DataAbstraction.Present.RaceCard import RaceCard
 from Model.Betting.bet import Bet, BettorFactory, BetResult
 from Model.Betting.offer_container import BetfairOfferContainer
-from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Betting.staking import FixedStakesCalculator
 from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from ModelTuning import simulate_conf
@@ -21,11 +20,9 @@ class ModelEvaluator:
 
     def __init__(
             self,
-            race_results_container: RaceResultsContainer,
             clv_tolerance: float = -np.inf,
-            drawdown_tolerance: float = 10000
+            drawdown_tolerance: float = np.inf
     ):
-        self.race_results_container = race_results_container
         self.bettor_factory = BettorFactory()
 
         self.offer_container = BetfairOfferContainer()
@@ -47,7 +44,7 @@ class ModelEvaluator:
         for min_ev_value in min_ev_values:
             bettor = self.bettor_factory.create_bettor(min_ev_value)
             bets = bettor.bet(self.offer_container.race_offers, estimation_result)
-            bet_result = BetResult(bets, self.race_results_container)
+            bet_result = BetResult(bets)
 
             for bet in bets:
                 self.stakes_calculator.set_stakes(bet)

@@ -47,17 +47,6 @@ class CurrentDistance(FeatureExtractor):
         return float(race_card.distance)
 
 
-class CurrentTemperature(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if race_card.temperature < 0:
-            return self.PLACEHOLDER_VALUE
-        return race_card.temperature
-
-
 class CurrentWindSpeed(FeatureExtractor):
 
     def __init__(self):
@@ -78,18 +67,6 @@ class CurrentHumidity(FeatureExtractor):
         if race_card.humidity < 0:
             return self.PLACEHOLDER_VALUE
         return race_card.humidity
-
-
-class CurrentWeatherType(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-        self.is_categorical = True
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if not race_card.weather_type:
-            return self.PLACEHOLDER_VALUE
-        return race_card.weather_type
 
 
 class PlacesNum(FeatureExtractor):
@@ -245,30 +222,6 @@ class TravelDistance(FeatureExtractor):
         travel_distance = self.beeline_distances[location_id_current][location_id_previous]
 
         return travel_distance
-
-
-class WeatherType(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-        self.is_categorical = True
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if race_card.weather is None:
-            return self.PLACEHOLDER_VALUE
-
-        return get_category_encoding("weather_type", race_card.weather.weather_type)
-
-
-class Temperature(FeatureExtractor):
-
-    def __init__(self):
-        super().__init__()
-
-    def get_value(self, race_card: RaceCard, horse: Horse) -> float:
-        if race_card.weather is None:
-            return self.PLACEHOLDER_VALUE
-        return race_card.weather.temperature
 
 
 class AirPressure(FeatureExtractor):

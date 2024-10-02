@@ -13,7 +13,6 @@ from DataCollection.DayCollector import DayCollector
 from DataCollection.TrainDataCollector import TrainDataCollector
 from DataCollection.race_cards.full import FullRaceCardsCollector
 from Model.Betting.bet import BettorFactory, OddsThreshold, BetfairOddsVigAdjuster
-from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimation.estimated_probabilities_creation import PlaceProbabilizer, EstimationResult
 from ModelTuning import simulate_conf
 from ModelTuning.simulate import ModelSimulator

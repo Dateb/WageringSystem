@@ -6,7 +6,6 @@ from numpy import ndarray
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceResult import RaceResult
-from DataAbstraction.Present.Weather import Weather
 from DataAbstraction.util.track_name_mapping import get_unique_track_name
 from util.nested_dict import nested_dict
 from util.text_based_functions import get_name_similarity
@@ -24,15 +23,10 @@ class RaceCard:
     par_momentum: defaultdict = nested_dict()
     track_variant: defaultdict = nested_dict()
 
-    def __init__(self, race_id: str, raw_race_card: dict, remove_non_starters: bool):
+    def __init__(self, race_id: str, raw_race_card: dict):
         self.is_valid_sample = True
         self.feature_source_validity = True
         self.race_id = race_id
-        self.remove_non_starters = remove_non_starters
-        self.temperature = -1
-        self.wind_speed = -1
-        self.humidity = -1
-        self.weather_type = ""
 
         self.__extract_attributes(raw_race_card)
 
@@ -181,20 +175,6 @@ class RaceCard:
             else:
                 self.places_num = 3
 
-        # placed_horses_odds = sorted([horse for horse in self.runners if horse.place_racebets > 0],
-        #                        key=lambda horse: horse.win_sp)
-        # n_placed_horses = len(placed_horses_odds)
-        #
-        # placed_horse_idx = 1
-        # for horse in placed_horses_odds:
-        #     horse.ranking_label = n_placed_horses - placed_horse_idx
-        #     placed_horse_idx += 1
-        #
-        #     if horse.ranking_label == -1:
-        #         print('yellow')
-        #
-        #     horse.base_attributes[Horse.RANKING_LABEL_KEY] = horse.ranking_label
-
         for horse in self.runners:
             horse.has_placed = 1 <= horse.place <= self.places_num
 
@@ -210,21 +190,6 @@ class RaceCard:
         if n_placed_horses > self.places_num:
             print(f"Places num is {self.places_num} but {n_placed_horses} horses placed: {self.race_id}")
             print(f"n_finishers: {self.n_finishers}")
-
-        # if self.remove_non_starters:
-        #     self.__remove_non_starters()
-
-    def add_weather_data(self, weather_data: dict) -> None:
-        pass
-        # if str(self.date) in weather_data:
-        #     if self.track_name in weather_data[str(self.date)]:
-        #         if str(self.race_number) in weather_data[str(self.date)][self.track_name]:
-        #             self.temperature = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["temp"]
-        #             self.wind_speed = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
-        #                 "wind_speed"]
-        #             self.humidity = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0][
-        #                 "humidity"]
-        #             self.weather_type = weather_data[str(self.date)][self.track_name][str(self.race_number)]["data"][0]["weather"][0]["main"]
 
     def set_betfair_win_sp(self) -> None:
         for horse in self.runners:

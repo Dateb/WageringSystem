@@ -113,7 +113,7 @@ class RaceDataPersistence:
             return json.load(f)
 
     def create_race_card(self, raw_race: dict) -> RaceCard:
-        return RaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)
+        return RaceCard(raw_race["race"]["idRace"], raw_race)
 
     def create_writable_race_card(self, raw_race: dict) -> RaceCard:
         return WritableRaceCard(raw_race["race"]["idRace"], raw_race, remove_non_starters=True)

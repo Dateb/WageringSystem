@@ -12,7 +12,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
 from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
     CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentEstimatedGoing, CurrentDistance, CurrentPurse, \
-    TravelDistance, PlacesNum, HasTrainerMultipleHorses, HasPlaced, CurrentTemperature, CurrentWindSpeed, \
+    TravelDistance, PlacesNum, HasTrainerMultipleHorses, HasPlaced, CurrentWindSpeed, \
     CurrentHumidity
 from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
     HasEyeShield, HasTongueStrap

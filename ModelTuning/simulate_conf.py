@@ -1,5 +1,5 @@
-DEV_RACE_CARDS_FOLDER_NAME = "race_cards_dev"
-RELEASE_RACE_CARDS_FOLDER_NAME = "race_cards_release"
+DEV_RACE_CARDS_FOLDER_NAME = "raw_race_cards_dev"
+RELEASE_RACE_CARDS_FOLDER_NAME = "raw_race_cards_release"
 BET_RESULT_PATH = "../data/test_payouts.dat"
 
 GBT_CONFIG_PATH: str = "../Model/Estimation/gbt_config"

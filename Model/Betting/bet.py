@@ -8,7 +8,6 @@ import numpy as np
 from DataAbstraction.Present.Horse import Horse
 from datetime import datetime
 
-from Model.Betting.race_results_container import RaceResultsContainer
 from Model.Estimation.estimated_probabilities_creation import EstimationResult
 from util.stats_calculator import get_max_draw_down
 
@@ -147,21 +146,8 @@ class Bet:
 
 class BetResult:
 
-    def __init__(self, bets: List[Bet], race_results_container: RaceResultsContainer):
+    def __init__(self, bets: List[Bet]):
         self.bets = bets
-
-        self.filter_bets_without_race_result(race_results_container)
-        self.filter_bets_with_nonrunner_horse(race_results_container)
-
-    def filter_bets_without_race_result(self, race_results_container: RaceResultsContainer) -> None:
-        self.bets = [bet for bet in self.bets if str(bet.bet_offer.race_datetime) in race_results_container.race_results]
-
-    def filter_bets_with_nonrunner_horse(self, race_results_container: RaceResultsContainer) -> None:
-        self.bets = [bet for bet in self.bets if not self.bet_contains_nonrunner(bet, race_results_container)]
-
-    def bet_contains_nonrunner(self, bet: Bet, race_results_container: RaceResultsContainer) -> bool:
-        race_result = race_results_container.race_results[str(bet.bet_offer.race_datetime)]
-        return race_result.is_non_runner(bet.bet_offer.horse_number)
 
     @property
     def max_drawdown(self) -> float:

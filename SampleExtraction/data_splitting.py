@@ -1,12 +1,5 @@
-from typing import Tuple, List
-
 import numpy as np
-import pandas as pd
-
-from DataAbstraction.Present.RaceCard import RaceCard
-from ModelTuning import simulate_conf
 from Persistence.RaceCardPersistence import RaceDataPersistence
-from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 
 class MonthDataSplitter:

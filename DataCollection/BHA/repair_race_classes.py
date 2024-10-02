@@ -3,7 +3,7 @@ from Persistence.RaceCardPersistence import RaceDataPersistence
 
 
 def main():
-    race_cards_persistence = RaceDataPersistence(data_dir_name="race_cards_dev")
+    race_cards_persistence = RaceDataPersistence(data_dir_name="raw_race_cards_dev")
 
     injector = BHAInjector()
 
