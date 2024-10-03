@@ -3,8 +3,11 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct Horse {
+    pub id: u32,
     pub number: u8,
+    pub sp: f64,
     pub age: u8,
+    pub weight: f64,
     pub place: i32,
 }
 

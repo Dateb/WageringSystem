@@ -30,13 +30,21 @@ def extract_value_to_new_dict(old_dict):
 
                 horses_dict = {}
                 for horse_id, horse_values in horses.items():
+                    place = int(horse_values.get("finalPosition", -1))
+
                     # DO: Fix this better in the future!!!!!
                     age = max([0, horse_values['age']])
-                    place = int(horse_values.get("finalPosition", -1))
+                    jockey_data = horse_values["jockey"]
+                    weight = jockey_data.get("weight", {}).get("weight", -1)
+                    sp = horse_values.get("bsp_win", 0)
+
                     horses_dict[horse_id] = {
+                        "id": horse_values["idSubject"],
                         "number": horse_values["programNumber"],
+                        "sp": sp,
                         "age": age,
                         "place": place,
+                        "weight": weight,
                     }
 
                 new_dict[post_time]['horses'] = horses_dict

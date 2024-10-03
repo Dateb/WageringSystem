@@ -1,22 +1,112 @@
 use crate::stream_data::file_reading::deserialize::{Horse, RaceCard};
-use crate::stream_data::value_calculator::{AgeCalculator, ValueCalculator};
+use crate::stream_data::value_calculator::ValueCalculator;
+use std::collections::HashMap;
+use crate::stream_data::category_calculators::CategoryCalculator;
+use std::sync::Arc;
+
+pub trait Feature {
+    fn name(&self) -> String;
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64;
+}
 
 pub struct FeatureExtractor {
-    pub name: String,
-    pub value_calculator: Box<dyn ValueCalculator + Send + Sync>,
+    pub value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+    pub category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
 }
 
 impl FeatureExtractor {
-    pub fn new(name: String, value_calculator: Box<dyn ValueCalculator + Send + Sync>) -> Self {
-        FeatureExtractor { name, value_calculator }
+    pub fn new(
+        value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+        category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    ) -> Self {
+        FeatureExtractor { value_calculator, category_calculators }
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn get_category_key(&mut self, race_card: &RaceCard, horse: &Horse) -> String {
+        let mut category_key = String::new();
+
+        for category_calculator in &self.category_calculators {
+            let category = category_calculator.get_category(race_card, horse);
+            category_key.push_str(&category);
+        }
+
+        category_key
+    }
+}
+
+impl Feature for FeatureExtractor {
+    fn name(&self) -> String {
+        self.value_calculator.name().to_string()
     }
 
-    pub fn extract(&self, race_card: &RaceCard, horse: &Horse) -> f64 {
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
         self.value_calculator.calculate(race_card, horse)
+    }
+}
+
+
+pub struct MaxFeatureExtractor {
+    pub feature_extractor: FeatureExtractor,
+    pub max_values: HashMap<String, f64>,
+}
+
+impl MaxFeatureExtractor {
+    pub fn new(
+        value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+        category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    ) -> Self {
+        MaxFeatureExtractor {
+            feature_extractor: FeatureExtractor::new(value_calculator, category_calculators),
+            max_values: HashMap::new()
+        }
+    }
+}
+
+impl Feature for MaxFeatureExtractor {
+    fn name(&self) -> String { format!("{}{}", "max_", &self.feature_extractor.name()) }
+
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
+        let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
+        let value = self.feature_extractor.value_calculator.calculate(race_card, horse);
+        let max_value = self.max_values.entry(category_key).or_insert(value);
+
+        if value > *max_value {
+            *max_value = value;
+        }
+
+        *max_value
+    }
+}
+
+pub struct PreviousFeatureExtractor {
+    pub feature_extractor: FeatureExtractor,
+    pub previous_values: HashMap<String, f64>,
+}
+
+impl PreviousFeatureExtractor {
+    pub fn new(
+        value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+        category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    ) -> Self {
+        PreviousFeatureExtractor {
+            feature_extractor: FeatureExtractor::new(value_calculator, category_calculators),
+            previous_values: HashMap::new()
+        }
+    }
+}
+
+impl Feature for PreviousFeatureExtractor {
+    fn name(&self) -> String { format!("{}{}", "previous_", &self.feature_extractor.name()) }
+
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
+        let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
+        let value = self.feature_extractor.value_calculator.calculate(race_card, horse);
+        let previous_value = self.previous_values.entry(category_key).or_insert(value);
+
+        let old_value = *previous_value;
+        *previous_value = value;
+
+        old_value
     }
 }
 

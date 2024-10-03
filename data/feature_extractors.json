@@ -1,0 +1,29 @@
+{
+  "feature_extractors": [
+    {
+      "extractor_type": "FeatureExtractor",
+      "value_calculator": "AgeCalculator",
+      "categories": []
+    },
+    {
+      "extractor_type": "FeatureExtractor",
+      "value_calculator": "WeightCalculator",
+      "categories": []
+    },
+    {
+      "extractor_type": "MaxFeatureExtractor",
+      "value_calculator": "WeightCalculator",
+      "categories": ["HorseIdCategory"]
+    },
+    {
+      "extractor_type": "PreviousFeatureExtractor",
+      "value_calculator": "WeightCalculator",
+      "categories": ["HorseIdCategory"]
+    },
+    {
+      "extractor_type": "PreviousFeatureExtractor",
+      "value_calculator": "WinProbabilityCalculator",
+      "categories": ["HorseIdCategory"]
+    }
+  ]
+}

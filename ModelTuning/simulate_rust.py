@@ -29,7 +29,7 @@ class ModelSimulator:
         self.validation_sample = None
 
         self.feature_manager = FeatureManager()
-        self.feature_manager.feature_names = ["age"]
+        self.feature_manager.feature_names = self.stream_data_manager.get_feature_names()
         self.feature_manager.categorical_feature_names = []
 
         # weak_estimators = [

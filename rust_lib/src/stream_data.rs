@@ -2,10 +2,11 @@ mod file_reading;
 mod value_calculator;
 mod feature_extractor;
 mod feature_manager;
+mod category_calculators;
 
-use std::cmp;
+use std::{cmp, fs};
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use serde::Serialize;
@@ -35,7 +36,7 @@ impl StreamData {
         }
     }
 
-    fn add_race_cards(&mut self, race_cards: Vec<RaceCard>, feature_manager: &FeatureManager) {
+    fn add_race_cards(&mut self, race_cards: Vec<RaceCard>, feature_manager: &mut FeatureManager) {
         for race_card in race_cards {
             for horse in race_card.horses.values() {
                 self.date_time.push(race_card.date_time.clone());
@@ -49,9 +50,10 @@ impl StreamData {
                 };
                 self.ranking_label.push(ranking_label);
 
-                for feature_extractor in &feature_manager.feature_extractors {
+                for feature_extractor in
+                    &mut feature_manager.feature_extractors {
                     let feature_name = feature_extractor.name().to_string();
-                    let feature_value = feature_extractor.value_calculator.calculate(&race_card, horse);
+                    let feature_value = feature_extractor.extract(&race_card, horse);
 
                     self.features
                         .entry(feature_name)
@@ -86,32 +88,6 @@ impl StreamData {
     }
 }
 
-
-#[pyfunction]
-fn get_stream_data_dict(py: Python) -> PyResult<&PyDict> {
-    let mut stream_data = StreamData::new();
-
-    let file_splitter = FileSplitter::new(
-        "../data/race_cards_dev",
-        0.8
-    );
-
-    let train_file_reader = FileReader::new(file_splitter.train_files);
-    let test_file_reader = FileReader::new(file_splitter.test_files);
-
-    let feature_manager = FeatureManager::new();
-
-    for race_cards in train_file_reader {
-        stream_data.add_race_cards(race_cards, &feature_manager);
-    }
-
-    for race_cards in test_file_reader {
-        stream_data.add_race_cards(race_cards, &feature_manager);
-    }
-
-    stream_data.to_dict(py)
-}
-
 #[pyclass]
 pub struct StreamDataManager {
     file_splitter: FileSplitter,
@@ -123,25 +99,42 @@ impl StreamDataManager {
     #[new]
     pub fn new(directory_path: &str, train_fraction: f64) -> Self {
         let file_splitter = FileSplitter::new(directory_path, train_fraction);
-        let feature_manager = FeatureManager::new();
+
+        let path = Path::new("../data/feature_extractors.json");
+
+        // Print the path being looked for
+        println!("Looking for config file at: {:?}", path);
+
+        let config_json = fs::read_to_string(path).expect("Unable to read file");
+
+        let feature_manager = FeatureManager::from_config(&config_json);
+
         StreamDataManager { file_splitter, feature_manager }
     }
 
-    pub fn get_train_stream_data(&self, py: Python) -> PyResult<PyObject> {
+    pub fn get_train_stream_data(&mut self, py: Python) -> PyResult<PyObject> {
         self.get_stream_data(py, self.file_splitter.train_files.clone())
     }
 
-    pub fn get_test_stream_data(&self, py: Python) -> PyResult<PyObject> {
+    pub fn get_test_stream_data(&mut self, py: Python) -> PyResult<PyObject> {
         self.get_stream_data(py, self.file_splitter.test_files.clone())
     }
 
-    fn get_stream_data(&self, py: Python, files: Vec<PathBuf>) -> PyResult<PyObject> {
+    pub fn get_feature_names(&mut self, py: Python) -> PyResult<PyObject> {
+        let feature_names = self.feature_manager.get_feature_names();
+
+        let py_feature_names = PyList::new(py, feature_names);
+
+        Ok(py_feature_names.to_object(py))
+    }
+
+    fn get_stream_data(&mut self, py: Python, files: Vec<PathBuf>) -> PyResult<PyObject> {
         let mut stream_data = StreamData::new();
 
         let test_file_reader = FileReader::new(files);
 
         for race_cards in test_file_reader {
-            stream_data.add_race_cards(race_cards, &self.feature_manager);
+            stream_data.add_race_cards(race_cards, &mut self.feature_manager);
         }
 
         let py_dict = stream_data.to_dict(py)?;  // Obtain the PyDict
