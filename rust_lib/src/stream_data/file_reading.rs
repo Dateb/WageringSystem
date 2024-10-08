@@ -1,5 +1,6 @@
 pub(crate) mod deserialize;
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::fs;
 use std::io::Read;
@@ -37,6 +38,7 @@ impl FileSplitter {
 pub struct FileReader {
     files: Vec<PathBuf>,
     current: usize,
+    day_racecards: BTreeMap<u8, Vec<RaceCard>>
 }
 
 impl FileReader {
@@ -45,6 +47,7 @@ impl FileReader {
         FileReader {
             files: file_paths,
             current: 0,
+            day_racecards: BTreeMap::new(),
         }
     }
 
@@ -70,13 +73,28 @@ impl Iterator for FileReader {
     type Item = Vec<RaceCard>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current < self.files.len() {
+        // Ensure the buffer has data for the next day before proceeding
+        while self.current < self.files.len() && self.day_racecards.is_empty() {
             let racecards = self.read_race_cards(self.current);
             self.current += 1;
-            Some(racecards)
-        } else {
-            None // End of iteration
+
+            // Group the race cards by day and store them in the buffer
+            for racecard in racecards {
+                self.day_racecards.entry(racecard.day)
+                    .or_insert_with(Vec::new)
+                    .push(racecard);
+            }
         }
+
+        // If the buffer is not empty, return the racecards for the earliest day
+        if let Some((&day, racecards)) = self.day_racecards.iter_mut().next() {
+            // Remove the entry from the map after returning
+            let result = racecards.split_off(0);
+            self.day_racecards.remove(&day);
+            return Some(result);
+        }
+
+        None
     }
 }
 

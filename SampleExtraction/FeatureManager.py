@@ -152,7 +152,7 @@ class FeatureManager:
                 else:
                     race_card_key = feature_value_group.get_race_card_key(race_card)
                 for horse in race_card.horses:
-                    if not horse.is_scratched:
+                    if not horse.is_nonrunner:
                         if race_card.is_valid_sample:
                             feature_value_group_key = feature_value_group.key_cache[horse.subject_id]
                         else:

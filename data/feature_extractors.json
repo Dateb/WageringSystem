@@ -1,29 +1,70 @@
 {
-  "feature_extractors": [
-    {
-      "extractor_type": "FeatureExtractor",
-      "value_calculator": "AgeCalculator",
-      "categories": []
+  "feature_extractors": {
+    "Current": {
+      "Age": [[]],
+      "Weight": [[]]
     },
-    {
-      "extractor_type": "FeatureExtractor",
-      "value_calculator": "WeightCalculator",
-      "categories": []
+    "Max": {
+      "WinProbability": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+      ]
     },
-    {
-      "extractor_type": "MaxFeatureExtractor",
-      "value_calculator": "WeightCalculator",
-      "categories": ["HorseIdCategory"]
+    "Previous": {
+      "WinProbability": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+      ],
+      "RelativeDistanceBehind": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+      ],
+      "PlacePercentile": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+      ]
     },
-    {
-      "extractor_type": "PreviousFeatureExtractor",
-      "value_calculator": "WeightCalculator",
-      "categories": ["HorseIdCategory"]
-    },
-    {
-      "extractor_type": "PreviousFeatureExtractor",
-      "value_calculator": "WinProbabilityCalculator",
-      "categories": ["HorseIdCategory"]
+    "SimpleAverage": {
+      "WinProbability": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+      ],
+      "RelativeDistanceBehind": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+      ],
+      "PlacePercentile": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+      ],
+      "Purse": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+      ]
     }
-  ]
+  }
 }

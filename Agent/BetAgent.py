@@ -149,7 +149,7 @@ class BetAgent:
 
         self.columns = None
 
-        self.update_race_card_data()
+        self.scrape_newest_race_cards()
 
         data_splitter = MonthDataSplitter(
             container_upper_limit_percentage=0.1,
@@ -189,7 +189,7 @@ class BetAgent:
         else:
             self.actuator = MinOddsReporter(self.estimation_result, self.upcoming_race_cards)
 
-    def update_race_card_data(self) -> None:
+    def scrape_newest_race_cards(self) -> None:
         print("Scraping newest race card data...")
 
         train_data_collector = TrainDataCollector(RaceDataPersistence(simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME))

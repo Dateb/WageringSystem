@@ -15,7 +15,7 @@ class WritableRaceCard(RaceCard):
         self.horses: List[WritableHorse] = [WritableHorse(raw_horses[horse_id]) for horse_id in raw_horses]
         self.n_horses = len(self.horses)
 
-        self.runners = [horse for horse in self.horses if not horse.is_scratched]
+        self.runners = [horse for horse in self.horses if not horse.is_nonrunner]
 
     def set_place_percentile_of_runners(self) -> None:
         pass

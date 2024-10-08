@@ -6,12 +6,13 @@ use std::sync::Arc;
 
 pub trait Feature {
     fn name(&self) -> String;
-    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64;
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> Option<f64>;
 }
 
 pub struct FeatureExtractor {
     pub value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
-    pub category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    pub category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>,
+    pub name: String
 }
 
 impl FeatureExtractor {
@@ -19,7 +20,20 @@ impl FeatureExtractor {
         value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
         category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
     ) -> Self {
-        FeatureExtractor { value_calculator, category_calculators }
+        let mut name = value_calculator.name().to_string();
+
+        if !category_calculators.is_empty() {
+            name.push('_');
+            for (i, category_calculator)
+            in category_calculators.iter().enumerate() {
+                name.push_str(&category_calculator.name());
+                if i < category_calculators.len() - 1 {
+                    name.push('_');
+                }
+            }
+        }
+
+        FeatureExtractor { value_calculator, category_calculators, name }
     }
 
     pub fn get_category_key(&mut self, race_card: &RaceCard, horse: &Horse) -> String {
@@ -36,10 +50,10 @@ impl FeatureExtractor {
 
 impl Feature for FeatureExtractor {
     fn name(&self) -> String {
-        self.value_calculator.name().to_string()
+        self.name.to_string()
     }
 
-    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> Option<f64> {
         self.value_calculator.calculate(race_card, horse)
     }
 }
@@ -47,7 +61,7 @@ impl Feature for FeatureExtractor {
 
 pub struct MaxFeatureExtractor {
     pub feature_extractor: FeatureExtractor,
-    pub max_values: HashMap<String, f64>,
+    pub max_values: HashMap<String, Option<f64>>,
 }
 
 impl MaxFeatureExtractor {
@@ -65,22 +79,28 @@ impl MaxFeatureExtractor {
 impl Feature for MaxFeatureExtractor {
     fn name(&self) -> String { format!("{}{}", "max_", &self.feature_extractor.name()) }
 
-    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> Option<f64> {
         let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
         let value = self.feature_extractor.value_calculator.calculate(race_card, horse);
-        let max_value = self.max_values.entry(category_key).or_insert(value);
+        let max_value = self.max_values.entry(category_key).or_insert(None);
 
-        if value > *max_value {
-            *max_value = value;
+        let value = match value {
+            Some(v) => v,
+            None => return *max_value,
+        };
+
+        let result = *max_value;
+        if max_value.is_none() || value > max_value.unwrap() {
+            *max_value = Some(value);
         }
 
-        *max_value
+        result
     }
 }
 
 pub struct PreviousFeatureExtractor {
     pub feature_extractor: FeatureExtractor,
-    pub previous_values: HashMap<String, f64>,
+    pub previous_values: HashMap<String, Option<f64>>,
 }
 
 impl PreviousFeatureExtractor {
@@ -98,15 +118,61 @@ impl PreviousFeatureExtractor {
 impl Feature for PreviousFeatureExtractor {
     fn name(&self) -> String { format!("{}{}", "previous_", &self.feature_extractor.name()) }
 
-    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> f64 {
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> Option<f64> {
         let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
         let value = self.feature_extractor.value_calculator.calculate(race_card, horse);
-        let previous_value = self.previous_values.entry(category_key).or_insert(value);
+        let previous_value = self.previous_values.entry(category_key).or_insert(None);
 
         let old_value = *previous_value;
         *previous_value = value;
 
         old_value
+    }
+}
+
+pub struct SimpleAverageFeatureExtractor {
+    pub feature_extractor: FeatureExtractor,
+    pub average_values: HashMap<String, Option<f64>>,
+    pub count_values: HashMap<String, i32>
+}
+
+impl SimpleAverageFeatureExtractor {
+    pub fn new(
+        value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+        category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    ) -> Self {
+        SimpleAverageFeatureExtractor {
+            feature_extractor: FeatureExtractor::new(value_calculator, category_calculators),
+            average_values: HashMap::new(),
+            count_values: HashMap::new()
+        }
+    }
+}
+
+impl Feature for SimpleAverageFeatureExtractor {
+    fn name(&self) -> String { format!("{}{}", "simple_average_", &self.feature_extractor.name()) }
+
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> Option<f64> {
+        let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
+        let new_obs = self.feature_extractor.value_calculator.calculate(race_card, horse);
+
+        let average = self.average_values.entry(category_key.clone()).or_insert(None);
+        let count = self.count_values.entry(category_key).or_insert(0);
+
+        let new_obs = match new_obs {
+            Some(v) => v,
+            None => return *average,
+        };
+
+        let result = *average;
+
+        *count += 1;
+        *average = match *average {
+            Some(avg) => Some(((*count - 1) as f64 * avg + new_obs) / *count as f64),
+            None => Some(new_obs),
+        };
+
+        result
     }
 }
 

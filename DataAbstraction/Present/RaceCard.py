@@ -145,7 +145,7 @@ class RaceCard:
     def set_horses(self, raw_horses: dict) -> None:
         self.horses: List[Horse] = [Horse(raw_horses[horse_id]) for horse_id in raw_horses]
         self.n_horses = len(self.horses)
-        self.runners = [horse for horse in self.horses if not horse.is_scratched]
+        self.runners = [horse for horse in self.horses if not horse.is_nonrunner]
         self.n_runners = len(self.runners)
         self.n_finishers = len([horse for horse in self.runners if horse.place_racebets > 0])
 

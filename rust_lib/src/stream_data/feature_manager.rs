@@ -1,6 +1,7 @@
-use crate::stream_data::category_calculators::{CategoryCalculator, HorseIdCategory};
-use crate::stream_data::feature_extractor::{Feature, FeatureExtractor, MaxFeatureExtractor, PreviousFeatureExtractor};
-use crate::stream_data::value_calculator::{ValueCalculator, AgeCalculator, WeightCalculator, WinProbabilityCalculator};
+use std::collections::HashMap;
+use crate::stream_data::category_calculators::*;
+use crate::stream_data::feature_extractor::*;
+use crate::stream_data::value_calculator::*;
 use std::sync::Arc;
 use serde::Deserialize;
 
@@ -10,14 +11,7 @@ pub struct FeatureManager {
 
 #[derive(Deserialize)]
 struct Config {
-    feature_extractors: Vec<FeatureConfig>,
-}
-
-#[derive(Deserialize)]
-struct FeatureConfig {
-    extractor_type: String,
-    value_calculator: String,
-    categories: Option<Vec<String>>,
+    feature_extractors: HashMap<String, HashMap<String, Vec<Vec<String>>>>,
 }
 
 impl FeatureManager {
@@ -26,29 +20,32 @@ impl FeatureManager {
 
         let mut feature_extractors: Vec<Box<dyn Feature + Send + Sync>> = Vec::new();
 
-        for feature_extractor in config.feature_extractors {
-            let value_calculator: Arc<dyn ValueCalculator + Send + Sync> = match feature_extractor.value_calculator.as_str() {
-                "AgeCalculator" => Arc::new(AgeCalculator),
-                "WeightCalculator" => Arc::new(WeightCalculator),
-                "WinProbabilityCalculator" => Arc::new(WinProbabilityCalculator),
-                _ => panic!("Unknown calculator type: {}", feature_extractor.value_calculator),
-            };
+        for (extractor_type, calculators) in config.feature_extractors {
+            for (value_calculator, categories_list) in calculators {
+                let value_calculator: Arc<dyn ValueCalculator + Send + Sync> = match value_calculator.as_str() {
+                    "Age" => Arc::new(AgeCalculator),
+                    "Weight" => Arc::new(WeightCalculator),
+                    "WinProbability" => Arc::new(WinProbabilityCalculator),
+                    "PlacePercentile" => Arc::new(PlacePercentileCalculator),
+                    "RelativeDistanceBehind" => Arc::new(RelativeDistanceBehindCalculator),
+                    "Purse" => Arc::new(PurseCalculator),
+                    _ => panic!("Unknown calculator type: {}", value_calculator),
+                };
 
-            // Match extractor type
-            let extractor: Box<dyn Feature + Send + Sync> = match feature_extractor.extractor_type.as_str() {
-                "FeatureExtractor" => Box::new(FeatureExtractor::new(value_calculator.clone(), vec![])),
-                "MaxFeatureExtractor" => Box::new(MaxFeatureExtractor::new(
-                    value_calculator.clone(),
-                    parse_categories(&feature_extractor.categories)
-                )),
-                "PreviousFeatureExtractor" => Box::new(PreviousFeatureExtractor::new(
-                    value_calculator.clone(),
-                    parse_categories(&feature_extractor.categories)
-                )),
-                _ => panic!("Unknown extractor type: {}", feature_extractor.extractor_type),
-            };
+                for categories in categories_list {
+                    let parsed_categories = parse_categories(&categories);
 
-            feature_extractors.push(extractor);
+                    let extractor: Box<dyn Feature + Send + Sync> = match extractor_type.as_str() {
+                        "Current" => Box::new(FeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "Max" => Box::new(MaxFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "Previous" => Box::new(PreviousFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "SimpleAverage" => Box::new(SimpleAverageFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        _ => panic!("Unknown extractor type: {}", extractor_type),
+                    };
+
+                    feature_extractors.push(extractor);
+                }
+            }
         }
 
         FeatureManager {
@@ -65,17 +62,21 @@ impl FeatureManager {
 }
 
 
-fn parse_categories(category_names: &Option<Vec<String>>) -> Vec<Arc<dyn CategoryCalculator + Send + Sync>> {
+fn parse_categories(category_names: &Vec<String>) -> Vec<Arc<dyn CategoryCalculator + Send + Sync>> {
     let mut categories: Vec<Arc<dyn CategoryCalculator + Send + Sync>> = Vec::new();
 
-    if let Some(category_names) = category_names {
-        for category_name in category_names {
-            let category_calculator: Arc<dyn CategoryCalculator + Send + Sync> = match category_name.as_str() {
-                "HorseIdCategory" => Arc::new(HorseIdCategory),
-                _ => panic!("Unknown category: {}", category_name),
-            };
-            categories.push(category_calculator);
-        }
+    for category_name in category_names {
+        let category_calculator: Arc<dyn CategoryCalculator + Send + Sync> = match category_name.as_str() {
+            "HorseId" => Arc::new(HorseIdCategory),
+            "JockeyId" => Arc::new(JockeyIdCategory),
+            "TrainerId" => Arc::new(TrainerIdCategory),
+            "OwnerId" => Arc::new(OwnerIdCategory),
+            "BreederId" => Arc::new(BreederIdCategory),
+            "RaceType" => Arc::new(RaceTypeCategory),
+            "RaceClass" => Arc::new(RaceClassCategory),
+            _ => panic!("Unknown category: {}", category_name),
+        };
+        categories.push(category_calculator);
     }
 
     categories

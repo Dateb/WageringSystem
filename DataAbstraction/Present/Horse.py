@@ -39,7 +39,9 @@ class Horse:
         self.breeder = raw_data["breeder"]
         self.owner = raw_data["owner"]
 
-        self.age = raw_data["age"]
+        # DO: Fix this better in the future!!!!!
+        self.age = max([0, raw_data['age']])
+
         self.gender = raw_data["gender"]
         self.origin = raw_data["origin"]["iso"]
         if not self.origin:
@@ -59,7 +61,7 @@ class Horse:
         self.place_racebets = self.__extract_place(raw_data)
         self.place = 0
 
-        self.is_scratched = raw_data["scratched"]
+        self.is_nonrunner = raw_data["scratched"]
         self.win_sp = self.__extract_betfair_win_odds(raw_data)
         if self.win_sp < 1:
             self.win_sp = self.__extract_racebets_win_odds(raw_data)
@@ -145,7 +147,7 @@ class Horse:
         return -1
 
     def __extract_racebets_win_odds(self, raw_data: dict):
-        if self.is_scratched:
+        if self.is_nonrunner:
             return -1
 
         odds_of_horse = raw_data["odds"]

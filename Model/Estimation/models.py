@@ -1,5 +1,5 @@
 import pickle
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import numpy as np
 import pandas as pd
@@ -93,36 +93,21 @@ class Estimator(ABC):
         self.booster.free_dataset()
 
         print(f"Train-{self.objective_key}: {train_result['train'][self.objective_key][-1]}")
+        self.predict_probabilities(train_sample)
 
-        # eval_results = lightgbm.cv(
-        #     params=self.params,
-        #     train_set=dataset.lightgbm_dataset,
-        #     categorical_feature=dataset.categorical_feature_names,
-        #     return_cvbooster=False,
-        #     stratified=False
-        # )
-        #
-        # cv_score = eval_results["valid gamma-mean"][-1]
-        #
-        # print(f"Validation score: {cv_score}")
+        eval_results = lightgbm.cv(
+            params=self.params,
+            train_set=dataset.lightgbm_dataset,
+            categorical_feature=dataset.categorical_feature_names,
+            return_cvbooster=False,
+            stratified=False
+        )
 
-        #
-        # importance_scores = self.booster.feature_importance(importance_type="gain")
-        # feature_importances = {self.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
-        # sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
-        #
-        #
-        # importance_sum = sum([importance for importance in list(sorted_feature_importances.values())])
-        # relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
-        #                                 sorted_feature_importances.items()}
-        #
-        # avg_relative_importances = [relative_importance for feature_name, relative_importance in relative_feature_importances.items()
-        #                             if "AverageValueSource" in feature_name]
-        #
-        # print(f"Average values relative importances: {sum(avg_relative_importances)}")
-        #
-        # print(f"{importance_sum}: {relative_feature_importances}")
-        #
+        cv_score = eval_results[f"valid {self.objective_key}-mean"][-1]
+
+        print(f"Validation score: {cv_score}")
+
+        self.show_feature_importance_scores()
 
         return 0.0
 
@@ -140,10 +125,28 @@ class Estimator(ABC):
         dataset = self.create_dataset(sample)
         prob = self.booster.predict(dataset.lightgbm_dataset.data)
         print(f"Test accuracy of estimator {self.__class__.__name__}: {get_accuracy(sample, prob)}")
+
         return prob
 
     def create_dataset(self, sample: RaceCardsSample) -> HorseRacingDataset:
         pass
+
+    def show_feature_importance_scores(self) -> None:
+        importance_scores = self.booster.feature_importance(importance_type="gain")
+        feature_importances = {self.feature_manager.feature_names[i]: importance_scores[i] for i in range(len(importance_scores))}
+        sorted_feature_importances = {k: v for k, v in sorted(feature_importances.items(), key=lambda item: item[1])}
+
+
+        importance_sum = sum([importance for importance in list(sorted_feature_importances.values())])
+        relative_feature_importances = {k: round((v / importance_sum) * 100, 2) for k, v in
+                                        sorted_feature_importances.items()}
+
+        avg_relative_importances = [relative_importance for feature_name, relative_importance in relative_feature_importances.items()
+                                    if "AverageValueSource" in feature_name]
+
+        print(f"Average values relative importances: {sum(avg_relative_importances)}")
+
+        print(f"{importance_sum}: {relative_feature_importances}")
 
 
 class AvgEstimator(Estimator):

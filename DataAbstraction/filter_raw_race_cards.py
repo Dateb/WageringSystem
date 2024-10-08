@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime
+
+from DataAbstraction.Present.RaceCard import RaceCard
 
 
 # 1. Read JSON file contents into a dict
@@ -16,38 +17,40 @@ def extract_value_to_new_dict(old_dict):
 
     for race_day_values in old_dict.values():
         for track_name_values in race_day_values.values():
-            for track_number_values in track_name_values.values():
-                unix_post_time = track_number_values['race']["postTime"]
-                post_time = datetime.utcfromtimestamp(unix_post_time).strftime('%Y-%m-%d %H:%M:%S')
+            for raw_race_card in track_name_values.values():
+                race_id = raw_race_card['race']['idRace']
+                race_card = RaceCard(race_id, raw_race_card)
 
-                race_id = track_number_values['race']['idRace']
-                new_dict[post_time] = {
-                    "date_time": post_time,
+                race_key = str(race_card.datetime)
+                new_dict[race_key] = {
+                    "date_time": race_key,
+                    "day": race_card.date.day,
                     "id": race_id,
+                    "race_type": race_card.race_type,
+                    "race_class": race_card.race_class,
                 }
 
-                horses = track_number_values['runners']['data']
-
                 horses_dict = {}
-                for horse_id, horse_values in horses.items():
-                    place = int(horse_values.get("finalPosition", -1))
-
-                    # DO: Fix this better in the future!!!!!
-                    age = max([0, horse_values['age']])
-                    jockey_data = horse_values["jockey"]
-                    weight = jockey_data.get("weight", {}).get("weight", -1)
-                    sp = horse_values.get("bsp_win", 0)
-
-                    horses_dict[horse_id] = {
-                        "id": horse_values["idSubject"],
-                        "number": horse_values["programNumber"],
-                        "sp": sp,
-                        "age": age,
-                        "place": place,
-                        "weight": weight,
+                for horse in race_card.horses:
+                    horses_dict[horse.horse_id] = {
+                        "id": horse.subject_id,
+                        "jockey_id": horse.jockey_id,
+                        "trainer_id": horse.trainer_id,
+                        "owner_id": horse.owner,
+                        "breeder_id": horse.breeder,
+                        "number": horse.number,
+                        "is_nonrunner": horse.is_nonrunner,
+                        "ranking_label": horse.ranking_label,
+                        "win_probability": horse.sp_win_prob,
+                        "age": horse.age,
+                        "place": horse.place,
+                        "weight": horse.jockey.weight,
+                        "place_percentile": horse.place_percentile,
+                        "relative_distance_behind": horse.relative_distance_behind,
+                        "purse": horse.purse
                     }
 
-                new_dict[post_time]['horses'] = horses_dict
+                new_dict[race_key]['horses'] = horses_dict
 
     return new_dict
 

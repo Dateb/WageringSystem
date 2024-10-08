@@ -235,8 +235,8 @@ class Bettor:
                         probability_estimate = None
                         if bet_offer.horse_number in race_probability_estimates:
                             probability_estimate = race_probability_estimates[bet_offer.horse_number]
-                        else:
-                            print(f'Bet offer: {race_datetime}/{bet_offer.horse_number} not estimated')
+                        # else:
+                        #     print(f'Bet offer: {race_datetime}/{bet_offer.horse_number} not estimated')
 
                         if probability_estimate is not None:
                             if (race_datetime, bet_offer.horse_number) not in self.already_taken_offers:

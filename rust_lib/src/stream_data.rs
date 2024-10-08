@@ -4,7 +4,7 @@ mod feature_extractor;
 mod feature_manager;
 mod category_calculators;
 
-use std::{cmp, fs};
+use std::fs;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use pyo3::prelude::*;
@@ -19,9 +19,10 @@ pub struct StreamData {
     date_time: Vec<String>,
     race_id: Vec<u32>,
     number: Vec<u8>,
+    is_nonrunner: Vec<bool>,
     place: Vec<i32>,
-    ranking_label: Vec<i32>,
-    features: HashMap<String, Vec<f64>>
+    ranking_label: Vec<u8>,
+    features: HashMap<String, Vec<Option<f64>>>
 }
 
 impl StreamData {
@@ -30,6 +31,7 @@ impl StreamData {
             date_time: vec![],
             race_id: vec![],
             number: vec![],
+            is_nonrunner: vec![],
             place: vec![],
             ranking_label: vec![],
             features: HashMap::new(),
@@ -42,13 +44,9 @@ impl StreamData {
                 self.date_time.push(race_card.date_time.clone());
                 self.race_id.push(race_card.id);
                 self.number.push(horse.number);
+                self.is_nonrunner.push(horse.is_nonrunner);
                 self.place.push(horse.place);
-
-                let ranking_label = match horse.place {
-                    p if p > 0 => cmp::max(30 - p, 0),
-                    _ => 0,
-                };
-                self.ranking_label.push(ranking_label);
+                self.ranking_label.push(horse.ranking_label);
 
                 for feature_extractor in
                     &mut feature_manager.feature_extractors {
@@ -70,12 +68,14 @@ impl StreamData {
         let date_times = PyList::new(py, &self.date_time);
         let race_ids = PyList::new(py, &self.race_id);
         let numbers = PyList::new(py, &self.number);
+        let is_nonrunners = PyList::new(py, &self.is_nonrunner);
         let places = PyList::new(py, &self.place);
         let ranking_labels = PyList::new(py, &self.ranking_label);
 
         dict.set_item("date_time", date_times)?;
         dict.set_item("race_id", race_ids)?;
         dict.set_item("number", numbers)?;
+        dict.set_item("is_nonrunner", is_nonrunners)?;
         dict.set_item("place", places)?;
         dict.set_item("ranking_label", ranking_labels)?;
 
