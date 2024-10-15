@@ -79,8 +79,8 @@ average_source_features = {
 }
 
 features = {
-  AverageSource(window_size=0.01): average_source_features,
   AverageSource(window_size=0.1): average_source_features,
+  AverageSource(window_size=0.01): average_source_features,
   AverageSource(window_size=0.001): average_source_features,
   PreviousSource():
   {

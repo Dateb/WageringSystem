@@ -23,10 +23,20 @@ impl FeatureManager {
         for (extractor_type, calculators) in config.feature_extractors {
             for (value_calculator, categories_list) in calculators {
                 let value_calculator: Arc<dyn ValueCalculator + Send + Sync> = match value_calculator.as_str() {
+                    "One" => Arc::new(OneCalculator),
+                    "Distance" => Arc::new(DistanceCalculator),
+                    "RaceDay" => Arc::new(RaceDayCalculator),
+                    "RaceClass" => Arc::new(RaceClassCalculator),
                     "Age" => Arc::new(AgeCalculator),
+                    "Gender" => Arc::new(GenderCalculator),
+                    "Origin" => Arc::new(OriginCalculator),
+                    "Rating" => Arc::new(RatingCalculator),
                     "Weight" => Arc::new(WeightCalculator),
+                    "Momentum" => Arc::new(MomentumCalculator),
+                    "HasWon" => Arc::new(HasWonCalculator),
                     "WinProbability" => Arc::new(WinProbabilityCalculator),
                     "PlacePercentile" => Arc::new(PlacePercentileCalculator),
+                    "CompetitorsBeatenProbability" => Arc::new(CompetitorsBeatenProbabilityCalculator),
                     "RelativeDistanceBehind" => Arc::new(RelativeDistanceBehindCalculator),
                     "Purse" => Arc::new(PurseCalculator),
                     _ => panic!("Unknown calculator type: {}", value_calculator),
@@ -39,7 +49,11 @@ impl FeatureManager {
                         "Current" => Box::new(FeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "Max" => Box::new(MaxFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "Previous" => Box::new(PreviousFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "Sum" => Box::new(SumFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "SimpleAverage" => Box::new(SimpleAverageFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "DiffPrevious" => Box::new(DiffPreviousFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "DiffAverage" => Box::new(DiffAverageFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "ActExp" => Box::new(ActExpFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         _ => panic!("Unknown extractor type: {}", extractor_type),
                     };
 
@@ -59,6 +73,14 @@ impl FeatureManager {
             .map(|extractor| extractor.name().to_string())
             .collect()
     }
+
+    pub fn get_categorical_feature_names(&self) -> Vec<String> {
+        self.feature_extractors
+            .iter()
+            .filter(|extractor| extractor.is_categorical())  // Filter for categorical
+            .map(|extractor| extractor.name().to_string())
+            .collect()
+    }
 }
 
 
@@ -72,8 +94,12 @@ fn parse_categories(category_names: &Vec<String>) -> Vec<Arc<dyn CategoryCalcula
             "TrainerId" => Arc::new(TrainerIdCategory),
             "OwnerId" => Arc::new(OwnerIdCategory),
             "BreederId" => Arc::new(BreederIdCategory),
+            "DamId" => Arc::new(DamIdCategory),
+            "SireId" => Arc::new(SireIdCategory),
             "RaceType" => Arc::new(RaceTypeCategory),
             "RaceClass" => Arc::new(RaceClassCategory),
+            "Surface" => Arc::new(SurfaceCategory),
+            "TrackName" => Arc::new(TrackNameCategory),
             _ => panic!("Unknown category: {}", category_name),
         };
         categories.push(category_calculator);

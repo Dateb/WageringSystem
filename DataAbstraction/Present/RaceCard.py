@@ -121,10 +121,6 @@ class RaceCard:
         if first_place_horse_names:
             self.winner_name = first_place_horse_names[0]
 
-        self.overround = sum([1 / horse.win_sp for horse in self.runners if horse.win_sp >= 1])
-
-        self.set_betfair_win_sp()
-
         self.race_result: RaceResult = RaceResult(self.runners, self.places_num)
         self.set_horse_results()
 
@@ -191,12 +187,16 @@ class RaceCard:
             print(f"Places num is {self.places_num} but {n_placed_horses} horses placed: {self.race_id}")
             print(f"n_finishers: {self.n_finishers}")
 
-    def set_betfair_win_sp(self) -> None:
+        self.overround = sum([1 / horse.win_sp for horse in self.runners if horse.win_sp >= 1])
+
         for horse in self.runners:
             if horse.win_sp >= 1:
-                horse.sp_win_prob = (1 / horse.win_sp) / self.overround
+                p = (1 / horse.win_sp) / self.overround
+                p_base = 1 / self.n_runners
+                horse.sp_win_prob = (p - p_base) / max([p, p_base])
                 horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.sp_win_prob
             else:
+                horse.sp_win_prob = 0.0
                 print(f"Race {self.race_id} turned off")
                 self.is_valid_sample = False
 
@@ -210,6 +210,13 @@ class RaceCard:
             if horse.place_racebets == 1:
                 horse.competitors_beaten_probability = 1.0
             competitors_beaten_probability += horse.sp_win_prob
+
+        #set momentum of horses in a simple way
+        for horse in self.runners:
+            if horse.finish_time > 0 and horse.jockey.weight > 0:
+                velocity = horse.finish_time / self.distance
+                horse.momentum = velocity * horse.jockey.weight
+
 
     def set_place_percentile_of_runners(self) -> None:
         for horse in self.runners:

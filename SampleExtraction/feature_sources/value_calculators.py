@@ -22,12 +22,7 @@ def one_constant(race_card: RaceCard, horse: Horse) -> float:
 
 
 def win_probability(race_card: RaceCard, horse: Horse) -> float:
-    win_prob = horse.sp_win_prob
-
-    if win_prob > 0:
-        return win_prob
-
-    return None
+    return horse.sp_win_prob
 
 
 def place_percentile(race_card: RaceCard, horse: Horse) -> float:

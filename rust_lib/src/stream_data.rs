@@ -13,22 +13,24 @@ use serde::Serialize;
 use crate::stream_data::feature_manager::FeatureManager;
 use crate::stream_data::file_reading::deserialize::RaceCard;
 use crate::stream_data::file_reading::{FileReader, FileSplitter};
+use crate::stream_data::value_calculator::FeatureValue;
 
-#[derive(Serialize)]
 pub struct StreamData {
     date_time: Vec<String>,
+    country: Vec<String>,
     race_id: Vec<u32>,
     number: Vec<u8>,
     is_nonrunner: Vec<bool>,
     place: Vec<i32>,
     ranking_label: Vec<u8>,
-    features: HashMap<String, Vec<Option<f64>>>
+    features: HashMap<String, Vec<FeatureValue>>
 }
 
 impl StreamData {
     fn new() -> Self {
         StreamData {
             date_time: vec![],
+            country: vec![],
             race_id: vec![],
             number: vec![],
             is_nonrunner: vec![],
@@ -42,6 +44,7 @@ impl StreamData {
         for race_card in race_cards {
             for horse in race_card.horses.values() {
                 self.date_time.push(race_card.date_time.clone());
+                self.country.push(race_card.country.clone());
                 self.race_id.push(race_card.id);
                 self.number.push(horse.number);
                 self.is_nonrunner.push(horse.is_nonrunner);
@@ -66,6 +69,7 @@ impl StreamData {
         let dict = PyDict::new(py);
 
         let date_times = PyList::new(py, &self.date_time);
+        let countries = PyList::new(py, &self.country);
         let race_ids = PyList::new(py, &self.race_id);
         let numbers = PyList::new(py, &self.number);
         let is_nonrunners = PyList::new(py, &self.is_nonrunner);
@@ -73,6 +77,7 @@ impl StreamData {
         let ranking_labels = PyList::new(py, &self.ranking_label);
 
         dict.set_item("date_time", date_times)?;
+        dict.set_item("country", countries)?;
         dict.set_item("race_id", race_ids)?;
         dict.set_item("number", numbers)?;
         dict.set_item("is_nonrunner", is_nonrunners)?;
@@ -122,6 +127,14 @@ impl StreamDataManager {
 
     pub fn get_feature_names(&mut self, py: Python) -> PyResult<PyObject> {
         let feature_names = self.feature_manager.get_feature_names();
+
+        let py_feature_names = PyList::new(py, feature_names);
+
+        Ok(py_feature_names.to_object(py))
+    }
+
+    pub fn get_categorical_feature_names(&mut self, py: Python) -> PyResult<PyObject> {
+        let feature_names = self.feature_manager.get_categorical_feature_names();
 
         let py_feature_names = PyList::new(py, feature_names);
 

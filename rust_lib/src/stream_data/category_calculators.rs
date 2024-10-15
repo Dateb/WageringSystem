@@ -57,6 +57,25 @@ impl CategoryCalculator for BreederIdCategory {
     fn name(&self) -> &str { "breeder_id" }
 }
 
+#[derive(Clone)]
+pub struct DamIdCategory;
+
+impl CategoryCalculator for DamIdCategory {
+    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+        horse.dam_id.to_string()
+    }
+    fn name(&self) -> &str { "dam_id" }
+}
+
+#[derive(Clone)]
+pub struct SireIdCategory;
+
+impl CategoryCalculator for SireIdCategory {
+    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+        horse.sire_id.to_string()
+    }
+    fn name(&self) -> &str { "sire_id" }
+}
 
 #[derive(Clone)]
 pub struct RaceTypeCategory;
@@ -79,5 +98,29 @@ impl CategoryCalculator for RaceClassCategory {
     }
     fn name(&self) -> &str {
         "race_class"
+    }
+}
+
+#[derive(Clone)]
+pub struct SurfaceCategory;
+
+impl CategoryCalculator for SurfaceCategory {
+    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+        race_card.surface.to_string()
+    }
+    fn name(&self) -> &str {
+        "surface"
+    }
+}
+
+#[derive(Clone)]
+pub struct TrackNameCategory;
+
+impl CategoryCalculator for TrackNameCategory {
+    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+        race_card.track_name.to_string()
+    }
+    fn name(&self) -> &str {
+        "track_name"
     }
 }

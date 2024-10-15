@@ -32,7 +32,11 @@ class Horse:
         self.name = raw_data["name"]
 
         self.sire = raw_data["sire"]
+        if self.sire is None:
+            self.sire = ""
         self.dam = raw_data["dam"]
+        if self.dam is None:
+            self.dam = ""
 
         self.dam_sire = raw_data["damSire"]
 
@@ -50,7 +54,12 @@ class Horse:
         self.number = raw_data["programNumber"]
         self.horse_id = raw_data["idRunner"]
         self.subject_id = raw_data["idSubject"]
-        self.rating = raw_data["rating"]
+
+        self.rating = None
+        if raw_data["rating"]:
+            rating = float(raw_data["rating"])
+            if rating > 0:
+                self.rating = float(raw_data["rating"])
 
         self.homeland = raw_data["homeland"]
 
@@ -66,7 +75,7 @@ class Horse:
         if self.win_sp < 1:
             self.win_sp = self.__extract_racebets_win_odds(raw_data)
 
-        self.sp_win_prob = 0
+        self.sp_win_prob = None
 
         # self.post_position = self.__extract_post_position(raw_data)
         self.has_won = 1 if self.place_racebets == 1 else 0

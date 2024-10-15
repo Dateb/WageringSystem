@@ -58,7 +58,6 @@ class ExponentialOnlineCalculator(OnlineCalculator):
     def __init__(self, window_size: float = 0.9):
         super().__init__()
         self.window_size = window_size
-        self.alpha = 2 / (window_size + 1)
 
     def calculate_average(self, old_average: float, new_obs: float, n_days_since_last_obs: int) -> float:
         w_avg = np.exp(-self.window_size * (n_days_since_last_obs+1))

@@ -24,10 +24,15 @@ def extract_value_to_new_dict(old_dict):
                 race_key = str(race_card.datetime)
                 new_dict[race_key] = {
                     "date_time": race_key,
+                    "country": race_card.country,
                     "day": race_card.date.day,
                     "id": race_id,
+                    "n_runners": race_card.n_runners,
+                    "distance": race_card.adjusted_distance,
                     "race_type": race_card.race_type,
                     "race_class": race_card.race_class,
+                    "surface": race_card.surface,
+                    "track_name": race_card.track_name,
                 }
 
                 horses_dict = {}
@@ -38,15 +43,23 @@ def extract_value_to_new_dict(old_dict):
                         "trainer_id": horse.trainer_id,
                         "owner_id": horse.owner,
                         "breeder_id": horse.breeder,
+                        "dam_id": horse.dam,
+                        "sire_id": horse.sire,
+                        "has_won": horse.has_won,
                         "number": horse.number,
                         "is_nonrunner": horse.is_nonrunner,
                         "ranking_label": horse.ranking_label,
                         "win_probability": horse.sp_win_prob,
                         "age": horse.age,
+                        "gender": horse.gender,
+                        "origin": horse.origin,
+                        "rating": horse.rating,
                         "place": horse.place,
                         "weight": horse.jockey.weight,
+                        "momentum": horse.momentum,
                         "place_percentile": horse.place_percentile,
                         "relative_distance_behind": horse.relative_distance_behind,
+                        "competitors_beaten_probability": horse.competitors_beaten_probability,
                         "purse": horse.purse
                     }
 

@@ -24,7 +24,7 @@ class FastModelSimulator:
 
         self.feature_manager = FeatureManager()
         self.feature_manager.feature_names = self.stream_data_manager.get_feature_names()
-        self.feature_manager.categorical_feature_names = []
+        self.feature_manager.categorical_feature_names = self.stream_data_manager.get_categorical_feature_names()
 
         self.estimator = WinRankingEstimator(self.feature_manager)
 
@@ -35,7 +35,7 @@ class FastModelSimulator:
         sample_df = sample_df[~sample_df["is_nonrunner"]]
         end = time.time()
         print(f"Time: {end - start}")
-        train_sample = RaceCardsSample(sample_df)
+        train_sample = RaceCardsSample(sample_df, self.feature_manager.categorical_feature_names)
         print(train_sample.race_cards_dataframe)
 
         train_sample.race_cards_dataframe = train_sample.race_cards_dataframe.sort_values(by="race_id")
@@ -46,7 +46,10 @@ class FastModelSimulator:
         self.fit_estimator()
 
         start = time.time()
-        test_sample = RaceCardsSample(pd.DataFrame.from_dict(self.stream_data_manager.get_test_stream_data()))
+        test_sample = RaceCardsSample(
+            pd.DataFrame.from_dict(self.stream_data_manager.get_test_stream_data()),
+            self.feature_manager.categorical_feature_names
+        )
         end = time.time()
         print(f"Time: {end - start}")
         test_sample.race_cards_dataframe = test_sample.race_cards_dataframe.sort_values(by="race_id")

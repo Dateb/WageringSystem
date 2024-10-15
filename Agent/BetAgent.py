@@ -95,7 +95,7 @@ class ExchangeBetRequester(Actuator):
         self.estimation_result = estimation_result
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1)
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1.2)
         self.stakes = max([round(self.CURRENT_BANKROLL * 0.0033, 2), 6.0])
 
     def run(self) -> None:

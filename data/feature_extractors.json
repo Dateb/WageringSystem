@@ -2,68 +2,178 @@
   "feature_extractors": {
     "Current": {
       "Age": [[]],
+      "Gender": [[]],
+      "Origin": [[]],
       "Weight": [[]]
+    },
+    "DiffPrevious": {
+      "Distance": [["HorseId"]],
+      "RaceDay": [
+        ["HorseId"], ["HorseId", "JockeyId"], ["HorseId", "RaceClass"],  ["HorseId", "Surface"], ["HorseId", "TrackName"]
+      ],
+      "RaceClass": [
+        ["HorseId"], ["HorseId", "Surface"],
+        ["HorseId", "TrainerId"]
+      ]
+    },
+    "DiffAverage": {
+      "Distance": [["HorseId"]],
+      "RaceDay": [
+        ["HorseId"], ["HorseId", "JockeyId"], ["HorseId", "RaceClass"],  ["HorseId", "Surface"], ["HorseId", "TrackName"]
+      ],
+      "RaceClass": [
+        ["HorseId"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
+        ["JockeyId"], ["JockeyId", "Surface"],
+        ["TrainerId"], ["TrainerId", "Surface"], ["TrainerId", "TrackName"],
+        ["HorseId", "JockeyId"], ["HorseId", "TrainerId"]
+      ],
+      "Weight": [
+        ["HorseId"]
+      ]
     },
     "Max": {
       "WinProbability": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"],
         ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+        ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["SireId"], ["SireId", "TrackName"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["DamId", "RaceClass"], ["DamId", "RaceType"]
+      ],
+      "Momentum": [
+        ["HorseId"],
+        ["JockeyId"],
+        ["TrainerId"], ["HorseId", "RaceType"],
+        ["BreederId", "RaceClass"]
+      ],
+      "PlacePercentile": [
+        ["HorseId", "RaceType"], ["HorseId", "Surface"]
+      ],
+      "CompetitorsBeatenProbability": [
+        ["HorseId", "RaceClass"],
+        ["BreederId", "RaceClass"]
+      ],
+      "RelativeDistanceBehind": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"],
+        ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"],
+        ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "RaceType"],
+        ["DamId"], ["DamId", "TrackName"], ["DamId", "RaceClass"], ["DamId", "Surface"], ["DamId", "RaceType"]
+      ],
+      "Purse": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"],
+        ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceType"],
+        ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["DamId", "Surface"]
       ]
     },
     "Previous": {
       "WinProbability": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
+        ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
       ],
+      "Rating": [
+        ["HorseId"]
+      ],
       "RelativeDistanceBehind": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
+        ["JockeyId"], ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
       ],
       "PlacePercentile": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
+        ["JockeyId", "TrainerId", "RaceType"]
       ]
     },
     "SimpleAverage": {
-      "WinProbability": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+      "HasWon": [
+        ["HorseId", "RaceType"],
+        ["JockeyId"], ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
-        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
-        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+        ["JockeyId", "TrainerId"],
+        ["OwnerId"],
+        ["BreederId"],
+        ["SireId", "RaceClass"],
+        ["DamId"]
       ],
-      "RelativeDistanceBehind": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+      "Momentum": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceClass"],
+        ["SireId", "RaceClass"],
+        ["DamId", "RaceClass"], ["DamId", "RaceType"]
+      ],
+      "WinProbability": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"],
         ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
         ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
-        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+        ["BreederId", "RaceClass"],
+        ["SireId", "RaceClass"],
+        ["DamId"], ["DamId", "RaceClass"], ["DamId", "Surface"], ["DamId", "RaceType"]
       ],
       "PlacePercentile": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
         ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
         ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
-        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"],
+        ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["DamId"], ["DamId", "Surface"], ["DamId", "RaceType"]
+      ],
+      "CompetitorsBeatenProbability": [
+        ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
+        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"],
+        ["SireId"], ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "Surface"],
+        ["DamId", "TrackName"], ["DamId", "Surface"], ["DamId", "RaceType"]
+      ],
+      "RelativeDistanceBehind": [
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
+        ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
+        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
+        ["BreederId"], ["BreederId", "RaceType"],
+        ["SireId"], ["SireId", "TrackName"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["DamId", "TrackName"], ["DamId", "RaceClass"], ["DamId", "RaceType"]
       ],
       "Purse": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
-        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
-        ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"]
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
+        ["JockeyId"], ["JockeyId", "RaceType"],
+        ["TrainerId"], ["TrainerId", "RaceType"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"],
+        ["OwnerId"], ["OwnerId", "RaceType"],
+        ["BreederId", "RaceClass"], ["BreederId", "RaceType"],
+        ["SireId", "TrackName"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["DamId", "Surface"]
+      ]
+    },
+    "Sum": {
+      "One": [
+        ["HorseId"], ["JockeyId"], ["TrainerId"]
+      ],
+      "HasWon": [
+        ["JockeyId"], ["TrainerId"]
       ]
     }
   }
