@@ -37,7 +37,7 @@
         ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
         ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId", "RaceType"],
-        ["SireId"], ["SireId", "TrackName"], ["SireId", "Surface"], ["SireId", "RaceType"],
+        ["SireId"], ["SireId", "TrackName"], ["SireId", "RaceType"],
         ["DamId", "RaceType"]
       ],
       "Momentum": [
@@ -48,10 +48,6 @@
       ],
       "PlacePercentile": [
         ["HorseId", "RaceType"], ["HorseId", "Surface"]
-      ],
-      "CompetitorsBeatenProbability": [
-        ["HorseId", "RaceClass"],
-        ["BreederId", "RaceClass"]
       ],
       "RelativeDistanceBehind": [
         ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"],
@@ -92,7 +88,6 @@
       ],
       "PlacePercentile": [
         ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
-        ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId", "RaceType"]
       ]
     },
@@ -127,7 +122,7 @@
         ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
         ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"],
+        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"],
         ["OwnerId"], ["OwnerId", "RaceClass"],
         ["BreederId"], ["BreederId", "RaceClass"], ["BreederId", "RaceType"],
         ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "Surface"], ["SireId", "RaceType"],
@@ -138,8 +133,7 @@
         ["JockeyId", "RaceClass"],
         ["TrainerId"], ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
         ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceClass"],
-        ["OwnerId"], ["OwnerId", "RaceClass"], ["OwnerId", "RaceType"],
-        ["BreederId"],
+        ["OwnerId"], ["OwnerId", "RaceType"],
         ["SireId"], ["SireId", "TrackName"], ["SireId", "RaceClass"], ["SireId", "Surface"],
         ["DamId", "TrackName"], ["DamId", "Surface"]
       ],
