@@ -77,6 +77,8 @@ class Estimator(ABC):
         with open(simulate_conf.GBT_CONFIG_PATH, "rb") as gbt_config_file:
             gbt_config = pickle.load(gbt_config_file)
 
+        self.num_rounds = gbt_config.search_params["num_rounds"]
+        del gbt_config.search_params["num_rounds"]
         self.params = {**self.params, **gbt_config.search_params}
 
         train_result = {}

@@ -9,7 +9,6 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
-use serde::Serialize;
 use crate::stream_data::feature_manager::FeatureManager;
 use crate::stream_data::file_reading::deserialize::RaceCard;
 use crate::stream_data::file_reading::{FileReader, FileSplitter};

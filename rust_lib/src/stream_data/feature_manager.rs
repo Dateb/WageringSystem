@@ -51,6 +51,7 @@ impl FeatureManager {
                         "Previous" => Box::new(PreviousFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "Sum" => Box::new(SumFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "SimpleAverage" => Box::new(SimpleAverageFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
+                        "EMA" => Box::new(EMAFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "DiffPrevious" => Box::new(DiffPreviousFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "DiffAverage" => Box::new(DiffAverageFeatureExtractor::new(value_calculator.clone(), parsed_categories)),
                         "ActExp" => Box::new(ActExpFeatureExtractor::new(value_calculator.clone(), parsed_categories)),

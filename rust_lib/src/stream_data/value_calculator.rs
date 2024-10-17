@@ -1,4 +1,3 @@
-use std::cmp::max;
 use chrono::{Datelike, NaiveDateTime};
 use pyo3::{PyObject, Python, ToPyObject};
 use pyo3::types::{PyFloat, PyString};
@@ -53,7 +52,7 @@ pub trait ValueCalculator: Send + Sync {
 pub struct OneCalculator;
 
 impl ValueCalculator for OneCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, _: &Horse) -> FeatureValue {
         FeatureValue::Number(1.0)
     }
     fn name(&self) -> &str {
@@ -66,8 +65,8 @@ impl ValueCalculator for OneCalculator {
 pub struct DistanceCalculator;
 
 impl ValueCalculator for DistanceCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
-        FeatureValue::Number(_race_card.distance as f64)
+    fn calculate(&self, race_card: &RaceCard, _: &Horse) -> FeatureValue {
+        FeatureValue::Number(race_card.distance as f64)
     }
     fn name(&self) -> &str {
         "distance"
@@ -79,8 +78,8 @@ impl ValueCalculator for DistanceCalculator {
 pub struct RaceClassCalculator;
 
 impl ValueCalculator for RaceClassCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
-        let race_class_value = _race_card.race_class.parse::<f64>();
+    fn calculate(&self, race_card: &RaceCard, _: &Horse) -> FeatureValue {
+        let race_class_value = race_card.race_class.parse::<f64>();
         match race_class_value {
             Ok(value) => FeatureValue::Number(value),
             Err(_) => FeatureValue::None
@@ -96,9 +95,9 @@ impl ValueCalculator for RaceClassCalculator {
 pub struct RaceDayCalculator;
 
 impl ValueCalculator for RaceDayCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, race_card: &RaceCard, _: &Horse) -> FeatureValue {
         let datetime =
-            NaiveDateTime::parse_from_str(&_race_card.date_time, "%Y-%m-%d %H:%M:%S")
+            NaiveDateTime::parse_from_str(&race_card.date_time, "%Y-%m-%d %H:%M:%S")
                 .expect("Failed to parse date");
         FeatureValue::Number(datetime.num_days_from_ce() as f64)
     }
@@ -112,7 +111,7 @@ impl ValueCalculator for RaceDayCalculator {
 pub struct AgeCalculator;
 
 impl ValueCalculator for AgeCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         FeatureValue::Number(horse.age as f64)
     }
     fn name(&self) -> &str {
@@ -125,7 +124,7 @@ impl ValueCalculator for AgeCalculator {
 pub struct WeightCalculator;
 
 impl ValueCalculator for WeightCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         FeatureValue::Number(horse.weight)
     }
     fn name(&self) -> &str {
@@ -138,7 +137,7 @@ impl ValueCalculator for WeightCalculator {
 pub struct MomentumCalculator;
 
 impl ValueCalculator for MomentumCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.momentum {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None
@@ -154,7 +153,7 @@ impl ValueCalculator for MomentumCalculator {
 pub struct HasWonCalculator;
 
 impl ValueCalculator for HasWonCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         FeatureValue::Number(horse.has_won)
     }
     fn name(&self) -> &str {
@@ -168,7 +167,7 @@ impl ValueCalculator for HasWonCalculator {
 pub struct WinProbabilityCalculator;
 
 impl ValueCalculator for WinProbabilityCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.win_probability {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None
@@ -184,7 +183,7 @@ impl ValueCalculator for WinProbabilityCalculator {
 pub struct PlacePercentileCalculator;
 
 impl ValueCalculator for PlacePercentileCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.place_percentile {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None
@@ -200,7 +199,7 @@ impl ValueCalculator for PlacePercentileCalculator {
 pub struct CompetitorsBeatenProbabilityCalculator;
 
 impl ValueCalculator for CompetitorsBeatenProbabilityCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.competitors_beaten_probability {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None
@@ -216,7 +215,7 @@ impl ValueCalculator for CompetitorsBeatenProbabilityCalculator {
 pub struct RelativeDistanceBehindCalculator;
 
 impl ValueCalculator for RelativeDistanceBehindCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.relative_distance_behind {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None
@@ -232,7 +231,7 @@ impl ValueCalculator for RelativeDistanceBehindCalculator {
 pub struct PurseCalculator;
 
 impl ValueCalculator for PurseCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         FeatureValue::Number(horse.purse as f64)
     }
     fn name(&self) -> &str { "purse" }
@@ -243,7 +242,7 @@ impl ValueCalculator for PurseCalculator {
 pub struct GenderCalculator;
 
 impl ValueCalculator for GenderCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match &horse.gender {
             Some(v) => FeatureValue::Text(v.clone()),
             None => FeatureValue::None
@@ -258,7 +257,7 @@ impl ValueCalculator for GenderCalculator {
 pub struct OriginCalculator;
 
 impl ValueCalculator for OriginCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match &horse.origin {
             Some(v) => FeatureValue::Text(v.clone()),
             None => FeatureValue::None
@@ -272,7 +271,7 @@ impl ValueCalculator for OriginCalculator {
 pub struct RatingCalculator;
 
 impl ValueCalculator for RatingCalculator {
-    fn calculate(&self, _race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
         match horse.rating {
             Some(v) => FeatureValue::Number(v),
             _ => FeatureValue::None

@@ -9,7 +9,7 @@ pub trait CategoryCalculator: Send + Sync {
 pub struct HorseIdCategory;
 
 impl CategoryCalculator for HorseIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.id.to_string()
     }
     fn name(&self) -> &str {
@@ -21,7 +21,7 @@ impl CategoryCalculator for HorseIdCategory {
 pub struct JockeyIdCategory;
 
 impl CategoryCalculator for JockeyIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.jockey_id.to_string()
     }
     fn name(&self) -> &str { "jockey_id" }
@@ -31,7 +31,7 @@ impl CategoryCalculator for JockeyIdCategory {
 pub struct TrainerIdCategory;
 
 impl CategoryCalculator for TrainerIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.trainer_id.to_string()
     }
     fn name(&self) -> &str { "trainer_id" }
@@ -41,7 +41,7 @@ impl CategoryCalculator for TrainerIdCategory {
 pub struct OwnerIdCategory;
 
 impl CategoryCalculator for OwnerIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.owner_id.to_string()
     }
     fn name(&self) -> &str { "owner_id" }
@@ -51,7 +51,7 @@ impl CategoryCalculator for OwnerIdCategory {
 pub struct BreederIdCategory;
 
 impl CategoryCalculator for BreederIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.breeder_id.to_string()
     }
     fn name(&self) -> &str { "breeder_id" }
@@ -61,7 +61,7 @@ impl CategoryCalculator for BreederIdCategory {
 pub struct DamIdCategory;
 
 impl CategoryCalculator for DamIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.dam_id.to_string()
     }
     fn name(&self) -> &str { "dam_id" }
@@ -71,7 +71,7 @@ impl CategoryCalculator for DamIdCategory {
 pub struct SireIdCategory;
 
 impl CategoryCalculator for SireIdCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, _: &RaceCard, horse: &Horse) -> String {
         horse.sire_id.to_string()
     }
     fn name(&self) -> &str { "sire_id" }
@@ -81,7 +81,7 @@ impl CategoryCalculator for SireIdCategory {
 pub struct RaceTypeCategory;
 
 impl CategoryCalculator for RaceTypeCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, race_card: &RaceCard, _: &Horse) -> String {
         race_card.race_type.to_string()
     }
     fn name(&self) -> &str {
@@ -93,7 +93,7 @@ impl CategoryCalculator for RaceTypeCategory {
 pub struct RaceClassCategory;
 
 impl CategoryCalculator for RaceClassCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, race_card: &RaceCard, _: &Horse) -> String {
         race_card.race_class.to_string()
     }
     fn name(&self) -> &str {
@@ -105,7 +105,7 @@ impl CategoryCalculator for RaceClassCategory {
 pub struct SurfaceCategory;
 
 impl CategoryCalculator for SurfaceCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, race_card: &RaceCard, _: &Horse) -> String {
         race_card.surface.to_string()
     }
     fn name(&self) -> &str {
@@ -117,7 +117,7 @@ impl CategoryCalculator for SurfaceCategory {
 pub struct TrackNameCategory;
 
 impl CategoryCalculator for TrackNameCategory {
-    fn get_category(&self, race_card: &RaceCard, horse: &Horse) -> String {
+    fn get_category(&self, race_card: &RaceCard, _: &Horse) -> String {
         race_card.track_name.to_string()
     }
     fn name(&self) -> &str {
