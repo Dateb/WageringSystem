@@ -75,6 +75,19 @@ impl ValueCalculator for DistanceCalculator {
 }
 
 #[derive(Clone)]
+pub struct GoingCalculator;
+
+impl ValueCalculator for GoingCalculator {
+    fn calculate(&self, race_card: &RaceCard, _: &Horse) -> FeatureValue {
+        FeatureValue::Number(race_card.going as f64)
+    }
+    fn name(&self) -> &str {
+        "going"
+    }
+    fn is_categorical(&self) -> bool { false }
+}
+
+#[derive(Clone)]
 pub struct RaceClassCalculator;
 
 impl ValueCalculator for RaceClassCalculator {
@@ -298,6 +311,19 @@ impl ValueCalculator for RatingCalculator {
     }
     fn name(&self) -> &str {
         "rating"
+    }
+    fn is_categorical(&self) -> bool { false }
+}
+
+#[derive(Clone)]
+pub struct HasVisorCalculator;
+
+impl ValueCalculator for HasVisorCalculator {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
+        FeatureValue::Number(horse.has_visor as f64)
+    }
+    fn name(&self) -> &str {
+        "has_visor"
     }
     fn is_categorical(&self) -> bool { false }
 }

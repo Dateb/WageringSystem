@@ -8,23 +8,21 @@
     },
     "DiffPrevious": {
       "Distance": [["HorseId"]],
+      "Going": [["HorseId"]],
       "RaceDay": [
         ["HorseId"], ["HorseId", "JockeyId"], ["HorseId", "RaceClass"],  ["HorseId", "Surface"], ["HorseId", "TrackName"]
       ],
       "RaceClass": [
-        ["HorseId"], ["HorseId", "Surface"],
-        ["HorseId", "TrainerId"]
+        ["HorseId"], ["HorseId", "Surface"], ["HorseId", "TrainerId"]
       ]
     },
     "DiffAverage": {
       "Distance": [["HorseId"]],
-      "RaceDay": [
-        ["HorseId"], ["HorseId", "JockeyId"], ["HorseId", "RaceClass"],  ["HorseId", "Surface"]
-      ],
+      "Going": [["HorseId"]],
       "RaceClass": [
         ["HorseId"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
-        ["JockeyId"],
-        ["TrainerId"], ["TrainerId", "Surface"], ["TrainerId", "TrackName"],
+        ["JockeyId"], ["TrainerId"],
+        ["TrainerId", "Surface"], ["TrainerId", "TrackName"],
         ["HorseId", "JockeyId"], ["HorseId", "TrainerId"]
       ],
       "Weight": [
@@ -33,30 +31,19 @@
     },
     "Max": {
       "WinProbability": [
-        ["HorseId"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId", "RaceType"]
+        ["HorseId"]
       ],
       "Momentum": [
-        ["HorseId"],
-        ["JockeyId"],
-        ["TrainerId"], ["HorseId", "RaceType"],
-        ["BreederId", "RaceClass"]
+        ["HorseId"], ["HorseId", "RaceType"]
       ],
       "PlacePercentile": [
         ["HorseId", "RaceType"], ["HorseId", "Surface"]
       ],
       "RelativeDistanceBehind": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"],
-        ["BreederId"]
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"]
       ],
       "Purse": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"],
-        ["JockeyId"], ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId"],
-        ["OwnerId", "RaceType"],
-        ["BreederId"], ["BreederId", "RaceType"]
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "Surface"]
       ]
     },
     "Previous": {
@@ -119,9 +106,6 @@
     "Sum": {
       "One": [
         ["HorseId"], ["JockeyId"], ["TrainerId"]
-      ],
-      "HasWon": [
-        ["JockeyId"]
       ]
     }
   }
