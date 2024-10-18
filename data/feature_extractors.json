@@ -61,21 +61,13 @@
     },
     "Previous": {
       "WinProbability": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
-        ["JockeyId", "RaceType"], ["JockeyId", "RaceClass"],
-        ["TrainerId", "RaceType"], ["TrainerId", "RaceClass"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceClass"]
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"]
       ],
       "Rating": [
         ["HorseId"]
       ],
       "RelativeDistanceBehind": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
-        ["JockeyId", "TrainerId"], ["JockeyId", "TrainerId", "RaceType"], ["JockeyId", "TrainerId", "RaceClass"]
-      ],
-      "PlacePercentile": [
-        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"],
-        ["JockeyId", "TrainerId", "RaceType"]
+        ["HorseId"], ["HorseId", "RaceType"], ["HorseId", "RaceClass"], ["HorseId", "Surface"], ["HorseId", "TrackName"]
       ]
     },
     "SimpleAverage": {
