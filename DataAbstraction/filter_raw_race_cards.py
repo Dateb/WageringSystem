@@ -46,6 +46,7 @@ def extract_value_to_new_dict(old_dict):
                         "dam_id": horse.dam,
                         "sire_id": horse.sire,
                         "has_won": horse.has_won,
+                        "has_placed": horse.has_placed,
                         "number": horse.number,
                         "is_nonrunner": horse.is_nonrunner,
                         "ranking_label": horse.ranking_label,

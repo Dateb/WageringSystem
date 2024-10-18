@@ -154,10 +154,29 @@ pub struct HasWonCalculator;
 
 impl ValueCalculator for HasWonCalculator {
     fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
-        FeatureValue::Number(horse.has_won)
+        match horse.has_won {
+            Some(v) => FeatureValue::Number(v),
+            _ => FeatureValue::None
+        }
     }
     fn name(&self) -> &str {
         "has_won"
+    }
+    fn is_categorical(&self) -> bool { false }
+}
+
+#[derive(Clone)]
+pub struct HasPlacedCalculator;
+
+impl ValueCalculator for HasPlacedCalculator {
+    fn calculate(&self, _: &RaceCard, horse: &Horse) -> FeatureValue {
+        match horse.has_placed {
+            Some(v) => FeatureValue::Number(v),
+            _ => FeatureValue::None
+        }
+    }
+    fn name(&self) -> &str {
+        "has_placed"
     }
     fn is_categorical(&self) -> bool { false }
 }

@@ -226,7 +226,6 @@ impl Feature for SimpleAverageFeatureExtractor {
 pub struct EMAFeatureExtractor {
     pub feature_extractor: FeatureExtractor,
     pub average_values: HashMap<String, FeatureValue>,
-    pub previous_race_day: HashMap<String, FeatureValue>,
     decay_factor: f64
 }
 
@@ -239,7 +238,6 @@ impl EMAFeatureExtractor {
         EMAFeatureExtractor {
             feature_extractor: FeatureExtractor::new(value_calculator, category_calculators),
             average_values: HashMap::new(),
-            previous_race_day: HashMap::new(),
             decay_factor
         }
     }
@@ -247,6 +245,56 @@ impl EMAFeatureExtractor {
 
 impl Feature for EMAFeatureExtractor {
     fn name(&self) -> String { format!("{}{}", "EMA_", &self.feature_extractor.name()) }
+    fn is_categorical(&self) -> bool { self.feature_extractor.value_calculator.is_categorical() }
+
+    fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> FeatureValue {
+        let category_key = self.feature_extractor.get_category_key(&race_card, &horse);
+        let feature_value = self.feature_extractor.value_calculator.calculate(race_card, horse);
+
+        let average = self.average_values.entry(category_key.clone()).or_insert(FeatureValue::None);
+
+        let new_obs = match feature_value {
+            FeatureValue::Number(v) => v,
+            _ => return average.clone(),
+        };
+
+        let result = average.clone();
+
+        *average = match *average {
+            FeatureValue::Number(avg) => {
+                FeatureValue::Number(self.decay_factor * new_obs + (1.0 - self.decay_factor) * avg)
+            },
+            _ => FeatureValue::Number(new_obs),
+        };
+
+        result
+    }
+}
+
+pub struct EMADayDecayFeatureExtractor {
+    pub feature_extractor: FeatureExtractor,
+    pub average_values: HashMap<String, FeatureValue>,
+    pub previous_race_day: HashMap<String, FeatureValue>,
+    decay_factor: f64
+}
+
+impl EMADayDecayFeatureExtractor {
+    pub fn new(
+        value_calculator: Arc<dyn ValueCalculator + Send + Sync>,
+        category_calculators: Vec<Arc<dyn CategoryCalculator + Send + Sync>>
+    ) -> Self {
+        let decay_factor = 0.01;
+        EMADayDecayFeatureExtractor {
+            feature_extractor: FeatureExtractor::new(value_calculator, category_calculators),
+            average_values: HashMap::new(),
+            previous_race_day: HashMap::new(),
+            decay_factor
+        }
+    }
+}
+
+impl Feature for EMADayDecayFeatureExtractor {
+    fn name(&self) -> String { format!("{}{}", "EMADayDecay_", &self.feature_extractor.name()) }
     fn is_categorical(&self) -> bool { self.feature_extractor.value_calculator.is_categorical() }
 
     fn extract(&mut self, race_card: &RaceCard, horse: &Horse) -> FeatureValue {
@@ -321,7 +369,10 @@ impl Feature for ActExpFeatureExtractor {
             _ => *actual_sum / *expected_sum
         };
 
-        *actual_sum += horse.has_won;
+        *actual_sum = match horse.has_won {
+            Some(has_won) => *actual_sum + has_won,
+            None => *actual_sum
+        };
         *expected_sum = match horse.win_probability {
             Some(win_probability) => *expected_sum + win_probability,
             None => *expected_sum,

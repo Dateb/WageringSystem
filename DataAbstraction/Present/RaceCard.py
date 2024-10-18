@@ -172,7 +172,7 @@ class RaceCard:
                 self.places_num = 3
 
         for horse in self.runners:
-            horse.has_placed = 1 <= horse.place <= self.places_num
+            horse.has_placed = float(1 <= horse.place <= self.places_num)
 
             if horse.has_placed:
                 horse.ranking_label = 1

@@ -78,8 +78,10 @@ class Horse:
         self.sp_win_prob = None
 
         # self.post_position = self.__extract_post_position(raw_data)
-        self.has_won = 1 if self.place_racebets == 1 else 0
-        self.has_placed = 0
+        self.has_won = None
+        if not self.is_nonrunner:
+            self.has_won = 1 if self.place_racebets == 1 else 0
+        self.has_placed = None
         self.ranking_label = 0
 
         self.pulled_up = 0
