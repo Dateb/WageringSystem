@@ -114,14 +114,10 @@ class BetfairOfferContainer(BetOfferContainer):
                                 new_offers = []
                                 for offer_data in market_condition["rc"]:
                                     horse = id_to_horse_map[offer_data["id"]]
-                                    if horse is None:
-                                        print(f"Could not find horse: {offer_data['id']} on race: {race_card.race_id}")
-                                        print(f"race datetime: {race_datetime}")
-                                        print("-----------------------------------------")
-                                    else:
+                                    if horse is not None and not horse.is_nonrunner:
                                         if simulate_conf.MARKET_TYPE == "WIN":
                                             is_success = horse.has_won
-                                            starting_odds = horse.win_sp
+                                            starting_odds = horse.betfair_sp
                                         else:
                                             is_success = horse.has_placed
                                             starting_odds = horse.place_sp
@@ -138,6 +134,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                         bef_offer = BetOffer(
                                             is_success=is_success,
                                             country=race_card.country,
+                                            race_category=race_card.category,
                                             race_class=race_card.race_class,
                                             horse_number=horse.number,
                                             live_result=live_result,
@@ -148,6 +145,10 @@ class BetfairOfferContainer(BetOfferContainer):
                                             n_winners=n_winners
                                         )
                                         new_offers.append(bef_offer)
+                                    else:
+                                        print(f"Could not find horse: {offer_data['id']} on race: {race_card.race_id}")
+                                        print(f"race datetime: {race_datetime}")
+                                        print("-----------------------------------------")
 
                                 betfair_offers += new_offers
 

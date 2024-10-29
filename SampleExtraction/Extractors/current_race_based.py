@@ -7,8 +7,7 @@ from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from DataAbstraction.Present.Horse import Horse
 from SampleExtraction.feature_sources.feature_sources import FeatureValueGroup, PreviousSource
-from SampleExtraction.feature_sources.value_calculators import get_track_name
-from util.category_encoder import get_category_encoding
+from SampleExtraction.feature_sources.value_calculators import TrackNameCalculator
 
 
 class HasPlaced(FeatureExtractor):
@@ -192,7 +191,7 @@ class TravelDistance(FeatureExtractor):
         super().__init__()
         self.feature_source = previous_value_source
 
-        self.feature_value_group = FeatureValueGroup(get_track_name, ["subject_id"])
+        self.feature_value_group = FeatureValueGroup(TrackNameCalculator(), ["subject_id"])
 
         self.feature_source.register_feature_value_group(self.feature_value_group)
 

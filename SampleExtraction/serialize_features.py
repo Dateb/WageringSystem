@@ -1,193 +1,195 @@
 import pickle
 
-from SampleExtraction.feature_sources.feature_sources import PreviousSource, MaxSource, MinSource, \
-  AverageSource, SumSource, StreakSource
-from SampleExtraction.feature_sources.value_calculators import win_probability, has_placed, competitors_beaten, \
-  momentum, relative_distance_behind, race_class, adjusted_race_distance, weight, purse, has_won, one_constant
+from sktime.distances import distance
 
-average_source_features = {
-  win_probability: [
-    [["breeder"], []],
-    [["dam", "age"], []],
-    [["jockey_id"], []],
-    [["jockey_id"], ["estimated_going"]],
-    [["jockey_id"], ["race_class"]],
-    [["jockey_id"], ["race_type"]],
-    [["jockey_id"], ["surface"]],
-    [["jockey_id"], ["track_name"]],
-    [["owner"], []],
-    [["owner"], ["race_type"]],
-    [["owner"], ["track_name"]],
-    [["sire", "age"], []],
-    [["subject_id"], []],
-    [["subject_id"], ["category"]],
-    [["subject_id"], ["race_class"]],
-    [["subject_id"], ["race_type"]],
-    [["trainer_id"], ["estimated_going"]],
-    [["trainer_id"], ["race_class"]],
-    [["trainer_id"], ["race_type"]],
-    [["trainer_id"], ["surface"]],
-    [["trainer_id"], ["track_name"]],
-    [["jockey_id", "trainer_id"], []],
-    [["subject_id", "jockey_id"], []],
-    [["subject_id", "owner"], []],
-    [["subject_id", "trainer_id"], []],
-  ],
-  has_won: [
-    [["subject_id"], []],
-    [["subject_id"], ["race_type"]],
-  ],
-  momentum: [
-    [["jockey_id"], ["race_class"]],
-    [["dam", "age"], []],
-    [["owner"], []],
-    [["subject_id"], []],
-    [["subject_id"], ["race_class"]],
-    [["trainer_id"], ["race_class"]],
-    [["jockey_id", "trainer_id"], []],
-    [["subject_id", "jockey_id"], []],
-    [["subject_id", "owner"], []],
-    [["subject_id", "trainer_id"], []],
-  ],
-  competitors_beaten: [
-    [["breeder"], []],
-    [["dam", "age"], []],
-    [["jockey_id"], ["estimated_going"]],
-    [["jockey_id"], ["race_class"]],
-    [["jockey_id"], ["race_type"]],
-    [["owner"], ["race_type"]],
-    [["subject_id"], ["category"]],
-    [["subject_id"], ["race_class"]],
-    [["trainer_id"], ["estimated_going"]],
-    [["trainer_id"], ["race_class"]],
-    [["trainer_id"], ["race_type"]],
-    [["jockey_id", "trainer_id"], []],
-    [["subject_id", "jockey_id"], []],
-    [["subject_id", "trainer_id"], []],
-  ],
-  relative_distance_behind: [
-    [["jockey_id"], ["race_type"]],
-    [["owner"], ["race_type"]],
-    [["subject_id"], ["race_class"]],
-    [["subject_id"], ["race_type"]],
-    [["trainer_id"], ["race_type"]],
-    [["jockey_id", "trainer_id"], []],
-    [["subject_id", "jockey_id"], []],
-    [["subject_id", "owner"], []],
-    [["subject_id", "trainer_id"], []],
-  ]
-}
+from SampleExtraction.feature_sources.feature_sources import PreviousSource, MaxSource, MinSource, \
+  SimpleAverageSource, SumSource, StreakSource, EMASource, DiffPreviousSource, DiffAverageSource
+from SampleExtraction.feature_sources.value_calculators import WinProbabilityCalculator, HasWonCalculator, \
+  MomentumCalculator, PlacePercentileCalculator, CompetitorsBeatenCalculator, RelativeDistanceBehindCalculator, \
+  PurseCalculator, RatingCalculator, RaceDistanceCalculator, RaceClassCalculator, RaceGoingCalculator, \
+  NumDaysCalculator, WeightCalculator, OneConstantCalculator
+
+has_won_calculator = HasWonCalculator()
+momentum_calculator = MomentumCalculator()
+win_probability_calculator = WinProbabilityCalculator()
+place_percentile_calculator = PlacePercentileCalculator()
+competitors_beaten_calculator = CompetitorsBeatenCalculator()
+relative_distance_behind_calculator = RelativeDistanceBehindCalculator()
+purse_calculator = PurseCalculator()
+rating_calculator = RatingCalculator()
+race_distance_calculator = RaceDistanceCalculator()
+race_class_calculator = RaceClassCalculator()
+race_going_calculator = RaceGoingCalculator()
+num_days_calculator = NumDaysCalculator()
+weight_calculator = WeightCalculator()
+one_constant_calculator = OneConstantCalculator()
 
 features = {
-  AverageSource(window_size=0.1): average_source_features,
-  AverageSource(window_size=0.01): average_source_features,
-  AverageSource(window_size=0.001): average_source_features,
+  SimpleAverageSource(): 
+  {
+    has_won_calculator: [
+      [["jockey_id"], ["race_class"]],
+      [["trainer_id"], ["race_class"]],
+    ],
+    momentum_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["surface"]]
+    ],
+    win_probability_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["race_class"]],
+      [["subject_id"], ["surface"]]
+    ],
+    place_percentile_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["race_class"]],
+      [["subject_id"], ["surface"]],
+      [["subject_id"], ["track_name"]]
+    ],
+    competitors_beaten_calculator: [
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["race_class"]]
+    ],
+    relative_distance_behind_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["race_class"]],
+      [["subject_id"], ["surface"]],
+      [["subject_id"], ["track_name"]]
+    ],
+    purse_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["surface"]],
+      [["subject_id"], ["track_name"]]
+    ]
+  },
+  EMASource():
+  {
+    has_won_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    momentum_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    win_probability_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    place_percentile_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    competitors_beaten_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    relative_distance_behind_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ],
+    purse_calculator: [
+      [["jockey_id"], []],
+      [["trainer_id"], []]
+    ]
+  },
   PreviousSource():
   {
-    win_probability: [
+    win_probability_calculator: [
       [["subject_id"], []],
-      [["subject_id"], ["category"]],
-      [["subject_id"], ["race_class"]],
       [["subject_id"], ["race_type"]],
-      [["subject_id"], ["surface"]],
-      [["subject_id"], ["track_name"]],
-    ],
-    has_placed: [
-      [["subject_id"], []],
-    ],
-    momentum: [
-      [["subject_id"], []],
-      [["subject_id"], ["surface"]],
       [["subject_id"], ["race_class"]],
+      [["subject_id"], ["surface"]],
+      [["subject_id"], ["track_name"]]
+    ],
+    rating_calculator: [
+      [["subject_id"], []],
+    ],
+    relative_distance_behind_calculator: [
+      [["subject_id"], []],
       [["subject_id"], ["race_type"]],
-      [["subject_id"], ["track_name"]],
-    ],
-    competitors_beaten: [
-      [["subject_id"], []],
-      [["subject_id"], ["category"]],
-      [["subject_id"], ["race_class"]],
-      [["subject_id"], ["race_type"]],
-      [["subject_id"], ["surface"]],
-      [["subject_id"], ["track_name"]],
-    ],
-    relative_distance_behind: [
-      [["subject_id"], []],
       [["subject_id"], ["race_class"]],
       [["subject_id"], ["surface"]],
-      [["subject_id"], ["track_name"]],
-    ],
-    race_class: [
-      [["subject_id"], []],
-    ],
-    adjusted_race_distance: [
-      [["subject_id"], []]
+      [["subject_id"], ["track_name"]]
     ]
   },
-  SumSource(): {
-    one_constant: [
-      [["jockey_id"], []],
-      [["subject_id"], []],
-      [["subject_id"], ["race_class"]],
-      [["trainer_id"], []],
-    ],
-    purse: [
-      [["jockey_id"], []],
-      [["subject_id"], []],
-      [["trainer_id"], []],
-    ]
-  },
-  StreakSource(): {
-    has_won: [
+  DiffPreviousSource(): {
+    race_distance_calculator: [
       [["subject_id"], []]
     ],
-    has_placed: [
+    race_going_calculator: [
+      [["subject_id"], []]
+    ],
+    num_days_calculator: [
+      [["subject_id"], []], 
+      [["subject_id", "jockey_id"], []], 
+      [["subject_id"], ["race_class"]], 
+      [["subject_id"], ["surface"]], 
+      [["subject_id"], ["track_name"]]
+    ],
+    race_class_calculator: [
+      [["subject_id"], []], 
+      [["subject_id"], ["surface"]], 
+      [["subject_id", "trainer_id"], []]
+    ]
+  },
+  DiffAverageSource(): {
+    race_distance_calculator: [
+      [["subject_id"], []]
+    ],
+    race_going_calculator: [
+      [["subject_id"], []]
+    ],
+    race_class_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["surface"]],
+      [["subject_id"], ["track_name"]],
+      [["jockey_id"], []],
+      [["trainer_id"], []],
+      [["trainer_id"], ["surface"]],
+      [["trainer_id"], ["track_name"]],
+      [["subject_id", "jockey_id"], []],
+      [["subject_id", "trainer_id"], []]
+    ],
+    weight_calculator: [
       [["subject_id"], []]
     ]
   },
   MaxSource(): {
-    win_probability: [
-      [["dam", "age"], []],
-      [["jockey_id"], []],
-      [["subject_id"], []],
-      [["subject_id"], ["race_class"]],
-      [["subject_id"], ["surface"]],
-      [["trainer_id"], []],
-    ],
-    momentum: [
-      [["dam", "age"], []],
-      [["jockey_id"], []],
-      [["subject_id"], []],
-      [["subject_id"], ["race_class"]],
-      [["subject_id"], ["surface"]],
-      [["subject_id"], ["track_name"]],
-      [["trainer_id"], []],
-    ],
-    competitors_beaten: [
-      [["dam", "age"], []],
-      [["subject_id"], []],
-      [["subject_id"], ["race_class"]],
-      [["subject_id"], ["surface"]],
-    ],
-    adjusted_race_distance: [
+    win_probability_calculator: [
       [["subject_id"], []]
     ],
-    weight: [
-      [["subject_id"], []]
-    ],
-    purse: [
-      [["jockey_id"], []],
+    momentum_calculator: [
       [["subject_id"], []],
-      [["trainer_id"], []],
+      [["subject_id"], ["race_type"]]
+    ],
+    place_percentile_calculator: [
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["surface"]]
+    ],
+    relative_distance_behind_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["surface"]]
+    ],
+    purse_calculator: [
+      [["subject_id"], []],
+      [["subject_id"], ["race_type"]],
+      [["subject_id"], ["surface"]]
     ]
   },
-  MinSource(): {
-    adjusted_race_distance: [
-      [["subject_id"], []]
+  SumSource(): {
+    one_constant_calculator: [
+      [["subject_id"], []],
+      [["jockey_id"], []],
+      [["trainer_id"], []],
     ],
-    weight: [
-      [["subject_id"], []]
-    ]
-  }
+  },
 }
 
 with open('features.pkl', 'wb') as f:

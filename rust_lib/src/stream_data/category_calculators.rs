@@ -78,6 +78,18 @@ impl CategoryCalculator for SireIdCategory {
 }
 
 #[derive(Clone)]
+pub struct GoingCategory;
+
+impl CategoryCalculator for GoingCategory {
+    fn get_category(&self, race_card: &RaceCard, _: &Horse) -> String {
+        race_card.going.to_string()
+    }
+    fn name(&self) -> &str {
+        "going"
+    }
+}
+
+#[derive(Clone)]
 pub struct RaceTypeCategory;
 
 impl CategoryCalculator for RaceTypeCategory {

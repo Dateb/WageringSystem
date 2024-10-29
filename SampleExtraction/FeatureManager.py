@@ -1,33 +1,12 @@
-import json
-import multiprocessing
-import os
 import pickle
-import time
-from multiprocessing.pool import Pool
-from threading import Thread
-from typing import List, Tuple, Dict
+from typing import List
 
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
-from SampleExtraction.Extractors.current_race_based import CurrentRaceTrack, CurrentRaceClass, CurrentRaceSurface, \
-    CurrentRaceType, CurrentRaceTypeDetail, CurrentRaceCategory, CurrentEstimatedGoing, CurrentDistance, CurrentPurse, \
-    TravelDistance, PlacesNum, HasTrainerMultipleHorses, HasPlaced, CurrentWindSpeed, \
-    CurrentHumidity
-from SampleExtraction.Extractors.equipment_based import HasBlinkers, HasVisor, HasHood, HasCheekPieces, HasEyeCovers, \
-    HasEyeShield, HasTongueStrap
-from SampleExtraction.Extractors.horse_attributes_based import CurrentRating, Age, Gender, \
-    TrainerChangeEarningsRateDiff, Origin
-from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight, WeightAllowance, OutOfHandicapWeight
-from SampleExtraction.Extractors.time_based import DayOfYearSin, DayOfYearCos, WeekDayCos, WeekDaySin, MinutesIntoDay
-from SampleExtraction.feature_sources.feature_sources import PreviousSource, MaxSource, AverageSource, \
-    TrackVariantSource, FeatureValueGroup, MinSource, CountSource, SumSource, \
-    GoingSource, StreakSource, FeatureSource
-from SampleExtraction.feature_sources.value_calculators import win_probability, momentum, \
-    competitors_beaten, \
-    race_distance, \
-    race_class, relative_distance_behind, has_pulled_up, adjusted_race_distance, weight, one_constant, \
-    has_won, purse, has_placed, place_percentile
+from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, Origin
+from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight
+from SampleExtraction.feature_sources.feature_sources import PreviousSource, FeatureValueGroup
 from util.nested_dict import nested_dict
 from util.stats_calculator import SimpleOnlineCalculator
 
@@ -84,30 +63,10 @@ class FeatureManager:
         print(features)
 
         current_race_features = [
-            CurrentRaceCategory(),
-            CurrentEstimatedGoing(),
-            # CurrentTemperature(),
-            # CurrentWindSpeed(),
-            # CurrentHumidity(),
-
-            HasVisor(),
-
-            HasTrainerMultipleHorses(),
-
             Age(),
             Gender(),
             Origin(),
-
             CurrentJockeyWeight(),
-        ]
-
-        layoff_features = [
-            LayoffExtractor(self.previous_value_source, ["subject_id"], []),
-            # LayoffExtractor(self.previous_value_source, ["subject_id"], ["distance_category"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id", "jockey_id"], []),
-            LayoffExtractor(self.previous_value_source, ["subject_id"], ["track_name"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id"], ["race_class"]),
-            LayoffExtractor(self.previous_value_source, ["subject_id"], ["surface"]),
         ]
 
         self.feature_value_groups = []
@@ -122,7 +81,7 @@ class FeatureManager:
             for feature_value_group in feature_source.feature_value_groups:
                 self.feature_value_group_to_source_map[feature_value_group].append(feature_source)
 
-        return features + current_race_features + layoff_features
+        return features + current_race_features
 
     def set_features(self, race_cards: List[RaceCard]):
         for race_card in race_cards:
@@ -136,7 +95,8 @@ class FeatureManager:
 
     def pre_update_feature_sources(self, race_card: RaceCard) -> None:
         for feature_source in self.feature_sources:
-            feature_source.pre_update(race_card)
+            for horse in race_card.runners:
+                feature_source.pre_update(race_card, horse)
 
     def post_update_feature_sources(self, race_cards: List[RaceCard]) -> None:
         race_cards = [race_card for race_card in race_cards if
@@ -157,7 +117,7 @@ class FeatureManager:
                             feature_value_group_key = feature_value_group.key_cache[horse.subject_id]
                         else:
                             feature_value_group_key = feature_value_group.get_key(race_card_key, horse)
-                        new_feature_value = feature_value_group.value_calculator(race_card, horse)
+                        new_feature_value = feature_value_group.value_calculator.calculate(race_card, horse)
                         if new_feature_value is not None:
                             if isinstance(new_feature_value, float):
                                 if feature_value_group_key not in feature_values:
@@ -175,7 +135,8 @@ class FeatureManager:
                                 feature_values[feature_value_group_key]["avg"] = new_feature_value
 
             for feature_source in self.feature_value_group_to_source_map[feature_value_group]:
-                feature_source.post_update(race_cards, feature_values, current_date)
+                if not feature_value_group.value_calculator.is_available_before_race:
+                    feature_source.post_update(race_cards, feature_values, current_date)
 
         for feature_value_group in self.feature_value_groups:
             feature_value_group.clear_cache()

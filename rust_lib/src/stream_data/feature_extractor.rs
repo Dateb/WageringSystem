@@ -137,7 +137,12 @@ impl Feature for PreviousFeatureExtractor {
         let previous_value = self.previous_values.entry(category_key).or_insert(FeatureValue::None);
 
         let old_value = previous_value.clone();
-        *previous_value = value;
+
+        *previous_value = match value {
+            FeatureValue::Number(num) => FeatureValue::Number(num),
+            FeatureValue::Text(text) => FeatureValue::Text(text),
+            FeatureValue::None => previous_value.clone()
+        };
 
         old_value
     }

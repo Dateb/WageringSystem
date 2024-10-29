@@ -4,97 +4,150 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataAbstraction.Present.Trainer import Trainer
 
+class ValueCalculator:
+    is_available_before_race: bool = False
 
-def has_won(race_card: RaceCard, horse: Horse) -> float:
-    return float(horse.has_won)
+    def calculate(self, race_card: RaceCard, horse: Horse):
+        raise NotImplementedError("Subclasses should implement this method.")
 
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
 
-def has_placed(race_card: RaceCard, horse: Horse) -> float:
-    return float(horse.has_placed)
+class HasWonCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return float(horse.has_won)
 
-def purse(race_card: RaceCard, horse: Horse) -> float:
-    return horse.purse
+class HasPlacedCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return float(horse.has_placed)
 
-def one_constant(race_card: RaceCard, horse: Horse) -> float:
-    return 1.0
+class PurseCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.purse
 
-def win_probability(race_card: RaceCard, horse: Horse) -> float:
-    return horse.sp_win_prob
+class OneConstantCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return 1.0
 
-def place_percentile(race_card: RaceCard, horse: Horse) -> float:
-    return horse.place_percentile
+class WinProbabilityCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.sp_win_prob
 
-def competitors_beaten(race_card: RaceCard, horse: Horse) -> float:
-    return horse.competitors_beaten_probability
+class RatingCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.rating
 
-def relative_distance_behind(race_card: RaceCard, horse: Horse):
-    return horse.relative_distance_behind
+class PlacePercentileCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.place_percentile
 
-def has_pulled_up(race_card: RaceCard, horse: Horse) -> float:
-    has_pulled_up = horse.result_finish_dnf == "PU"
+class CompetitorsBeatenCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
-    return float(has_pulled_up)
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.competitors_beaten_probability
 
+class RelativeDistanceBehindCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
-def race_distance(race_card: RaceCard, horse: Horse) -> float:
-    race_distance = race_card.distance
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.relative_distance_behind
 
-    if race_distance > 0:
-        return race_distance
+class HasPulledUpCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
-    return None
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        has_pulled_up = horse.result_finish_dnf == "PU"
+        return float(has_pulled_up)
 
+class RaceDistanceCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def adjusted_race_distance(race_card: RaceCard, horse: Horse) -> float:
-    if race_card.adjusted_distance > 0:
-        return race_card.adjusted_distance
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.distance > 0:
+            return race_card.distance
+        return None
 
-    if race_card.distance > 0:
-        return race_card.distance
+class AdjustedRaceDistanceCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
-    return None
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.adjusted_distance > 0:
+            return race_card.adjusted_distance
+        if race_card.distance > 0:
+            return race_card.distance
+        return None
 
+class RaceClassCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def race_class(race_card: RaceCard, horse: Horse) -> float:
-    race_class = race_card.race_class
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        if race_card.race_class not in ["A", "B", "C", "O"]:
+            return int(race_card.race_class)
+        return None
 
-    if race_class not in ["A", "B", "C", "O"]:
-        return int(race_class)
+class RaceGoingCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-    return None
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return float(race_card.going)
 
+class NumDaysCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def weight(race_card: RaceCard, horse: Horse) -> float:
-    weight = horse.jockey.weight
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return (race_card.datetime - datetime.datetime(2000, 1, 1)).days
 
-    if weight > 0:
-        return weight
+class WeightCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-    return None
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        weight = horse.jockey.weight
+        if weight > 0:
+            return weight
+        return None
 
+class RaceDateCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def race_date(race_card: RaceCard, horse: Horse) -> datetime.date:
-    return race_card.date
+    def calculate(self, race_card: RaceCard, horse: Horse) -> datetime.date:
+        return race_card.date
 
+class TrackNameCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def get_track_name(race_card: RaceCard, horse: Horse) -> str:
-    return race_card.track_name
+    def calculate(self, race_card: RaceCard, horse: Horse) -> str:
+        return race_card.track_name
 
+class TrainerIdCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def get_trainer_id(race_card: RaceCard, horse: Horse) -> str:
-    return horse.trainer.id
+    def calculate(self, race_card: RaceCard, horse: Horse) -> str:
+        return horse.trainer.id
 
+class TrainerCalculator(ValueCalculator):
+    is_available_before_race: bool = True
 
-def get_trainer(race_card: RaceCard, horse: Horse) -> Trainer:
-    return horse.trainer
+    def calculate(self, race_card: RaceCard, horse: Horse) -> Trainer:
+        return horse.trainer
 
+class MomentumCalculator(ValueCalculator):
+    is_available_before_race: bool = False
 
-def momentum(race_card: RaceCard, horse: Horse) -> float:
-    return horse.momentum
+    def calculate(self, race_card: RaceCard, horse: Horse) -> float:
+        return horse.momentum

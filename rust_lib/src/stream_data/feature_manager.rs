@@ -101,6 +101,7 @@ fn parse_categories(category_names: &Vec<String>) -> Vec<Arc<dyn CategoryCalcula
             "BreederId" => Arc::new(BreederIdCategory),
             "DamId" => Arc::new(DamIdCategory),
             "SireId" => Arc::new(SireIdCategory),
+            "Going" => Arc::new(GoingCategory),
             "RaceType" => Arc::new(RaceTypeCategory),
             "RaceClass" => Arc::new(RaceClassCategory),
             "Surface" => Arc::new(SurfaceCategory),

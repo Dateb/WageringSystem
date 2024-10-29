@@ -61,7 +61,7 @@ class ModelSimulator:
         #     # WinClassificationEstimator(self.feature_manager)
         # ]
         # self.estimator = AvgEstimator(self.feature_manager, weak_estimators)
-        self.estimator = WinRankingEstimator(self.feature_manager)
+        self.estimator = WinRegressionEstimator(self.feature_manager)
         # self.estimator = WinRegressionEstimator(self.feature_manager)
         self.race_cards_array_factory = RaceCardsArrayFactory(self.feature_manager)
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     data_splitter = MonthDataSplitter(
         container_upper_limit_percentage=0.1,
         n_months_test_sample=14,
-        n_months_forward_offset=0,
+        n_months_forward_offset=130,
         race_cards_folder=simulate_conf.RELEASE_RACE_CARDS_FOLDER_NAME
     )
 

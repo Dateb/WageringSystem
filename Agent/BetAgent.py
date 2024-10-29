@@ -95,7 +95,7 @@ class ExchangeBetRequester(Actuator):
         self.estimation_result = estimation_result
 
         odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1.2)
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1.0)
         self.stakes = max([round(self.CURRENT_BANKROLL * 0.0033, 2), 6.0])
 
     def run(self) -> None:
@@ -110,7 +110,7 @@ class ExchangeBetRequester(Actuator):
                             horse_probability = race_card_probabilities[int(horse_number)]
                             horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
 
-                            if horse_min_odds <= 3.5:
+                            if horse_min_odds <= 3.5 and market.race_card.category == "HCP":
                                 print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
                                 self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds, self.stakes)
                 else:

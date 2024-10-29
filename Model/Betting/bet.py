@@ -80,6 +80,7 @@ class BetOffer:
 
     is_success: bool
     country: str
+    race_category: str
     race_class: str
     horse_number: int
     live_result: LiveResult

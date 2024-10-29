@@ -71,9 +71,12 @@ class Horse:
         self.place = 0
 
         self.is_nonrunner = raw_data["scratched"]
-        self.win_sp = self.__extract_betfair_win_odds(raw_data)
+
+        self.racebets_sp = self.__extract_racebets_win_odds(raw_data)
+        self.betfair_sp = self.__extract_betfair_win_odds(raw_data)
+        self.win_sp = self.betfair_sp
         if self.win_sp < 1:
-            self.win_sp = self.__extract_racebets_win_odds(raw_data)
+            self.win_sp = self.racebets_sp
 
         self.sp_win_prob = None
 

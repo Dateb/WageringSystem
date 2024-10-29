@@ -4,7 +4,7 @@ from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor
 from SampleExtraction.feature_sources.feature_sources import FeatureSource, FeatureValueGroup
-from SampleExtraction.feature_sources.value_calculators import get_trainer_id, get_trainer
+from SampleExtraction.feature_sources.value_calculators import TrainerCalculator
 
 
 class HasWon(FeatureExtractor):
@@ -108,7 +108,7 @@ class TrainerChangeEarningsRateDiff(FeatureExtractor):
         super().__init__()
         self.previous_trainer_source = previous_trainer_source
         self.performance_source = performance_source
-        self.horse_trainer = FeatureValueGroup(["subject_id"], get_trainer)
+        self.horse_trainer = FeatureValueGroup(["subject_id"], TrainerCalculator())
         self.trainer_performance_value = trainer_performance_value
 
         self.previous_trainer_source.register_feature_value_group(self.horse_trainer)
