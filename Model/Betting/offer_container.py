@@ -131,7 +131,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                             loss=0,
                                         )
 
-                                        bef_offer = BetOffer(
+                                        bet_offer = BetOffer(
                                             is_success=is_success,
                                             country=race_card.country,
                                             race_category=race_card.category,
@@ -144,7 +144,7 @@ class BetfairOfferContainer(BetOfferContainer):
                                             n_horses=n_horses,
                                             n_winners=n_winners
                                         )
-                                        new_offers.append(bef_offer)
+                                        new_offers.append(bet_offer)
                                     else:
                                         print(f"Could not find horse: {offer_data['id']} on race: {race_card.race_id}")
                                         print(f"race datetime: {race_datetime}")

@@ -191,11 +191,12 @@ class RaceCard:
 
         for horse in self.runners:
             if horse.win_sp >= 1:
-                p = (1 / horse.win_sp) / self.overround
+                horse.betfair_win_prob = (1 / horse.win_sp) / self.overround
                 p_base = 1 / self.n_runners
-                horse.sp_win_prob = (p - p_base) / max([p, p_base])
-                horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.sp_win_prob
+                horse.sp_win_prob = (horse.betfair_win_prob - p_base) / max([horse.betfair_win_prob, p_base])
+                horse.base_attributes[Horse.WIN_PROB_LABEL_KEY] = horse.betfair_win_prob
             else:
+                horse.betfair_win_prob = 0.0
                 horse.sp_win_prob = 0.0
                 print(f"Race {self.race_id} turned off")
                 self.is_valid_sample = False

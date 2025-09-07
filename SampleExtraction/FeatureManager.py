@@ -4,6 +4,7 @@ from typing import List
 from DataAbstraction.Present.Horse import Horse
 from DataAbstraction.Present.RaceCard import RaceCard
 from SampleExtraction.Extractors.FeatureExtractor import FeatureExtractor, FeatureSourceExtractor, LayoffExtractor
+from SampleExtraction.Extractors.current_race_based import TravelDistance
 from SampleExtraction.Extractors.horse_attributes_based import Age, Gender, Origin
 from SampleExtraction.Extractors.jockey_based import CurrentJockeyWeight
 from SampleExtraction.feature_sources.feature_sources import PreviousSource, FeatureValueGroup
@@ -67,6 +68,7 @@ class FeatureManager:
             Gender(),
             Origin(),
             CurrentJockeyWeight(),
+            TravelDistance(self.previous_value_source)
         ]
 
         self.feature_value_groups = []

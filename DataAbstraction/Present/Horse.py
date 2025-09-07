@@ -79,6 +79,7 @@ class Horse:
             self.win_sp = self.racebets_sp
 
         self.sp_win_prob = None
+        self.betfair_win_prob = None
 
         # self.post_position = self.__extract_post_position(raw_data)
         self.has_won = None
@@ -125,7 +126,7 @@ class Horse:
             self.CURRENT_WIN_ODDS_KEY: self.win_sp,
             self.PLACE_KEY: self.place,
             self.RANKING_LABEL_KEY: self.ranking_label,
-            self.WIN_PROB_LABEL_KEY: self.sp_win_prob,
+            self.WIN_PROB_LABEL_KEY: self.betfair_win_prob,
             self.HAS_WON_LABEL_KEY: self.has_won
         }
 

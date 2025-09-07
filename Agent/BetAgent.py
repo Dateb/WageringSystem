@@ -1,12 +1,10 @@
 import datetime
 import pickle
 from abc import abstractmethod
-from copy import deepcopy
 from datetime import datetime, date, timedelta, time
 from typing import Dict
 
 from Agent.leakage_detection import LeakageDetector
-from Agent.odds_requesting.bookie_offer_requester import BookieOfferRequester
 from Agent.odds_requesting.exchange_offer_requester import Exchange
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.DayCollector import DayCollector
@@ -33,56 +31,46 @@ class Actuator:
         pass
 
 
-class ExchangeBetLogger(Actuator):
+class ValueReporter(Actuator):
 
-    BETS_PATH = f"../data/bets_log/{datetime.now()}"
-
-    def __init__(
-            self,
-            estimation_result: EstimationResult,
-            exchange: Exchange,
-            upcoming_race_cards: Dict[str, RaceCard]
-    ):
+    def __init__(self, estimation_result: EstimationResult, exchange: Exchange):
         super().__init__()
         self.exchange = exchange
         self.estimation_result = estimation_result
-        self.bettor = BettorFactory().create_bettor(bet_threshold=0.0)
-        self.upcoming_race_cards = upcoming_race_cards
-        self.current_bets = []
 
-    def remove_expired_upcoming_race_cards(self) -> None:
-        expired_race_card_key = None
-        for key, race_card in self.upcoming_race_cards.items():
-            if datetime.now() > (race_card.datetime - timedelta(hours=0, minutes=10)):
-                expired_race_card_key = key
-
-        if expired_race_card_key is not None:
-            expired_race_card = self.upcoming_race_cards[expired_race_card_key]
-            try:
-                self.exchange.delete_market_of_race_card(expired_race_card)
-                del self.upcoming_race_cards[expired_race_card_key]
-
-                self.exchange.reset_connection()
-
-            except KeyError as error:
-                print(f"Keyerror when deleting race: {expired_race_card}: {error}")
+        odds_vig_adjuster = BetfairOddsVigAdjuster()
+        self.odds_threshold = OddsThreshold(odds_vig_adjuster, min_ev=1.0)
+        self.value_opportunities = []
 
     def run(self) -> None:
-        while self.upcoming_race_cards:
-            self.remove_expired_upcoming_race_cards()
-            bet_offers = self.exchange.get_bet_offers()
+        probability_estimates = self.estimation_result.results
+        for market in self.exchange.markets:
+            if market.market_id:
+                race_key = str(market.race_card.datetime)
+                if race_key in probability_estimates:
+                    race_card_probabilities = probability_estimates[race_key]
+                    for horse_exchange_id, horse_number in market.horse_number_by_exchange_id.items():
+                        if int(horse_number) in race_card_probabilities:
+                            horse_probability = race_card_probabilities[int(horse_number)]["probability"]
+                            horse_odds = race_card_probabilities[int(horse_number)]["odds"]
+                            horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
+                            horse_ev = horse_odds * horse_probability
 
-            if bet_offers:
-                bet_offers = {str(bet_offers[0].race_datetime): bet_offers}
+                            if horse_ev > 1.1 and horse_min_odds <= 10:
+                                value_opportunity = {
+                                    "Race": market.race_card.name,
+                                    "Horse number": horse_number,
+                                    "Min Odds": horse_min_odds,
+                                    "EV": horse_ev
+                                }
+                                self.value_opportunities.append(value_opportunity)
+                else:
+                    print(f"Skipped betting on race due to missing estimates: {market.race_card.race_id}")
 
-                bets = self.bettor.bet(bet_offers, self.estimation_result)
+        self.value_opportunities.sort(key=lambda x: x["EV"], reverse=True)
 
-                self.current_bets += bets
-
-                if bets:
-                    print(f"{datetime.now()}: Writing new bets...")
-                    with open(self.BETS_PATH, "wb") as f:
-                        pickle.dump(self.current_bets, f)
+        for value_opportunity in self.value_opportunities:
+            print(value_opportunity)
 
 
 class ExchangeBetRequester(Actuator):
@@ -99,7 +87,7 @@ class ExchangeBetRequester(Actuator):
         self.stakes = max([round(self.CURRENT_BANKROLL * 0.0033, 2), 6.0])
 
     def run(self) -> None:
-        probability_estimates = self.estimation_result.probability_estimates
+        probability_estimates = self.estimation_result.results
         for market in self.exchange.markets:
             if market.market_id:
                 race_key = str(market.race_card.datetime)
@@ -107,36 +95,18 @@ class ExchangeBetRequester(Actuator):
                     race_card_probabilities = probability_estimates[race_key]
                     for horse_exchange_id, horse_number in market.horse_number_by_exchange_id.items():
                         if int(horse_number) in race_card_probabilities:
-                            horse_probability = race_card_probabilities[int(horse_number)]
+                            horse_probability = race_card_probabilities[int(horse_number)]["probability"]
+                            horse_odds = race_card_probabilities[int(horse_number)]["odds"]
                             horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
+                            horse_ev = horse_odds * horse_probability
 
-                            if horse_min_odds <= 3.5 and market.race_card.category == "HCP":
-                                print(f"Race/Horse-Nr/Odds: {race_key}/{horse_number}/{horse_min_odds}")
-                                self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds, self.stakes)
+                            print(f"Race/Horse-Nr/Min-Odds/EV: "
+                                  f"{market.race_card.name}/{horse_number}/{horse_min_odds}/{horse_ev}")
+                            # self.exchange.add_bet(market, int(horse_exchange_id), horse_min_odds, self.stakes)
                 else:
                     print(f"Skipped betting on race due to missing estimates: {market.race_card.race_id}")
 
-        self.exchange.submit_bets()
-
-
-class MinOddsReporter(Actuator):
-
-    def __init__(self, estimation_result: EstimationResult, upcoming_race_cards: Dict[str, RaceCard]):
-        super().__init__()
-        self.estimation_result = estimation_result
-        self.upcoming_race_cards = upcoming_race_cards
-
-        odds_vig_adjuster = BetfairOddsVigAdjuster()
-        self.odds_threshold = OddsThreshold(odds_vig_adjuster, alpha=0.01)
-
-    def run(self) -> None:
-        for race_key, race_card in self.upcoming_race_cards.items():
-            for horse in race_card.runners:
-                horse_probability = self.estimation_result.probability_estimates[race_key][horse.number]
-                horse_min_odds = self.odds_threshold.get_min_odds(horse_probability)
-
-                if horse_min_odds < 8:
-                    print(f"Race/Horse-Nr/Odds: {race_key}/{horse.number}/{horse_min_odds}")
+        # self.exchange.submit_bets()
 
 
 class BetAgent:
@@ -163,7 +133,7 @@ class BetAgent:
         model_simulator.simulate_prediction()
         model_simulator.simulate_betting()
 
-        self.leakage_detector.run()
+        # self.leakage_detector.run()
 
         self.upcoming_race_cards = self.get_upcoming_race_cards()
         race_cards_sample = self.race_cards_to_sample(model_simulator)
@@ -172,22 +142,20 @@ class BetAgent:
 
         self.estimation_result, _ = model_simulator.estimator.predict(race_cards_sample)
 
-        print(self.estimation_result.probability_estimates)
+        print(self.estimation_result.results)
 
-        if self.actuator_name == "ExchangeBetLogger":
-            exchange = Exchange(
-                market_type=self.market_type,
-                upcoming_race_cards=self.upcoming_race_cards
-            )
-            self.actuator = ExchangeBetLogger(self.estimation_result, exchange, self.upcoming_race_cards)
-        elif self.actuator_name == "ExchangeBetRequester":
+        if self.actuator_name == "ExchangeBetRequester":
             exchange = Exchange(
                 market_type=self.market_type,
                 upcoming_race_cards=self.upcoming_race_cards
             )
             self.actuator = ExchangeBetRequester(self.estimation_result, exchange)
-        else:
-            self.actuator = MinOddsReporter(self.estimation_result, self.upcoming_race_cards)
+        elif self.actuator_name == "ValueReporter":
+            exchange = Exchange(
+                market_type=self.market_type,
+                upcoming_race_cards=self.upcoming_race_cards
+            )
+            self.actuator = ValueReporter(self.estimation_result, exchange)
 
     def scrape_newest_race_cards(self) -> None:
         print("Scraping newest race card data...")
@@ -200,13 +168,12 @@ class BetAgent:
             day=1,
         )
 
-        start_time = datetime.strptime('00:00:00', '%H:%M:%S').time()
-        end_time = datetime.strptime('08:00:00', '%H:%M:%S').time()
+        start_time = datetime.strptime('21:00:00', '%H:%M:%S').time()
+        end_time = datetime.strptime('23:55:00', '%H:%M:%S').time()
 
         newest_date = date.today()
-        # Check if the current time is within the range
         if start_time <= datetime.now().time() < end_time:
-            newest_date = date.today() - timedelta(days=1)
+            newest_date = date.today() + timedelta(days=1)
 
         train_data_collector.collect_forward_until_newest_date(query_date, newest_date)
 
@@ -244,7 +211,7 @@ class BetAgent:
 
 
 def main():
-    actuator_name = "ExchangeBetRequester"
+    actuator_name = "ValueReporter"
     bettor = BetAgent(actuator_name=actuator_name)
     bettor.run()
     # while True:

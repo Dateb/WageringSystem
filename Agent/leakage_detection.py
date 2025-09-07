@@ -1,6 +1,6 @@
 import math
 import os
-from datetime import datetime
+import datetime
 from typing import List
 
 import pandas as pd
@@ -21,7 +21,6 @@ class BColors:
 
 class LeakageDetector:
 
-    LIVE_SAMPLE_PATH: str = '../data/samples/latest_live_sample.csv'
     TEST_SAMPLE_PATH: str = '../data/samples/test_sample.csv'
     LEAKAGE_LOG_DIR_PATH: str = '../data/leakage_logs/'
 
@@ -33,11 +32,25 @@ class LeakageDetector:
         self.key_columns = ["race_name", "date_time", "name"]
 
     def save_live_data(self, live_sample: RaceCardsSample):
-        live_sample.race_cards_dataframe.to_csv(self.LIVE_SAMPLE_PATH)
+        start_time = datetime.datetime.strptime('00:01:00', '%H:%M:%S').time()
+        end_time = datetime.datetime.strptime('07:00:00', '%H:%M:%S').time()
 
-    def run(self) -> None:
+        tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+        if start_time <= datetime.datetime.now().time() < end_time:
+            tomorrow = datetime.datetime.now()
+
+        live_sample_path = f'../data/samples/live/{tomorrow.strftime("%Y-%m-%d")}.csv'
+        live_sample.race_cards_dataframe.to_csv(live_sample_path)
+
+    def run(self, live_sample_date: datetime.date) -> None:
         test_df = pd.read_csv(self.TEST_SAMPLE_PATH)
-        live_df = pd.read_csv(self.LIVE_SAMPLE_PATH)
+
+        #Remove nonrunners in test dataframe
+        test_df = test_df.dropna(subset=['has_won'])
+
+        live_sample_date_str = live_sample_date.strftime("%Y-%m-%d")
+        live_sample_path = f'../data/samples/live/{live_sample_date_str}.csv'
+        live_df = pd.read_csv(live_sample_path)
 
         mismatches = self.get_test_live_mismatches(test_df, live_df)
 
@@ -51,7 +64,7 @@ class LeakageDetector:
             for mismatch in mismatches:
                 print(f"-> {mismatch}")
         else:
-            leakage_path = os.path.join(self.LEAKAGE_LOG_DIR_PATH, datetime.today().strftime('%Y-%m-%d'))
+            leakage_path = os.path.join(self.LEAKAGE_LOG_DIR_PATH, live_sample_date_str)
             print(f"{BColors.FAIL}>10 mismatches between live and test data found. Log mismatches at: {leakage_path}")
             with open(leakage_path, 'w') as f:
                 for mismatch in mismatches:
@@ -95,7 +108,8 @@ class LeakageDetector:
 
 def main():
     leakage_detector = LeakageDetector()
-    leakage_detector.run()
+    live_sample_date = datetime.date(2024, 11, 6)
+    leakage_detector.run(live_sample_date)
 
 
 if __name__ == '__main__':

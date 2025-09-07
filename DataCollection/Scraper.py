@@ -1,4 +1,4 @@
-import json
+import os
 from typing import Dict
 
 import requests
@@ -6,8 +6,6 @@ import time
 import random
 from requests import Session, Response
 from requests_ip_rotator import ApiGateway
-import chardet
-import brotli
 
 
 class Scraper:
@@ -22,8 +20,8 @@ class Scraper:
 
         self.__gateway = ApiGateway(
             self.__HOMEPAGE_URL,
-            access_key_id="AKIAQYYVWP3QQAP3DSPQ", #os.environ["AWS_ACCESS_KEY_ID"],
-            access_key_secret="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",#os.environ["AWS_ACCESS_KEY_SECRET"],
+            access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+            access_key_secret=os.environ["AWS_ACCESS_KEY_SECRET"],
         )
         self.__session = requests.Session()
 

@@ -129,7 +129,7 @@ class RaceDateCalculator(ValueCalculator):
         return race_card.date
 
 class TrackNameCalculator(ValueCalculator):
-    is_available_before_race: bool = True
+    is_available_before_race: bool = False
 
     def calculate(self, race_card: RaceCard, horse: Horse) -> str:
         return race_card.track_name

@@ -14,18 +14,19 @@ from SampleExtraction.RaceCardsSample import RaceCardsSample
 
 class EstimationResult:
 
-    def __init__(self, probability_estimates: dict):
-        self.probability_estimates = probability_estimates
+    def __init__(self, results: dict):
+        self.results = results
 
     def get_horse_win_probability(self, race_key: str, horse_number: int, scratched_horse_numbers: List[int], n_winners: int) -> float:
         total_probability_scratched_horses = 0
         for scratched_horse_number in scratched_horse_numbers:
-            if scratched_horse_number in self.probability_estimates[race_key]:
-                total_probability_scratched_horses += self.probability_estimates[race_key][scratched_horse_number]
+            if scratched_horse_number in self.results[race_key]:
+                total_probability_scratched_horses += self.results[race_key][scratched_horse_number]["probability"]
 
-        total_race_prob = sum(list(self.probability_estimates[race_key].values()))
-        if horse_number in self.probability_estimates[race_key]:
-            return (self.probability_estimates[race_key][horse_number] / (total_race_prob - total_probability_scratched_horses)) * n_winners
+        total_race_prob = sum(list(self.results[race_key].values()))
+        if horse_number in self.results[race_key]:
+            return (self.results[race_key][horse_number]["probability"] /
+                    (total_race_prob - total_probability_scratched_horses)) * n_winners
 
 
 class Probabilizer(ABC):
@@ -45,16 +46,19 @@ class RawWinProbabilizer(Probabilizer):
 
     def create_estimation_result(self, race_cards_sample: RaceCardsSample, scores: ndarray) -> EstimationResult:
         race_cards_dataframe = race_cards_sample.race_cards_dataframe
-        probability_estimates = {}
+        results = {}
 
         for row in race_cards_dataframe.itertuples(index=False):
             race_datetime = str(row.date_time)
-            if race_datetime not in probability_estimates:
-                probability_estimates[race_datetime] = {}
+            if race_datetime not in results:
+                results[race_datetime] = {}
 
-            probability_estimates[race_datetime][row.number] = row.prob
+            results[race_datetime][row.number] = {
+                "probability": row.prob,
+                "odds": row.current_win_odds,
+            }
 
-        return EstimationResult(probability_estimates)
+        return EstimationResult(results)
 
 
 class AggWinProbabilizer(Probabilizer):

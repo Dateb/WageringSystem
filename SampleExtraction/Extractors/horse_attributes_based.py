@@ -13,7 +13,9 @@ class HasWon(FeatureExtractor):
         super().__init__()
 
     def get_value(self, race_card: RaceCard, horse: Horse) -> int:
-        return int(horse.has_won)
+        if horse.has_won is not None:
+            return int(horse.has_won)
+        return 0
 
 
 class Age(FeatureExtractor):

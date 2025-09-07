@@ -1,13 +1,13 @@
 import json
-from datetime import datetime, time
+import time
+import datetime
 from time import sleep
-from typing import Dict, Tuple, List
+from typing import Dict, List
 
 import requests
 import websocket
 from websocket import WebSocketConnectionClosedException, WebSocketTimeoutException
 
-from Agent.odds_requesting.offer_requester import OfferRequester
 from DataAbstraction.Present.RaceCard import RaceCard
 from DataCollection.Scraper import get_scraper
 from Model.Betting.bet import BetOffer, LiveResult
@@ -46,7 +46,7 @@ class Market:
                         self.event_id = event_data["id"]
 
                         start_time_timestamp = int(market_data["startTime"]) / 1000
-                        start_time = datetime.utcfromtimestamp(start_time_timestamp)
+                        start_time = datetime.datetime.utcfromtimestamp(start_time_timestamp)
 
                         start_time_minute = str(start_time.minute)
                         if len(start_time_minute) == 1:
@@ -97,7 +97,7 @@ class MarketOffer:
                 live_result=live_result,
                 scratched_horse_numbers=[],
                 race_datetime=race_card.datetime,
-                offer_datetime=datetime.now(),
+                offer_datetime=datetime.datetime.now(),
                 n_horses=race_card.n_horses,
                 n_winners=1
             )
@@ -116,9 +116,9 @@ class ExchangeConnection:
     def get_today_markets_raw(self) -> dict:
         time_range = "TODAY"
 
-        current_time = datetime.now().time()
+        current_time = datetime.datetime.now().time()
 
-        if time(20, 0) <= current_time or current_time <= time(2, 0):
+        if datetime.time(20, 0) <= current_time or current_time <= datetime.time(2, 0):
             time_range = "TOMORROW"
 
         today_markets_raw_url = f"https://exch.piwi247.com/customer/api/horse-racing/7/all?timeRange={time_range}"
@@ -353,23 +353,25 @@ class Exchange:
         if market.market_id not in self.bets_data:
             self.bets_data[market.market_id] = []
 
+        current_unix_timestamp = str(int(time.time() * 1000))
+        bet_id = f"{market.market_id}_{horse_exchange_id}_0__{current_unix_timestamp}_INLINE"
         self.bets_data[market.market_id].append(
             {
+                    "applicationType": "WEB",
+                    "betType": "EXCHANGE",
+                    "betUuid": bet_id,
                     "selectionId": horse_exchange_id,
                     "handicap": 0,
-                    "price": str(odds),
+                    "price": odds,
                     "size": str(stakes),
                     "side": "BACK",
-                    "betType": "EXCHANGE",
                     "netPLBetslipEnabled": False,
                     "netPLMarketPageEnabled": False,
                     "quickStakesEnabled": True,
                     "confirmBetsEnabled": False,
-                    "applicationType": "WEB",
                     "mobile": False,
-                    "isEachWay": False,
-                    "eachWayData": {},
                     "page": "market",
+                    "eachWayData": {},
                     "persistenceType": "LAPSE",
                     "placedUsingEnterKey": False
                 }

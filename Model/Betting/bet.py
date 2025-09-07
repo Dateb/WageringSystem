@@ -222,9 +222,9 @@ class Bettor:
         bets = []
 
         for race_datetime, race_offers in offers.items():
-            if race_datetime in estimation_result.probability_estimates:
+            if race_datetime in estimation_result.results:
                 for bet_offer in race_offers:
-                    if 7 <= bet_offer.offer_datetime.hour <= 10:
+                    if 21 <= bet_offer.offer_datetime.hour <= 23:
                         # probability_estimate = estimation_result.get_horse_win_probability(
                         #     race_datetime,
                         #     bet_offer.horse_number,
@@ -232,10 +232,10 @@ class Bettor:
                         #     bet_offer.n_winners,
                         # )
 
-                        race_probability_estimates = estimation_result.probability_estimates[race_datetime]
+                        race_probability_estimates = estimation_result.results[race_datetime]
                         probability_estimate = None
                         if bet_offer.horse_number in race_probability_estimates:
-                            probability_estimate = race_probability_estimates[bet_offer.horse_number]
+                            probability_estimate = race_probability_estimates[bet_offer.horse_number]["probability"]
                         # else:
                         #     print(f'Bet offer: {race_datetime}/{bet_offer.horse_number} not estimated')
 
